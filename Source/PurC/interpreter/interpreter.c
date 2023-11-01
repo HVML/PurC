@@ -65,6 +65,8 @@
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4
 
+time_t g_purc_run_monotonic_ms = 0;
+
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
 {
@@ -1978,7 +1980,7 @@ purc_run(purc_cond_handler handler)
 
     heap->keep_alive = 0;
     heap->cond_handler = handler;
-
+    g_purc_run_monotonic_ms = pcutils_get_monotoic_time_ms();
     purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);
     purc_runloop_run();
 
@@ -3755,10 +3757,12 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
         goto out;
     }
 
-    r = pcintr_rdr_page_control_load(inst, &cor->stack);
-    if (!r) {
-        ret = -1;
-        goto out;
+    if (cor->stage == CO_STAGE_OBSERVING) {
+        r = pcintr_rdr_page_control_load(inst, &cor->stack);
+        if (!r) {
+            ret = -1;
+            goto out;
+        }
     }
 
     r = 0;
@@ -3792,3 +3796,8 @@ out:
     return ret;
 }
 
+time_t pcintr_tick_count()
+{
+    time_t n = pcutils_get_monotoic_time_ms();
+    return n - g_purc_run_monotonic_ms;
+}

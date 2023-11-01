@@ -90,6 +90,8 @@ set(sample_HVML_FILES
     "hvml/file-system-browser.hvml"
     "hvml/operation-elems-with-tag.hvml"
     "hvml/observe-dest.hvml"
+    "hvml/tpl.html"
+    "hvml/templ.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

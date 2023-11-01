@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 #if OS(LINUX) || OS(UNIX)
 #include <limits.h>
@@ -218,6 +219,14 @@ static inline bool pcutils_equal_longdoubles(long double a, long double b)
 {
     long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
+}
+
+static inline time_t pcutils_get_monotoic_time_ms(void)
+{
+    struct timespec tp;
+
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    return tp.tv_sec * 1000 + tp.tv_nsec * 1.0E-6;
 }
 
 #endif /* not defined PURC_PRIVATE_UTILS_H */

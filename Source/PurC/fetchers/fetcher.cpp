@@ -157,7 +157,8 @@ String pcfetcher_build_uri(const char *base_url,  const char *url)
     char buf[PATH_MAX + nr + 2];
 
     PurCWTF::URL uri(URL(), base_url);
-    if (uri.isLocalFile() && u.protocol().isEmpty() && url[0] != '/') {
+    if (uri.isLocalFile() && uri.host().isEmpty() && (uri.path() == "/") &&
+            u.protocol().isEmpty() && url[0] != '/') {
         if (getcwd(buf, sizeof(buf)) != NULL) {
             strcat(buf, "/");
             strcat(buf, url);

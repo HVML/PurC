@@ -536,6 +536,8 @@ struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
+extern time_t g_purc_run_monotonic_ms;
+
 bool pcintr_bind_builtin_runner_variables(void);
 
 struct pcintr_heap* pcintr_get_heap(void);
@@ -893,6 +895,9 @@ pcintr_get_named_variable(pcintr_stack_t stack,
 
 int
 pcintr_switch_new_renderer(struct pcinst *inst);
+
+/* ms */
+time_t pcintr_tick_count();
 
 PCA_EXTERN_C_END
 
