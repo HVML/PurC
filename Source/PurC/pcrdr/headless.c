@@ -1401,6 +1401,17 @@ found_tp:
     return domdocs;
 }
 
+static void on_load_from_url(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
+{
+    UNUSED_PARAM(prot_data);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(op_id);
+
+    result->retCode = PCRDR_SC_NOT_ACCEPTABLE;
+    result->resultValue = 0;
+}
+
 static void on_load(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
@@ -1757,6 +1768,7 @@ static request_handler handlers[] = {
     on_create_widget,
     on_update_widget,
     on_destroy_widget,
+    on_load_from_url,
     on_load,
     on_write_begin,
     on_write_more,
