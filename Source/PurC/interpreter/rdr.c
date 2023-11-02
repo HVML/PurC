@@ -115,11 +115,12 @@ object_set(purc_variant_t object, const char *key, const char *value)
     return true;
 }
 
-pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
+pcrdr_msg *pcintr_rdr_send_request_and_wait_response_ex(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
         const char *request_id, pcrdr_msg_element_type element_type,
         const char *element, const char *property,
-        pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len)
+        pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len,
+        int seconds_expected)
 {
     pcrdr_msg *response_msg = NULL;
     pcrdr_msg *msg = pcrdr_make_request_message(
@@ -149,11 +150,11 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
     }
 
     if (request_id && strcmp(request_id, PCINTR_RDR_NORETURN_REQUEST_ID) == 0) {
-        pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
+        pcrdr_send_request(conn, msg, seconds_expected, NULL, NULL);
     }
     else {
         pcrdr_send_request_and_wait_response(conn,
-                msg, PCRDR_TIME_DEF_EXPECTED, &response_msg);
+                msg, seconds_expected, &response_msg);
     }
     pcrdr_release_message(msg);
     msg = NULL;
@@ -167,6 +168,18 @@ failed:
 
     return NULL;
 }
+
+pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
+        pcrdr_msg_target target, uint64_t target_value, const char *operation,
+        const char *request_id, pcrdr_msg_element_type element_type,
+        const char *element, const char *property,
+        pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len)
+{
+    return pcintr_rdr_send_request_and_wait_response_ex(conn,
+        target, target_value, operation, request_id, element_type,
+        element, property, data_type, data, data_len, PCRDR_TIME_DEF_EXPECTED);
+}
+
 
 uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
         uint64_t session, const char *name, purc_variant_t data)
@@ -951,6 +964,8 @@ check_response_for_suppressed(struct pcinst *inst,
     }
 }
 
+#define PCRDR_TIME_LARGE_EXPECTED       10
+
 static pcrdr_msg *
 rdr_page_control_load_large_page(struct pcrdr_conn *conn,
         pcintr_coroutine_t co_loaded,
@@ -978,14 +993,14 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request_and_wait_response(
+    response_msg = pcintr_rdr_send_request_and_wait_response_ex(
             conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN, NULL,
             PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
-            data_type, data, len_to_write);
+            data_type, data, len_to_write, PCRDR_TIME_LARGE_EXPECTED);
     purc_variant_unref(data);
 
     if (response_msg == NULL) {
-        PC_ERROR("Failed to send request to renderer\n");
+        PC_ERROR("Failed to send request to renderer expired=%d\n", PCRDR_TIME_LARGE_EXPECTED);
         goto failed;
     }
 
@@ -1006,9 +1021,10 @@ writting:
         // writeEnd
         data = purc_variant_make_string_static(doc_content + len_wrotten,
                 false);
-        response_msg = pcintr_rdr_send_request_and_wait_response(
+        response_msg = pcintr_rdr_send_request_and_wait_response_ex(
                 conn, target, target_value, PCRDR_OPERATION_WRITEEND, NULL,
-                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL, data_type, data, 0);
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL, data_type, data, 0,
+                PCRDR_TIME_LARGE_EXPECTED);
         purc_variant_unref(data);
         if (response_msg == NULL) {
             PC_ERROR("Failed to send request to renderer\n");
@@ -1036,10 +1052,10 @@ writting:
             goto failed;
         }
 
-        response_msg = pcintr_rdr_send_request_and_wait_response(
+        response_msg = pcintr_rdr_send_request_and_wait_response_ex(
                 conn, target, target_value, PCRDR_OPERATION_WRITEMORE, NULL,
                 PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
-                data_type, data, len_to_write);
+                data_type, data, len_to_write, PCRDR_TIME_LARGE_EXPECTED);
         purc_variant_unref(data);
         if (response_msg == NULL) {
             PC_ERROR("Failed to send request to renderer\n");
@@ -1110,7 +1126,10 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
     assert(n < (int)sizeof(elem));
     (void)n;
 
-    if (pcrdr_conn_type(inst->conn_to_rdr) == CT_MOVE_BUFFER) {
+    int conn_type = pcrdr_conn_type(inst->conn_to_rdr);
+    if (conn_type == CT_MOVE_BUFFER) {
+        PC_INFO("rdr page control load, tickcount is %ld to move buffer\n",
+                pcintr_tick_count());
         /* XXX: pass the document entity directly
            when the connection type is move buffer. */
         req_data = purc_variant_make_native(doc, NULL);
@@ -1123,6 +1142,64 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
 
         if (response_msg) {
             check_response_for_suppressed(inst, stack->co, response_msg);
+        }
+    }
+    /* TODO: WEBSOCKET with sending_document_by_url */
+    else if (conn_type == CT_UNIX_SOCKET) {
+        unsigned opt = 0;
+
+        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (out == NULL) {
+            goto failed;
+        }
+
+        opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+        opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+        opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+        opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+        opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
+
+        if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+            goto failed;
+        }
+
+        size_t sz_content = 0;
+        size_t sz_buff = 0;
+        char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+                &sz_buff, true);
+
+        char path[PATH_MAX + 1];
+        sprintf(path, "/tmp/%s_%s.hvml", inst->app_name, inst->runner_name);
+
+        FILE *fp = fopen(path, "w");
+        fwrite(p, 1, sz_content, fp);
+        fclose(fp);
+
+        char url[2 * PATH_MAX + 1];
+        sprintf(url, "hvml://localhost/_filesystem/_file/-%s", path);
+
+        data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+        req_data = purc_variant_make_string(url, false);
+        if (req_data == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                inst->conn_to_rdr, target, target_value,
+                PCRDR_OPERATION_LOADFROMURL, NULL,
+                element_type, elem, NULL, data_type, req_data, 0);
+        if (response_msg) {
+            check_response_for_suppressed(inst, stack->co, response_msg);
+        }
+
+        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
+                pcintr_tick_count(), url);
+        purc_variant_unref(req_data);
+
+        if (out) {
+            purc_rwstream_destroy(out);
+            out = NULL;
         }
     }
     else {
@@ -1159,6 +1236,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
             goto failed;
         }
 
+        PC_INFO("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
+                pcintr_tick_count(), sz_content);
         if (sz_content > DEF_LEN_ONE_WRITE) {
             response_msg = rdr_page_control_load_large_page(inst->conn_to_rdr,
                     stack->co, target, target_value, elem,
@@ -1173,6 +1252,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
                 check_response_for_suppressed(inst, stack->co, response_msg);
             }
         }
+        PC_INFO("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
+                pcintr_tick_count(), sz_content);
         purc_variant_unref(req_data);
 
         if (out) {
@@ -1182,6 +1263,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
     }
 
     if (response_msg == NULL) {
+        stack->co->target_dom_handle = 0;
         goto failed;
     }
 
@@ -1193,10 +1275,12 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
         stack->co->target_dom_handle = result;
     }
     else {
+        stack->co->target_dom_handle = 0;
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
         goto failed;
     }
 
+    PC_INFO("rdr page control load, tickcount is %ld success\n", pcintr_tick_count());
     return true;
 
 failed:
@@ -1209,6 +1293,7 @@ failed:
         purc_variant_unref(req_data);
     } */
 
+    PC_WARN("rdr page control load, tickcount is %ld failed\n", pcintr_tick_count());
     return false;
 }
 
