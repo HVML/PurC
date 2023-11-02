@@ -889,6 +889,19 @@ purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
         const struct purc_screen_info *screen_info,
         struct purc_window_geometry *geometry);
 
+/**
+ * Checks if a UNIX domain socket alive.
+ *
+ * @param path: The path to the UNIX domain socket.
+ *
+ * Returns: 0 for success and -1 for failure.
+ *
+ * Notes: Only available on UNIX-like systems.
+ *
+ * Since: 0.9.18
+ */
+int purc_check_unix_socket(const char *path);
+
 #define PURC_MAX_LEN_HOSTNAME       1023
 
 /**
