@@ -1357,6 +1357,7 @@ static const char *rdr_ops[] = {
     PCRDR_OPERATION_CREATEWIDGET,              // "createWidget"
     PCRDR_OPERATION_UPDATEWIDGET,              // "updateWidget"
     PCRDR_OPERATION_DESTROYWIDGET,             // "destroyWidget"
+    PCRDR_OPERATION_LOADFROMURL,               // "loadFromURL" (Since 0.9.18)
     PCRDR_OPERATION_LOAD,                      // "load"
     PCRDR_OPERATION_WRITEBEGIN,                // "writeBegin"
     PCRDR_OPERATION_WRITEMORE,                 // "writeMore"

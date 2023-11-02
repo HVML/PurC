@@ -71,6 +71,7 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_CREATEWIDGET,         0 }, // "createWidget"
     { PCRDR_OPERATION_UPDATEWIDGET,         0 }, // "updateWidget"
     { PCRDR_OPERATION_DESTROYWIDGET,        0 }, // "destroyWidget"
+    { PCRDR_OPERATION_LOADFROMURL,          0 }, // "loadFromURL" (0.9.18)
     { PCRDR_OPERATION_LOAD,                 0 }, // "load"
     { PCRDR_OPERATION_WRITEBEGIN,           0 }, // "writeBegin"
     { PCRDR_OPERATION_WRITEMORE,            0 }, // "writeMore"
