@@ -348,7 +348,7 @@ static int connect_to_renderer(struct pcinst *inst,
     }
     pcrdr_release_message(msg);
 
-    /* Since 0.9.17 */
+    /* Since 0.9.18 */
     if (extra_info) {
         inst->allow_switching_rdr = extra_info->allow_switching_rdr;
     }
