@@ -1145,7 +1145,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
         }
     }
     /* TODO: WEBSOCKET with sending_document_by_url */
-    else if (conn_type == CT_UNIX_SOCKET) {
+    else if (conn_type == CT_UNIX_SOCKET && stack->co->sending_document_by_url) {
         unsigned opt = 0;
 
         out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
