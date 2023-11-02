@@ -43,7 +43,7 @@ You can use PurC to run an HVML program or an HVML app by using the command line
 
 We release the PurC library under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
-This is version 0.9.16 of PurC.
+This is version 0.9.18 of PurC.
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -87,13 +87,25 @@ Note that, if you are seeking the pre-built packages for platforms such as Ubunt
 To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. The cross-platform build system generator: CMake 3.15 or later
-2. A C11 and CXX17 compliant compiler: GCC 8+ or Clang 6+
-3. Zlib 1.2.0 or later
-4. Glib 2.44.0 or later
-6. BISON 3.0 or later
-7. FLEX 2.6.4 or later
-5. Python 3 (Python 3.9.0 or later if you want to build the external dynamic variant object `$PY` to use Python in HVML).
-8. Ncurses 5.0 or later (optional; needed by Foil renderer in `purc`)
+1. A C11 and CXX17 compliant compiler: GCC 8+ or Clang 6+
+1. Zlib 1.2.0 or later
+1. Glib 2.44.0 or later
+1. BISON 3.0 or later
+1. FLEX 2.6.4 or later
+1. Python 3 (Python 3.9.0 or later if you want to build the external dynamic variant object `$PY` to use Python in HVML).
+1. Ncurses 5.0 or later (optional; needed by Foil renderer in `purc`)
+
+If you want to enable the remote data fetcher, the following libraries are needed too:
+
+1. libsoup2.
+1. ...
+
+If you are using Ubuntu 22.04 LTS or other similiar Linux distribution, use the following commands to install all above dependencies:
+
+```console
+$ sudo apt install gcc-12 g++-12 bison flex python3
+$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev
+```
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
@@ -259,7 +271,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```bash
 $ purc -v error.hvml
-purc 0.9.16
+purc 0.9.18
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -291,8 +303,8 @@ Run `purc` to execute this HVML program with `-b` option, it will report the exe
 
 ```
 $ purc -v exception.hvml
-purc 0.9.16
-Copyright (C) 2022 FMSoft Technologies.
+purc 0.9.18
+Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -449,7 +461,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.16
+purc 0.9.18
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -533,7 +545,7 @@ You can also try other samples which illustrate the features of the Foil rendere
 - `hvml/foil-progress.hvml`
 - `hvml/foil-meter.hvml`
 
-Note that in the current version (0.9.16), Foil is not fully functional.
+Note that in the current version (0.9.18), Foil is not fully functional.
 Shortly, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    so that you can get a similar experience to a web browser.
 
@@ -630,7 +642,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.9.16) - a standalone HVML interpreter/debugger based on PurC.
+purc (0.9.18) - a standalone HVML interpreter/debugger based on PurC.
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -641,41 +653,57 @@ Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejso
 The following options can be supplied to the command:
 
   -a --app=< app_name >
-        Run with the specified app name (the default value is `cn.fmsoft.hvml.purc`).
+        Run with the specified app name (default: `cn.fmsoft.hvml.purc`).
 
   -r --runner=< runner_name >
-        Run with the specified runner name (the default value is `main`).
+        Run with the specified runner name (default: the md5sum of the URL of first HVML program).
 
   -d --data-fetcher=< local | remote >
-        The data fetcher; uses `local` or `remote`.
-            - `local`: the built-in data fetcher, and only `file://` URLs
+        The data fetcher; use `local` or `remote`.
+            - `local`: use the built-in data fetcher, and only `file://` URLs
                supported.
-            - `remote`: the remote data fetcher to support more URL schemas,
+            - `remote`: use the remote data fetcher to support more URL schemas,
                such as `http`, `https`, `ftp` and so on.
 
-  -c --rdr-comm=< headless | thread | socket >
-        The renderer communication method; uses `headless` (default), `thread`, or `socket`.
-            - `headless`: the built-in headless renderer.
-            - `thread`: the built-in thread-based renderer.
-            - `socket`: the remote socket-based renderer;
+  -c --rdr-comm=< headless | thread | socket | websocket>
+        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.
+            - `headless`: use the built-in headless renderer.
+            - `thread`: use the built-in thread-based renderer.
+            - `socket`: use the remote UNIX domain socket-based renderer;
+            - `websocket`: use the remote websocket-based renderer;
               `purc` will connect to the renderer via Unix Socket or WebSocket.
+
   -u --rdr-uri=< renderer_uri >
-        The renderer uri:
+        The renderer uri or shortname:
             - For the renderer comm method `headless`,
               the default value is `file:///dev/null`.
             - For the renderer comm method `thread`,
-              the default value is `edpt://localhost/cn.fmsoft.hvml.renderer/foil`.
+              the default value is the first available one:
+              `foil` if Foil is enabled, otherwise `seeker`.
             - For the renderer comm method `socket`,
               the default value is `unix:///var/tmp/purcmc.sock`.
+            - For the renderer comm method `websocket`,
+              the default value is `ws://localhost:7702`.
 
   -j --request=< json_file | - >
         The JSON file contains the request data which will be passed to
         the HVML programs; use `-` if the JSON data will be given through
-        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)
+        STDIN stream. (Ctrl+D for end of input after you input the JSON data in a terminal.)
 
   -q --query=< query_string >
-        Use a URL query string (in RFC 3986) for the request data which will be passed to
+        Use a URL query string (in RFC 3986) for the request data which will be passed to 
         the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
+
+  -P --pageid
+        The page identifier for the HVML programs which do not run in parallel.
+
+  -L --layout-style
+        The layout style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin` or `widget`.
+
+  -T --toolkit-style
+        The toolkit style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin` or `widget`.
 
   -l --parallel
         Execute multiple programs in parallel.
@@ -691,6 +719,19 @@ The following options can be supplied to the command:
 
   -h --help
         This help.
+
+(root only options)
+  -R --chroot <directory>
+       Change root to the specified directory
+       (default is the `/app/<app_name>/`)
+
+  -U --setuser <user>
+      Set user identity to the user specified
+       (default is the user named <app_name> if it exists).
+
+  -G --setgroup <group>
+      Set group identity to the group specified
+       (default is the group named <app_name> if it exists>).
 ```
 
 ### Run an HVML app in multiple runners
@@ -822,7 +863,7 @@ There are many ways to contribute to PurC:
 ### Current Status
 
 This project was launched in June. 2021, and we opened this repo in July 2022.
-This is version 0.9.16 of PurC.
+This is version 0.9.18 of PurC.
 
 The main purpose of PurC is to provide a library for you to write your own HVML interpreter.
 The current version implements almost all features defined by [HVML Specification V1.0],
