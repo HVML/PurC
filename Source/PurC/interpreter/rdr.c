@@ -1169,7 +1169,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
                 &sz_buff, true);
 
         char path[PATH_MAX + 1];
-        sprintf(path, "/tmp/%s_%s.hvml", inst->app_name, inst->runner_name);
+        sprintf(path, "/tmp/%s_%s.html", inst->app_name, inst->runner_name);
 
         FILE *fp = fopen(path, "w");
         fwrite(p, 1, sz_content, fp);
