@@ -558,6 +558,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     struct pcrdr_conn *n_conn_to_rdr = NULL;
     struct renderer_capabilities *n_rdr_caps = NULL;
 
+    if (inst->conn_to_rdr->uri && strcmp(uri, inst->conn_to_rdr->uri) == 0) {
+        PC_WARN("switch renderer uri(%s) same as current uri, do nothing!\n",
+                uri);
+        return PURC_ERROR_OK;
+    }
+
 #if 0
     /* only for test: change app_name */
     inst->app_name[0] = 'x';
