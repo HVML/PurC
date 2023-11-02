@@ -1798,7 +1798,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->stopped_timeout = -1;
     co->avl.key = co;
-
+    co->sending_document_by_url = 1;    // 0.9.18
     return co;
 
 fail_clr_variables:

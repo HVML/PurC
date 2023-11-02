@@ -365,7 +365,9 @@ struct pcintr_coroutine {
     unsigned long               run_idx;
     time_t                      stopped_timeout;
 
+    /* misc. flags go here */
     uint32_t                    is_main:1;
+    uint32_t                    sending_document_by_url:1;
 };
 
 enum purc_symbol_var {
