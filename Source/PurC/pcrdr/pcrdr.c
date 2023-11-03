@@ -668,7 +668,9 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         pcrdr_release_renderer_capabilities(inst->rdr_caps);
     }
 
+    pcrdr_conn_set_event_handler(inst->conn_to_rdr, NULL);
     inst->conn_to_rdr_origin = inst->conn_to_rdr;
+
     inst->conn_to_rdr = n_conn_to_rdr;
     inst->rdr_caps = n_rdr_caps;
 
