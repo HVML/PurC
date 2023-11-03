@@ -374,6 +374,10 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->layout_style) {
+            free(co->layout_style);
+        }
+
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
         if (url->schema) {
@@ -1851,6 +1855,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
     }
 
     co->stage = CO_STAGE_SCHEDULED;
+
+    if (extra_info && extra_info->layout_style) {
+        co->layout_style = strdup(extra_info->layout_style);
+    }
 
     /* Attach to rdr only if the document needs rdr,
        the document is newly created, and the page type is not null. */
@@ -3748,9 +3756,12 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
     }
 
     /* TODO: real target_workspace, target_groud, page_name   */
+    purc_renderer_extra_info rdr_info = {};
+    rdr_info.layout_style = cor->layout_style;
+
     bool r = pcintr_attach_to_renderer(cor,
             cor->target_page_type, NULL,
-            NULL, NULL, NULL);
+            NULL, NULL, &rdr_info);
 
     if (!r) {
         ret = -1;
