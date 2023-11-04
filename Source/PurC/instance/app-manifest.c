@@ -237,6 +237,8 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     if (value)
         return value;
 
+    purc_clr_error(); /* clr NoSuchKey */
+
     if (prefix) {
         strcpy(subkey, prefix);
         strcat(subkey, "-");
@@ -250,6 +252,8 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     if (value)
         return value;
 
+    purc_clr_error(); /* clr NoSuchKey */
+
     /* fallback */
     if (prefix) {
         value = purc_variant_object_get_by_ckey(v, prefix);
@@ -260,6 +264,7 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
         value = purc_variant_object_get_by_ckey(v, "en");
     }
 
+    purc_clr_error(); /* clr NoSuchKey */
     assert(value);
     return value;
 }
