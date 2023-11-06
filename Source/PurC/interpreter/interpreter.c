@@ -374,8 +374,24 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->klass) {
+            free(co->klass);
+        }
+
+        if (co->title) {
+            free(co->title);
+        }
+
+        if (co->page_groups) {
+            free(co->page_groups);
+        }
+
         if (co->layout_style) {
             free(co->layout_style);
+        }
+
+        if (co->toolkit_style) {
+            purc_variant_unref(co->toolkit_style);
         }
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
@@ -1856,8 +1872,22 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     co->stage = CO_STAGE_SCHEDULED;
 
-    if (extra_info && extra_info->layout_style) {
-        co->layout_style = strdup(extra_info->layout_style);
+    if (extra_info) {
+        if (extra_info->klass) {
+            co->klass = strdup(extra_info->klass);
+        }
+        if (extra_info->title) {
+            co->title = strdup(extra_info->title);
+        }
+        if (extra_info->page_groups) {
+            co->page_groups = strdup(extra_info->page_groups);
+        }
+        if (extra_info->layout_style) {
+            co->layout_style = strdup(extra_info->layout_style);
+        }
+        if (extra_info->toolkit_style) {
+            co->toolkit_style = purc_variant_ref(extra_info->toolkit_style);
+        }
     }
 
     /* Attach to rdr only if the document needs rdr,
@@ -3757,7 +3787,13 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
 
     /* TODO: real target_workspace, target_groud, page_name   */
     purc_renderer_extra_info rdr_info = {};
+    rdr_info.klass = cor->klass;
+    rdr_info.title = cor->title;
+    rdr_info.page_groups = cor->page_groups;
     rdr_info.layout_style = cor->layout_style;
+    if (cor->toolkit_style) {
+        rdr_info.toolkit_style = purc_variant_ref(cor->toolkit_style);
+    }
 
     bool r = pcintr_attach_to_renderer(cor,
             cor->target_page_type, NULL,

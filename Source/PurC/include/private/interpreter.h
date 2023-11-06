@@ -314,7 +314,13 @@ struct pcintr_coroutine {
     uint64_t                    target_dom_handle;
     purc_variant_t              doc_contents;
     purc_variant_t              doc_wrotten_len;
-    char                       *layout_style;       /* extra info */
+
+    /* purc_renderer_extra_info */
+    char                       *klass;
+    char                       *title;
+    char                       *page_groups;
+    char                       *layout_style;
+    purc_variant_t              toolkit_style;
 
     struct rb_node              node;     /* heap::coroutines */
     struct list_head            ln;       /* heap::crtns, stopped_crtns */
