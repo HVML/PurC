@@ -187,7 +187,7 @@ failed:
 static int set_session_args(struct pcinst *inst,
         purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr)
 {
-    purc_variant_t vs[10] = { NULL };
+    purc_variant_t vs[12] = { NULL };
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -202,6 +202,8 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static(inst->app_name, false);
     vs[n++] = purc_variant_make_string_static("runnerName", false);
     vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
+    vs[n++] = purc_variant_make_string_static("alllowSwitchingRdr", false);
+    vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
     if (vs[n - 1] == NULL) {
         goto failed;
@@ -234,7 +236,7 @@ failed:
 static int append_authenticate_args(struct pcinst *inst,
         purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[14] = { NULL };
+    purc_variant_t vs[12] = { NULL };
     int n = 0;
 
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
@@ -258,8 +260,6 @@ static int append_authenticate_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("base64", false);
     vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
     vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
-    vs[n++] = purc_variant_make_string_static("alllowSwitchingRdr", false);
-    vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
     if (vs[n - 1] == NULL) {
         goto failed;
