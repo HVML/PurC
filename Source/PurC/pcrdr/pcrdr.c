@@ -565,11 +565,6 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         return PURC_ERROR_OK;
     }
 
-#if 0
-    /* only for test: change app_name */
-    inst->app_name[0] = 'x';
-#endif
-
     /* TODO: get workspace, group info from keep info */
     purc_instance_extra_info* extra_info = NULL;
 
