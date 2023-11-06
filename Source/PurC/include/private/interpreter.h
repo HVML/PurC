@@ -308,12 +308,18 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
+    pcrdr_page_type_k           page_type;
+    /* actual page type. eg: inherit from parent */
     pcrdr_page_type_k           target_page_type;
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
     purc_variant_t              doc_contents;
     purc_variant_t              doc_wrotten_len;
+
+    char                       *target_workspace;
+    char                       *target_group;
+    char                       *page_name;
 
     /* purc_renderer_extra_info */
     char                       *klass;

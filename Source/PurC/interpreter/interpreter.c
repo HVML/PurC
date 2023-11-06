@@ -374,6 +374,18 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->target_workspace) {
+            free(co->target_workspace);
+        }
+
+        if (co->target_group) {
+            free(co->target_group);
+        }
+
+        if (co->page_name) {
+            free(co->page_name);
+        }
+
         if (co->klass) {
             free(co->klass);
         }
@@ -1871,6 +1883,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
     }
 
     co->stage = CO_STAGE_SCHEDULED;
+    co->page_type = page_type;
 
     if (extra_info) {
         if (extra_info->klass) {
@@ -1900,8 +1913,26 @@ purc_schedule_vdom(purc_vdom_t vdom,
                 co->target_page_type = parent->target_page_type;
                 co->target_workspace_handle = parent->target_workspace_handle;
                 co->target_page_handle = parent->target_page_handle;
+                if (parent->target_workspace) {
+                    co->target_workspace = strdup(parent->target_workspace);
+                }
+                if (parent->target_group) {
+                    co->target_group = strdup(parent->target_group);
+                }
+                if (parent->page_name) {
+                    co->page_name = strdup(parent->page_name);
+                }
             }
             else {
+                if (target_workspace) {
+                    co->target_workspace = strdup(target_workspace);
+                }
+                if (target_group) {
+                    co->target_group = strdup(target_group);
+                }
+                if (page_name) {
+                    co->page_name = strdup(page_name);
+                }
                 ret = pcintr_attach_to_renderer(co,
                             PCRDR_PAGE_TYPE_PLAINWIN, target_workspace,
                             target_group, page_name, extra_info);
@@ -1913,6 +1944,15 @@ purc_schedule_vdom(purc_vdom_t vdom,
             co->target_page_handle = 0;
         }
         else {
+            if (target_workspace) {
+                co->target_workspace = strdup(target_workspace);
+            }
+            if (target_group) {
+                co->target_group = strdup(target_group);
+            }
+            if (page_name) {
+                co->page_name = strdup(page_name);
+            }
             ret = pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
                 target_group, page_name, extra_info);
@@ -1930,6 +1970,15 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_workspace_handle = parent->target_workspace_handle;
         co->target_page_handle = parent->target_page_handle;
         co->target_dom_handle = parent->target_dom_handle;
+        if (parent->target_workspace) {
+            co->target_workspace = strdup(parent->target_workspace);
+        }
+        if (parent->target_group) {
+            co->target_group = strdup(parent->target_group);
+        }
+        if (parent->page_name) {
+            co->page_name = strdup(parent->page_name);
+        }
     }
 
     if (body_id && body_id[0] != '\0') {
@@ -3780,9 +3829,27 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
 {
     int ret = 0;
 
+    assert(inst->allow_switching_rdr);
+
     /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
     if (cor->target_page_type == PCRDR_PAGE_TYPE_NULL) {
         goto out;
+    }
+    else if (cor->page_type == PCRDR_PAGE_TYPE_INHERIT
+            || cor->page_type == PCRDR_PAGE_TYPE_SELF) {
+        pcintr_coroutine_t parent = NULL;
+        if (cor->curator) {
+            parent = pcintr_coroutine_get_by_id(cor->curator);
+        }
+
+        /* FIXME: ensure parent had switch */
+        if (parent) {
+            cor->target_page_type = parent->target_page_type;
+            cor->target_workspace_handle = parent->target_workspace_handle;
+            cor->target_page_handle = parent->target_page_handle;
+            cor->target_dom_handle = parent->target_dom_handle;
+            goto out;
+        }
     }
 
     /* TODO: real target_workspace, target_groud, page_name   */
@@ -3796,8 +3863,8 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
     }
 
     bool r = pcintr_attach_to_renderer(cor,
-            cor->target_page_type, NULL,
-            NULL, NULL, &rdr_info);
+            cor->target_page_type, cor->target_workspace,
+            cor->target_group, cor->page_name, &rdr_info);
 
     if (!r) {
         ret = -1;
