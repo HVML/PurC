@@ -182,6 +182,9 @@ static void print_usage(FILE *fp)
         "        The toolkit style for the HVML programs which do not run in parallel.\n"
         "        This option is only valid if the page type is `plainwin` or `widget`.\n"
         "\n"
+        "  -s --allow-switching-rdr=< true | false >\n"
+        "        Allow switching renderer.\n"
+        "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
         "\n"
@@ -221,6 +224,7 @@ struct my_opts {
     const char *pageid;
     const char *layout_style;
     const char *toolkit_style;
+    const char *allow_switching_rdr;
     const char *chroot;
     const char *setuser;
     const char *setgroup;
@@ -424,26 +428,27 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:R:U:G:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:s:R:U:G:lvCVh";
     static const struct option long_opts[] = {
-        { "app"            , required_argument , NULL , 'a' },
-        { "runner"         , required_argument , NULL , 'r' },
-        { "data-fetcher"   , required_argument , NULL , 'd' },
-        { "rdr-comm"       , required_argument , NULL , 'c' },
-        { "rdr-uri"        , required_argument , NULL , 'u' },
-        { "request"        , required_argument , NULL , 'j' },
-        { "query"          , required_argument , NULL , 'q' },
-        { "pageid"         , required_argument , NULL , 'P' },
-        { "layout-style"   , required_argument , NULL , 'L' },
-        { "toolkit-style"  , required_argument , NULL , 'T' },
-        { "chroot"         , required_argument , NULL , 'R' },
-        { "setuser"        , required_argument , NULL , 'U' },
-        { "setgroup"       , required_argument , NULL , 'G' },
-        { "parallel"       , no_argument       , NULL , 'l' },
-        { "verbose"        , no_argument       , NULL , 'v' },
-        { "copying"        , no_argument       , NULL , 'C' },
-        { "version"        , no_argument       , NULL , 'V' },
-        { "help"           , no_argument       , NULL , 'h' },
+        { "app"                  , required_argument , NULL , 'a' },
+        { "runner"               , required_argument , NULL , 'r' },
+        { "data-fetcher"         , required_argument , NULL , 'd' },
+        { "rdr-comm"             , required_argument , NULL , 'c' },
+        { "rdr-uri"              , required_argument , NULL , 'u' },
+        { "request"              , required_argument , NULL , 'j' },
+        { "query"                , required_argument , NULL , 'q' },
+        { "pageid"               , required_argument , NULL , 'P' },
+        { "layout-style"         , required_argument , NULL , 'L' },
+        { "toolkit-style"        , required_argument , NULL , 'T' },
+        { "allow-switching-rdr"  , required_argument , NULL , 's' },
+        { "chroot"               , required_argument , NULL , 'R' },
+        { "setuser"              , required_argument , NULL , 'U' },
+        { "setgroup"             , required_argument , NULL , 'G' },
+        { "parallel"             , no_argument       , NULL , 'l' },
+        { "verbose"              , no_argument       , NULL , 'v' },
+        { "copying"              , no_argument       , NULL , 'C' },
+        { "version"              , no_argument       , NULL , 'V' },
+        { "help"                 , no_argument       , NULL , 'h' },
         { 0, 0, 0, 0 }
     };
 
@@ -558,6 +563,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'T':
             opts->toolkit_style = optarg;
+            break;
+
+        case 's':
+            opts->allow_switching_rdr = optarg;
             break;
 
         case 'R':
@@ -994,6 +1003,18 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     /* create new runner if app_name or run_name differ */
     if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
         purc_instance_extra_info inst_info = {};
+
+        if (opts->allow_switching_rdr) {
+            if (strcmp(opts->allow_switching_rdr, "true") == 0) {
+                inst_info.allow_switching_rdr = 1;
+            }
+            else {
+                inst_info.allow_switching_rdr = 0;
+            }
+        }
+        else {
+            inst_info.allow_switching_rdr = 1;
+        }
 
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");
         if (tmp)
@@ -1742,6 +1763,18 @@ int main(int argc, char** argv)
 
     purc_instance_extra_info extra_info = {};
 
+    if (opts->allow_switching_rdr) {
+        if (strcmp(opts->allow_switching_rdr, "true") == 0) {
+            extra_info.allow_switching_rdr = 1;
+        }
+        else {
+            extra_info.allow_switching_rdr = 0;
+        }
+    }
+    else {
+        extra_info.allow_switching_rdr = 1;
+    }
+
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
         opts->rdr_prot = "headless";
 
@@ -1821,6 +1854,7 @@ int main(int argc, char** argv)
     }
 
     extra_info.renderer_uri = opts->rdr_uri;
+
 
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run, &extra_info);
