@@ -32,12 +32,128 @@
 #include <errno.h>
 #include <math.h>
 
+#define MAX_LEN_TOKEN       63
+#define STYLE_DELIMITER     ';'
+#define VALUE_DELIMITER     ':'
+#define TOKEN_DELIMITERS    " \t\n\v\f\r"
+
+#define WINDOW_TRANSITION_MOVE  "window-transition-move"
+
+static bool
+parse_window_move(const char *value, size_t value_len,
+        struct purc_window_transition *transition)
+{
+    UNUSED_PARAM(value);
+    UNUSED_PARAM(value_len);
+    UNUSED_PARAM(transition);
+    const char *token;
+    size_t token_len;
+
+    token = pcutils_get_next_token_len(value,
+            value_len, TOKEN_DELIMITERS, &token_len);
+    if (token && token_len > 0) {
+        if (strncasecmp2ltr(token,
+                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_NONE, token_len) == 0) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
+        }
+        else if (strncasecmp2ltr(token,
+                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_LINEAR, token_len) == 0) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_LINEAR;
+        }
+        else if (strncasecmp2ltr(token,
+                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY, token_len) == 0) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY;
+        }
+        else if (strncasecmp2ltr(token,
+                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_IN, token_len) == 0) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN;
+        }
+        else if (strncasecmp2ltr(token,
+                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_OUT, token_len) == 0) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT;
+        }
+        else {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
+        }
+    }
+    else {
+        goto failed;
+    }
+
+    token = pcutils_get_next_token_len(value,
+            value_len, TOKEN_DELIMITERS, &token_len);
+    if (token && token_len > 0) {
+        char buf[token_len + 1];
+        strncpy(buf, token, token_len);
+        unsigned long val = strtoul(buf, NULL, 10);
+        if (val == ULONG_MAX) {
+            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
+            goto failed;
+        }
+        transition->move_duration = val;
+    }
+    else {
+        goto failed;
+    }
+
+    return true;
+
+failed:
+    return false;
+}
+
 int
 purc_evaluate_standalone_window_transition_from_styles(const char *styles,
       struct purc_window_transition *transition)
 {
-    UNUSED_PARAM(styles);
-    UNUSED_PARAM(transition);
+    const char *style = styles;
+    char *end_of_style;
+
+    while ((end_of_style = strchr(style, STYLE_DELIMITER)) || style[0]) {
+
+        char *end_of_property;
+        end_of_property = strchr(style, VALUE_DELIMITER);
+        if (end_of_property == NULL) {
+            goto done;
+        }
+
+        size_t property_len = end_of_property - style;
+        const char *property = pcutils_get_next_token_len(style,
+                property_len, TOKEN_DELIMITERS, &property_len);
+
+        if (property && property_len > 0) {
+            const char *value = end_of_property + 1;
+            size_t value_len;
+            if (end_of_style) {
+                value_len = end_of_style - value;
+            }
+            else {
+                value_len = strlen(value);
+            }
+
+            if (strncasecmp2ltr(property, WINDOW_TRANSITION_MOVE,
+                        property_len) == 0) {
+                if (!parse_window_move(value, value_len, transition)) {
+                    goto failed;
+                }
+            }
+            else {
+                /* skip */
+            }
+        }
+
+        if (end_of_style) {
+            style = end_of_style + 1;
+        }
+        else {
+            break;
+        }
+    }
+
+done:
     return 0;
+
+failed:
+    return -1;
 }
 

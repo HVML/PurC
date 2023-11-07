@@ -890,10 +890,21 @@ purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
         struct purc_window_geometry *geometry);
 
 typedef enum {
+    PURC_WINDOW_TRANSTION_FUNCTION_first = 0,
+
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_NONE        "none"
+    PURC_WINDOW_TRANSTION_FUNCTION_NONE = PURC_WINDOW_TRANSTION_FUNCTION_first,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_LINEAR      "linear"
     PURC_WINDOW_TRANSTION_FUNCTION_LINEAR,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY        "easy"
     PURC_WINDOW_TRANSTION_FUNCTION_EASY,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_IN     "easy-in"
     PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN,
-    PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_OUT    "easy-out"
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT,
+
+    /* XXX: change this if you append a new function. */
+    PURC_WINDOW_TRANSTION_FUNCTION_last = PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT,
 } purc_window_transition_function;
 
 struct purc_window_transition {
