@@ -131,6 +131,10 @@ fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
     rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
             "toolkitStyle");
 
+    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    if (tmp)
+        rdr_info->transition_style = purc_variant_get_string_const(tmp);
+
     tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
     if (tmp) {
         rdr_info->page_groups = purc_variant_get_string_const(tmp);

@@ -121,6 +121,11 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     if (extra_rdr_info.toolkit_style)
         purc_variant_ref(extra_rdr_info.toolkit_style);
 
+    tmp = purc_variant_object_get_by_ckey(msg->data, "transitionStyle");
+    if (tmp) {
+        extra_rdr_info.transition_style = purc_variant_get_string_const(tmp);
+    }
+
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageGroups");
     if (tmp) {
         extra_rdr_info.page_groups = purc_variant_get_string_const(tmp);
@@ -982,6 +987,14 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         if (extra_rdr_info->toolkit_style) {
             purc_variant_object_set_by_static_ckey(data, "toolkitStyle",
                     extra_rdr_info->toolkit_style);
+        }
+
+        if (extra_rdr_info->transition_style) {
+            tmp = purc_variant_make_string_static(extra_rdr_info->transition_style,
+                    false);
+            purc_variant_object_set_by_static_ckey(data, "transitionStyle",
+                    tmp);
+            purc_variant_unref(tmp);
         }
 
         if (extra_rdr_info->page_groups) {

@@ -326,6 +326,7 @@ struct pcintr_coroutine {
     char                       *title;
     char                       *page_groups;
     char                       *layout_style;
+    char                       *transition_style;
     purc_variant_t              toolkit_style;
 
     struct rb_node              node;     /* heap::coroutines */

@@ -43,6 +43,7 @@
 #define CLASS_KEY               "class"
 #define LAYOUT_STYLE_KEY        "layoutStyle"
 #define TOOLKIT_STYLE_KEY       "toolkitStyle"
+#define TRANSITION_STYLE_KEY    "transitionStyle"
 
 #define BUFF_MIN                1024
 #define BUFF_MAX                1024 * 1024 * 4
@@ -913,6 +914,13 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
                     errors++;
                 }
                 purc_variant_unref(extra_info->toolkit_style);
+            }
+
+            if (extra_info->transition_style) {
+                if (!object_set(data, TRANSITION_STYLE_KEY,
+                            extra_info->transition_style)) {
+                    errors++;
+                }
             }
         }
         else

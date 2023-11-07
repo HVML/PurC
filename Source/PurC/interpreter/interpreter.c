@@ -402,6 +402,10 @@ coroutine_release(pcintr_coroutine_t co)
             free(co->layout_style);
         }
 
+        if (co->transition_style) {
+            free(co->transition_style);
+        }
+
         if (co->toolkit_style) {
             purc_variant_unref(co->toolkit_style);
         }
@@ -1897,6 +1901,9 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
         if (extra_info->layout_style) {
             co->layout_style = strdup(extra_info->layout_style);
+        }
+        if (extra_info->transition_style) {
+            co->transition_style = strdup(extra_info->transition_style);
         }
         if (extra_info->toolkit_style) {
             co->toolkit_style = purc_variant_ref(extra_info->toolkit_style);
@@ -3858,6 +3865,7 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
     rdr_info.title = cor->title;
     rdr_info.page_groups = cor->page_groups;
     rdr_info.layout_style = cor->layout_style;
+    rdr_info.transition_style = cor->transition_style;
     if (cor->toolkit_style) {
         rdr_info.toolkit_style = purc_variant_ref(cor->toolkit_style);
     }
