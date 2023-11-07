@@ -137,3 +137,51 @@ TEST(test_window_styles, window_styles)
     }
 }
 
+TEST(test_transition_styles, transition_style)
+{
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    static struct positvie_case {
+        int ret;
+        const char *styles;
+        purc_window_transition_function move_func;
+        uint32_t move_duration;
+    } positive_cases[] = {
+        { 0, "", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+        { 0, "window-transition-move: none 100", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 100 },
+        { -1, "window-transition-move: linear -1", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+        { 0, "window-transition-move: linear 100", PURC_WINDOW_TRANSTION_FUNCTION_LINEAR, 100 },
+        { 0, "window-transition-move: linear 0", PURC_WINDOW_TRANSTION_FUNCTION_LINEAR, 0 },
+        { 0, "window-transition-move: linear 99;", PURC_WINDOW_TRANSTION_FUNCTION_LINEAR, 99 },
+        { 0, "window-transition-move: linear 99  aabb;", PURC_WINDOW_TRANSTION_FUNCTION_LINEAR, 99 },
+        { -1, "window-transition-move: easy -1", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+        { 0, "window-transition-move: easy 100", PURC_WINDOW_TRANSTION_FUNCTION_EASY, 100 },
+        { 0, "window-transition-move: easy 0", PURC_WINDOW_TRANSTION_FUNCTION_EASY, 0 },
+        { 0, "window-transition-move: easy 99;", PURC_WINDOW_TRANSTION_FUNCTION_EASY, 99 },
+        { 0, "window-transition-move: easy 99  aabb;", PURC_WINDOW_TRANSTION_FUNCTION_EASY, 99 },
+        { -1, "window-transition-move: easy-in -1", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+        { 0, "window-transition-move: easy-in 100", PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN, 100 },
+        { 0, "window-transition-move: easy-in 0", PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN, 0 },
+        { 0, "window-transition-move: easy-in 99;", PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN, 99 },
+        { 0, "window-transition-move: easy-in 99  aabb;", PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN, 99 },
+        { -1, "window-transition-move: easy-out -1", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+        { 0, "window-transition-move: easy-out 100", PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT, 100 },
+        { 0, "window-transition-move: easy-out 0", PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT, 0 },
+        { 0, "window-transition-move: easy-out 99;", PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT, 99 },
+        { 0, "window-transition-move: easy-out 99  aabb;", PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT, 99 },
+        { 0, "window-transition-move: ppp aabb;", PURC_WINDOW_TRANSTION_FUNCTION_NONE, 0 },
+    };
+
+    for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        struct purc_window_transition transition;
+
+        std::cout << "testing: " << positive_cases[i].styles << std::endl;
+
+        int ret = purc_evaluate_standalone_window_transition_from_styles(
+                positive_cases[i].styles, &transition);
+
+        ASSERT_EQ(ret, positive_cases[i].ret);
+        ASSERT_EQ(transition.move_func, positive_cases[i].move_func);
+        ASSERT_EQ(transition.move_duration, positive_cases[i].move_duration);
+    }
+}

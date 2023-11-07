@@ -43,9 +43,6 @@ static bool
 parse_window_move(const char *value, size_t value_len,
         struct purc_window_transition *transition)
 {
-    UNUSED_PARAM(value);
-    UNUSED_PARAM(value_len);
-    UNUSED_PARAM(transition);
     const char *token;
     size_t token_len;
 
@@ -80,14 +77,15 @@ parse_window_move(const char *value, size_t value_len,
         goto failed;
     }
 
-    token = pcutils_get_next_token_len(value,
-            value_len, TOKEN_DELIMITERS, &token_len);
+    token = pcutils_get_next_token_len(token + token_len,
+            value_len - token_len, TOKEN_DELIMITERS, &token_len);
     if (token && token_len > 0) {
         char buf[token_len + 1];
         strncpy(buf, token, token_len);
         unsigned long val = strtoul(buf, NULL, 10);
         if (val == ULONG_MAX) {
             transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
+            transition->move_duration = 0;
             goto failed;
         }
         transition->move_duration = val;
@@ -106,8 +104,14 @@ int
 purc_evaluate_standalone_window_transition_from_styles(const char *styles,
       struct purc_window_transition *transition)
 {
+    struct purc_window_transition trans = { };
     const char *style = styles;
     char *end_of_style;
+
+    if (styles && styles[0] == 0) {
+        *transition = trans;
+        goto done;
+    }
 
     while ((end_of_style = strchr(style, STYLE_DELIMITER)) || style[0]) {
 
