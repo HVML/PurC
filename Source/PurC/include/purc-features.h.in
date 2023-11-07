@@ -78,9 +78,10 @@ enum purc_feature {
     PURC_FEATURE_STREAM_WEB_SOCKET,
     PURC_FEATURE_SSL,
     PURC_FEATURE_APP_AUTH,
+    PURC_FEATURE_DNSSD,
 
-    /* XXX: change this if you append a new type. */
-    PURC_FEATURE_LAST = PURC_FEATURE_APP_AUTH,
+    /* XXX: change this if you append a new feature. */
+    PURC_FEATURE_LAST = PURC_FEATURE_DNSSD,
 };
 
 #define PURC_FEATURE_NR (PURC_FEATURE_LAST - PURC_FEATURE_FIRST + 1)
@@ -101,6 +102,7 @@ enum purc_feature {
 #define PCA_ENABLE_STREAM_WEB_SOCKET    _PURC_@ENABLE_STREAM_WEB_SOCKET@
 #define PCA_ENABLE_SSL                  _PURC_@ENABLE_SSL@
 #define PCA_ENABLE_APP_AUTH             _PURC_@ENABLE_APP_AUTH@
+#define PCA_ENABLE_DNSSD                _PURC_@ENABLE_DNSSD@
 
 PCA_EXTERN_C_BEGIN
 

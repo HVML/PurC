@@ -65,6 +65,8 @@
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4
 
+time_t g_purc_run_monotonic_ms = 0;
+
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
 {
@@ -370,6 +372,42 @@ coroutine_release(pcintr_coroutine_t co)
 
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
+        }
+
+        if (co->target_workspace) {
+            free(co->target_workspace);
+        }
+
+        if (co->target_group) {
+            free(co->target_group);
+        }
+
+        if (co->page_name) {
+            free(co->page_name);
+        }
+
+        if (co->klass) {
+            free(co->klass);
+        }
+
+        if (co->title) {
+            free(co->title);
+        }
+
+        if (co->page_groups) {
+            free(co->page_groups);
+        }
+
+        if (co->layout_style) {
+            free(co->layout_style);
+        }
+
+        if (co->transition_style) {
+            free(co->transition_style);
+        }
+
+        if (co->toolkit_style) {
+            purc_variant_unref(co->toolkit_style);
         }
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
@@ -1796,7 +1834,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->stopped_timeout = -1;
     co->avl.key = co;
-
+    co->sending_document_by_url = 1;    // 0.9.18
     return co;
 
 fail_clr_variables:
@@ -1849,6 +1887,28 @@ purc_schedule_vdom(purc_vdom_t vdom,
     }
 
     co->stage = CO_STAGE_SCHEDULED;
+    co->page_type = page_type;
+
+    if (extra_info) {
+        if (extra_info->klass) {
+            co->klass = strdup(extra_info->klass);
+        }
+        if (extra_info->title) {
+            co->title = strdup(extra_info->title);
+        }
+        if (extra_info->page_groups) {
+            co->page_groups = strdup(extra_info->page_groups);
+        }
+        if (extra_info->layout_style) {
+            co->layout_style = strdup(extra_info->layout_style);
+        }
+        if (extra_info->transition_style) {
+            co->transition_style = strdup(extra_info->transition_style);
+        }
+        if (extra_info->toolkit_style) {
+            co->toolkit_style = purc_variant_ref(extra_info->toolkit_style);
+        }
+    }
 
     /* Attach to rdr only if the document needs rdr,
        the document is newly created, and the page type is not null. */
@@ -1860,8 +1920,26 @@ purc_schedule_vdom(purc_vdom_t vdom,
                 co->target_page_type = parent->target_page_type;
                 co->target_workspace_handle = parent->target_workspace_handle;
                 co->target_page_handle = parent->target_page_handle;
+                if (parent->target_workspace) {
+                    co->target_workspace = strdup(parent->target_workspace);
+                }
+                if (parent->target_group) {
+                    co->target_group = strdup(parent->target_group);
+                }
+                if (parent->page_name) {
+                    co->page_name = strdup(parent->page_name);
+                }
             }
             else {
+                if (target_workspace) {
+                    co->target_workspace = strdup(target_workspace);
+                }
+                if (target_group) {
+                    co->target_group = strdup(target_group);
+                }
+                if (page_name) {
+                    co->page_name = strdup(page_name);
+                }
                 ret = pcintr_attach_to_renderer(co,
                             PCRDR_PAGE_TYPE_PLAINWIN, target_workspace,
                             target_group, page_name, extra_info);
@@ -1873,6 +1951,15 @@ purc_schedule_vdom(purc_vdom_t vdom,
             co->target_page_handle = 0;
         }
         else {
+            if (target_workspace) {
+                co->target_workspace = strdup(target_workspace);
+            }
+            if (target_group) {
+                co->target_group = strdup(target_group);
+            }
+            if (page_name) {
+                co->page_name = strdup(page_name);
+            }
             ret = pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
                 target_group, page_name, extra_info);
@@ -1890,15 +1977,27 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_workspace_handle = parent->target_workspace_handle;
         co->target_page_handle = parent->target_page_handle;
         co->target_dom_handle = parent->target_dom_handle;
+        if (parent->target_workspace) {
+            co->target_workspace = strdup(parent->target_workspace);
+        }
+        if (parent->target_group) {
+            co->target_group = strdup(parent->target_group);
+        }
+        if (parent->page_name) {
+            co->page_name = strdup(parent->page_name);
+        }
     }
 
     if (body_id && body_id[0] != '\0') {
         set_body_entry(&co->stack, body_id);
     }
 
+    /* XXX: this will result in memory leak.
+       It is the caller's responsibility to make an empty object as
+       the default request.
     if (request == PURC_VARIANT_INVALID) {
         request = purc_variant_make_object_0();
-    }
+    } */
 
     if (!bind_builtin_coroutine_variables(co, request)) {
         goto failed;
@@ -1975,7 +2074,7 @@ purc_run(purc_cond_handler handler)
 
     heap->keep_alive = 0;
     heap->cond_handler = handler;
-
+    g_purc_run_monotonic_ms = pcutils_get_monotoic_time_ms();
     purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);
     purc_runloop_run();
 
@@ -3732,3 +3831,96 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
+int
+pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
+{
+    int ret = 0;
+
+    assert(inst->allow_switching_rdr);
+
+    /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
+    if (cor->target_page_type == PCRDR_PAGE_TYPE_NULL) {
+        goto out;
+    }
+    else if (cor->page_type == PCRDR_PAGE_TYPE_INHERIT
+            || cor->page_type == PCRDR_PAGE_TYPE_SELF) {
+        pcintr_coroutine_t parent = NULL;
+        if (cor->curator) {
+            parent = pcintr_coroutine_get_by_id(cor->curator);
+        }
+
+        /* FIXME: ensure parent had switch */
+        if (parent) {
+            cor->target_page_type = parent->target_page_type;
+            cor->target_workspace_handle = parent->target_workspace_handle;
+            cor->target_page_handle = parent->target_page_handle;
+            cor->target_dom_handle = parent->target_dom_handle;
+            goto out;
+        }
+    }
+
+    /* TODO: real target_workspace, target_groud, page_name   */
+    purc_renderer_extra_info rdr_info = {};
+    rdr_info.klass = cor->klass;
+    rdr_info.title = cor->title;
+    rdr_info.page_groups = cor->page_groups;
+    rdr_info.layout_style = cor->layout_style;
+    rdr_info.transition_style = cor->transition_style;
+    if (cor->toolkit_style) {
+        rdr_info.toolkit_style = purc_variant_ref(cor->toolkit_style);
+    }
+
+    bool r = pcintr_attach_to_renderer(cor,
+            cor->target_page_type, cor->target_workspace,
+            cor->target_group, cor->page_name, &rdr_info);
+
+    if (!r) {
+        ret = -1;
+        goto out;
+    }
+
+    if (cor->stage == CO_STAGE_OBSERVING) {
+        r = pcintr_rdr_page_control_load(inst, &cor->stack);
+        if (!r) {
+            ret = -1;
+            goto out;
+        }
+    }
+
+    r = 0;
+out:
+    return ret;
+}
+
+int
+pcintr_switch_new_renderer(struct pcinst *inst)
+{
+    PC_INFO("switch new render, tickcount is %ld\n", pcintr_tick_count());
+    int ret = 0;
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_switch_renderer(inst, p);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_switch_renderer(inst, p);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
+time_t pcintr_tick_count()
+{
+    time_t n = pcutils_get_monotoic_time_ms();
+    return n - g_purc_run_monotonic_ms;
+}

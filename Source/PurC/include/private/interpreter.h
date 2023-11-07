@@ -64,6 +64,7 @@
 #define MSG_TYPE_RESPONSE             "response"
 #define MSG_TYPE_FETCHER_STATE        "fetcherState"
 #define MSG_TYPE_REQUEST_CHAN         "requestChan"
+#define MSG_TYPE_NEW_RENDERER         "newRenderer"
 
 
 #define MSG_SUB_TYPE_ASTERISK         "*"
@@ -82,6 +83,7 @@
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
+#define MSG_SUB_TYPE_NEW_RENDERER     "newRenderer"
 
 #define CRTN_TOKEN_MAIN               "_main"
 #define CRTN_TOKEN_FIRST              "_first"
@@ -306,12 +308,26 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
+    pcrdr_page_type_k           page_type;
+    /* actual page type. eg: inherit from parent */
     pcrdr_page_type_k           target_page_type;
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
     purc_variant_t              doc_contents;
     purc_variant_t              doc_wrotten_len;
+
+    char                       *target_workspace;
+    char                       *target_group;
+    char                       *page_name;
+
+    /* purc_renderer_extra_info */
+    char                       *klass;
+    char                       *title;
+    char                       *page_groups;
+    char                       *layout_style;
+    char                       *transition_style;
+    purc_variant_t              toolkit_style;
 
     struct rb_node              node;     /* heap::coroutines */
     struct list_head            ln;       /* heap::crtns, stopped_crtns */
@@ -363,7 +379,9 @@ struct pcintr_coroutine {
     unsigned long               run_idx;
     time_t                      stopped_timeout;
 
+    /* misc. flags go here */
     uint32_t                    is_main:1;
+    uint32_t                    sending_document_by_url:1;
 };
 
 enum purc_symbol_var {
@@ -533,6 +551,8 @@ struct pcinst;
 struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
+
+extern time_t g_purc_run_monotonic_ms;
 
 bool pcintr_bind_builtin_runner_variables(void);
 
@@ -889,6 +909,11 @@ pcintr_get_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
         bool temporarily, bool runner_level_enable);
 
+int
+pcintr_switch_new_renderer(struct pcinst *inst);
+
+/* ms */
+time_t pcintr_tick_count();
 
 PCA_EXTERN_C_END
 

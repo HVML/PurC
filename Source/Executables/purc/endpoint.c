@@ -238,8 +238,7 @@ int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint)
 
     msg = pcrdr_make_response_message(PCRDR_REQUESTID_INITIAL, NULL,
             PCRDR_SC_OK, 0,
-            PCRDR_MSG_DATA_TYPE_PLAIN, FOIL_RDR_FEATURES,
-            sizeof (FOIL_RDR_FEATURES) - 1);
+            PCRDR_MSG_DATA_TYPE_PLAIN, rdr->features, rdr->len_features);
     if (msg == NULL) {
         retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
         goto failed;
@@ -1112,6 +1111,22 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
+static int on_load_from_url(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
+{
+    (void)msg;
+
+    pcrdr_msg response = { };
+    response.type = PCRDR_MSG_TYPE_RESPONSE;
+    response.requestId = msg->requestId;
+    response.sourceURI = PURC_VARIANT_INVALID;
+    response.retCode = PCRDR_SC_NOT_ACCEPTABLE;
+    response.resultValue = 0;
+    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+
+    return send_simple_response(rdr, endpoint, &response);
+}
+
 static int on_register(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
@@ -1553,6 +1568,7 @@ static struct request_handler {
     { PCRDR_OPERATION_INSERTAFTER, on_insert_after },
     { PCRDR_OPERATION_INSERTBEFORE, on_insert_before },
     { PCRDR_OPERATION_LOAD, on_load },
+    { PCRDR_OPERATION_LOADFROMURL, on_load_from_url },
     { PCRDR_OPERATION_PREPEND, on_prepend },
     { PCRDR_OPERATION_REMOVEPAGEGROUP, on_remove_page_group },
     { PCRDR_OPERATION_REGISTER, on_register },

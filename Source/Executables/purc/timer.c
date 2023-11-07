@@ -57,20 +57,20 @@ static int compare_timers(const void *k1, const void *k2, void *ptr)
     return -1;
 }
 
-int foil_timer_module_init(pcmcth_renderer *rdr)
+int pcmcth_timer_module_init(pcmcth_renderer *rdr)
 {
     avl_init(&rdr->timer_avl, compare_timers, true, NULL);
     kvlist_init(&rdr->timer_list, NULL);
     return 0;
 }
 
-void foil_timer_module_cleanup(pcmcth_renderer *rdr)
+void pcmcth_timer_module_cleanup(pcmcth_renderer *rdr)
 {
     kvlist_free(&rdr->timer_list);
-    foil_timer_delete_all(rdr);
+    pcmcth_timer_delete_all(rdr);
 }
 
-int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr)
+int64_t pcmcth_timer_current_milliseconds(pcmcth_renderer* rdr)
 {
     return purc_get_elapsed_milliseconds_alt(rdr->t_start, NULL);
 }
@@ -92,7 +92,7 @@ static inline int get_timer_key(char *buf, size_t buf_len,
     return 0;
 }
 
-pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
+pcmcth_timer_t pcmcth_timer_find(pcmcth_renderer* rdr, const char *name,
         on_timer_expired_f on_expired, void *ctxt)
 {
     size_t buf_len = get_timer_key_len(name) + 1;
@@ -108,7 +108,7 @@ pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
     return *(pcmcth_timer_t *)data;
 }
 
-pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
+pcmcth_timer_t pcmcth_timer_new(pcmcth_renderer* rdr, const char *name,
         on_timer_expired_f on_expired, int interval, void *ctxt)
 {
     assert(interval > 0);
@@ -131,7 +131,7 @@ pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
 
     timer->name = name;
     timer->interval = interval;
-    timer->expired_ms = foil_timer_current_milliseconds(rdr) + interval;
+    timer->expired_ms = pcmcth_timer_current_milliseconds(rdr) + interval;
     timer->ctxt = ctxt;
     timer->on_expired = on_expired;
     timer->avl.key = timer;
@@ -158,13 +158,13 @@ failed:
     return NULL;
 }
 
-const char *foil_timer_id(pcmcth_renderer* rdr, pcmcth_timer_t timer)
+const char *pcmcth_timer_id(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 {
     (void)rdr;
     return timer->id;
 }
 
-int foil_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
+int pcmcth_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 {
     avl_delete(&rdr->timer_avl, &timer->avl);
     if (timer->id)
@@ -173,7 +173,7 @@ int foil_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
     return 0;
 }
 
-unsigned foil_timer_delete_all(pcmcth_renderer* rdr)
+unsigned pcmcth_timer_delete_all(pcmcth_renderer* rdr)
 {
     unsigned n = 0;
     struct pcmcth_timer *timer, *tmp;
@@ -186,10 +186,10 @@ unsigned foil_timer_delete_all(pcmcth_renderer* rdr)
     return n;
 }
 
-unsigned foil_timer_check_expired(pcmcth_renderer *rdr)
+unsigned pcmcth_timer_check_expired(pcmcth_renderer *rdr)
 {
     unsigned n = 0;
-    int64_t curr_ms = foil_timer_current_milliseconds(rdr);
+    int64_t curr_ms = pcmcth_timer_current_milliseconds(rdr);
     struct pcmcth_timer *timer, *tmp;
 
     avl_for_each_element_safe(&rdr->timer_avl, timer, avl, tmp) {
@@ -197,7 +197,7 @@ unsigned foil_timer_check_expired(pcmcth_renderer *rdr)
 
             int interval = timer->on_expired(timer->name, timer->ctxt);
             if (interval < 0) {
-                foil_timer_delete(rdr, timer);
+                pcmcth_timer_delete(rdr, timer);
             }
             else {
                 /* update interval and expired_ms and reinstall it */

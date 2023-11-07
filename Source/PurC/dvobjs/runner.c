@@ -166,6 +166,55 @@ uri_getter(purc_variant_t root,
 }
 
 static purc_variant_t
+auto_switching_rdr_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_make_boolean(inst->auto_switching_rdr);
+}
+
+static purc_variant_t
+auto_switching_rdr_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    struct pcinst* inst = pcinst_current();
+    assert(inst);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (purc_variant_is_boolean(argv[0])) {
+        if (purc_variant_is_true(argv[0])) {
+            inst->auto_switching_rdr = 1;
+        }
+        else {
+            inst->auto_switching_rdr = 0;
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(inst->auto_switching_rdr);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(inst->auto_switching_rdr);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 chan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -253,19 +302,25 @@ purc_dvobj_runner_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        { "user",   user_getter,    user_setter },
-        { "app_name",    app_getter,     NULL },
-        { "run_name", runner_getter,  NULL },
-        { "rid",    rid_getter,     NULL },
-        { "uri",    uri_getter,     NULL },
-        { "chan",   chan_getter,    chan_setter },
+        { "user",               user_getter,    user_setter },
+        { "app_name",           app_getter,     NULL },  // TODO: remove
+        { "run_name",           runner_getter,  NULL },  // TODO: remove
+        { "appName",            app_getter,     NULL },
+        { "runName",            runner_getter,  NULL },
+        { "rid",                rid_getter,     NULL },
+        { "uri",                uri_getter,     NULL },
+        { "autoSwitchingRdr",
+            auto_switching_rdr_getter, auto_switching_rdr_setter },
+        { "chan",               chan_getter,    chan_setter },
 #if ENABLE(CHINESE_NAMES)
-        { "用户",   user_getter,    user_setter },
-        { "应用名", app_getter,     NULL },
-        { "行者名", runner_getter,  NULL },
-        { "行者标识符", rid_getter,     NULL },
-        { "统一资源标识符",    uri_getter,     NULL },
-        { "通道",   chan_getter,    chan_setter },
+        { "用户",               user_getter,    user_setter },
+        { "应用名",             app_getter,     NULL },
+        { "行者名",             runner_getter,  NULL },
+        { "行者标识符",         rid_getter,     NULL },
+        { "统一资源标识符",     uri_getter,     NULL },
+        { "自动切换渲染器",
+            auto_switching_rdr_getter, auto_switching_rdr_setter },
+        { "通道",               chan_getter,    chan_setter },
 #endif
     };
 

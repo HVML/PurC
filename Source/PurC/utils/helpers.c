@@ -23,7 +23,7 @@
  */
 
 #include "config.h"
-#include "purc-helpers.h"
+#include "purc/purc.h"
 #include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/kvlist.h"
@@ -1241,3 +1241,203 @@ purc_is_valid_css_identifier(const char *id)
 failed:
     return false;
 }
+
+static const char *page_types[] = {
+    PCRDR_PAGE_TYPE_NAME_NULL,
+    PCRDR_PAGE_TYPE_NAME_INHERIT,
+    PCRDR_PAGE_TYPE_NAME_SELF,
+    PCRDR_PAGE_TYPE_NAME_PLAINWIN,
+    PCRDR_PAGE_TYPE_NAME_WIDGET,
+};
+
+/* Make sure the number of page_types matches the number of page types */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(page_types,
+        PCA_TABLESIZE(page_types) == PCRDR_PAGE_TYPE_nr);
+
+#undef _COMPILE_TIME_ASSERT
+
+static int check_page_type(const char *page_type)
+{
+    if (!purc_is_valid_token(page_type, PURC_LEN_IDENTIFIER))
+        return -1;
+
+    for (int i = 0; i < (int)PCA_TABLESIZE(page_types); i++) {
+        if (strcmp(page_type, page_types[i]) == 0)
+            return i;
+    }
+
+    return -1;
+}
+
+/*
+ * The pattern of a page identifier:
+ *      '<type>:[<name>[@[<workspace>/]<group>]]'
+ */
+int purc_split_page_identifier(const char *page_id, char *type_buf,
+        char *name_buf, char *workspace_buf, char *group_buf)
+{
+    int ret = PCRDR_PAGE_TYPE_first;
+    char part[PURC_LEN_IDENTIFIER + 1];
+    const char *p = page_id;
+    size_t part_len;
+    char *tmp;
+
+    tmp = strchr(p, PURC_SEP_PAGE_TYPE);
+    if (tmp == NULL) {
+        PC_DEBUG("no semicolon\n");
+        goto failed;
+    }
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER) {
+        PC_DEBUG("too long type\n");
+        goto failed;
+    }
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+
+    if ((ret = check_page_type(part)) < 0) {
+        PC_DEBUG("bad page type\n");
+        goto failed;
+    }
+
+    if (type_buf)
+        strcpy(type_buf, part);
+
+    if (name_buf)
+        name_buf[0] = 0;
+    if (workspace_buf)
+        workspace_buf[0] = 0;
+    if (group_buf)
+        group_buf[0] = 0;
+
+    if (ret < PCRDR_PAGE_TYPE_PLAINWIN)
+        goto done;
+
+    p = tmp + 1;
+    tmp = strchr(p, PURC_SEP_GROUP_NAME);
+    if (tmp == NULL) {
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+            PC_DEBUG("bad page name\n");
+            goto failed;
+        }
+
+        if (name_buf)
+            strcpy(name_buf, p);
+
+        goto done;
+    }
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER) {
+        PC_DEBUG("bad page name\n");
+        goto failed;
+    }
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+    if (!purc_is_valid_token(part, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad page name\n");
+        goto failed;
+    }
+
+    if (name_buf)
+        strcpy(name_buf, part);
+
+    p = tmp + 1;
+    tmp = strchr(p, PURC_SEP_WORKSPACE_NAME);
+    if (tmp == NULL) {
+        /* not workspace specified */
+        if (workspace_buf)
+            workspace_buf[0] = 0;
+
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+            PC_DEBUG("bad group name\n");
+            goto failed;
+        }
+
+        if (group_buf)
+            strcpy(group_buf, p);
+
+        goto done;
+    }
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+    if (!purc_is_valid_token(part, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad workspace name\n");
+        goto failed;
+    }
+
+    if (workspace_buf)
+        strcpy(workspace_buf, part);
+
+    p = tmp + 1;
+    if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad group name\n");
+        goto failed;
+    }
+
+    if (group_buf)
+        strcpy(group_buf, p);
+
+done:
+    return ret;
+
+failed:
+    return -1;
+}
+
+#if OS(UNIX)
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+int purc_check_unix_socket(const char *path)
+{
+    int ret = -1;
+
+    if (access(path, R_OK | W_OK) == 0) {
+        int fd;
+        if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+            goto done;
+        }
+
+        /* fill socket address structure w/server's addr */
+        struct sockaddr_un unix_addr;
+        memset(&unix_addr, 0, sizeof(unix_addr));
+        unix_addr.sun_family = AF_UNIX;
+        strcpy(unix_addr.sun_path, path);
+        size_t len = sizeof(unix_addr.sun_family) + strlen(path) + 1;
+        if (connect(fd, (struct sockaddr *)&unix_addr, len) == 0) {
+            ret = 0;
+        }
+        close(fd);
+    }
+
+done:
+    return ret;
+}
+
+#else   /* OS(UNIX) */
+
+int purc_check_unix_socket(const char *path)
+{
+    (void)path;
+    return -1;
+}
+
+#endif  /* !OS(UNIX) */

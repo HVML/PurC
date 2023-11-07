@@ -34,16 +34,20 @@
 #include <getopt.h>
 #include <limits.h>
 #include <assert.h>
+#include <errno.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "config.h"
 #include "foil.h"
+#include "seeker.h"
 
 #define KEY_APP_NAME            "app"
 #define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
 
 #define KEY_RUN_NAME            "runner"
-#define DEF_RUN_NAME            "main"
 
 #define KEY_DATA_FETCHER        "dataFetcher"
 #define DEF_DATA_FETCHER        "local"
@@ -53,7 +57,6 @@
 
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
-#define DEF_RDR_URI_THREAD      PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 #define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
 #define DEF_RDR_URI_WEBSOCKET   "ws://localhost:" PCRDR_PURCMC_WS_PORT
 
@@ -127,10 +130,10 @@ static void print_usage(FILE *fp)
         "The following options can be supplied to the command:\n"
         "\n"
         "  -a --app=< app_name >\n"
-        "        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).\n"
+        "        Run with the specified app name (default: `cn.fmsoft.hvml.purc`).\n"
         "\n"
         "  -r --runner=< runner_name >\n"
-        "        Run with the specified runner name (default value is `main`).\n"
+        "        Run with the specified runner name (default: the md5sum of the URL of first HVML program).\n"
         "\n"
         "  -d --data-fetcher=< local | remote >\n"
         "        The data fetcher; use `local` or `remote`.\n"
@@ -143,16 +146,17 @@ static void print_usage(FILE *fp)
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
         "            - `headless`: use the built-in headless renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
-        "            - `socket`: use the remote socket-based renderer;\n"
+        "            - `socket`: use the remote UNIX domain socket-based renderer;\n"
         "            - `websocket`: use the remote websocket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
-
+        "\n"
         "  -u --rdr-uri=< renderer_uri >\n"
-        "        The renderer uri:\n"
+        "        The renderer uri or shortname:\n"
         "            - For the renderer comm method `headless`,\n"
         "              the default value is `file:///dev/null`.\n"
         "            - For the renderer comm method `thread`,\n"
-        "              the default value is `" DEF_RDR_URI_THREAD "`.\n"
+        "              the default value is the first available one:\n"
+        "              `foil` if Foil is enabled, otherwise `seeker`.\n"
         "            - For the renderer comm method `socket`,\n"
         "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
         "            - For the renderer comm method `websocket`,\n"
@@ -161,11 +165,29 @@ static void print_usage(FILE *fp)
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
-        "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
+        "        STDIN stream. (Ctrl+D for end of input after you input the JSON data in a terminal.)\n"
         "\n"
         "  -q --query=< query_string >\n"
         "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
         "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
+        "\n"
+        "  -P --pageid\n"
+        "        The page identifier for the HVML programs which do not run in parallel.\n"
+        "\n"
+        "  -L --layout-style\n"
+        "        The layout style for the HVML programs which do not run in parallel.\n"
+        "        This option is only valid if the page type is `plainwin` or `widget`.\n"
+        "\n"
+        "  -T --toolkit-style\n"
+        "        The toolkit style for the HVML programs which do not run in parallel.\n"
+        "        This option is only valid if the page type is `plainwin` or `widget`.\n"
+        "\n"
+        "  -A --transition-style\n"
+        "        The transition style for the HVML programs which do not run in parallel.\n"
+        "        This option is only valid if the page type is `plainwin`.\n"
+        "\n"
+        "  -s --allow-switching-rdr=< true | false >\n"
+        "        Allow switching renderer.\n"
         "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
@@ -180,7 +202,21 @@ static void print_usage(FILE *fp)
         "        Display version information and exit.\n"
         "\n"
         "  -h --help\n"
-        "        This help.\n",
+        "        This help.\n"
+        "\n"
+        "(root only options)\n"
+        "  -R --chroot <directory>\n"
+        "       Change root to the specified directory\n"
+        "       (default is the `/app/<app_name>/`)\n"
+        "\n"
+        "  -U --setuser <user>\n"
+        "      Set user identity to the user specified\n"
+        "       (default is the user named <app_name> if it exists).\n"
+        "\n"
+        "  -G --setgroup <group>\n"
+        "      Set group identity to the group specified\n"
+        "       (default is the group named <app_name> if it exists>).\n"
+        "\n",
         fp);
 }
 
@@ -189,6 +225,15 @@ struct my_opts {
     char *run;
     const char *data_fetcher;
     const char *rdr_prot;
+    const char *pageid;
+    const char *layout_style;
+    const char *toolkit_style;
+    const char *transition_style;
+    const char *allow_switching_rdr;
+    const char *chroot;
+    const char *setuser;
+    const char *setgroup;
+
     char *rdr_uri;
     char *request;
     char *query;
@@ -215,7 +260,7 @@ static const char *archedata_header =
 static const char *archedata_coroutine =
                 "{ 'url': $OPTS.urls[%u], 'bodyId': $OPTS.bodyIds[%u],"
                     "'request': $OPTS.request,"
-                    "'renderer': { 'pageType': 'plainwin' }"
+                    "'renderer': { 'pageType': 'plainwin', 'pageName': 'win%u' }"
                 "},";
 
 static const char *archedata_footer =
@@ -240,7 +285,7 @@ static bool construct_app_info(struct my_opts *opts)
     for (size_t i = 0; i < opts->urls->length; i++) {
         char buff[256];
         int n = snprintf(buff, sizeof(buff), archedata_coroutine,
-                (unsigned)i, (unsigned)i);
+                (unsigned)i, (unsigned)i, (unsigned)i);
         if (n < 0 || (size_t)n > sizeof(buff)) {
             return false;
         }
@@ -388,20 +433,28 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:R:U:G:lvCVh";
     static const struct option long_opts[] = {
-        { "app"            , required_argument , NULL , 'a' },
-        { "runner"         , required_argument , NULL , 'r' },
-        { "data-fetcher"   , required_argument , NULL , 'd' },
-        { "rdr-comm"       , required_argument , NULL , 'c' },
-        { "rdr-uri"        , required_argument , NULL , 'u' },
-        { "request"        , required_argument , NULL , 'j' },
-        { "query"          , required_argument , NULL , 'q' },
-        { "parallel"       , no_argument       , NULL , 'l' },
-        { "verbose"        , no_argument       , NULL , 'v' },
-        { "copying"        , no_argument       , NULL , 'C' },
-        { "version"        , no_argument       , NULL , 'V' },
-        { "help"           , no_argument       , NULL , 'h' },
+        { "app"                  , required_argument , NULL , 'a' },
+        { "runner"               , required_argument , NULL , 'r' },
+        { "data-fetcher"         , required_argument , NULL , 'd' },
+        { "rdr-comm"             , required_argument , NULL , 'c' },
+        { "rdr-uri"              , required_argument , NULL , 'u' },
+        { "request"              , required_argument , NULL , 'j' },
+        { "query"                , required_argument , NULL , 'q' },
+        { "pageid"               , required_argument , NULL , 'P' },
+        { "layout-style"         , required_argument , NULL , 'L' },
+        { "toolkit-style"        , required_argument , NULL , 'T' },
+        { "transition-style"     , required_argument , NULL , 'A' },
+        { "allow-switching-rdr"  , required_argument , NULL , 's' },
+        { "chroot"               , required_argument , NULL , 'R' },
+        { "setuser"              , required_argument , NULL , 'U' },
+        { "setgroup"             , required_argument , NULL , 'G' },
+        { "parallel"             , no_argument       , NULL , 'l' },
+        { "verbose"              , no_argument       , NULL , 'v' },
+        { "copying"              , no_argument       , NULL , 'C' },
+        { "version"              , no_argument       , NULL , 'V' },
+        { "help"                 , no_argument       , NULL , 'h' },
         { 0, 0, 0, 0 }
     };
 
@@ -478,7 +531,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
         case 'u':
-            if (pcutils_url_is_valid(optarg)) {
+            if (strcmp(opts->rdr_prot, "thread") == 0) {
+                opts->rdr_uri = strdup(optarg);
+            }
+            else if (pcutils_url_is_valid(optarg)) {
                 opts->rdr_uri = strdup(optarg);
             }
             else {
@@ -499,6 +555,40 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'q':
             opts->query = strdup(optarg);
+            break;
+
+        case 'P':
+            if (purc_split_page_identifier(optarg, NULL, NULL, NULL, NULL) < 0)
+                goto bad_arg;
+            opts->pageid = optarg;
+            break;
+
+        case 'L':
+            opts->layout_style = optarg;
+            break;
+
+        case 'T':
+            opts->toolkit_style = optarg;
+            break;
+
+        case 'A':
+            opts->transition_style = optarg;
+            break;
+
+        case 's':
+            opts->allow_switching_rdr = optarg;
+            break;
+
+        case 'R':
+            opts->chroot = optarg;
+            break;
+
+        case 'U':
+            opts->setuser = optarg;
+            break;
+
+        case 'G':
+            opts->setuser = optarg;
             break;
 
         case 'l':
@@ -561,14 +651,8 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_APP_NAME, tmp);
     purc_variant_unref(tmp);
 
-    if (opts->run) {
-        tmp = purc_variant_make_string_reuse_buff(opts->run,
-                strlen(opts->run) + 1, false);
-        opts->run = NULL;
-    }
-    else {
-        tmp = purc_variant_make_string_static(DEF_RUN_NAME, false);
-    }
+    assert(opts->run);
+    tmp = purc_variant_make_string_static(opts->run, false);
     purc_variant_object_set_by_static_ckey(run_info.opts,
             KEY_RUN_NAME, tmp);
     purc_variant_unref(tmp);
@@ -831,6 +915,10 @@ fill_cor_rdr_info(struct my_opts *opts,
     if (tmp)
         rdr_info->layout_style = purc_variant_get_string_const(tmp);
 
+    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    if (tmp)
+        rdr_info->transition_style = purc_variant_get_string_const(tmp);
+
     rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
             "toolkitStyle");
 
@@ -929,6 +1017,18 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     /* create new runner if app_name or run_name differ */
     if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
         purc_instance_extra_info inst_info = {};
+
+        if (opts->allow_switching_rdr) {
+            if (strcmp(opts->allow_switching_rdr, "true") == 0) {
+                inst_info.allow_switching_rdr = 1;
+            }
+            else {
+                inst_info.allow_switching_rdr = 0;
+            }
+        }
+        else {
+            inst_info.allow_switching_rdr = 1;
+        }
 
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");
         if (tmp)
@@ -1239,6 +1339,31 @@ static bool
 run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 {
     size_t nr_executed = 0;
+    char name[PURC_LEN_IDENTIFIER + 1] = "";
+    char workspace[PURC_LEN_IDENTIFIER + 1] = "";
+    char group[PURC_LEN_IDENTIFIER + 1] = "";
+    int page_type;
+
+    if (opts->pageid) {
+        page_type = purc_split_page_identifier(opts->pageid,
+                NULL, name, workspace, group);
+    }
+    else
+        page_type = PCRDR_PAGE_TYPE_PLAINWIN;
+
+    /* we have validated the pageid */
+    assert(page_type >= 0);
+
+    purc_variant_t toolkit_style = PURC_VARIANT_INVALID;
+    if (opts->toolkit_style) {
+        toolkit_style = purc_variant_make_from_json_string(
+                opts->toolkit_style,
+                strlen(opts->toolkit_style));
+        if (!toolkit_style && opts->verbose) {
+            fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
+                    opts->toolkit_style);
+        }
+    }
 
     struct runr_info runr_info = { opts, &run_info };
     purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
@@ -1250,10 +1375,23 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             if (opts->verbose)
                 fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
 
+            purc_renderer_extra_info ex_rdr_info = {};
+            if (page_type == PCRDR_PAGE_TYPE_PLAINWIN ||
+                    page_type == PCRDR_PAGE_TYPE_WIDGET) {
+                ex_rdr_info.layout_style = opts->layout_style;
+                ex_rdr_info.toolkit_style = toolkit_style;
+                ex_rdr_info.transition_style = opts->transition_style;
+            }
+
             struct crtn_info crtn_info = { url };
             purc_schedule_vdom(vdom, 0, request,
-                    PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
-                    NULL, opts->body_ids->list[i], &crtn_info);
+                (pcrdr_page_type_k)page_type,
+                workspace[0] ? workspace : NULL,
+                group[0] ? group : NULL,
+                name[0] ? name : NULL,
+                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style ||
+                 ex_rdr_info.transition_style) ? &ex_rdr_info : NULL,
+                opts->body_ids->list[i], &crtn_info);
             purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;
@@ -1275,6 +1413,9 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             }
         }
     }
+
+    if (toolkit_style)
+        purc_variant_unref(toolkit_style);
 
     purc_remove_local_data(RUNR_INFO_NAME);
     return nr_executed > 0;
@@ -1390,10 +1531,182 @@ static void test_unistring(void)
 }
 #endif
 
+static struct thread_renderer {
+    purc_atom_t atom;
+
+    const char *shortname;
+    const char *uri;
+    purc_atom_t (*start)(const char *rdr_uri);
+    void (*exit)(void);
+} thrdrs[] = {
+#if ENABLE(RENDERER_FOIL)
+    { 0, FOIL_RUN_NAME, FOIL_RDR_URI,
+        foil_start, foil_sync_exit },
+#endif
+    { 0, SEEKER_RUN_NAME, SEEKER_RDR_URI,
+        seeker_start, seeker_sync_exit },
+};
+
+static int find_user_group(const char *user, const char *group,
+        uid_t *uid, gid_t *gid, const char **username)
+{
+    uid_t my_uid = 0;
+    gid_t my_gid = 0;
+    struct passwd *my_pwd = NULL;
+    struct group *my_grp = NULL;
+    char *endptr = NULL;
+    *uid = 0; *gid = 0;
+
+    if (username)
+        *username = NULL;
+
+    if (user) {
+        my_uid = strtol(user, &endptr, 10);
+
+        if (my_uid <= 0 || *endptr) {
+            if (NULL == (my_pwd = getpwnam(user))) {
+                fprintf(stderr, "hvml-fpm: can't find user name %s\n", user);
+                return -1;
+            }
+            my_uid = my_pwd->pw_uid;
+
+            if (my_uid == 0) {
+                fprintf(stderr, "hvml-fpm: I will not set uid to 0\n");
+                return -1;
+            }
+
+            if (username) *username = user;
+        }
+        else {
+            my_pwd = getpwuid(my_uid);
+            if (username && my_pwd)
+                *username = my_pwd->pw_name;
+        }
+    }
+
+    if (group) {
+        my_gid = strtol(group, &endptr, 10);
+
+        if (my_gid <= 0 || *endptr) {
+            if (NULL == (my_grp = getgrnam(group))) {
+                fprintf(stderr, "hvml-fpm: can't find group name %s\n", group);
+                return -1;
+            }
+            my_gid = my_grp->gr_gid;
+
+            if (my_gid == 0) {
+                fprintf(stderr, "hvml-fpm: I will not set gid to 0\n");
+                return -1;
+            }
+        }
+    }
+    else if (my_pwd) {
+        my_gid = my_pwd->pw_gid;
+
+        if (my_gid == 0) {
+            fprintf(stderr, "hvml-fpm: I will not set gid to 0\n");
+            return -1;
+        }
+    }
+
+    *uid = my_uid;
+    *gid = my_gid;
+    return 0;
+}
+
+static int drop_root_privilege(const struct my_opts *opts)
+{
+    const char *username;
+    const char *groupname;
+
+    if (opts->setuser) {
+        username = opts->setuser;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        username = opts->app;
+    }
+    else {
+        username = NULL;
+    }
+
+    if (opts->setgroup) {
+        groupname = opts->setgroup;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        groupname = opts->app;
+    }
+    else {
+        groupname = NULL;
+    }
+
+    uid_t uid;
+    gid_t gid;
+    const char* real_username;
+
+    if (find_user_group(username, groupname, &uid, &gid, &real_username) < 0)
+        return -1;
+
+    if (uid != 0 && gid == 0) {
+        fprintf(stderr, "Failed to find the user for uid %d and no group was "
+                "specified, so only the user privileges will be dropped\n",
+                (int)uid);
+    }
+
+    /* Change group before chroot, when we have access to /etc/group */
+    if (gid != 0) {
+        if (-1 == setgid(gid)) {
+            fprintf(stderr, "Failed setgid(%d): %s\n", (int)gid, strerror(errno));
+            return -1;
+        }
+
+        if (-1 == setgroups(0, NULL)) {
+            fprintf(stderr, "Failed setgroups(0, NULL): %s\n", strerror(errno));
+            return -1;
+        }
+
+        if (real_username) {
+            if (-1 == initgroups(real_username, gid)) {
+                fprintf(stderr, "Failed initgroups('%s', %d): %s\n",
+                        real_username, (int)gid, strerror(errno));
+                return -1;
+            }
+        }
+    }
+
+    const char *changeroot;
+    char app_top_dir[sizeof(PURC_HVML_APP_PREFIX) + PURC_LEN_APP_NAME] =
+        PURC_HVML_APP_PREFIX;
+
+    if (opts->chroot) {
+        changeroot = opts->chroot;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        strcat(app_top_dir, opts->app);
+        changeroot = app_top_dir;
+    }
+    else {
+        changeroot = NULL;
+    }
+
+    if (changeroot) {
+        if (-1 == chroot(changeroot)) {
+            fprintf(stderr, "Failed chroot('%s'): %s\n",
+                    changeroot, strerror(errno));
+            return -1;
+        }
+
+        if (-1 == chdir("/")) {
+            fprintf(stderr, "Failed: chdir('/'): %s\n", strerror(errno));
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
     int ret;
-    purc_atom_t foil_atom = 0;
     bool success = true;
 
 #ifndef NDEBUG
@@ -1420,6 +1733,32 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    /* Since 0.9.17: use md5sum of the first URL of HVML programs
+       as the runner name if not specified. */
+    if (opts->run == NULL) {
+        unsigned char digest[PCUTILS_MD5_DIGEST_SIZE];
+        char md5sum[PCUTILS_MD5_DIGEST_SIZE * 2 + 1];
+
+        pcutils_md5digest(opts->urls->list[0], digest);
+        pcutils_bin2hex(digest, PCUTILS_MD5_DIGEST_SIZE, md5sum, false);
+        /* R + md5sum[0-5](we use the first 6 characters only)*/
+        opts->run = calloc(1, 8);
+        opts->run[0] = 'R';
+        memcpy(opts->run + 1, md5sum, 6);
+        if (opts->run == NULL) {
+            fprintf(stderr, "%s: failed to allocate space for "
+                    "the default runner name.\n", argv[0]);
+            my_opts_delete(opts);
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (geteuid() == 0 && drop_root_privilege(opts) != 0) {
+        fprintf(stderr, "%s: failed to drop root privilege", argv[0]);
+        my_opts_delete(opts);
+        return EXIT_FAILURE;
+    }
+
     if (opts->verbose) {
         print_version(stdout);
         print_short_copying(stdout);
@@ -1440,6 +1779,18 @@ int main(int argc, char** argv)
 
     purc_instance_extra_info extra_info = {};
 
+    if (opts->allow_switching_rdr) {
+        if (strcmp(opts->allow_switching_rdr, "true") == 0) {
+            extra_info.allow_switching_rdr = 1;
+        }
+        else {
+            extra_info.allow_switching_rdr = 0;
+        }
+    }
+    else {
+        extra_info.allow_switching_rdr = 1;
+    }
+
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
         opts->rdr_prot = "headless";
 
@@ -1450,24 +1801,49 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
-#if ENABLE(RENDERER_FOIL)
         opts->rdr_prot = "thread";
-
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+
+        ssize_t thrdr_idx = -1;
         if (opts->rdr_uri == NULL) {
-            opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
+            opts->rdr_uri = strdup(thrdrs[0].uri);
+            thrdr_idx = 0;
+        }
+        else {
+            for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+                if (strncasecmp(opts->rdr_uri, PURC_EDPT_SCHEMA,
+                            sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+                    if (strcasecmp(thrdrs[i].uri, opts->rdr_uri) == 0) {
+                        thrdr_idx = i;
+                        break;
+                    }
+                }
+                else if (strcasecmp(thrdrs[i].shortname, opts->rdr_uri) == 0) {
+                    free(opts->rdr_uri);
+                    opts->rdr_uri = strdup(thrdrs[i].uri);
+                    thrdr_idx = i;
+                    break;
+                }
+            }
         }
 
-        if ((foil_atom = foil_start(opts->rdr_uri)) == 0) {
+        if (thrdr_idx < 0) {
+            fprintf(stdout,
+                    "Not found given thread renderer (%s), use %s instead.\n",
+                    opts->rdr_uri, thrdrs[0].uri);
+
+            thrdr_idx = 0;
+            free(opts->rdr_uri);
+            opts->rdr_uri = strdup(thrdrs[0].uri);
+        }
+
+        thrdrs[thrdr_idx].atom = thrdrs[thrdr_idx].start(thrdrs[thrdr_idx].uri);
+        if (thrdrs[thrdr_idx].atom == 0) {
             fprintf(stderr,
-                    "Failed to initialize the built-in Foil renderer: %s\n",
-                    opts->rdr_prot);
+                    "Failed to initialize the built-in thread renderer: %s\n",
+                    thrdrs[thrdr_idx].uri);
             return EXIT_FAILURE;
         }
-#else
-        fprintf(stderr, "The built-in Foil renderer is not enabled.\n");
-        return EXIT_FAILURE;
-#endif
     }
     else if (strcmp(opts->rdr_prot, "websocket") == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
@@ -1495,8 +1871,9 @@ int main(int argc, char** argv)
 
     extra_info.renderer_uri = opts->rdr_uri;
 
+
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
-            opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
+            opts->run, &extra_info);
     if (ret != PURC_ERROR_OK) {
         fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
             purc_get_error_message(ret));
@@ -1529,6 +1906,13 @@ int main(int argc, char** argv)
             goto failed;
         }
     }
+    else {
+        if ((request = purc_variant_make_object_0()) == PURC_VARIANT_INVALID) {
+            fprintf(stderr, "Failed to make an empty object as the request\n");
+            my_opts_delete(opts);
+            goto failed;
+        }
+    }
 
     run_info.dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
 
@@ -1555,14 +1939,8 @@ int main(int argc, char** argv)
     }
     else {
         assert(!opts->parallel);
-
-        if (!run_programs_sequentially(opts, request)) {
-            success = false;
-        }
-
+        success = run_programs_sequentially(opts, request);
     }
-
-    my_opts_delete(opts);
 
 failed:
     if (request) {
@@ -1577,8 +1955,13 @@ failed:
 
     purc_cleanup();
 
-    if (foil_atom)
-        foil_sync_exit();
+    my_opts_delete(opts);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+        if (thrdrs[i].atom) {
+            thrdrs[i].exit();
+        }
+    }
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -129,6 +129,8 @@ set(bmalloc_LIBRARY_TYPE STATIC)
 set(WTF_LIBRARY_TYPE STATIC)
 set(PurC_LIBRARY_TYPE SHARED)
 
+set(HVML_PLATFORM_VERSION 0)
+
 set(PURC_API_VERSION 0.9)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
@@ -138,7 +140,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #------------------------------------------------------------------------------
 include(PurCCommon)
 
-SET_PROJECT_VERSION(0 9 17)
+SET_PROJECT_VERSION(0 9 18)
 
 add_subdirectory(Source)
 

@@ -58,6 +58,7 @@ hvml individually indv
 hvml idd-by
 hvml wholly
 hvml once
+hvml template
 
 # executor
 hvml FORMULA

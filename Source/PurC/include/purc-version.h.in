@@ -60,6 +60,13 @@
  */
 #define PURC_VERSION_MICRO @PROJECT_VERSION_MICRO@
 
+/**
+ * HVML_PLATFORM_VERSION:
+ *
+ * Since 0.9.17
+ */
+#define HVML_PLATFORM_VERSION @HVML_PLATFORM_VERSION@
+
 #define PURC_VERSION_STRING "@PROJECT_VERSION@"
 
 #define PURC_API_VERSION_STRING "@PURC_API_VERSION@"
@@ -91,11 +98,7 @@ PCA_EXTERN_C_BEGIN
  *
  * Since 0.0.1
  */
-PCA_INLINE int
-purc_get_major_version(void)
-{
-    return PURC_VERSION_MAJOR;
-}
+int purc_get_major_version(void);
 
 /**
  * purc_get_minor_version:
@@ -104,11 +107,7 @@ purc_get_major_version(void)
  *
  * Since 0.0.1
  */
-PCA_INLINE int
-purc_get_minor_version(void)
-{
-    return PURC_VERSION_MINOR;
-}
+int purc_get_minor_version(void);
 
 /**
  * purc_get_micro_version:
@@ -117,11 +116,7 @@ purc_get_minor_version(void)
  *
  * Since 0.0.1
  */
-PCA_INLINE int
-purc_get_micro_version(void)
-{
-    return PURC_VERSION_MICRO;
-}
+int purc_get_micro_version(void);
 
 /**
  * purc_get_versions:
@@ -134,12 +129,7 @@ purc_get_micro_version(void)
  *
  * Since 0.0.1
  */
-PCA_INLINE void
-purc_get_versions (int *major, int *minor, int *micro) {
-    if (major) *major = PURC_VERSION_MAJOR;
-    if (minor) *minor = PURC_VERSION_MINOR;
-    if (micro) *micro = PURC_VERSION_MICRO;
-}
+void purc_get_versions(int *major, int *minor, int *micro);
 
 /**
  * purc_version_string:
@@ -148,10 +138,7 @@ purc_get_versions (int *major, int *minor, int *micro) {
  *
  * Since 0.0.1
  */
-PCA_INLINE const char *
-purc_get_version_string (void) {
-    return PURC_VERSION_STRING;
-}
+const char *purc_get_version_string(void);
 
 /**
  * purc_api_version_string:
@@ -160,10 +147,16 @@ purc_get_version_string (void) {
  *
  * Since 0.0.1
  */
-PCA_INLINE const char *
-purc_get_api_version_string (void) {
-    return PURC_API_VERSION_STRING;
-}
+const char *purc_get_api_version_string(void);
+
+/**
+ * purc_api_version_string:
+ *
+ * Returns: the version code of the HVML platform.
+ *
+ * Since 0.9.17
+ */
+int purc_get_hvml_platform_version(void);
 
 PCA_EXTERN_C_END
 

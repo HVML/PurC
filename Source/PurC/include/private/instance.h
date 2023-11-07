@@ -74,6 +74,8 @@ struct pcinst {
     // flags go here
     unsigned int            enable_remote_fetcher:1;
     unsigned int            is_instmgr:1;
+    unsigned int            allow_switching_rdr:1;
+    unsigned int            auto_switching_rdr:1;
 
     char                   *app_name;
     char                   *runner_name;
@@ -101,6 +103,7 @@ struct pcinst {
 
     struct pcrdr_conn      *conn_to_rdr;
     struct renderer_capabilities *rdr_caps;
+    struct pcrdr_conn      *conn_to_rdr_origin;
 
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
@@ -108,6 +111,9 @@ struct pcinst {
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
+
+    /* Since 0.9.17 */
+    purc_variant_t         app_manifest;
 };
 
 PCA_EXTERN_C_BEGIN
@@ -115,7 +121,7 @@ PCA_EXTERN_C_BEGIN
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
-purc_variant_t pcinst_get_variable(const char* name);
+purc_variant_t pcinst_get_variable(const char* name) WTF_INTERNAL;
 
 static inline purc_variant_t
 pcinst_get_session_variables(const char* name)
@@ -130,7 +136,7 @@ int
 pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
         purc_variant_t source_uri, purc_variant_t observed,
         const char *event_type, const char *event_sub_type,
-        purc_variant_t data);
+        purc_variant_t data) WTF_INTERNAL;
 
 void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 
@@ -143,6 +149,9 @@ pcinst_dump_err_except_info(purc_variant_t err_except_info) WTF_INTERNAL;
 
 void
 pcinst_dump_err_info(void) WTF_INTERNAL;
+
+purc_variant_t
+pcinst_load_app_manifest(const char *app_name) WTF_INTERNAL;
 
 PCA_EXTERN_C_END
 

@@ -33,7 +33,7 @@
 
 #include <limits.h>
 
-#define DEFAULT_HVML_BASE           "file:///"
+#define DEFAULT_HVML_BASE           "file://"
 #define DEFAULT_HVML_TARGET         "void"
 #define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__handle_ctrl_props"
@@ -409,6 +409,53 @@ timeout_setter(purc_variant_t root,
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+sending_document_by_url_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
+    return purc_variant_make_boolean(cor->sending_document_by_url);
+}
+
+static purc_variant_t
+sending_document_by_url_setter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (purc_variant_is_boolean(argv[0])) {
+        if (purc_variant_is_true(argv[0])) {
+            cor->sending_document_by_url = 1;
+        }
+        else {
+            cor->sending_document_by_url = 0;
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(cor->sending_document_by_url);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(cor->sending_document_by_url);
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -817,12 +864,20 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
     static const struct purc_dvobj_method method [] = {
         { "target", target_getter, NULL },
         { "base", base_getter, base_setter },
-        { "max_iteration_count",
+        { "max_iteration_count",    // TODO: remove in 1.0
             max_iteration_count_getter, max_iteration_count_setter },
-        { "max_recursion_depth",
+        { "max_recursion_depth",    // TODO: remove in 1.0
             max_recursion_depth_getter, max_recursion_depth_setter },
-        { "max_embedded_levels",
+        { "max_embedded_levels",    // TODO: remove in 1.0
             max_embedded_levels_getter, max_embedded_levels_setter },
+        { "maxIterationCount",
+            max_iteration_count_getter, max_iteration_count_setter },
+        { "maxRecursionDepth",
+            max_recursion_depth_getter, max_recursion_depth_setter },
+        { "maxEmbeddedLevels",
+            max_embedded_levels_getter, max_embedded_levels_setter },
+        { "sendingDocumentByURL",
+            sending_document_by_url_getter, sending_document_by_url_setter },
         { "timeout", timeout_getter, timeout_setter },
         { "cid",     cid_getter,     NULL },
         { "uri",     uri_getter,     NULL },

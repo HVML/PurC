@@ -219,21 +219,6 @@ enum {
             kw = pcutils_get_next_token_len(kw + kw_len,                    \
                 total_len, PURC_KW_DELIMITERS, &kw_len))
 
-#define strncmp2ltr(str, literal, len)          \
-    ((len > (sizeof(literal "") - 1)) ? 1 :     \
-        (len < (sizeof(literal "") - 1) ? -1 : strncmp(str, literal, len)))
-
-#define strncasecmp2ltr(str, literal, len)      \
-    ((len > (sizeof(literal "") - 1)) ? 1 :     \
-        (len < (sizeof(literal "") - 1) ? -1 : strncasecmp(str, literal, len)))
-
-#define retry_syscall_for_eintr(expression)             \
-   (__extension__                                       \
-     ({ long int __result;                              \
-        do __result = (long int) (expression);          \
-        while (__result == -1L && errno == EINTR);      \
-        __result; }))
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */

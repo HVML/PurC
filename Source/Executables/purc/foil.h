@@ -34,8 +34,10 @@
 
 #define FOIL_APP_NAME           "cn.fmsoft.hvml.renderer"
 #define FOIL_RUN_NAME           "foil"
-
 #define FOIL_RDR_NAME           "Foil"
+
+#define FOIL_RDR_URI            \
+    PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 
 #define FOIL_DEF_CHARSET        "UTF-8"
 #define FOIL_DEF_DPI            96.0
@@ -58,48 +60,6 @@
     "HTML:5.3\n" \
     "workspace:0/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:8\n" \
     "DOMElementSelectors:handle"
-
-#ifdef NDEBUG
-#   define LOG_DEBUG(x, ...)
-#else
-#   define LOG_DEBUG(x, ...)   \
-    purc_log_debug("%s: " x, __func__, ##__VA_ARGS__)
-#endif /* not defined NDEBUG */
-
-#ifdef LOG_ERROR
-#   undef LOG_ERROR
-#endif
-
-#define LOG_ERROR(x, ...)   \
-    purc_log_error("%s: " x, __func__, ##__VA_ARGS__)
-
-#define LOG_WARN(x, ...)    \
-    purc_log_warn("%s: " x, __func__, ##__VA_ARGS__)
-
-#define LOG_INFO(x, ...)    \
-    purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
-
-#ifndef MIN
-#   define MIN(x, y)   (((x) > (y)) ? (y) : (x))
-#endif
-
-#ifndef MAX
-#   define MAX(x, y)   (((x) < (y)) ? (y) : (x))
-#endif
-
-/* round n to multiple of m */
-#define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
-
-#if defined(_WIN64)
-#   define SIZEOF_PTR   8
-#   define SIZEOF_HPTR  4
-#elif defined(__LP64__)
-#   define SIZEOF_PTR   8
-#   define SIZEOF_HPTR  4
-#else
-#   define SIZEOF_PTR   4
-#   define SIZEOF_HPTR  2
-#endif
 
 enum {
     FOIL_TERM_MODE_LINE = 0,
@@ -159,13 +119,15 @@ struct pcmcth_rdr_data {
 extern "C" {
 #endif
 
-/** Starts Foil renderer */
+/* Starts Foil renderer */
 purc_atom_t foil_start(const char *rdr_uri);
 
-/** Returns the pointer to the Foil renderer. */
+/* Returns the pointer to the Foil renderer. */
 pcmcth_renderer *foil_get_renderer(void);
 
-/** Wait for Foil renderer to exit synchronously */
+void foil_set_renderer_callbacks(pcmcth_renderer *rdr);
+
+/* Wait for Foil renderer to exit synchronously */
 void foil_sync_exit(void);
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,

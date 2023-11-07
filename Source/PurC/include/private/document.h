@@ -221,6 +221,10 @@ extern struct purc_document_ops _pcdoc_void_ops WTF_INTERNAL;
 extern struct purc_document_ops _pcdoc_plain_ops WTF_INTERNAL;
 extern struct purc_document_ops _pcdoc_html_ops WTF_INTERNAL;
 
+purc_document_t
+pcdoc_document_new(purc_document_type_k type,
+        const char *content, size_t nr_content);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

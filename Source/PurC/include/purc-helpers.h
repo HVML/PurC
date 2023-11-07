@@ -37,22 +37,7 @@
 #include "purc-macros.h"
 #include "purc-variant.h"
 #include "purc-utils.h"
-
-#define PURC_INVPTR                     ((void *)-1)
-
-#define PURC_LEN_HOST_NAME              127
-#define PURC_LEN_APP_NAME               127
-#define PURC_LEN_RUNNER_NAME            63
-#define PURC_LEN_IDENTIFIER             63
-
-#define PURC_EDPT_SCHEMA                "edpt://"
-#define PURC_LEN_EDPT_SCHEMA            7
-
-#define PURC_LEN_ENDPOINT_NAME         \
-    (PURC_LEN_EDPT_SCHEMA + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
-     PURC_LEN_RUNNER_NAME + 2)
-#define PURC_LEN_UNIQUE_ID             63
-#define PURC_LEN_PROPERTY_NAME         255
+#include "purc-features.h"
 
 PCA_EXTERN_C_BEGIN
 
@@ -722,7 +707,7 @@ purc_page_ostack_revoke(purc_page_ostack_t ostack,
         struct purc_page_owner owner);
 
 /**
- * Revokes all page owner belonging to the specific session.
+ * Revokes all page owners belonging to the specific session.
  *
  * @param ostack: The pointer to a page owner stack.
  *
@@ -772,12 +757,31 @@ purc_page_ostack_get_birth(purc_page_ostack_t ostack);
 
 #define PURC_PREFIX_PLAINWIN         "plainwin:"
 #define PURC_PREFIX_WIDGET           "widget:"
+#define PURC_SEP_PAGE_TYPE           ':'
 #define PURC_SEP_GROUP_NAME          '@'
+#define PURC_SEP_WORKSPACE_NAME      '/'
 
 #define PURC_MAX_PLAINWIN_ID     \
     (sizeof(PURC_PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
 #define PURC_MAX_WIDGET_ID     \
     (sizeof(PURC_PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
+
+/**
+ * Checks and makes page identifier for a plain window specified by
+ * the pattern 'name[@group]'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for no group part, and
+ *  @PURC_INVPTR for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
+        const char *name_group);
 
 /**
  * Checks and makes page identifier for a plain window specified by
@@ -812,8 +816,293 @@ const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
 const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
         const char *name_group);
 
+/**
+ * Checks whether a given identifier is a valid CSS identifier.
+ *
+ * @param id: The pointer the given identifier.
+ *
+ * Returns: `true` for a valid CSS identifier, otherwise `false`.
+ *
+ * Since: 0.9.10
+ */
 PCA_EXPORT bool
 purc_is_valid_css_identifier(const char *id);
+
+/**
+ * Splits a page identifier in pattern
+ *      '<type>:[<name>[@[<workspace>/]<group>]]'
+ * to name, workspace, and page group identifier, and returns the page type.
+ *
+ * @param page_id: The pointer to a string which contains the page identifier.
+ * @param type_buf: The pointer to a buffer to store the page type; nullable.
+ * @param name_buf: The pointer to a buffer to store the page name; nullable.
+ * @param workspace_buf: The pointer to a buffer to store the workspace;
+ *      nullable.
+ * @param group_buf: The pointer to a buffer to store the page group
+ *      identifier; nullable.
+ *
+ * Returns: a value (the page type identifier) greater than or equal to 0
+ *      for success; a value less than 0 for bad page identifier.
+ *
+ * Since: 0.9.18
+ */
+int
+purc_split_page_identifier(const char *page_id, char *type_buf,
+        char *name_buf, char *workspace_buf, char *group_buf);
+
+struct purc_screen_info {
+    /** The number of horinzontal physical pixels (dots) of screen. */
+    int width;
+
+    /** The number of vertial physical pixels (dots) of screen. */
+    int height;
+
+    /** The number of dots per inch. */
+    float dpi;
+
+    /** The ratio of logical pixels to physical pixels. */
+    float density;
+};
+
+struct purc_window_geometry {
+    /* the x and y coordinates of the window in dots. */
+    int x, y;
+
+    /* the width and height of the window in dots. */
+    int width, height;
+};
+
+/**
+ * Evaluates the geometry of a standalone window from the styles.
+ *
+ * @param styles: The styles like `window-size:50%;window-position:center;`.
+ * @param screen_info: The screen parameters (width, height, and density).
+ * @param geometry: The pointer to a buffer to store the evaluted window
+ *  geometry.
+ *
+ * Returns: 0 for success; a value less than 0 for bad styles.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT int
+purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
+        const struct purc_screen_info *screen_info,
+        struct purc_window_geometry *geometry);
+
+typedef enum {
+    PURC_WINDOW_TRANSTION_FUNCTION_first = 0,
+
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_NONE        "none"
+    PURC_WINDOW_TRANSTION_FUNCTION_NONE = PURC_WINDOW_TRANSTION_FUNCTION_first,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_LINEAR      "linear"
+    PURC_WINDOW_TRANSTION_FUNCTION_LINEAR,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY        "easy"
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_IN     "easy-in"
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN,
+#define PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_OUT    "easy-out"
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT,
+
+    /* XXX: change this if you append a new function. */
+    PURC_WINDOW_TRANSTION_FUNCTION_last = PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT,
+} purc_window_transition_function;
+
+struct purc_window_transition {
+    purc_window_transition_function move_func;
+    uint32_t move_duration;
+};
+
+/**
+ * Evaluates the transition of a standalone window from the styles.
+ *
+ * @param styles: The styles like `window-transition-move: linear 200`.
+ * @param transition: The pointer to a buffer to store the evaluted window
+ *  transition.
+ *
+ * Returns: 0 for success; a value less than 0 for bad styles.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT int
+purc_evaluate_standalone_window_transition_from_styles(const char *styles,
+      struct purc_window_transition *transition);
+
+
+/**
+ * Checks if a UNIX domain socket alive.
+ *
+ * @param path: The path to the UNIX domain socket.
+ *
+ * Returns: 0 for success and -1 for failure.
+ *
+ * Notes: Only available on UNIX-like systems.
+ *
+ * Since: 0.9.18
+ */
+int purc_check_unix_socket(const char *path);
+
+#define PURC_MAX_LEN_HOSTNAME       1023
+
+/**
+ * Gets the hostname of the local machine.
+ *
+ * @param name_buf: The buffer to return the hostname. Note that
+ *  the size of the buffer should be at least (PURC_MAX_LEN_HOSTNAME + 1).
+ *
+ * Returns: The pointer to the buffer.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT char *
+purc_get_local_hostname(char *name_buf);
+
+/**
+ * Gets the hostname of the local machine and returns it in a newly
+ * allocated string.
+ *
+ * Returns: The pointer to the new buffer which contains the hostname;
+ *  NULL for failure.
+ *  Note that the caller should free the buffer by calling `free()`.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT char *
+purc_get_local_hostname_alloc(void);
+
+#if PCA_ENABLE_DNSSD
+
+struct purc_dnssd_conn;
+
+typedef void (*dnssd_on_register_reply)(struct purc_dnssd_conn *dnssd,
+        void *reg_handle, unsigned int flags, int err_code,
+        const char *name, const char *reg_type, const char *domain,
+        void *ctxt);
+
+typedef void (*dnssd_on_service_discovered)(struct purc_dnssd_conn *dnssd,
+        void *service_handle,
+        unsigned int flags, uint32_t if_index, int error_code,
+        const char *service_name, const char *reg_type, const char *hostname,
+        uint16_t port, uint16_t len_txt_record, const char *txt_record,
+        void *ctxt);
+
+/**
+ * Connects to the mDNS responder daemon.
+ *
+ * Returns: A pointer to `struct purc_dnssd_conn` representing the connection
+ * to the mDNS Responder daemon; NULL for failure.
+ *
+ * Since: 0.9.18
+ */
+struct purc_dnssd_conn *
+purc_dnssd_connect(dnssd_on_register_reply register_reply_cb,
+        dnssd_on_service_discovered service_discovered_cb, void *context);
+
+/**
+ * Disconnects from the mDNS responder daemon.
+ *
+ * Since: 0.9.18
+ */
+void
+purc_dnssd_disconnect(struct purc_dnssd_conn *dnssd);
+
+/**
+ * Returns the file descriptor of the connection to the mDNS responder daemon.
+ *
+ * Since: 0.9.18
+ */
+int purc_dnssd_fd(struct purc_dnssd_conn *dnssd);
+
+/**
+ * Registers a service.
+ *
+ * @param dnssd: The connection to the mDNS responder daemon.
+ * @param service_name: The name of the service (nullable).
+ *  It it is NULL, this function will use hostname of the machine
+ *  as the service name.
+ * @param reg_type: The type of the service to register, like `_http._tcp`.
+ * @param domain: If non-NULL, specifies the domain on which to advertise
+ *  the service. Most applications will not specify a domain, instead
+ *  automatically registering in the default domain(s).
+ * @param host: If non-NULL, specifies the SRV target host name.
+ *  Most applications will not specify a host, instead automatically using
+ * the machine's default host name(s). Note that specifying a non-NULL host
+ * does NOT create an address record for that host - the application is
+ * responsible for ensuring that the appropriate address record exists,
+ * or creating it via purc_dnssd_serivce_register_record().
+ * @param port: The port on which the service accepts connections.
+ * @param txt_record_values: A string array contains the TXT record values
+ *  of the service to register. NULL for none.
+ * @nr_txt_records: The number of valid TXT record values to register;
+ *  zero for none.
+ *
+ * Returns: The handle of the registered service; NULL for error.
+ *
+ * Since: 0.9.18
+ */
+void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
+        const char *service_name, const char *reg_type,
+        const char *domain, const char *hostname, uint16_t port,
+        const char *txt_record_values[], size_t nr_txt_record_values);
+
+/**
+ * Revokes a service registered previously.
+ *
+ * @param dnssd: The connection to the mDNS responder daemon.
+ * @param service_handle: The handle of a registered service returned by
+ *  purc_dnssd_register_local_service().
+ *
+ * Returns: 0 for success and -1 for failure.
+ *
+ * Since: 0.9.18
+ */
+void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
+        void *service_handle);
+
+/**
+ * Starts browsing services on network.
+ *
+ * @param dnssd: The connection to the mDNS responder daemon.
+ * @param reg_type: The service type to browser.
+ * @param domain: The domain to browser.
+ *
+ * Returns: A handle of the browsing; NULL for failure.
+ *
+ * Since: 0.9.18
+ */
+void *purc_dnssd_start_browsing(struct purc_dnssd_conn *dnssd,
+        const char *reg_type, const char *domain);
+
+/**
+ * Stops browsing services on network.
+ *
+ * @param dnssd: The connection to the mDNS responder daemon.
+ * @param browsing_handle: A browsing handle returned by
+ *  purc_dnssd_start_browsing().
+ *
+ * Since: 0.9.18
+ */
+void purc_dnssd_stop_browsing(struct purc_dnssd_conn *dnssd,
+        void *browsing_handle);
+
+/**
+ * Gets a reply from mDNS responder daemon and processes the browsing result.
+ * When there is a reply, this function will call the callback to handle
+ * a newly found service.
+ *
+ * @param dnssd: The connection to the mDNS responder daemon.
+ *
+ * Note: This call will block until a reply from the daemon is received.
+ * Use purc_dnssd_fd() in conjunction with a run loop or select()
+ * to determine the presence of a reply from the daemon before calling
+ * this function to process the reply without blocking.
+ *
+ * Returns: 0 for success and -1 for failure.
+ *
+ * Since: 0.9.18
+ */
+int purc_dnssd_process_result(struct purc_dnssd_conn *dnssd);
+
+#endif /* PCA_ENABLE_DNSSD */
 
 /**@}*/
 
@@ -833,7 +1122,7 @@ PCA_EXTERN_C_END
  *
  * Returns: the length of the name string.
  *
- * Since: 1.0
+ * Since: 0.1.0
  */
 static inline int
 purc_name_tolower(char *name)

@@ -23,8 +23,6 @@ list(APPEND PurC_SOURCES
 )
 
 list(APPEND PurC_LIBRARIES
-    PurC::WTF
-    PurC::CSSEng
     ${GLIB_GIO_LIBRARIES}
     ${GLIB_GOBJECT_LIBRARIES}
     ${GLIB_LIBRARIES}
@@ -34,6 +32,12 @@ list(APPEND PurC_LIBRARIES
     -ldl
     -lrt
 )
+
+if (ENABLE_DNSSD)
+    list(APPEND PurC_LIBRARIES
+        ${DNSSD_LIBRARIES}
+    )
+endif ()
 
 configure_file(ports/linux/purc.pc.in ${PurC_PKGCONFIG_FILE} @ONLY)
 install(FILES "${PurC_PKGCONFIG_FILE}"

@@ -45,10 +45,10 @@
 
 #define LEN_BUFF_LONGLONGINT    128
 
-#define NR_WORKSPACES           8
+#define NR_WORKSPACES           4
 #define NR_TABBEDWINDOWS        8
-#define NR_WIDGETS              32
-#define NR_PLAINWINDOWS         256
+#define NR_WIDGETS              16
+#define NR_PLAINWINDOWS         64
 
 #define __STRING(x) #x
 
@@ -135,7 +135,7 @@ struct pcrdr_prot_data {
     // requestId -> results;
     struct pcutils_kvlist        results;
 
-    // FILE pointer to serialize the message.
+    // pointer to the session.
     struct session_info *session;
 };
 
@@ -1401,6 +1401,17 @@ found_tp:
     return domdocs;
 }
 
+static void on_load_from_url(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
+{
+    UNUSED_PARAM(prot_data);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(op_id);
+
+    result->retCode = PCRDR_SC_NOT_ACCEPTABLE;
+    result->resultValue = 0;
+}
+
 static void on_load(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
@@ -1757,6 +1768,7 @@ static request_handler handlers[] = {
     on_create_widget,
     on_update_widget,
     on_destroy_widget,
+    on_load_from_url,
     on_load,
     on_write_begin,
     on_write_more,
@@ -1801,6 +1813,8 @@ static int evaluate_result(struct pcrdr_prot_data *prot_data,
 
     unsigned int op_id;
     if (pcrdr_operation_from_atom(op_atom, &op_id) == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
         goto done;
     }
 

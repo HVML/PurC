@@ -39,6 +39,7 @@ static bool features[] = {
     PCA_ENABLE_STREAM_WEB_SOCKET,
     PCA_ENABLE_SSL,
     PCA_ENABLE_APP_AUTH,
+    PCA_ENABLE_DNSSD,
 };
 
 /* Make sure the number of error messages matches the number of error codes */

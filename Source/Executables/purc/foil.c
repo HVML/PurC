@@ -41,8 +41,10 @@
 
 static int init_renderer(pcmcth_renderer *rdr)
 {
-    pcmcth_set_renderer_callbacks(rdr);
+    foil_set_renderer_callbacks(rdr);
 
+    rdr->features = FOIL_RDR_FEATURES;
+    rdr->len_features = sizeof(FOIL_RDR_FEATURES) - 1;
     rdr->master_rid = 0;
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();
@@ -51,7 +53,7 @@ static int init_renderer(pcmcth_renderer *rdr)
     kvlist_init(&rdr->endpoint_list, NULL);
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
 
-    foil_timer_module_init(rdr);
+    pcmcth_timer_module_init(rdr);
 
     return rdr->cbs.prepare(rdr);
 }
@@ -62,9 +64,7 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     void *next, *data;
     pcmcth_endpoint *endpoint;
 
-    rdr->cbs.cleanup(rdr);
-
-    foil_timer_module_cleanup(rdr);
+    pcmcth_timer_module_cleanup(rdr);
 
     remove_all_living_endpoints(&rdr->living_avl);
 
@@ -80,14 +80,14 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     }
 
     kvlist_free(&rdr->endpoint_list);
-}
 
-#define FOIL_RENDERER   "renderer"
+    rdr->cbs.cleanup(rdr);
+}
 
 pcmcth_renderer *foil_get_renderer(void)
 {
     uintptr_t v;
-    if (purc_get_local_data(FOIL_RENDERER, &v, NULL) == 1)
+    if (purc_get_local_data(LDNAME_RENDERER, &v, NULL) == 1)
         return (pcmcth_renderer *)(void *)v;
     return NULL;
 }
@@ -153,10 +153,10 @@ static int on_regular_timer(const char *name, void *ctxt)
     assert(strcmp(name, "regular") == 0);
 
     pcmcth_renderer *rdr = ctxt;
-    pcmcth_timer_t timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
+    pcmcth_timer_t timer = pcmcth_timer_find(rdr, name, on_regular_timer, ctxt);
     assert(timer);
 
-    const char* id = foil_timer_id(rdr, timer);
+    const char* id = pcmcth_timer_id(rdr, timer);
     printf("Timer %s with id (%s) fired: %d\n", name, id, nr_timer_fired);
     nr_timer_fired++;
     if (nr_timer_fired == MAX_TIMES_FIRED)
@@ -170,21 +170,21 @@ static int on_once_timer(const char *name, void *ctxt)
 
     pcmcth_renderer *rdr = ctxt;
     pcmcth_timer_t timer;
-    timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
+    timer = pcmcth_timer_find(rdr, name, on_regular_timer, ctxt);
     assert(timer == NULL);
 
-    timer = foil_timer_find(rdr, name, on_once_timer, ctxt);
+    timer = pcmcth_timer_find(rdr, name, on_once_timer, ctxt);
     assert(timer);
 
-    const char* id = foil_timer_id(rdr, timer);
+    const char* id = pcmcth_timer_id(rdr, timer);
     printf("Timer %s with identifier (%s) fired\n", name, id);
     return -1;
 }
 
 static void test_timer(pcmcth_renderer *rdr)
 {
-    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
-    foil_timer_new(rdr, "once", on_once_timer, 100, rdr);
+    pcmcth_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
+    pcmcth_timer_new(rdr, "once", on_once_timer, 100, rdr);
 
     while (rdr->t_elapsed < 2) {
         if (rdr->cbs.handle_event(rdr, 10000))
@@ -195,11 +195,11 @@ static void test_timer(pcmcth_renderer *rdr)
             rdr->t_elapsed_last = rdr->t_elapsed;
         }
 
-        foil_timer_check_expired(rdr);
+        pcmcth_timer_check_expired(rdr);
     }
 
     unsigned n;
-    n = foil_timer_delete_all(rdr);
+    n = pcmcth_timer_delete_all(rdr);
     assert(n == 1);
 }
 #endif /* not defined NDEBUG */
@@ -230,7 +230,7 @@ static void event_loop(pcmcth_renderer *rdr)
                 rdr->t_elapsed_last = rdr->t_elapsed;
             }
 
-            foil_timer_check_expired(rdr);
+            pcmcth_timer_check_expired(rdr);
             continue;
         }
 
@@ -306,12 +306,12 @@ static void* foil_thread_entry(void* arg)
         pcmcth_renderer rdr;
 
         if (init_renderer(&rdr) == 0) {
-            purc_set_local_data(FOIL_RENDERER, (uintptr_t)&rdr, NULL);
+            purc_set_local_data(LDNAME_RENDERER, (uintptr_t)&rdr, NULL);
 #ifndef NDEBUG
             test_timer(&rdr);
 #endif
             event_loop(&rdr);
-            purc_remove_local_data(FOIL_RENDERER);
+            purc_remove_local_data(LDNAME_RENDERER);
             deinit_renderer(&rdr);
         }
         purc_inst_destroy_move_buffer();

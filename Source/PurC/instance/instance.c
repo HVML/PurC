@@ -375,7 +375,10 @@ static int init_modules(struct pcinst *curr_inst,
         curr_inst->enable_remote_fetcher      =  1;
     }
 
-    // call mdule initializers
+    // Since 0.9.18
+    curr_inst->auto_switching_rdr = 1;
+
+    // call module initializers
     for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {
         struct pcmodule *m = _pc_modules[i];
         if ((m->id & modules) != m->id)
@@ -412,6 +415,9 @@ static void cleanup_instance(struct pcinst *curr_inst)
         pcutils_uomap_destroy(curr_inst->local_data_map);
         curr_inst->local_data_map = NULL;
     }
+
+    if (curr_inst->app_manifest)
+        purc_variant_unref(curr_inst->app_manifest);
 
     if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
         fclose(curr_inst->fp_log);

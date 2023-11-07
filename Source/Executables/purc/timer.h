@@ -23,16 +23,16 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef purc_foil_timer_h_
-#define purc_foil_timer_h_
+#ifndef purc_pcmcth_timer_h_
+#define purc_pcmcth_timer_h_
 
 #include "purcmc-thread.h"
 
 struct pcmcth_timer;
 typedef struct pcmcth_timer *pcmcth_timer_t;
 
-int foil_timer_module_init(pcmcth_renderer *rdr);
-void foil_timer_module_cleanup(pcmcth_renderer *rdr);
+int pcmcth_timer_module_init(pcmcth_renderer *rdr);
+void pcmcth_timer_module_cleanup(pcmcth_renderer *rdr);
 
 /**
  * Prototype of the callback which will be called when a timer expired.
@@ -44,7 +44,7 @@ void foil_timer_module_cleanup(pcmcth_renderer *rdr);
 typedef int (*on_timer_expired_f)(const char *name, void *ctxt);
 
 /** Returns the current milliseconds since the renderer starts up */
-int64_t foil_timer_current_milliseconds(pcmcth_renderer *rdr);
+int64_t pcmcth_timer_current_milliseconds(pcmcth_renderer *rdr);
 
 /**
  * Creates a new timer.
@@ -54,27 +54,27 @@ int64_t foil_timer_current_milliseconds(pcmcth_renderer *rdr);
  *
  * Returns the handle to the timer; NULL for failure.
  */
-pcmcth_timer_t foil_timer_new(pcmcth_renderer *rdr, const char *name,
+pcmcth_timer_t pcmcth_timer_new(pcmcth_renderer *rdr, const char *name,
         on_timer_expired_f callback, int interval, void *ctxt);
 
 /**
  * Retrieves a timer based on the identifier and callback.
  * Returns the handle to the timer; NULL for not found.
  */
-pcmcth_timer_t foil_timer_find(pcmcth_renderer *rdr, const char *name,
+pcmcth_timer_t pcmcth_timer_find(pcmcth_renderer *rdr, const char *name,
         on_timer_expired_f callback, void *ctxt);
 
 /** Returns the identifier of a timer. */
-const char *foil_timer_id(pcmcth_renderer *rdr, pcmcth_timer_t timer);
+const char *pcmcth_timer_id(pcmcth_renderer *rdr, pcmcth_timer_t timer);
 
 /** Deletes a timer. */
-int foil_timer_delete(pcmcth_renderer *rdr, pcmcth_timer_t timer);
+int pcmcth_timer_delete(pcmcth_renderer *rdr, pcmcth_timer_t timer);
 
 /** Deletes all timer. Returns the number of timers deleted */
-unsigned foil_timer_delete_all(pcmcth_renderer *rdr);
+unsigned pcmcth_timer_delete_all(pcmcth_renderer *rdr);
 
 /** Calls the on_timer_expired_f callbacks for all expired timers. */
-unsigned foil_timer_check_expired(pcmcth_renderer *rdr);
+unsigned pcmcth_timer_check_expired(pcmcth_renderer *rdr);
 
-#endif /* !purc_foil_timer_h_ */
+#endif /* !purc_pcmcth_timer_h_ */
 

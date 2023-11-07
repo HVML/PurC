@@ -32,6 +32,8 @@
 #include <wtf/Lock.h>
 #include <wtf/URL.h>
 
+#include <unistd.h>
+
 static Lock s_fetcher_lock;
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
@@ -151,18 +153,28 @@ String pcfetcher_build_uri(const char *base_url,  const char *url)
         return url;
     }
 
+    size_t nr = strlen(url);
+    char buf[PATH_MAX + nr + 2];
+
     PurCWTF::URL uri(URL(), base_url);
+    if (uri.isLocalFile() && uri.host().isEmpty() && (uri.path() == "/") &&
+            u.protocol().isEmpty() && url[0] != '/') {
+        if (getcwd(buf, sizeof(buf)) != NULL) {
+            strcat(buf, "/");
+            strcat(buf, url);
+            url = buf;
+        }
+    }
 
     String result;
-    size_t n = strlen(url);
-    if (n > 1 && url[0] == '/' && url[1] == '/') {
+    if (nr > 1 && url[0] == '/' && url[1] == '/') {
         result.append(uri.protocol().toString());
         result.append(":");
         result.append(url);
     }
     else if (url[0] == '/') {
         uri.setPath(url);
-        result = uri.path().toString();
+        result = uri.string();
     }
     else {
         result.append(base_url);

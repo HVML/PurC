@@ -30,13 +30,10 @@ list(APPEND PurC_SOURCES
 )
 
 list(APPEND PurC_LIBRARIES
-    PurC::WTF
-    PurC::CSSEng
     ${GLIB_GIO_LIBRARIES}
     ${GLIB_GOBJECT_LIBRARIES}
     ${GLIB_LIBRARIES}
     ${GLIB_GMODULE_LIBRARIES}
-    -lpthread
     -lm
     -ldl
 )
