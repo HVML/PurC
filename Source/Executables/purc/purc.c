@@ -182,6 +182,10 @@ static void print_usage(FILE *fp)
         "        The toolkit style for the HVML programs which do not run in parallel.\n"
         "        This option is only valid if the page type is `plainwin` or `widget`.\n"
         "\n"
+        "  -A --transition-style\n"
+        "        The transition style for the HVML programs which do not run in parallel.\n"
+        "        This option is only valid if the page type is `plainwin`.\n"
+        "\n"
         "  -s --allow-switching-rdr=< true | false >\n"
         "        Allow switching renderer.\n"
         "\n"
@@ -224,6 +228,7 @@ struct my_opts {
     const char *pageid;
     const char *layout_style;
     const char *toolkit_style;
+    const char *transition_style;
     const char *allow_switching_rdr;
     const char *chroot;
     const char *setuser;
@@ -428,7 +433,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:s:R:U:G:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:R:U:G:lvCVh";
     static const struct option long_opts[] = {
         { "app"                  , required_argument , NULL , 'a' },
         { "runner"               , required_argument , NULL , 'r' },
@@ -440,6 +445,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "pageid"               , required_argument , NULL , 'P' },
         { "layout-style"         , required_argument , NULL , 'L' },
         { "toolkit-style"        , required_argument , NULL , 'T' },
+        { "transition-style"     , required_argument , NULL , 'A' },
         { "allow-switching-rdr"  , required_argument , NULL , 's' },
         { "chroot"               , required_argument , NULL , 'R' },
         { "setuser"              , required_argument , NULL , 'U' },
@@ -563,6 +569,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'T':
             opts->toolkit_style = optarg;
+            break;
+
+        case 'A':
+            opts->transition_style = optarg;
             break;
 
         case 's':
@@ -904,6 +914,10 @@ fill_cor_rdr_info(struct my_opts *opts,
     tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
     if (tmp)
         rdr_info->layout_style = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    if (tmp)
+        rdr_info->transition_style = purc_variant_get_string_const(tmp);
 
     rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
             "toolkitStyle");
@@ -1366,6 +1380,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
                     page_type == PCRDR_PAGE_TYPE_WIDGET) {
                 ex_rdr_info.layout_style = opts->layout_style;
                 ex_rdr_info.toolkit_style = toolkit_style;
+                ex_rdr_info.transition_style = opts->transition_style;
             }
 
             struct crtn_info crtn_info = { url };
@@ -1374,8 +1389,9 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
                 workspace[0] ? workspace : NULL,
                 group[0] ? group : NULL,
                 name[0] ? name : NULL,
-                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style) ?
-                &ex_rdr_info : NULL, opts->body_ids->list[i], &crtn_info);
+                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style ||
+                 ex_rdr_info.transition_style) ? &ex_rdr_info : NULL,
+                opts->body_ids->list[i], &crtn_info);
             purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;

@@ -889,6 +889,34 @@ purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
         const struct purc_screen_info *screen_info,
         struct purc_window_geometry *geometry);
 
+typedef enum {
+    PURC_WINDOW_TRANSTION_FUNCTION_LINEAR,
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY,
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN,
+    PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT
+} purc_window_transition_function;
+
+struct purc_window_transition {
+    purc_window_transition_function move_func;
+    uint32_t move_duration;
+};
+
+/**
+ * Evaluates the transition of a standalone window from the styles.
+ *
+ * @param styles: The styles like `window-transition-move: linear 200`.
+ * @param transition: The pointer to a buffer to store the evaluted window
+ *  transition.
+ *
+ * Returns: 0 for success; a value less than 0 for bad styles.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT int
+purc_evaluate_standalone_window_transition_from_styles(const char *styles,
+      struct purc_window_transition *transition);
+
+
 /**
  * Checks if a UNIX domain socket alive.
  *
