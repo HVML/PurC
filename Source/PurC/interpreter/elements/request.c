@@ -536,6 +536,12 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 "Argument missed for request to $RDR '%s'", operation);
             goto out;
         }
+
+        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY);
+        purc_clr_error();
+        if (v && purc_variant_is_string(v)) {
+            property = purc_variant_get_string_const(v);
+        }
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
