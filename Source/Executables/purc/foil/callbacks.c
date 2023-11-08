@@ -64,9 +64,9 @@ static int foil_prepare(pcmcth_renderer *rdr)
 
         const char *term_enc;
         term_enc = tty_linemode_init(&rdr->impl->rows, &rdr->impl->cols);
-        if (strcasecmp(term_enc, "UTF-8")) {
+        if (term_enc == NULL || strcasecmp(term_enc, "UTF-8")) {
             LOG_ERROR("The terminal encoding must be UTF-8, but it is %s\n",
-                    term_enc);
+                    term_enc ? term_enc : "NULL");
             goto failed;
         }
 
