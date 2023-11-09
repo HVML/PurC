@@ -39,6 +39,234 @@
 
 #define WINDOW_TRANSITION_MOVE  "window-transition-move"
 
+static struct transition_funcs {
+    const char *name;
+    purc_window_transition_function function;
+} trans_funcs[] = {
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_COSINECURVE,
+        PURC_WINDOW_TRANSTION_FUNCTION_COSINECURVE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INBACK,
+        PURC_WINDOW_TRANSTION_FUNCTION_INBACK
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INBOUNCE,
+        PURC_WINDOW_TRANSTION_FUNCTION_INBOUNCE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INCIRC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INCIRC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INCUBIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INCUBIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INCURVE,
+        PURC_WINDOW_TRANSTION_FUNCTION_INCURVE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INELASTIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INELASTIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INEXPO,
+        PURC_WINDOW_TRANSTION_FUNCTION_INEXPO
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTBACK,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTBACK
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTBOUNCE,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTBOUNCE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTCIRC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTCIRC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTCUBIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTCUBIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTELASTIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTELASTIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTEXPO,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTEXPO
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTQUAD,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTQUAD
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTQUART,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTQUART
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTQUINT,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTQUINT
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INOUTSINE,
+        PURC_WINDOW_TRANSTION_FUNCTION_INOUTSINE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INQUAD,
+        PURC_WINDOW_TRANSTION_FUNCTION_INQUAD
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INQUART,
+        PURC_WINDOW_TRANSTION_FUNCTION_INQUART
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INQUINT,
+        PURC_WINDOW_TRANSTION_FUNCTION_INQUINT
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_INSINE,
+        PURC_WINDOW_TRANSTION_FUNCTION_INSINE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_LINEAR,
+        PURC_WINDOW_TRANSTION_FUNCTION_LINEAR
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_NONE,
+        PURC_WINDOW_TRANSTION_FUNCTION_NONE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTBACK,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTBACK
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTBOUNCE,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTBOUNCE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTCIRC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTCIRC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTCUBIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTCUBIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTCURVE,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTCURVE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTELASTIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTELASTIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTEXPO,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTEXPO
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINBACK,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINBACK
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINBOUNCE,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINBOUNCE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINCIRC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINCIRC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINCUBIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINCUBIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINELASTIC,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINELASTIC
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINEXPO,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINEXPO
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINQUAD,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINQUAD
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINQUART,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINQUART
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINQUINT,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINQUINT
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTINSINE,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTINSINE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTQUAD,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTQUAD
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTQUART,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTQUART
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTQUINT,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTQUINT
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_OUTSINE,
+        PURC_WINDOW_TRANSTION_FUNCTION_OUTSINE
+    },
+    {
+        PURC_WINDOW_TRANSTION_FUNCTION_NAME_SINECURVE,
+        PURC_WINDOW_TRANSTION_FUNCTION_SINECURVE
+    },
+};
+
+/* Make sure the number of handlers matches the number of operations */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(hdl,
+    sizeof(trans_funcs)/sizeof(trans_funcs[0]) == PURC_NR_WINDOW_TRANSITION_FUNCTION);
+#undef _COMPILE_TIME_ASSERT
+
+
+static purc_window_transition_function
+find_transition_function(const char* operation)
+{
+    static ssize_t max = sizeof(trans_funcs)/sizeof(trans_funcs[0]) - 1;
+
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        int cmp;
+
+        mid = (low + high) / 2;
+        cmp = strcasecmp(operation, trans_funcs[mid].name);
+        if (cmp == 0) {
+            goto found;
+        }
+        else {
+            if (cmp < 0) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    return PURC_WINDOW_TRANSTION_FUNCTION_NONE;
+
+found:
+    return trans_funcs[mid].function;
+}
+
 static bool
 parse_window_move(const char *value, size_t value_len,
         struct purc_window_transition *transition)
@@ -49,29 +277,10 @@ parse_window_move(const char *value, size_t value_len,
     token = pcutils_get_next_token_len(value,
             value_len, TOKEN_DELIMITERS, &token_len);
     if (token && token_len > 0) {
-        if (strncasecmp2ltr(token,
-                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_NONE, token_len) == 0) {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
-        }
-        else if (strncasecmp2ltr(token,
-                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_LINEAR, token_len) == 0) {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_LINEAR;
-        }
-        else if (strncasecmp2ltr(token,
-                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY, token_len) == 0) {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY;
-        }
-        else if (strncasecmp2ltr(token,
-                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_IN, token_len) == 0) {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY_IN;
-        }
-        else if (strncasecmp2ltr(token,
-                    PURC_WINDOW_TRANSTION_FUNCTION_NAME_EASY_OUT, token_len) == 0) {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_EASY_OUT;
-        }
-        else {
-            transition->move_func = PURC_WINDOW_TRANSTION_FUNCTION_NONE;
-        }
+        char name[token_len + 1];
+        strncpy(name, token, token_len);
+        name[token_len] = 0;
+        transition->move_func = find_transition_function(name);
     }
     else {
         goto failed;
