@@ -651,11 +651,13 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_APP_NAME, tmp);
     purc_variant_unref(tmp);
 
-    assert(opts->run);
-    tmp = purc_variant_make_string_static(opts->run, false);
-    purc_variant_object_set_by_static_ckey(run_info.opts,
-            KEY_RUN_NAME, tmp);
-    purc_variant_unref(tmp);
+    //assert(opts->run);
+    if (opts->run) {
+        tmp = purc_variant_make_string_static(opts->run, false);
+        purc_variant_object_set_by_static_ckey(run_info.opts,
+                KEY_RUN_NAME, tmp);
+        purc_variant_unref(tmp);
+    }
 
     tmp = purc_variant_make_string_static(opts->data_fetcher, false);
     purc_variant_object_set_by_static_ckey(run_info.opts,
@@ -768,11 +770,57 @@ static purc_variant_t get_dvobj(void* ctxt, const char* name)
     return purc_get_runner_variable(name);
 }
 
-static bool evalute_app_info(const char *app_info)
+static char *
+load_file_contents(struct my_opts *opts, const char *file, size_t *length)
 {
+    char *buf = NULL;
+    FILE *f = fopen(file, "r");
+
+    if (f) {
+        if (fseek(f, 0, SEEK_END))
+            goto failed;
+
+        long len = ftell(f);
+        if (len < 0)
+            goto failed;
+
+        buf = malloc(len + 1);
+        if (buf == NULL)
+            goto failed;
+
+        fseek(f, 0, SEEK_SET);
+        if (fread(buf, 1, len, f) < (size_t)len) {
+            free(buf);
+            buf = NULL;
+        }
+        buf[len] = '\0';
+
+        if (length)
+            *length = (size_t)len;
+failed:
+        fclose(f);
+    }
+    else {
+        return NULL;
+    }
+
+    pcutils_array_push(opts->contents, buf);
+    return buf;
+}
+
+
+static bool evalute_app_info(struct my_opts *opts, const char *app_info)
+{
+    const char *ejson = app_info;
+    size_t nr_ejson = strlen(app_info);
+
+    if (ejson[0] != '{') {
+        ejson = load_file_contents(opts, app_info, &nr_ejson);
+    }
+
     struct purc_ejson_parsing_tree *ptree;
 
-    ptree = purc_variant_ejson_parse_string(app_info, strlen(app_info));
+    ptree = purc_variant_ejson_parse_string(ejson, nr_ejson);
     if (ptree) {
         run_info.app_info = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj, &run_info, true);
@@ -857,44 +905,6 @@ static const char *get_page_name(purc_variant_t rdr)
         page_name = purc_variant_get_string_const(tmp);
 
     return page_name;
-}
-
-static char *
-load_file_contents(struct my_opts *opts, const char *file, size_t *length)
-{
-    char *buf = NULL;
-    FILE *f = fopen(file, "r");
-
-    if (f) {
-        if (fseek(f, 0, SEEK_END))
-            goto failed;
-
-        long len = ftell(f);
-        if (len < 0)
-            goto failed;
-
-        buf = malloc(len + 1);
-        if (buf == NULL)
-            goto failed;
-
-        fseek(f, 0, SEEK_SET);
-        if (fread(buf, 1, len, f) < (size_t)len) {
-            free(buf);
-            buf = NULL;
-        }
-        buf[len] = '\0';
-
-        if (length)
-            *length = (size_t)len;
-failed:
-        fclose(f);
-    }
-    else {
-        return NULL;
-    }
-
-    pcutils_array_push(opts->contents, buf);
-    return buf;
 }
 
 static void
@@ -1735,7 +1745,7 @@ int main(int argc, char** argv)
 
     /* Since 0.9.17: use md5sum of the first URL of HVML programs
        as the runner name if not specified. */
-    if (opts->run == NULL) {
+    if (opts->run == NULL && opts->urls->length) {
         unsigned char digest[PCUTILS_MD5_DIGEST_SIZE];
         char md5sum[PCUTILS_MD5_DIGEST_SIZE * 2 + 1];
 
@@ -1925,7 +1935,7 @@ int main(int argc, char** argv)
 
     if (opts->app_info) {
         transfer_opts_to_variant(opts, request);
-        if (!evalute_app_info(opts->app_info)) {
+        if (!evalute_app_info(opts, opts->app_info)) {
             fprintf(stderr, "Failed to evalute the app info from %s\n",
                     opts->app_info);
             my_opts_delete(opts);
