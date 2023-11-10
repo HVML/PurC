@@ -202,7 +202,7 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static(inst->app_name, false);
     vs[n++] = purc_variant_make_string_static("runnerName", false);
     vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
-    vs[n++] = purc_variant_make_string_static("alllowSwitchingRdr", false);
+    vs[n++] = purc_variant_make_string_static("allowSwitchingRdr", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
     if (vs[n - 1] == NULL) {
