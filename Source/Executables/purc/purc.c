@@ -1028,6 +1028,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
         purc_instance_extra_info inst_info = {};
 
+        inst_info.allow_switching_rdr = 1;
         if (opts->allow_switching_rdr) {
             if (strcmp(opts->allow_switching_rdr, "true") == 0) {
                 inst_info.allow_switching_rdr = 1;
@@ -1036,8 +1037,10 @@ schedule_coroutines_for_runner(struct my_opts *opts,
                 inst_info.allow_switching_rdr = 0;
             }
         }
-        else {
-            inst_info.allow_switching_rdr = 1;
+
+        tmp = purc_variant_object_get_by_ckey(runner, "allowSwitchingRdr");
+        if (tmp) {
+            inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
 
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");

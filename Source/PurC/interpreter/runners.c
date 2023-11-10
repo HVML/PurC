@@ -434,6 +434,11 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.renderer_comm = (purc_rdrcomm_k)u64;
     }
 
+    tmp = purc_variant_object_get_by_ckey(request->data, "allowSwitchingRdr");
+    if (tmp && purc_variant_is_boolean(tmp)) {
+        info.allow_switching_rdr = purc_variant_booleanize(tmp);
+    }
+
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI");
     if (tmp) {
         info.renderer_uri = purc_variant_get_string_const(tmp);
@@ -820,6 +825,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     if (extra_info) {
         tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_comm);
         purc_variant_object_set_by_static_ckey(data, "rendererProt", tmp);
+        purc_variant_unref(tmp);
+
+        tmp = purc_variant_make_boolean(extra_info->allow_switching_rdr);
+        purc_variant_object_set_by_static_ckey(data, "allowSwitchingRdr", tmp);
         purc_variant_unref(tmp);
 
         if (extra_info->renderer_uri) {
