@@ -81,19 +81,19 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     if (request)
         purc_variant_ref(request);
 
-    const char *target_workspace;
+    const char *target_workspace = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "targetWorkspace");
     if (tmp) {
         target_workspace = purc_variant_get_string_const(tmp);
     }
 
-    const char *target_group;
+    const char *target_group = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "targetGroup");
     if (tmp) {
         target_group = purc_variant_get_string_const(tmp);
     }
 
-    const char *page_name;
+    const char *page_name = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageName");
     if (tmp) {
         page_name = purc_variant_get_string_const(tmp);
