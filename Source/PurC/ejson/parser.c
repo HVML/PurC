@@ -247,7 +247,7 @@ pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type)
         break;
 
     case ETT_CJSONEE:
-        token->node = pcvcm_node_new_cjsonee(NULL, NULL);
+        token->node = pcvcm_node_new_cjsonee();
         if (!token->node) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;

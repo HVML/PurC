@@ -248,7 +248,7 @@ static int fill_raw_header(
     const char *buf = NULL;
     const char *p;
     const char *end;
-    size_t nr_consumed = 0;
+    // size_t nr_consumed = 0;
     String value;
     StringView name;
 
@@ -275,7 +275,7 @@ static int fill_raw_header(
             break; // No more header to parse.
 
         p += consumedLength;
-        nr_consumed += consumedLength;
+        // nr_consumed += consumedLength;
 
         // The name should not be empty, but the value could be empty.
         if (name.isEmpty()) {
