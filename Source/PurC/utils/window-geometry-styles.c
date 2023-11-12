@@ -345,6 +345,9 @@ parse_window_position(const char *value, size_t value_len,
                         pos_values->values + pos_values->nr_values))
                 goto failed;
         }
+        else if (token_len == 1 && token[0] == STYLE_DELIMITER) {
+            break;
+        }
         else {
             goto failed;
         }
