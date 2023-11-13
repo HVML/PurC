@@ -32,6 +32,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/pcrdr.h"
+#include "private/runners.h"
 
 #include "connect.h"
 
@@ -668,6 +669,10 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
     inst->conn_to_rdr = n_conn_to_rdr;
     inst->rdr_caps = n_rdr_caps;
+
+    pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
+            NULL, NULL);
+    pcrdr_conn_set_request_handler(inst->conn_to_rdr, pcrun_request_handler);
 
     /* TODO: send origin workspace, pagegroup */
     bool set_page_groups = (n_rdr_caps->workspace == 0);
