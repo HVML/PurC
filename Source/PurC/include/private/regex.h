@@ -46,7 +46,7 @@ enum pcregex_compile_flags {
     PCREGEX_NEWLINE_CRLF      = PCREGEX_NEWLINE_CR | PCREGEX_NEWLINE_LF,
     PCREGEX_NEWLINE_ANYCRLF   = PCREGEX_NEWLINE_CR | 1 << 22,
     PCREGEX_BSR_ANYCRLF       = 1 << 23,
-    PCREGEX_JAVASCRIPT_COMPAT = 1 << 25
+    // deprecated; PCREGEX_JAVASCRIPT_COMPAT = 1 << 25
 };
 
 enum pcregex_match_flags {

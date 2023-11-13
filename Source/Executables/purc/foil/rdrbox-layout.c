@@ -2765,7 +2765,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
     if (fmt_ctxt->poss_extent < 0)
         return;
 
-    int lines_height = 0;
+    // int lines_height = 0;
     for (size_t i = 0; i < fmt_ctxt->nr_lines; i++) {
         struct _line_info *line = fmt_ctxt->lines + i;
 
@@ -2843,7 +2843,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 #endif
         }
 
-        lines_height += line->height;
+        // lines_height += line->height;
     }
 
 #ifndef NDEBUG

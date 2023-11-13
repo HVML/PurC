@@ -135,6 +135,7 @@ static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
         "worker-class",
         "worker title",
         "worker layoutStyle",
+        "worker transitionStyle",
         toolkit_style,
         "<section></section>",
     };

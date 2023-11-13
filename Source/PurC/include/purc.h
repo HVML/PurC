@@ -467,20 +467,21 @@ typedef struct purc_renderer_extra_info {
     const char *layout_style;
 
     /**
-     * The toolkit style of the page (an object variant).
-     * The definition of this field depends on the renderer.
-     */
-    purc_variant_t toolkit_style;
-
-    /**
      * The transition styles of the page. For a standalone (not-grouped) page
      * (a plain window), we can use `transition-style` specify the transition
      * like `transition` in CSS:
      *
      * `window-transition-move: linear 200`
      *
+     * Since: 0.9.18
      */
     const char *transition_style;
+
+    /**
+     * The toolkit style of the page (an object variant).
+     * The definition of this field depends on the renderer.
+     */
+    purc_variant_t toolkit_style;
 
     /** The page groups to add to the layout DOM */
     const char *page_groups;

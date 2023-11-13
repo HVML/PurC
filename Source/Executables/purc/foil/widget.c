@@ -398,7 +398,6 @@ make_escape_string_line_mode(const struct pcmcth_page *page,
 
     char buf[64];
 
-    unsigned count = 0;
     for (int i = 0; i < n; i++) {
         if (cell->latter_half) {
             cell++;
@@ -430,7 +429,6 @@ make_escape_string_line_mode(const struct pcmcth_page *page,
 
         pcutils_mystring_append_uchar(&mystr, cell->uc, 1);
         cell++;
-        count++;
     }
 
     pcutils_mystring_done(&mystr);
