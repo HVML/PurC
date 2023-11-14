@@ -764,7 +764,13 @@ static int on_update_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoin
 
     const char *property;
     property = purc_variant_get_string_const(msg->property);
-    if (property == NULL ||
+
+    if (property == NULL && !purc_variant_is_object(msg->data)) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    if (property &&
             !purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME) ||
             msg->dataType == PCRDR_MSG_DATA_TYPE_VOID) {
         retv = PCRDR_SC_BAD_REQUEST;

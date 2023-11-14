@@ -522,7 +522,10 @@ update_plainwin(pcmcth_session *sess, pcmcth_workspace *workspace,
         return PCRDR_SC_BAD_REQUEST;
     }
 
-    if (strcmp(property, "name") == 0) {
+    if (property == NULL) {
+        /* TODO: property from data */
+    }
+    else if (strcmp(property, "name") == 0) {
         /* Forbid to change name of a plain window */
         return PCRDR_SC_FORBIDDEN;
     }

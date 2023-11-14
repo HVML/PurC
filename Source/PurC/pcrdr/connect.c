@@ -338,6 +338,12 @@ handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
             purc_variant_unref(pr->request_id);
             free(pr);
         }
+        else if (strcmp("-",
+                    purc_variant_get_string_const(msg->requestId))== 0) {
+            /* FIXME: */
+            purc_log_warn("ignore noreturn request\n");
+            retval = 0;
+        }
         else {
             purc_log_error("response not matched the first pending request\n");
             purc_set_error(PCRDR_ERROR_UNEXPECTED);
