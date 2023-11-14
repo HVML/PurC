@@ -2109,7 +2109,8 @@ TEST(utils, printbuf)
 
     char *buf1 = pcutils_printbuf_delete(pb, true);
     char buf2[512];
-    sprintf(buf2, "[this is a long text: %s and large integer: %d]",
+    snprintf(buf2, sizeof(buf2),
+            "[this is a long text: %s and large integer: %d]",
             "Hello, world", INT_MAX);
     ASSERT_STREQ(buf1, buf2);
     free(buf1);

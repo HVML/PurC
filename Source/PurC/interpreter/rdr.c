@@ -1561,7 +1561,7 @@ TODO: Currently, we pass element itself.  */
 
         purc_variant_t req_data = PURC_VARIANT_INVALID;
         if (ref_elem) {
-            purc_variant_make_native(ref_elem, NULL);
+            req_data = purc_variant_make_native(ref_elem, NULL);
         }
         response_msg = pcintr_rdr_send_request_and_wait_response(
                 inst->conn_to_rdr, target, target_value, operation,

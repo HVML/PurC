@@ -81,19 +81,19 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     if (request)
         purc_variant_ref(request);
 
-    const char *target_workspace;
+    const char *target_workspace = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "targetWorkspace");
     if (tmp) {
         target_workspace = purc_variant_get_string_const(tmp);
     }
 
-    const char *target_group;
+    const char *target_group = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "targetGroup");
     if (tmp) {
         target_group = purc_variant_get_string_const(tmp);
     }
 
-    const char *page_name;
+    const char *page_name = NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageName");
     if (tmp) {
         page_name = purc_variant_get_string_const(tmp);
@@ -432,6 +432,11 @@ static void create_instance(struct instmgr_info *mgr_info,
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
         info.renderer_comm = (purc_rdrcomm_k)u64;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(request->data, "allowSwitchingRdr");
+    if (tmp && purc_variant_is_boolean(tmp)) {
+        info.allow_switching_rdr = purc_variant_booleanize(tmp);
     }
 
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI");
@@ -820,6 +825,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     if (extra_info) {
         tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_comm);
         purc_variant_object_set_by_static_ckey(data, "rendererProt", tmp);
+        purc_variant_unref(tmp);
+
+        tmp = purc_variant_make_boolean(extra_info->allow_switching_rdr);
+        purc_variant_object_set_by_static_ckey(data, "allowSwitchingRdr", tmp);
         purc_variant_unref(tmp);
 
         if (extra_info->renderer_uri) {

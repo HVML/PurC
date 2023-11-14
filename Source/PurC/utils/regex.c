@@ -101,9 +101,10 @@ GRegexCompileFlags to_g_regex_compile_flags(enum pcregex_compile_flags flags)
     if (flags & PCREGEX_BSR_ANYCRLF) {
         ret |= G_REGEX_BSR_ANYCRLF;
     }
+    /* deprecated
     if (flags & PCREGEX_JAVASCRIPT_COMPAT) {
         ret |= G_REGEX_JAVASCRIPT_COMPAT;
-    }
+    }*/
 
     return (GRegexCompileFlags)ret;
 }

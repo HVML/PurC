@@ -32,6 +32,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/pcrdr.h"
+#include "private/runners.h"
 
 #include "connect.h"
 
@@ -202,7 +203,7 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static(inst->app_name, false);
     vs[n++] = purc_variant_make_string_static("runnerName", false);
     vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
-    vs[n++] = purc_variant_make_string_static("alllowSwitchingRdr", false);
+    vs[n++] = purc_variant_make_string_static("allowSwitchingRdr", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
     if (vs[n - 1] == NULL) {
@@ -668,6 +669,10 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
     inst->conn_to_rdr = n_conn_to_rdr;
     inst->rdr_caps = n_rdr_caps;
+
+    pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
+            NULL, NULL);
+    pcrdr_conn_set_request_handler(inst->conn_to_rdr, pcrun_request_handler);
 
     /* TODO: send origin workspace, pagegroup */
     bool set_page_groups = (n_rdr_caps->workspace == 0);

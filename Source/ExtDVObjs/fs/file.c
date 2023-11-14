@@ -243,8 +243,14 @@ static purc_variant_t read_lines (FILE *fp, ssize_t line_num)
                         content_len = 0;
                     }
                     else {
-                        val = purc_variant_make_string_ex (buffer + buffer_line_start,
+                        if (buffer_line_end > buffer_line_start) {
+                            val = purc_variant_make_string_ex (buffer + buffer_line_start,
                                 buffer_line_end - buffer_line_start, false);
+                        }
+                        else {
+                            /* empty line */
+                            val = purc_variant_make_string_ex ("", 0, false);
+                        }
                         purc_variant_array_append (ret_var, val);
                         purc_variant_unref (val);
                     }

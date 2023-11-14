@@ -651,11 +651,13 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_APP_NAME, tmp);
     purc_variant_unref(tmp);
 
-    assert(opts->run);
-    tmp = purc_variant_make_string_static(opts->run, false);
-    purc_variant_object_set_by_static_ckey(run_info.opts,
-            KEY_RUN_NAME, tmp);
-    purc_variant_unref(tmp);
+    //assert(opts->run);
+    if (opts->run) {
+        tmp = purc_variant_make_string_static(opts->run, false);
+        purc_variant_object_set_by_static_ckey(run_info.opts,
+                KEY_RUN_NAME, tmp);
+        purc_variant_unref(tmp);
+    }
 
     tmp = purc_variant_make_string_static(opts->data_fetcher, false);
     purc_variant_object_set_by_static_ckey(run_info.opts,
@@ -768,11 +770,57 @@ static purc_variant_t get_dvobj(void* ctxt, const char* name)
     return purc_get_runner_variable(name);
 }
 
-static bool evalute_app_info(const char *app_info)
+static char *
+load_file_contents(struct my_opts *opts, const char *file, size_t *length)
 {
+    char *buf = NULL;
+    FILE *f = fopen(file, "r");
+
+    if (f) {
+        if (fseek(f, 0, SEEK_END))
+            goto failed;
+
+        long len = ftell(f);
+        if (len < 0)
+            goto failed;
+
+        buf = malloc(len + 1);
+        if (buf == NULL)
+            goto failed;
+
+        fseek(f, 0, SEEK_SET);
+        if (fread(buf, 1, len, f) < (size_t)len) {
+            free(buf);
+            buf = NULL;
+        }
+        buf[len] = '\0';
+
+        if (length)
+            *length = (size_t)len;
+failed:
+        fclose(f);
+    }
+    else {
+        return NULL;
+    }
+
+    pcutils_array_push(opts->contents, buf);
+    return buf;
+}
+
+
+static bool evalute_app_info(struct my_opts *opts, const char *app_info)
+{
+    const char *ejson = app_info;
+    size_t nr_ejson = strlen(app_info);
+
+    if (ejson[0] != '{') {
+        ejson = load_file_contents(opts, app_info, &nr_ejson);
+    }
+
     struct purc_ejson_parsing_tree *ptree;
 
-    ptree = purc_variant_ejson_parse_string(app_info, strlen(app_info));
+    ptree = purc_variant_ejson_parse_string(ejson, nr_ejson);
     if (ptree) {
         run_info.app_info = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj, &run_info, true);
@@ -859,44 +907,6 @@ static const char *get_page_name(purc_variant_t rdr)
     return page_name;
 }
 
-static char *
-load_file_contents(struct my_opts *opts, const char *file, size_t *length)
-{
-    char *buf = NULL;
-    FILE *f = fopen(file, "r");
-
-    if (f) {
-        if (fseek(f, 0, SEEK_END))
-            goto failed;
-
-        long len = ftell(f);
-        if (len < 0)
-            goto failed;
-
-        buf = malloc(len + 1);
-        if (buf == NULL)
-            goto failed;
-
-        fseek(f, 0, SEEK_SET);
-        if (fread(buf, 1, len, f) < (size_t)len) {
-            free(buf);
-            buf = NULL;
-        }
-        buf[len] = '\0';
-
-        if (length)
-            *length = (size_t)len;
-failed:
-        fclose(f);
-    }
-    else {
-        return NULL;
-    }
-
-    pcutils_array_push(opts->contents, buf);
-    return buf;
-}
-
 static void
 fill_cor_rdr_info(struct my_opts *opts,
         purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
@@ -981,6 +991,7 @@ fill_run_rdr_info(struct my_opts *opts,
     }
 }
 
+static int start_thread_renderer(const char *uri);
 static size_t
 schedule_coroutines_for_runner(struct my_opts *opts,
         purc_variant_t app, purc_variant_t runner, purc_variant_t coroutines)
@@ -1018,6 +1029,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
         purc_instance_extra_info inst_info = {};
 
+        inst_info.allow_switching_rdr = 1;
         if (opts->allow_switching_rdr) {
             if (strcmp(opts->allow_switching_rdr, "true") == 0) {
                 inst_info.allow_switching_rdr = 1;
@@ -1026,13 +1038,19 @@ schedule_coroutines_for_runner(struct my_opts *opts,
                 inst_info.allow_switching_rdr = 0;
             }
         }
-        else {
-            inst_info.allow_switching_rdr = 1;
+
+        tmp = purc_variant_object_get_by_ckey(runner, "allowSwitchingRdr");
+        if (tmp) {
+            inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
 
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");
         if (tmp)
             fill_run_rdr_info(opts, &inst_info, tmp);
+
+        if (inst_info.renderer_comm == PURC_RDRCOMM_THREAD) {
+            start_thread_renderer(inst_info.renderer_uri);
+        }
 
         rid = purc_inst_create_or_get(app_name, run_name,
             NULL, &inst_info);
@@ -1547,6 +1565,53 @@ static struct thread_renderer {
         seeker_start, seeker_sync_exit },
 };
 
+int start_thread_renderer(const char *uri)
+{
+    ssize_t thrdr_idx = -1;
+    if (uri == NULL) {
+        uri = thrdrs[0].uri;
+        thrdr_idx = 0;
+    }
+    else {
+        for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+            if (strncasecmp(uri, PURC_EDPT_SCHEMA,
+                        sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+                if (strcasecmp(thrdrs[i].uri, uri) == 0) {
+                    thrdr_idx = i;
+                    break;
+                }
+            }
+            else if (strcasecmp(thrdrs[i].shortname, uri) == 0) {
+                uri = thrdrs[i].uri;
+                thrdr_idx = i;
+                break;
+            }
+        }
+    }
+
+    if (thrdr_idx < 0) {
+        fprintf(stdout,
+                "Not found given thread renderer (%s), use %s instead.\n",
+                uri, thrdrs[0].uri);
+
+        uri = thrdrs[0].uri;
+    }
+
+    if (thrdrs[thrdr_idx].atom != 0) {
+        return 0;
+    }
+
+    thrdrs[thrdr_idx].atom = thrdrs[thrdr_idx].start(thrdrs[thrdr_idx].uri);
+    if (thrdrs[thrdr_idx].atom == 0) {
+        fprintf(stderr,
+                "Failed to initialize the built-in thread renderer: %s\n",
+                thrdrs[thrdr_idx].uri);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int find_user_group(const char *user, const char *group,
         uid_t *uid, gid_t *gid, const char **username)
 {
@@ -1735,7 +1800,7 @@ int main(int argc, char** argv)
 
     /* Since 0.9.17: use md5sum of the first URL of HVML programs
        as the runner name if not specified. */
-    if (opts->run == NULL) {
+    if (opts->run == NULL && opts->urls->length) {
         unsigned char digest[PCUTILS_MD5_DIGEST_SIZE];
         char md5sum[PCUTILS_MD5_DIGEST_SIZE * 2 + 1];
 
@@ -1925,7 +1990,7 @@ int main(int argc, char** argv)
 
     if (opts->app_info) {
         transfer_opts_to_variant(opts, request);
-        if (!evalute_app_info(opts->app_info)) {
+        if (!evalute_app_info(opts, opts->app_info)) {
             fprintf(stderr, "Failed to evalute the app info from %s\n",
                     opts->app_info);
             my_opts_delete(opts);

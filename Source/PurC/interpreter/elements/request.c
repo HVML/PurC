@@ -47,6 +47,8 @@
 #define ARG_KEY_PROPERTY        "property"
 #define ARG_KEY_NAME            "name"
 
+#define LEN_BUFF_LONGLONGINT    128
+
 struct ctxt_for_request {
     struct pcvdom_node           *curr;
 
@@ -363,6 +365,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *element = NULL;
     const char *property = NULL;
     pcrdr_msg_data_type data_type;
+    char element_buf[LEN_BUFF_LONGLONGINT];
 
     struct pcinst* inst = pcinst_current();
     struct pcrdr_conn *conn = inst->conn_to_rdr;
@@ -505,6 +508,40 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
         element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
         element = purc_variant_get_string_const(v);
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        if (!v) {
+            /*  */
+            if (co->target_page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
+                purc_clr_error();
+                element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
+                snprintf(element_buf, sizeof(element_buf),
+                        "%llx", (unsigned long long int)co->target_page_handle);
+                element = element_buf;
+            }
+            else {
+                purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "Argument missed for request to $RDR '%s'", operation);
+                goto out;
+            }
+        }
+        else if (purc_variant_is_string(v)) {
+            element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
+            element = purc_variant_get_string_const(v);
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request to $RDR '%s'", operation);
+            goto out;
+        }
+
+        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY);
+        purc_clr_error();
+        if (v && purc_variant_is_string(v)) {
+            property = purc_variant_get_string_const(v);
+        }
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
