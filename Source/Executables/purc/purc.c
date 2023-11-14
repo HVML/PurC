@@ -991,6 +991,7 @@ fill_run_rdr_info(struct my_opts *opts,
     }
 }
 
+static int start_thread_renderer(const char *uri);
 static size_t
 schedule_coroutines_for_runner(struct my_opts *opts,
         purc_variant_t app, purc_variant_t runner, purc_variant_t coroutines)
@@ -1046,6 +1047,10 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");
         if (tmp)
             fill_run_rdr_info(opts, &inst_info, tmp);
+
+        if (inst_info.renderer_comm == PURC_RDRCOMM_THREAD) {
+            start_thread_renderer(inst_info.renderer_uri);
+        }
 
         rid = purc_inst_create_or_get(app_name, run_name,
             NULL, &inst_info);
@@ -1559,6 +1564,53 @@ static struct thread_renderer {
     { 0, SEEKER_RUN_NAME, SEEKER_RDR_URI,
         seeker_start, seeker_sync_exit },
 };
+
+int start_thread_renderer(const char *uri)
+{
+    ssize_t thrdr_idx = -1;
+    if (uri == NULL) {
+        uri = thrdrs[0].uri;
+        thrdr_idx = 0;
+    }
+    else {
+        for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+            if (strncasecmp(uri, PURC_EDPT_SCHEMA,
+                        sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+                if (strcasecmp(thrdrs[i].uri, uri) == 0) {
+                    thrdr_idx = i;
+                    break;
+                }
+            }
+            else if (strcasecmp(thrdrs[i].shortname, uri) == 0) {
+                uri = thrdrs[i].uri;
+                thrdr_idx = i;
+                break;
+            }
+        }
+    }
+
+    if (thrdr_idx < 0) {
+        fprintf(stdout,
+                "Not found given thread renderer (%s), use %s instead.\n",
+                uri, thrdrs[0].uri);
+
+        uri = thrdrs[0].uri;
+    }
+
+    if (thrdrs[thrdr_idx].atom != 0) {
+        return 0;
+    }
+
+    thrdrs[thrdr_idx].atom = thrdrs[thrdr_idx].start(thrdrs[thrdr_idx].uri);
+    if (thrdrs[thrdr_idx].atom == 0) {
+        fprintf(stderr,
+                "Failed to initialize the built-in thread renderer: %s\n",
+                thrdrs[thrdr_idx].uri);
+        return -1;
+    }
+
+    return 0;
+}
 
 static int find_user_group(const char *user, const char *group,
         uid_t *uid, gid_t *gid, const char **username)
