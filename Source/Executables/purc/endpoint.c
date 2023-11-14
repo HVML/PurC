@@ -770,8 +770,8 @@ static int on_update_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoin
         goto failed;
     }
 
-    if (property &&
-            !purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME) ||
+    if ((property &&
+            !purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME)) ||
             msg->dataType == PCRDR_MSG_DATA_TYPE_VOID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
