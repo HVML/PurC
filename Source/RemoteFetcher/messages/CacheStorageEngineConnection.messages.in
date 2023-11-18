@@ -32,6 +32,6 @@ messages -> CacheStorageEngineConnection {
     DeleteMatchingRecords(uint64_t cacheIdentifier, PurCFetcher::ResourceRequest request, struct PurCFetcher::CacheQueryOptions options) -> (PurCFetcher::DOMCacheEngine::RecordIdentifiersOrError result) Async
     PutRecords(uint64_t cacheIdentifier, Vector<PurCFetcher::DOMCacheEngine::Record> record) -> (PurCFetcher::DOMCacheEngine::RecordIdentifiersOrError result) Async
 
-    ClearMemoryRepresentation(struct PurCFetcher::ClientOrigin origin) -> (Optional<PurCFetcher::DOMCacheEngine::Error> error) Async
+    ClearMemoryRepresentation(struct PurCFetcher::ClientOrigin origin) -> (std::optional<PurCFetcher::DOMCacheEngine::Error> error) Async
     EngineRepresentation() -> (String representation) Async
 }

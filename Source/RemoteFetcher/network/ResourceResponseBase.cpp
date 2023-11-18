@@ -180,7 +180,7 @@ ResourceResponse ResourceResponseBase::filter(const ResourceResponse& response, 
     ASSERT(response.tainting() == Tainting::Cors);
     filteredResponse.setType(Type::Cors);
 
-    auto accessControlExposeHeaderSet = parseAccessControlAllowList<ASCIICaseInsensitiveHash>(response.httpHeaderField(HTTPHeaderName::AccessControlExposeHeaders)).valueOr(HashSet<String, ASCIICaseInsensitiveHash> { });
+    auto accessControlExposeHeaderSet = parseAccessControlAllowList<ASCIICaseInsensitiveHash>(response.httpHeaderField(HTTPHeaderName::AccessControlExposeHeaders)).value_or(HashSet<String, ASCIICaseInsensitiveHash> { });
     if (performCheck == PerformExposeAllHeadersCheck::Yes && accessControlExposeHeaderSet.contains("*"))
         return filteredResponse;
 
@@ -443,7 +443,7 @@ void ResourceResponseBase::sanitizeHTTPHeaderFieldsAccordingToTainting()
     case ResourceResponse::Tainting::Basic:
         return;
     case ResourceResponse::Tainting::Cors: {
-        auto corsSafeHeaderSet = parseAccessControlAllowList<ASCIICaseInsensitiveHash>(httpHeaderField(HTTPHeaderName::AccessControlExposeHeaders)).valueOr(HashSet<String, ASCIICaseInsensitiveHash> { });
+        auto corsSafeHeaderSet = parseAccessControlAllowList<ASCIICaseInsensitiveHash>(httpHeaderField(HTTPHeaderName::AccessControlExposeHeaders)).value_or(HashSet<String, ASCIICaseInsensitiveHash> { });
         if (corsSafeHeaderSet.contains("*"))
             return;
 
@@ -668,25 +668,25 @@ bool ResourceResponseBase::hasCacheValidatorFields() const
     return !m_httpHeaderFields.get(HTTPHeaderName::LastModified).isEmpty() || !m_httpHeaderFields.get(HTTPHeaderName::ETag).isEmpty();
 }
 
-Optional<Seconds> ResourceResponseBase::cacheControlMaxAge() const
+std::optional<Seconds> ResourceResponseBase::cacheControlMaxAge() const
 {
     if (!m_haveParsedCacheControlHeader)
         parseCacheControlDirectives();
     return m_cacheControlDirectives.maxAge;
 }
 
-Optional<Seconds> ResourceResponseBase::cacheControlStaleWhileRevalidate() const
+std::optional<Seconds> ResourceResponseBase::cacheControlStaleWhileRevalidate() const
 {
     if (!m_haveParsedCacheControlHeader)
         parseCacheControlDirectives();
     return m_cacheControlDirectives.staleWhileRevalidate;
 }
 
-static Optional<WallTime> parseDateValueInHeader(const HTTPHeaderMap& headers, HTTPHeaderName headerName)
+static std::optional<WallTime> parseDateValueInHeader(const HTTPHeaderMap& headers, HTTPHeaderName headerName)
 {
     String headerValue = headers.get(headerName);
     if (headerValue.isEmpty())
-        return PurCWTF::nullopt;
+        return std::nullopt;
     // This handles all date formats required by RFC2616:
     // Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123
     // Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036
@@ -694,7 +694,7 @@ static Optional<WallTime> parseDateValueInHeader(const HTTPHeaderMap& headers, H
     return parseHTTPDate(headerValue);
 }
 
-Optional<WallTime> ResourceResponseBase::date() const
+std::optional<WallTime> ResourceResponseBase::date() const
 {
     lazyInit(CommonFieldsOnly);
 
@@ -705,7 +705,7 @@ Optional<WallTime> ResourceResponseBase::date() const
     return m_date;
 }
 
-Optional<Seconds> ResourceResponseBase::age() const
+std::optional<Seconds> ResourceResponseBase::age() const
 {
     lazyInit(CommonFieldsOnly);
 
@@ -720,7 +720,7 @@ Optional<Seconds> ResourceResponseBase::age() const
     return m_age;
 }
 
-Optional<WallTime> ResourceResponseBase::expires() const
+std::optional<WallTime> ResourceResponseBase::expires() const
 {
     lazyInit(CommonFieldsOnly);
 
@@ -731,7 +731,7 @@ Optional<WallTime> ResourceResponseBase::expires() const
     return m_expires;
 }
 
-Optional<WallTime> ResourceResponseBase::lastModified() const
+std::optional<WallTime> ResourceResponseBase::lastModified() const
 {
     lazyInit(CommonFieldsOnly);
 

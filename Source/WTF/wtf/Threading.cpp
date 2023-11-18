@@ -41,7 +41,7 @@
 
 namespace PurCWTF {
 
-static Optional<size_t> stackSize(ThreadType threadType)
+static std::optional<size_t> stackSize(ThreadType threadType)
 {
     // Return the stack size for the created thread based on its type.
     // If the stack size is not specified, then use the system default. Platforms can tune the values here.
@@ -60,7 +60,7 @@ static Optional<size_t> stackSize(ThreadType threadType)
     return DEFAULT_THREAD_STACK_SIZE_IN_KB * 1024;
 #else
     // Use the platform's default stack size
-    return PurCWTF::nullopt;
+    return std::nullopt;
 #endif
 }
 

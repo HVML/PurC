@@ -198,7 +198,7 @@ static void* wtfThreadEntryPoint(void* context)
     return nullptr;
 }
 
-bool Thread::establishHandle(NewThreadContext* context, Optional<size_t> stackSize)
+bool Thread::establishHandle(NewThreadContext* context, std::optional<size_t> stackSize)
 {
     pthread_t threadHandle;
     pthread_attr_t attr;

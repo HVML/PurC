@@ -100,7 +100,7 @@ bool ResourceResponse::decode(Decoder& decoder, ResourceResponse& response)
 {
     if (!ResourceResponseBase::decode(decoder, response))
         return false;
-    Optional<uint64_t> soupFlags;
+    std::optional<uint64_t> soupFlags;
     decoder >> soupFlags;
     if (!soupFlags)
         return false;

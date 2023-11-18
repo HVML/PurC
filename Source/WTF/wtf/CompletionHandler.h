@@ -28,6 +28,8 @@
 #include <wtf/Function.h>
 #include <wtf/MainThread.h>
 
+#include <utility>
+
 namespace PurCWTF {
 
 template<typename> class CompletionHandler;

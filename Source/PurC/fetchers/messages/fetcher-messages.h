@@ -32,7 +32,7 @@
 #include "Connection.h"
 #include "MessageNames.h"
 
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/Forward.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
@@ -92,7 +92,7 @@ private:
 
 namespace NetworkProcess {
 
-using CreateNetworkConnectionToWebProcessDelayedReply = CompletionHandler<void(const Optional<IPC::Attachment>& connectionIdentifier, PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy)>;
+using CreateNetworkConnectionToWebProcessDelayedReply = CompletionHandler<void(const std::optional<IPC::Attachment>& connectionIdentifier, PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy)>;
 
 static inline IPC::ReceiverName messageReceiverName()
 {
@@ -128,9 +128,9 @@ public:
     static const bool isSync = true;
 
     using DelayedReply = CreateNetworkConnectionToWebProcessDelayedReply;
-    static void send(std::unique_ptr<IPC::Encoder>&&, IPC::Connection&, const Optional<IPC::Attachment>& connectionIdentifier, PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy);
-    using Reply = std::tuple<Optional<IPC::Attachment>&, PurCFetcher::HTTPCookieAcceptPolicy&>;
-    using ReplyArguments = std::tuple<Optional<IPC::Attachment>, PurCFetcher::HTTPCookieAcceptPolicy>;
+    static void send(std::unique_ptr<IPC::Encoder>&&, IPC::Connection&, const std::optional<IPC::Attachment>& connectionIdentifier, PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy);
+    using Reply = std::tuple<std::optional<IPC::Attachment>&, PurCFetcher::HTTPCookieAcceptPolicy&>;
+    using ReplyArguments = std::tuple<std::optional<IPC::Attachment>, PurCFetcher::HTTPCookieAcceptPolicy>;
     CreateNetworkConnectionToWebProcess(const PurCFetcher::ProcessIdentifier& processIdentifier, const PAL::SessionID& sessionID)
         : m_arguments(processIdentifier, sessionID)
     {

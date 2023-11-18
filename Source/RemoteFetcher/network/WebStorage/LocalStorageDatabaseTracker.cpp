@@ -83,19 +83,6 @@ void LocalStorageDatabaseTracker::deleteDatabaseWithOrigin(const SecurityOriginD
     // FIXME: Tell clients that the origin was removed.
 }
 
-void LocalStorageDatabaseTracker::deleteAllDatabases()
-{
-    auto localStorageDirectory = this->localStorageDirectory();
-    auto paths = FileSystem::listDirectory(localStorageDirectory, "*.localstorage");
-    for (const auto& path : paths) {
-        SQLiteFileSystem::deleteDatabaseFile(path);
-
-        // FIXME: Call out to the client.
-    }
-
-    SQLiteFileSystem::deleteEmptyDatabaseDirectory(localStorageDirectory);
-}
-
 Vector<SecurityOriginData> LocalStorageDatabaseTracker::databasesModifiedSince(WallTime time)
 {
     Vector<SecurityOriginData> databaseOriginsModified;
@@ -118,16 +105,14 @@ Vector<SecurityOriginData> LocalStorageDatabaseTracker::databasesModifiedSince(W
 Vector<SecurityOriginData> LocalStorageDatabaseTracker::origins() const
 {
     Vector<SecurityOriginData> databaseOrigins;
-    auto paths = FileSystem::listDirectory(localStorageDirectory(), "*.localstorage");
-
-    for (const auto& path : paths) {
-        auto filename = FileSystem::pathGetFileName(path);
+    for (auto& path : FileSystem::listDirectory(localStorageDirectory())) {
+        auto filename = FileSystem::pathFileName(path);
         auto originIdentifier = filename.substring(0, filename.length() - strlen(".localstorage"));
         auto origin = SecurityOriginData::fromDatabaseIdentifier(originIdentifier);
         if (origin)
             databaseOrigins.append(origin.value());
-//        else
-//            RELEASE_LOG_ERROR(LocalStorageDatabaseTracker, "Unable to extract origin from path %s", path.utf8().data());
+        else
+            RELEASE_LOG_ERROR(LocalStorageDatabaseTracker, "Unable to extract origin from path %s", path.utf8().data());
     }
 
     return databaseOrigins;
@@ -160,6 +145,10 @@ String LocalStorageDatabaseTracker::databasePath(const String& filename) const
             LOG_ERROR("Unable to create LocalStorage database path %s", m_localStorageDirectory.utf8().data());
         return String();
     }
+
+#if PLATFORM(IOS_FAMILY)
+    platformMaybeExcludeFromBackup();
+#endif
 
     return SQLiteFileSystem::appendDatabaseFileNameToPath(localStorageDirectory, filename);
 }

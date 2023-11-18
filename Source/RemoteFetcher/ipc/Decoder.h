@@ -76,7 +76,7 @@ public:
     }
 
     template<typename T, std::enable_if_t<std::is_arithmetic<T>::value>* = nullptr>
-    Decoder& operator>>(Optional<T>& optional)
+    Decoder& operator>>(std::optional<T>& optional)
     {
         T result;
         if (decodeFixedLengthData(reinterpret_cast<uint8_t*>(&result), sizeof(T), alignof(T)))
@@ -98,9 +98,9 @@ public:
     }
 
     template<typename E, std::enable_if_t<std::is_enum<E>::value>* = nullptr>
-    Decoder& operator>>(Optional<E>& optional)
+    Decoder& operator>>(std::optional<E>& optional)
     {
-        Optional<std::underlying_type_t<E>> value;
+        std::optional<std::underlying_type_t<E>> value;
         *this >> value;
         if (value && PurCWTF::isValidEnum<E>(*value))
             optional = static_cast<E>(*value);
@@ -127,7 +127,7 @@ public:
     template<typename T, std::enable_if_t<!std::is_enum<T>::value && !std::is_arithmetic<T>::value && !UsesLegacyDecoder<T>::value>* = nullptr>
     WARN_UNUSED_RETURN bool decode(T& t)
     {
-        Optional<T> optional;
+        std::optional<T> optional;
         *this >> optional;
         if (!optional)
             return false;
@@ -136,21 +136,21 @@ public:
     }
 
     template<typename T, std::enable_if_t<UsesModernDecoder<T>::value>* = nullptr>
-    Decoder& operator>>(Optional<T>& t)
+    Decoder& operator>>(std::optional<T>& t)
     {
         t = ArgumentCoder<T>::decode(*this);
         return *this;
     }
 
     template<typename T, std::enable_if_t<!std::is_enum<T>::value && !std::is_arithmetic<T>::value && !UsesModernDecoder<T>::value>* = nullptr>
-    Decoder& operator>>(Optional<T>& optional)
+    Decoder& operator>>(std::optional<T>& optional)
     {
         T t;
         if (ArgumentCoder<T>::decode(*this, t)) {
             optional = WTFMove(t);
             return *this;
         }
-        optional = PurCWTF::nullopt;
+        optional = std::nullopt;
         return *this;
     }
 

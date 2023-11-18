@@ -68,7 +68,7 @@ Ref<FormData> FormData::create(const Vector<char>& vector)
     return create(vector.data(), vector.size());
 }
 
-Ref<FormData> FormData::create(Vector<char>&& vector)
+Ref<FormData> FormData::create(Vector<uint8_t>&& vector)
 {
     auto data = create();
     data->m_elements.append(WTFMove(vector));
@@ -104,15 +104,12 @@ Ref<FormData> FormData::isolatedCopy() const
 uint64_t FormDataElement::lengthInBytes(const Function<uint64_t(const URL&)>& blobSize) const
 {
     return switchOn(data,
-        [] (const Vector<char>& bytes) {
+        [] (const Vector<uint8_t>& bytes) {
             return static_cast<uint64_t>(bytes.size());
         }, [] (const FormDataElement::EncodedFileData& fileData) {
             if (fileData.fileLength != -1)
                 return static_cast<uint64_t>(fileData.fileLength);
-            long long fileSize;
-            if (FileSystem::getFileSize(fileData.filename, fileSize))
-                return static_cast<uint64_t>(fileSize);
-            return static_cast<uint64_t>(0);
+            return FileSystem::fileSize(fileData.filename).value_or(0);
         }, [&blobSize] (const FormDataElement::EncodedBlobData& blobData) {
             return blobSize(blobData.url);
         }
@@ -127,8 +124,8 @@ uint64_t FormDataElement::lengthInBytes() const
 FormDataElement FormDataElement::isolatedCopy() const
 {
     return switchOn(data,
-        [] (const Vector<char>& bytes) {
-            Vector<char> copy;
+        [] (const Vector<uint8_t>& bytes) {
+            Vector<uint8_t> copy;
             copy.append(bytes.data(), bytes.size());
             return FormDataElement(WTFMove(copy));
         }, [] (const FormDataElement::EncodedFileData& fileData) {
@@ -141,46 +138,46 @@ FormDataElement FormDataElement::isolatedCopy() const
 
 void FormData::appendData(const void* data, size_t size)
 {
-    m_lengthInBytes = PurCWTF::nullopt;
+    m_lengthInBytes = std::nullopt;
     if (!m_elements.isEmpty()) {
-        if (auto* vector = PurCWTF::get_if<Vector<char>>(m_elements.last().data)) {
-            vector->append(reinterpret_cast<const char*>(data), size);
+        if (auto* vector = PurCWTF::get_if<Vector<uint8_t>>(m_elements.last().data)) {
+            vector->append(reinterpret_cast<const uint8_t*>(data), size);
             return;
         }
     }
-    Vector<char> vector;
+    Vector<uint8_t> vector;
     vector.append(reinterpret_cast<const char*>(data), size);
     m_elements.append(WTFMove(vector));
 }
 
 void FormData::appendFile(const String& filename)
 {
-    m_elements.append(FormDataElement(filename, 0, -1, PurCWTF::nullopt));
-    m_lengthInBytes = PurCWTF::nullopt;
+    m_elements.append(FormDataElement(filename, 0, -1, std::nullopt));
+    m_lengthInBytes = std::nullopt;
 }
 
-void FormData::appendFileRange(const String& filename, long long start, long long length, Optional<WallTime> expectedModificationTime)
+void FormData::appendFileRange(const String& filename, long long start, long long length, std::optional<WallTime> expectedModificationTime)
 {
     m_elements.append(FormDataElement(filename, start, length, expectedModificationTime));
-    m_lengthInBytes = PurCWTF::nullopt;
+    m_lengthInBytes = std::nullopt;
 }
 
 void FormData::appendBlob(const URL& blobURL)
 {
     m_elements.append(FormDataElement(blobURL));
-    m_lengthInBytes = PurCWTF::nullopt;
+    m_lengthInBytes = std::nullopt;
 }
 
-void FormData::appendMultiPartStringValue(const String&, Vector<char>&, TextEncoding&)
+void FormData::appendMultiPartStringValue(const String&, Vector<uint8_t>&, TextEncoding&)
 {
 }
 
-Vector<char> FormData::flatten() const
+Vector<uint8_t> FormData::flatten() const
 {
     // Concatenate all the byte arrays, but omit any files.
-    Vector<char> data;
+    Vector<uint8_t> data;
     for (auto& element : m_elements) {
-        if (auto* vector = PurCWTF::get_if<Vector<char>>(element.data))
+        if (auto* vector = PurCWTF::get_if<Vector<uint8_t>>(element.data))
             data.append(vector->data(), vector->size());
     }
     return data;
@@ -200,7 +197,7 @@ FormDataForUpload FormData::prepareForUpload()
         auto* fileData = PurCWTF::get_if<FormDataElement::EncodedFileData>(element.data);
         if (!fileData)
             continue;
-        if (!FileSystem::fileIsDirectory(fileData->filename, FileSystem::ShouldFollowSymbolicLinks::Yes))
+        if (FileSystem::fileTypeFollowingSymlinks(fileData->filename) != FileSystem::FileType::Directory)
             continue;
         if (fileData->fileStart || fileData->fileLength != -1)
             continue;
@@ -244,7 +241,7 @@ uint64_t FormData::lengthInBytes() const
 RefPtr<SharedBuffer> FormData::asSharedBuffer() const
 {
     for (auto& element : m_elements) {
-        if (!PurCWTF::holds_alternative<Vector<char>>(element.data))
+        if (!PurCWTF::holds_alternative<Vector<uint8_t>>(element.data))
             return nullptr;
     }
     return SharedBuffer::create(flatten());
@@ -265,7 +262,7 @@ bool FormDataElement::EncodedFileData::fileModificationTimeMatchesExpectation() 
     if (!expectedFileModificationTime)
         return true;
 
-    auto fileModificationTime = FileSystem::getFileModificationTime(filename);
+    auto fileModificationTime = FileSystem::fileModificationTime(filename);
     if (!fileModificationTime)
         return false;
 

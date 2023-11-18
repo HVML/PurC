@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2018 Igalia S.L.
+ * Copyright (C) 2021 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,53 +23,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "URLSoup.h"
+#pragma once
 
-#include <wtf/URL.h>
-
-namespace PurCFetcher {
-
-#if USE(SOUP2)
-URL soupURIToURL(SoupURI* soupURI)
-{
-    if (!soupURI)
-        return URL();
-
-    GUniquePtr<gchar> urlString(soup_uri_to_string(soupURI, FALSE));
-    URL url(URL(), String::fromUTF8(urlString.get()));
-    if (url.isValid()) {
-        // Motivated by https://bugs.webkit.org/show_bug.cgi?id=38956. libsoup
-        // does not add the password to the URL when calling
-        // soup_uri_to_string, and thus the requests are not properly
-        // built. Fixing soup_uri_to_string is a no-no as the maintainer does
-        // not want to break compatibility with previous implementations
-        if (soupURI->password)
-            url.setPassword(String::fromUTF8(soupURI->password));
-    }
-
-    return url;
+#if HAVE(STD_FILESYSTEM)
+#include <filesystem>
+#elif HAVE(STD_EXPERIMENTAL_FILESYSTEM)
+#include <experimental/filesystem>
+namespace std {
+namespace filesystem = std::experimental::filesystem;
 }
-
-GUniquePtr<SoupURI> urlToSoupURI(const URL& url)
-{
-    if (!url.isValid())
-        return nullptr;
-
-    return GUniquePtr<SoupURI>(soup_uri_new(url.string().utf8().data()));
-}
-
-#else // !USE(SOUP2)
-
-URL soupURIToURL(GUri* uri)
-{
-    return uri;
-}
-
-GRefPtr<GUri> urlToSoupURI(const URL& url)
-{
-    return url.createGUri();
-}
-#endif // USE(SOUP2)
-
-} // namespace WebCore
+#else
+#error "Missing support for std::filesystem or std::experimental::filesystem"
+#endif

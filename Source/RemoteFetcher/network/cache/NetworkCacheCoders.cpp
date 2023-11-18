@@ -40,23 +40,23 @@ void Coder<PurCFetcher::HTTPHeaderMap>::encode(Encoder& encoder, const PurCFetch
     }
 }
 
-Optional<PurCFetcher::HTTPHeaderMap> Coder<PurCFetcher::HTTPHeaderMap>::decode(Decoder& decoder)
+std::optional<PurCFetcher::HTTPHeaderMap> Coder<PurCFetcher::HTTPHeaderMap>::decode(Decoder& decoder)
 {
-    Optional<uint64_t> headersSize;
+    std::optional<uint64_t> headersSize;
     decoder >> headersSize;
     if (!headersSize)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     PurCFetcher::HTTPHeaderMap headers;
     for (uint64_t i = 0; i < *headersSize; ++i) {
-        Optional<String> name;
+        std::optional<String> name;
         decoder >> name;
         if (!name)
-            return PurCWTF::nullopt;
-        Optional<String> value;
+            return std::nullopt;
+        std::optional<String> value;
         decoder >> value;
         if (!value)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         headers.append(WTFMove(*name), WTFMove(*value));
     }
     return headers;

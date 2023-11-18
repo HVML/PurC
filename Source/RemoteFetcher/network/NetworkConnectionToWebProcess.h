@@ -143,7 +143,7 @@ public:
         m_networkLoadInformationByID.remove(identifier);
     }
 
-    Optional<NetworkActivityTracker> startTrackingResourceLoad(PurCFetcher::PageIdentifier, ResourceLoadIdentifier resourceID, bool isTopResource);
+    std::optional<NetworkActivityTracker> startTrackingResourceLoad(PurCFetcher::PageIdentifier, ResourceLoadIdentifier resourceID, bool isTopResource);
     void stopTrackingResourceLoad(ResourceLoadIdentifier resourceID, NetworkActivityTracker::CompletionCode);
 
     void removeSocketChannel(WebSocketIdentifier);
@@ -178,21 +178,21 @@ private:
     void testProcessIncomingSyncMessagesWhenWaitingForSyncReply(WebPageProxyIdentifier, Messages::NetworkConnectionToWebProcess::TestProcessIncomingSyncMessagesWhenWaitingForSyncReplyDelayedReply&&);
     void loadPing(NetworkResourceLoadParameters&&);
     void prefetchDNS(const String&);
-    void preconnectTo(Optional<uint64_t> preconnectionIdentifier, NetworkResourceLoadParameters&&);
+    void preconnectTo(std::optional<uint64_t> preconnectionIdentifier, NetworkResourceLoadParameters&&);
 
     void removeLoadIdentifier(ResourceLoadIdentifier);
     void pageLoadCompleted(PurCFetcher::PageIdentifier);
     void browsingContextRemoved(WebPageProxyIdentifier, PurCFetcher::PageIdentifier, PurCFetcher::FrameIdentifier);
     void crossOriginRedirectReceived(ResourceLoadIdentifier, const URL& redirectURL);
-    void startDownload(DownloadID, const PurCFetcher::ResourceRequest&, Optional<NavigatingToAppBoundDomain>, const String& suggestedName = { });
-    void convertMainResourceLoadToDownload(uint64_t mainResourceLoadIdentifier, DownloadID, const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&, Optional<NavigatingToAppBoundDomain>);
+    void startDownload(DownloadID, const PurCFetcher::ResourceRequest&, std::optional<NavigatingToAppBoundDomain>, const String& suggestedName = { });
+    void convertMainResourceLoadToDownload(uint64_t mainResourceLoadIdentifier, DownloadID, const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&, std::optional<NavigatingToAppBoundDomain>);
 
     void registerURLSchemesAsCORSEnabled(Vector<String>&& schemes);
 
     void cookiesForDOM(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, PurCFetcher::FrameIdentifier, PurCFetcher::PageIdentifier, PurCFetcher::IncludeSecureCookies, PurCFetcher::ShouldAskITP, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking, CompletionHandler<void(String cookieString, bool secureCookiesAccessed)>&&);
     void setCookiesFromDOM(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, PurCFetcher::FrameIdentifier, PurCFetcher::PageIdentifier, PurCFetcher::ShouldAskITP, const String&, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking);
-    void cookieRequestHeaderFieldValue(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, Optional<PurCFetcher::FrameIdentifier>, Optional<PurCFetcher::PageIdentifier>, PurCFetcher::IncludeSecureCookies, PurCFetcher::ShouldAskITP, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking, CompletionHandler<void(String cookieString, bool secureCookiesAccessed)>&&);
-    void getRawCookies(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, Optional<PurCFetcher::FrameIdentifier>, Optional<PurCFetcher::PageIdentifier>, PurCFetcher::ShouldAskITP, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking, CompletionHandler<void(Vector<PurCFetcher::Cookie>&&)>&&);
+    void cookieRequestHeaderFieldValue(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, std::optional<PurCFetcher::FrameIdentifier>, std::optional<PurCFetcher::PageIdentifier>, PurCFetcher::IncludeSecureCookies, PurCFetcher::ShouldAskITP, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking, CompletionHandler<void(String cookieString, bool secureCookiesAccessed)>&&);
+    void getRawCookies(const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, std::optional<PurCFetcher::FrameIdentifier>, std::optional<PurCFetcher::PageIdentifier>, PurCFetcher::ShouldAskITP, PurCFetcher::ShouldRelaxThirdPartyCookieBlocking, CompletionHandler<void(Vector<PurCFetcher::Cookie>&&)>&&);
     void setRawCookie(const PurCFetcher::Cookie&);
     void deleteCookie(const URL&, const String& cookieName);
 

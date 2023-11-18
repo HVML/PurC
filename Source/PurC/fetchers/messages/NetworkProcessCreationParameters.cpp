@@ -66,7 +66,7 @@ bool NetworkProcessCreationParameters::decode(IPC::Decoder& decoder, NetworkProc
     if (!decoder.decode(result.urlSchemesRegisteredForCustomProtocols))
         return false;
 
-    Optional<WebsiteDataStoreParameters> defaultDataStoreParameters;
+    std::optional<WebsiteDataStoreParameters> defaultDataStoreParameters;
     decoder >> defaultDataStoreParameters;
     if (!defaultDataStoreParameters)
         return false;

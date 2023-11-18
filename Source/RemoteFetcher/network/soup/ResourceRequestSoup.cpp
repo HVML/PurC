@@ -43,7 +43,7 @@ void ResourceRequest::updateSoupMessageBody(SoupMessage* soupMessage) const
     uint64_t bodySize = 0;
     for (const auto& element : formData->elements()) {
         switchOn(element.data,
-            [&] (const Vector<char>& bytes) {
+            [&] (const Vector<uint8_t>& bytes) {
                 bodySize += bytes.size();
                 soup_message_body_append(soupMessage->request_body, SOUP_MEMORY_TEMPORARY, bytes.data(), bytes.size());
             }, [&] (const FormDataElement::EncodedFileData& fileData) {

@@ -52,59 +52,59 @@ void SubresourceInfo::encode(PurCWTF::Persistence::Encoder& encoder) const
     encoder << m_priority;
 }
 
-Optional<SubresourceInfo> SubresourceInfo::decode(PurCWTF::Persistence::Decoder& decoder)
+std::optional<SubresourceInfo> SubresourceInfo::decode(PurCWTF::Persistence::Decoder& decoder)
 {
     SubresourceInfo info;
 
-    Optional<Key> key;
+    std::optional<Key> key;
     decoder >> key;
     if (!key)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_key = WTFMove(*key);
 
-    Optional<WallTime> lastSeen;
+    std::optional<WallTime> lastSeen;
     decoder >> lastSeen;
     if (!lastSeen)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_lastSeen = WTFMove(*lastSeen);
 
-    Optional<WallTime> firstSeen;
+    std::optional<WallTime> firstSeen;
     decoder >> firstSeen;
     if (!firstSeen)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_firstSeen = WTFMove(*firstSeen);
 
-    Optional<bool> isTransient;
+    std::optional<bool> isTransient;
     decoder >> isTransient;
     if (!isTransient)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_isTransient = WTFMove(*isTransient);
 
     if (info.m_isTransient)
         return { WTFMove(info) };
 
-    Optional<bool> isSameSite;
+    std::optional<bool> isSameSite;
     decoder >> isSameSite;
     if (!isSameSite)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_isSameSite = WTFMove(*isSameSite);
 
-    Optional<URL> firstPartyForCookies;
+    std::optional<URL> firstPartyForCookies;
     decoder >> firstPartyForCookies;
     if (!firstPartyForCookies)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_firstPartyForCookies = WTFMove(*firstPartyForCookies);
 
-    Optional<PurCFetcher::HTTPHeaderMap> requestHeaders;
+    std::optional<PurCFetcher::HTTPHeaderMap> requestHeaders;
     decoder >> requestHeaders;
     if (!requestHeaders)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_requestHeaders = WTFMove(*requestHeaders);
 
-    Optional<PurCFetcher::ResourceLoadPriority> priority;
+    std::optional<PurCFetcher::ResourceLoadPriority> priority;
     decoder >> priority;
     if (!priority)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     info.m_priority = WTFMove(*priority);
     
     return { WTFMove(info) };
@@ -131,7 +131,7 @@ std::unique_ptr<SubresourcesEntry> SubresourcesEntry::decodeStorageRecord(const 
     auto entry = makeUnique<SubresourcesEntry>(storageEntry);
 
     PurCWTF::Persistence::Decoder decoder(storageEntry.header.data(), storageEntry.header.size());
-    Optional<Vector<SubresourceInfo>> subresources;
+    std::optional<Vector<SubresourceInfo>> subresources;
     decoder >> subresources;
     if (!subresources)
         return nullptr;

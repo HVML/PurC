@@ -125,7 +125,7 @@ public:
     PURCFETCHER_EXPORT HTTPCookieAcceptPolicy cookieAcceptPolicy() const;
     PURCFETCHER_EXPORT void setCookie(const Cookie&);
     PURCFETCHER_EXPORT void setCookies(const Vector<Cookie>&, const URL&, const URL& mainDocumentURL);
-    PURCFETCHER_EXPORT void setCookiesFromDOM(const URL& firstParty, const SameSiteInfo&, const URL&, Optional<FrameIdentifier>, Optional<PageIdentifier>, ShouldAskITP, const String&, ShouldRelaxThirdPartyCookieBlocking) const;
+    PURCFETCHER_EXPORT void setCookiesFromDOM(const URL& firstParty, const SameSiteInfo&, const URL&, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, ShouldAskITP, const String&, ShouldRelaxThirdPartyCookieBlocking) const;
     PURCFETCHER_EXPORT void deleteCookie(const Cookie&);
     PURCFETCHER_EXPORT void deleteCookie(const URL&, const String&) const;
     PURCFETCHER_EXPORT void deleteAllCookies();
@@ -135,11 +135,11 @@ public:
     PURCFETCHER_EXPORT Vector<Cookie> getAllCookies();
     PURCFETCHER_EXPORT Vector<Cookie> getCookies(const URL&);
     PURCFETCHER_EXPORT void hasCookies(const RegistrableDomain&, CompletionHandler<void(bool)>&&) const;
-    PURCFETCHER_EXPORT bool getRawCookies(const URL& firstParty, const SameSiteInfo&, const URL&, Optional<FrameIdentifier>, Optional<PageIdentifier>, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking, Vector<Cookie>&) const;
+    PURCFETCHER_EXPORT bool getRawCookies(const URL& firstParty, const SameSiteInfo&, const URL&, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking, Vector<Cookie>&) const;
     PURCFETCHER_EXPORT void flushCookieStore();
     PURCFETCHER_EXPORT void getHostnamesWithCookies(HashSet<String>& hostnames);
-    PURCFETCHER_EXPORT std::pair<String, bool> cookiesForDOM(const URL& firstParty, const SameSiteInfo&, const URL&, Optional<FrameIdentifier>, Optional<PageIdentifier>, IncludeSecureCookies, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking) const;
-    PURCFETCHER_EXPORT std::pair<String, bool> cookieRequestHeaderFieldValue(const URL& firstParty, const SameSiteInfo&, const URL&, Optional<FrameIdentifier>, Optional<PageIdentifier>, IncludeSecureCookies, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking) const;
+    PURCFETCHER_EXPORT std::pair<String, bool> cookiesForDOM(const URL& firstParty, const SameSiteInfo&, const URL&, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, IncludeSecureCookies, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking) const;
+    PURCFETCHER_EXPORT std::pair<String, bool> cookieRequestHeaderFieldValue(const URL& firstParty, const SameSiteInfo&, const URL&, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, IncludeSecureCookies, ShouldAskITP, ShouldRelaxThirdPartyCookieBlocking) const;
     PURCFETCHER_EXPORT std::pair<String, bool> cookieRequestHeaderFieldValue(const CookieRequestHeaderFieldProxy&) const;
 
     PURCFETCHER_EXPORT Vector<Cookie> domCookiesForHost(const String& host);
@@ -152,8 +152,8 @@ public:
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
     void setResourceLoadStatisticsEnabled(bool enabled) { m_isResourceLoadStatisticsEnabled = enabled; }
-    PURCFETCHER_EXPORT bool shouldBlockCookies(const ResourceRequest&, Optional<FrameIdentifier>, Optional<PageIdentifier>, ShouldRelaxThirdPartyCookieBlocking) const;
-    PURCFETCHER_EXPORT bool shouldBlockCookies(const URL& firstPartyForCookies, const URL& resource, Optional<FrameIdentifier>, Optional<PageIdentifier>, ShouldRelaxThirdPartyCookieBlocking) const;
+    PURCFETCHER_EXPORT bool shouldBlockCookies(const ResourceRequest&, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, ShouldRelaxThirdPartyCookieBlocking) const;
+    PURCFETCHER_EXPORT bool shouldBlockCookies(const URL& firstPartyForCookies, const URL& resource, std::optional<FrameIdentifier>, std::optional<PageIdentifier>, ShouldRelaxThirdPartyCookieBlocking) const;
     PURCFETCHER_EXPORT bool shouldBlockThirdPartyCookies(const RegistrableDomain&) const;
     PURCFETCHER_EXPORT bool shouldBlockThirdPartyCookiesButKeepFirstPartyCookiesFor(const RegistrableDomain&) const;
     PURCFETCHER_EXPORT void setAllCookiesToSameSiteStrict(const RegistrableDomain&, CompletionHandler<void()>&&);
@@ -161,16 +161,16 @@ public:
     PURCFETCHER_EXPORT void setPrevalentDomainsToBlockAndDeleteCookiesFor(const Vector<RegistrableDomain>&);
     PURCFETCHER_EXPORT void setPrevalentDomainsToBlockButKeepCookiesFor(const Vector<RegistrableDomain>&);
     PURCFETCHER_EXPORT void setDomainsWithUserInteractionAsFirstParty(const Vector<RegistrableDomain>&);
-    PURCFETCHER_EXPORT void setAgeCapForClientSideCookies(Optional<Seconds>);
-    PURCFETCHER_EXPORT bool hasStorageAccess(const RegistrableDomain& resourceDomain, const RegistrableDomain& firstPartyDomain, Optional<FrameIdentifier>, PageIdentifier) const;
+    PURCFETCHER_EXPORT void setAgeCapForClientSideCookies(std::optional<Seconds>);
+    PURCFETCHER_EXPORT bool hasStorageAccess(const RegistrableDomain& resourceDomain, const RegistrableDomain& firstPartyDomain, std::optional<FrameIdentifier>, PageIdentifier) const;
     PURCFETCHER_EXPORT Vector<String> getAllStorageAccessEntries() const;
-    PURCFETCHER_EXPORT void grantStorageAccess(const RegistrableDomain& resourceDomain, const RegistrableDomain& firstPartyDomain, Optional<FrameIdentifier>, PageIdentifier);
+    PURCFETCHER_EXPORT void grantStorageAccess(const RegistrableDomain& resourceDomain, const RegistrableDomain& firstPartyDomain, std::optional<FrameIdentifier>, PageIdentifier);
     PURCFETCHER_EXPORT void removeStorageAccessForFrame(FrameIdentifier, PageIdentifier);
     PURCFETCHER_EXPORT void clearPageSpecificDataForResourceLoadStatistics(PageIdentifier);
     PURCFETCHER_EXPORT void removeAllStorageAccess();
     PURCFETCHER_EXPORT void setCacheMaxAgeCapForPrevalentResources(Seconds);
     PURCFETCHER_EXPORT void resetCacheMaxAgeCapForPrevalentResources();
-    PURCFETCHER_EXPORT Optional<Seconds> maxAgeCacheCap(const ResourceRequest&);
+    PURCFETCHER_EXPORT std::optional<Seconds> maxAgeCacheCap(const ResourceRequest&);
     PURCFETCHER_EXPORT void didCommitCrossSiteLoadWithDataTransferFromPrevalentResource(const RegistrableDomain& toDomain, PageIdentifier);
     PURCFETCHER_EXPORT void resetCrossSiteLoadsWithLinkDecorationForTesting();
     PURCFETCHER_EXPORT void setThirdPartyCookieBlockingMode(ThirdPartyCookieBlockingMode);
@@ -207,16 +207,16 @@ private:
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
     bool m_isResourceLoadStatisticsEnabled = false;
-    Optional<Seconds> clientSideCookieCap(const TopFrameDomain&, Optional<PageIdentifier>) const;
+    std::optional<Seconds> clientSideCookieCap(const TopFrameDomain&, std::optional<PageIdentifier>) const;
     bool shouldExemptDomainPairFromThirdPartyCookieBlocking(const TopFrameDomain&, const SubResourceDomain&) const;
     HashSet<RegistrableDomain> m_registrableDomainsToBlockAndDeleteCookiesFor;
     HashSet<RegistrableDomain> m_registrableDomainsToBlockButKeepCookiesFor;
     HashSet<RegistrableDomain> m_registrableDomainsWithUserInteractionAsFirstParty;
     HashMap<PageIdentifier, HashMap<FrameIdentifier, RegistrableDomain>> m_framesGrantedStorageAccess;
     HashMap<PageIdentifier, HashMap<RegistrableDomain, RegistrableDomain>> m_pagesGrantedStorageAccess;
-    Optional<Seconds> m_cacheMaxAgeCapForPrevalentResources { };
-    Optional<Seconds> m_ageCapForClientSideCookies { };
-    Optional<Seconds> m_ageCapForClientSideCookiesShort { };
+    std::optional<Seconds> m_cacheMaxAgeCapForPrevalentResources { };
+    std::optional<Seconds> m_ageCapForClientSideCookies { };
+    std::optional<Seconds> m_ageCapForClientSideCookiesShort { };
     HashMap<PurCFetcher::PageIdentifier, RegistrableDomain> m_navigatedToWithLinkDecorationByPrevalentResource;
     bool m_navigationWithLinkDecorationTestMode = false;
     ThirdPartyCookieBlockingMode m_thirdPartyCookieBlockingMode { ThirdPartyCookieBlockingMode::All };

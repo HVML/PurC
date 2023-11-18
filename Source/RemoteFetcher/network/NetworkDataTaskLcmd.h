@@ -100,7 +100,7 @@ private:
     MonotonicTime m_startTime;
     PurCFetcher::NetworkLoadMetrics m_networkLoadMetrics;
     Vector<char> m_readBuffer;
-    Vector<char> m_responseBuffer;
+    Vector<uint8_t> m_responseBuffer;
     Vector<String> m_readLines;
 
     String m_errorMsg;

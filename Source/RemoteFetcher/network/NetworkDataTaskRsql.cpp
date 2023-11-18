@@ -242,7 +242,7 @@ void NetworkDataTaskRsql::runCmdInner()
     String user =  m_currentRequest.url().user();
     String pass =  m_currentRequest.url().password();
     String server = m_currentRequest.url().host().toString();
-    Optional<uint16_t> portO = m_currentRequest.url().port();
+    std::optional<uint16_t> portO = m_currentRequest.url().port();
     int port = portO ? portO.value() : -1;
     String database;
     String dbName;

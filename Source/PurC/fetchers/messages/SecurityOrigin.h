@@ -53,7 +53,7 @@ public:
     PURC_EXPORT static Ref<SecurityOrigin> createUnique();
 
     PURC_EXPORT static Ref<SecurityOrigin> createFromString(const String&);
-    PURC_EXPORT static Ref<SecurityOrigin> create(const String& protocol, const String& host, Optional<uint16_t> port);
+    PURC_EXPORT static Ref<SecurityOrigin> create(const String& protocol, const String& host, std::optional<uint16_t> port);
 
     // QuickLook documents are in non-local origins even when loaded from file: URLs. They need to
     // be allowed to display their own file: URLs in order to perform reloads and same-document
@@ -87,7 +87,7 @@ public:
     const String& protocol() const { return m_data.protocol; }
     const String& host() const { return m_data.host; }
     const String& domain() const { return m_domain; }
-    Optional<uint16_t> port() const { return m_data.port; }
+    std::optional<uint16_t> port() const { return m_data.port; }
 
     static bool shouldIgnoreHost(const URL&);
 
@@ -270,7 +270,7 @@ template<class Encoder> inline void SecurityOrigin::encode(Encoder& encoder) con
 
 template<class Decoder> inline RefPtr<SecurityOrigin> SecurityOrigin::decode(Decoder& decoder)
 {
-    Optional<SecurityOriginData> data;
+    std::optional<SecurityOriginData> data;
     decoder >> data;
     if (!data)
         return nullptr;

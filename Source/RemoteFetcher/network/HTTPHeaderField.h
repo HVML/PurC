@@ -31,13 +31,13 @@ namespace PurCFetcher {
 
 class PURCFETCHER_EXPORT HTTPHeaderField {
 public:
-    static Optional<HTTPHeaderField> create(String&& name, String&& value);
+    static std::optional<HTTPHeaderField> create(String&& name, String&& value);
 
     const String& name() const { return m_name; }
     const String& value() const { return m_value; }
 
     template<class Encoder> void encode(Encoder&) const;
-    template<class Decoder> static Optional<HTTPHeaderField> decode(Decoder&);
+    template<class Decoder> static std::optional<HTTPHeaderField> decode(Decoder&);
 
 private:
     HTTPHeaderField(String&& name, String&& value)
@@ -56,17 +56,17 @@ void HTTPHeaderField::encode(Encoder& encoder) const
 }
 
 template<class Decoder>
-Optional<HTTPHeaderField> HTTPHeaderField::decode(Decoder& decoder)
+std::optional<HTTPHeaderField> HTTPHeaderField::decode(Decoder& decoder)
 {
-    Optional<String> name;
+    std::optional<String> name;
     decoder >> name;
     if (!name)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<String> value;
+    std::optional<String> value;
     decoder >> value;
     if (!value)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return {{ WTFMove(*name), WTFMove(*value) }};
 }

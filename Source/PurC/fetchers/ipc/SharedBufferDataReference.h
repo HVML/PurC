@@ -43,7 +43,7 @@ public:
     RefPtr<PurCFetcher::SharedBuffer>& buffer() { return m_buffer; }
     const RefPtr<PurCFetcher::SharedBuffer>& buffer() const { return m_buffer; }
 
-    const char* data() const { return m_buffer ? m_buffer->data() : nullptr; }
+    const char* data() const { return m_buffer ? (const char *)m_buffer->data() : nullptr; }
     size_t size() const { return m_buffer ? m_buffer->size() : 0; }
     bool isEmpty() const { return m_buffer ? m_buffer->isEmpty() : true; }
 
@@ -52,12 +52,12 @@ public:
         encoder << m_buffer;
     }
 
-    static Optional<SharedBufferDataReference> decode(Decoder& decoder)
+    static std::optional<SharedBufferDataReference> decode(Decoder& decoder)
     {
-        Optional<RefPtr<PurCFetcher::SharedBuffer>> buffer;
+        std::optional<RefPtr<PurCFetcher::SharedBuffer>> buffer;
         decoder >> buffer;
         if (!buffer)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         return { WTFMove(*buffer) };
     }
 

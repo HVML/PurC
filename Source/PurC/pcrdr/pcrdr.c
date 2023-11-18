@@ -767,6 +767,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         pcrdr_release_message(response_msg);
         response_msg = NULL;
     }
+    PC_TIMESTAMP("connect to new renderer, app: %s runner: %s\n", inst->app_name, inst->runner_name);
 
     pcintr_switch_new_renderer(inst);
 

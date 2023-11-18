@@ -45,7 +45,7 @@ PURCFETCHER_EXPORT bool isValidContentType(const String&, Mode = Mode::MimeSniff
 // FIXME: add support for comments.
 class ParsedContentType {
 public:
-    PURCFETCHER_EXPORT static Optional<ParsedContentType> create(const String&, Mode = Mode::MimeSniff);
+    PURCFETCHER_EXPORT static std::optional<ParsedContentType> create(const String&, Mode = Mode::MimeSniff);
     ParsedContentType(ParsedContentType&&) = default;
 
     String mimeType() const { return m_mimeType; }

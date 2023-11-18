@@ -73,7 +73,7 @@ namespace PurCFetcher {
 
         bool m_acceptEncoding : 1;
         uint32_t m_flags;
-        Optional<uint64_t> m_initiatingPageID;
+        std::optional<uint64_t> m_initiatingPageID;
     };
 
 template<class Encoder>
@@ -114,7 +114,7 @@ bool ResourceRequest::decodeWithPlatformData(Decoder& decoder)
         return false;
     m_flags = soupMessageFlags;
 
-    Optional<Optional<uint64_t>> initiatingPageID;
+    std::optional<std::optional<uint64_t>> initiatingPageID;
     decoder >> initiatingPageID;
     if (!initiatingPageID)
         return false;

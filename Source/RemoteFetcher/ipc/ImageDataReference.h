@@ -46,12 +46,12 @@ public:
         encoder << m_imageData;
     }
 
-    static Optional<ImageDataReference> decode(Decoder& decoder)
+    static std::optional<ImageDataReference> decode(Decoder& decoder)
     {
-        Optional<RefPtr<PurCFetcher::ImageData>> imageData;
+        std::optional<RefPtr<PurCFetcher::ImageData>> imageData;
         decoder >> imageData;
         if (!imageData)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         return { WTFMove(*imageData) };
     }
 

@@ -21,9 +21,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 messages -> StorageManagerSet {
-    ConnectToLocalStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData securityOriginData) -> (Optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
-    ConnectToTransientLocalStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData topLevelSecurityOriginData, struct PurCFetcher::SecurityOriginData securityOriginData) -> (Optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
-    ConnectToSessionStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData securityOriginData) -> (Optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
+    ConnectToLocalStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData securityOriginData) -> (std::optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
+    ConnectToTransientLocalStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData topLevelSecurityOriginData, struct PurCFetcher::SecurityOriginData securityOriginData) -> (std::optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
+    ConnectToSessionStorageArea(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier storageNamespaceID, struct PurCFetcher::SecurityOriginData securityOriginData) -> (std::optional<PurCFetcher::StorageAreaIdentifier> storageAreaID) Synchronous WantsConnection
     DisconnectFromStorageArea(PurCFetcher::StorageAreaIdentifier storageAreaID) WantsConnection
     GetValues(PurCFetcher::StorageAreaIdentifier storageAreaID) -> (HashMap<String, String> values) Synchronous WantsConnection
     CloneSessionStorageNamespace(PAL::SessionID sessionID, PurCFetcher::StorageNamespaceIdentifier fromStorageNamespaceID, PurCFetcher::StorageNamespaceIdentifier toStorageNamespaceID) WantsConnection

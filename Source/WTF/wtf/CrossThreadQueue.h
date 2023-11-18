@@ -31,7 +31,9 @@
 #include <wtf/Deque.h>
 #include <wtf/Lock.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
+
+#include <optional>
 
 namespace PurCWTF {
 
@@ -45,7 +47,7 @@ public:
     void append(DataType&&);
 
     DataType waitForMessage();
-    Optional<DataType> tryGetMessage();
+    std::optional<DataType> tryGetMessage();
 
     void kill();
     bool isKilled() const;
@@ -85,7 +87,7 @@ DataType CrossThreadQueue<DataType>::waitForMessage()
 }
 
 template<typename DataType>
-Optional<DataType> CrossThreadQueue<DataType>::tryGetMessage()
+std::optional<DataType> CrossThreadQueue<DataType>::tryGetMessage()
 {
     LockHolder lock(m_lock);
 

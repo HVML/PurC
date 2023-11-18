@@ -36,7 +36,7 @@ namespace Persistence {
 
 template<> struct Coder<PurCFetcher::HTTPHeaderMap> {
     static void encode(Encoder&, const PurCFetcher::HTTPHeaderMap&);
-    static Optional<PurCFetcher::HTTPHeaderMap> decode(Decoder&);
+    static std::optional<PurCFetcher::HTTPHeaderMap> decode(Decoder&);
 };
 
 }

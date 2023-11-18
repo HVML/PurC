@@ -79,7 +79,7 @@ public:
 
     void setCSPResponseHeaders(PurCFetcher::ContentSecurityPolicyResponseHeaders&& headers) { m_cspResponseHeaders = WTFMove(headers); }
 #if ENABLE(CONTENT_EXTENSIONS)
-    void setContentExtensionController(URL&& mainDocumentURL, Optional<UserContentControllerIdentifier> identifier)
+    void setContentExtensionController(URL&& mainDocumentURL, std::optional<UserContentControllerIdentifier> identifier)
     {
         m_mainDocumentURL = WTFMove(mainDocumentURL);
         m_userContentControllerIdentifier = identifier;
@@ -137,10 +137,10 @@ private:
     URL m_url;
     RefPtr<PurCFetcher::SecurityOrigin> m_origin;
     RefPtr<PurCFetcher::SecurityOrigin> m_topOrigin;
-    Optional<PurCFetcher::ContentSecurityPolicyResponseHeaders> m_cspResponseHeaders;
+    std::optional<PurCFetcher::ContentSecurityPolicyResponseHeaders> m_cspResponseHeaders;
 #if ENABLE(CONTENT_EXTENSIONS)
     URL m_mainDocumentURL;
-    Optional<UserContentControllerIdentifier> m_userContentControllerIdentifier;
+    std::optional<UserContentControllerIdentifier> m_userContentControllerIdentifier;
 #endif
 
     std::unique_ptr<NetworkCORSPreflightChecker> m_corsPreflightChecker;

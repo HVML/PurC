@@ -26,8 +26,10 @@
 
 #pragma once
 
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/SystemFree.h>
+
+#include <optional>
 
 namespace PurCWTF {
 
@@ -70,7 +72,7 @@ public:
         std::unique_ptr<const char[], SystemFree<const char[]>> m_demangledName;
     };
 
-    WTF_EXPORT_PRIVATE static Optional<DemangleEntry> demangle(void*);
+    WTF_EXPORT_PRIVATE static std::optional<DemangleEntry> demangle(void*);
 
     WTF_EXPORT_PRIVATE void dump(PrintStream&, const char* indentString = nullptr) const;
 

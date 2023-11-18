@@ -167,9 +167,9 @@ public:
         WTF_MAKE_FAST_ALLOCATED;
     };
     using RetrieveCompletionHandler = Function<void(std::unique_ptr<Entry>, const RetrieveInfo&)>;
-    void retrieve(const PurCFetcher::ResourceRequest&, const GlobalFrameID&, Optional<NavigatingToAppBoundDomain>, RetrieveCompletionHandler&&);
+    void retrieve(const PurCFetcher::ResourceRequest&, const GlobalFrameID&, std::optional<NavigatingToAppBoundDomain>, RetrieveCompletionHandler&&);
     std::unique_ptr<Entry> store(const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&, RefPtr<PurCFetcher::SharedBuffer>&&, Function<void(MappedBody&)>&& = nullptr);
-    std::unique_ptr<Entry> storeRedirect(const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&, const PurCFetcher::ResourceRequest& redirectRequest, Optional<Seconds> maxAgeCap);
+    std::unique_ptr<Entry> storeRedirect(const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&, const PurCFetcher::ResourceRequest& redirectRequest, std::optional<Seconds> maxAgeCap);
     std::unique_ptr<Entry> update(const PurCFetcher::ResourceRequest&, const Entry&, const PurCFetcher::ResourceResponse& validatingResponse);
 
     struct TraversalEntry {
@@ -195,7 +195,7 @@ public:
     String recordsPathIsolatedCopy() const;
 
 #if ENABLE(NETWORK_CACHE_STALE_WHILE_REVALIDATE)
-    void startAsyncRevalidationIfNeeded(const PurCFetcher::ResourceRequest&, const NetworkCache::Key&, std::unique_ptr<Entry>&&, const GlobalFrameID&, Optional<NavigatingToAppBoundDomain>);
+    void startAsyncRevalidationIfNeeded(const PurCFetcher::ResourceRequest&, const NetworkCache::Key&, std::unique_ptr<Entry>&&, const GlobalFrameID&, std::optional<NavigatingToAppBoundDomain>);
 #endif
 
     void browsingContextRemoved(WebPageProxyIdentifier, PurCFetcher::PageIdentifier, PurCFetcher::FrameIdentifier);
@@ -216,7 +216,7 @@ private:
     String dumpFilePath() const;
     void deleteDumpFile();
 
-    Optional<Seconds> maxAgeCap(Entry&, const PurCFetcher::ResourceRequest&, PAL::SessionID);
+    std::optional<Seconds> maxAgeCap(Entry&, const PurCFetcher::ResourceRequest&, PAL::SessionID);
 
     Ref<Storage> m_storage;
     Ref<NetworkProcess> m_networkProcess;

@@ -736,7 +736,7 @@ double parseDateFromNullTerminatedCharacters(const char* dateString, bool& isLoc
     if (day < 0)
         return std::numeric_limits<double>::quiet_NaN();
 
-    Optional<int> year;
+    std::optional<int> year;
     if (day > 31) {
         // ### where is the boundary and what happens below?
         if (*dateString != '/')
@@ -819,7 +819,7 @@ double parseDateFromNullTerminatedCharacters(const char* dateString, bool& isLoc
             if (*newPosStr != ':')
                 return std::numeric_limits<double>::quiet_NaN();
             // There was no year; the number was the hour.
-            year = PurCWTF::nullopt;
+            year = std::nullopt;
         } else {
             // in the normal case (we parsed the year), advance to the next number
             dateString = ++newPosStr;

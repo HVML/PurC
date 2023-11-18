@@ -81,7 +81,7 @@ public:
     void dispose();
     void clearMemoryRepresentation();
 
-    static Optional<PurCFetcher::DOMCacheEngine::Record> decode(const NetworkCache::Storage::Record&);
+    static std::optional<PurCFetcher::DOMCacheEngine::Record> decode(const NetworkCache::Storage::Record&);
     static NetworkCache::Storage::Record encode(const RecordInformation&, const PurCFetcher::DOMCacheEngine::Record&);
 
     struct DecodedRecord {
@@ -95,7 +95,7 @@ public:
         uint64_t size { 0 };
         PurCFetcher::DOMCacheEngine::Record record;
     };
-    static Optional<DecodedRecord> decodeRecordHeader(const NetworkCache::Storage::Record&);
+    static std::optional<DecodedRecord> decodeRecordHeader(const NetworkCache::Storage::Record&);
 
     bool hasPendingOpeningCallbacks() const { return !m_pendingOpeningCallbacks.isEmpty(); }
 
@@ -108,7 +108,7 @@ private:
 
     RecordInformation toRecordInformation(const PurCFetcher::DOMCacheEngine::Record&);
 
-    void finishOpening(PurCFetcher::DOMCacheEngine::CompletionCallback&&, Optional<PurCFetcher::DOMCacheEngine::Error>&&);
+    void finishOpening(PurCFetcher::DOMCacheEngine::CompletionCallback&&, std::optional<PurCFetcher::DOMCacheEngine::Error>&&);
     void retrieveRecord(const RecordInformation&, Ref<ReadRecordTaskCounter>&&);
 
     void readRecordsList(PurCFetcher::DOMCacheEngine::CompletionCallback&&);

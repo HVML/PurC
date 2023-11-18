@@ -71,7 +71,7 @@ void NetworkProcessProxy::didReceiveInvalidMessage(IPC::Connection&, IPC::Messag
 {
 }
 
-void NetworkProcessProxy::didReceiveAuthenticationChallenge(PAL::SessionID, WebPageProxyIdentifier, const Optional<SecurityOriginData>&, PurCFetcher::AuthenticationChallenge&&, bool, uint64_t)
+void NetworkProcessProxy::didReceiveAuthenticationChallenge(PAL::SessionID, WebPageProxyIdentifier, const std::optional<SecurityOriginData>&, PurCFetcher::AuthenticationChallenge&&, bool, uint64_t)
 {
 }
 
@@ -120,7 +120,7 @@ void NetworkProcessProxy::terminateWebProcess(PurCFetcher::ProcessIdentifier)
 {
 }
 
-void NetworkProcessProxy::requestStorageSpace(PAL::SessionID, const PurCFetcher::ClientOrigin&, uint64_t, uint64_t, uint64_t, CompletionHandler<void(Optional<uint64_t> quota)>&&)
+void NetworkProcessProxy::requestStorageSpace(PAL::SessionID, const PurCFetcher::ClientOrigin&, uint64_t, uint64_t, uint64_t, CompletionHandler<void(std::optional<uint64_t> quota)>&&)
 {
 }
 
@@ -144,7 +144,7 @@ void NetworkProcessProxy::getAppBoundDomains(PAL::SessionID, CompletionHandler<v
 {
 }
 
-void NetworkProcessProxy::resourceLoadDidSendRequest(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceRequest&&, Optional<IPC::FormDataReference>&&)
+void NetworkProcessProxy::resourceLoadDidSendRequest(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceRequest&&, std::optional<IPC::FormDataReference>&&)
 {
 }
 

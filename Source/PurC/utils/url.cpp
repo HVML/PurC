@@ -283,7 +283,7 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         else
             url_struct->fragment = NULL;
 
-        Optional<uint16_t> port = url.port();
+        std::optional<uint16_t> port = url.port();
         if (port)
             url_struct->port = (unsigned int)(*port);
         else

@@ -62,18 +62,18 @@ DNSCache::DNSCacheMap& DNSCache::mapForType(Type type)
     return m_dnsMap;
 }
 
-Optional<Vector<GRefPtr<GInetAddress>>> DNSCache::lookup(const CString& host, Type type)
+std::optional<Vector<GRefPtr<GInetAddress>>> DNSCache::lookup(const CString& host, Type type)
 {
     LockHolder locker(m_lock);
     auto& map = mapForType(type);
     auto it = map.find(host);
     if (it == map.end())
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     auto& response = it->value;
     if (response.expirationTime <= MonotonicTime::now()) {
         map.remove(it);
-        return PurCWTF::nullopt;
+        return std::nullopt;
     }
 
     return response.addressList;

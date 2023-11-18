@@ -54,7 +54,7 @@ private:
     static void networkChangedCallback(NetworkStateNotifier*);
 #endif
 
-    Optional<bool> m_isOnLine;
+    std::optional<bool> m_isOnLine;
     Vector<PurCWTF::Function<void(bool)>> m_listeners;
     Timer m_updateStateTimer;
 };

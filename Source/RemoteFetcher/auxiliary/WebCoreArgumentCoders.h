@@ -84,12 +84,12 @@ template<> struct ArgumentCoder<PurCFetcher::CertificateInfo> {
 
 template<> struct ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>> {
     static void encode(Encoder&, const RefPtr<PurCFetcher::SharedBuffer>&);
-    static Optional<RefPtr<PurCFetcher::SharedBuffer>> decode(Decoder&);
+    static std::optional<RefPtr<PurCFetcher::SharedBuffer>> decode(Decoder&);
 };
 
 template<> struct ArgumentCoder<Ref<PurCFetcher::SharedBuffer>> {
     static void encode(Encoder&, const Ref<PurCFetcher::SharedBuffer>&);
-    static Optional<Ref<PurCFetcher::SharedBuffer>> decode(Decoder&);
+    static std::optional<Ref<PurCFetcher::SharedBuffer>> decode(Decoder&);
 };
 
 
@@ -126,12 +126,12 @@ template<> struct ArgumentCoder<Vector<RefPtr<PurCFetcher::SecurityOrigin>>> {
 
 template<> struct ArgumentCoder<PurCFetcher::DOMCacheEngine::CacheInfo> {
     static void encode(Encoder&, const PurCFetcher::DOMCacheEngine::CacheInfo&);
-    static Optional<PurCFetcher::DOMCacheEngine::CacheInfo> decode(Decoder&);
+    static std::optional<PurCFetcher::DOMCacheEngine::CacheInfo> decode(Decoder&);
 };
 
 template<> struct ArgumentCoder<PurCFetcher::DOMCacheEngine::Record> {
     static void encode(Encoder&, const PurCFetcher::DOMCacheEngine::Record&);
-    static Optional<PurCFetcher::DOMCacheEngine::Record> decode(Decoder&);
+    static std::optional<PurCFetcher::DOMCacheEngine::Record> decode(Decoder&);
 };
 
 } // namespace IPC

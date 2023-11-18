@@ -21,9 +21,11 @@
 #pragma once
 
 #include <wtf/Forward.h>
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/text/StringHasher.h>
+
+#include <optional>
 
 namespace PurCWTF {
 
@@ -142,7 +144,7 @@ template<typename T1, typename T2> void add(Hasher& hasher, const std::pair<T1, 
     add(hasher, pair.second);
 }
 
-template<typename T> void add(Hasher& hasher, const Optional<T>& optional)
+template<typename T> void add(Hasher& hasher, const std::optional<T>& optional)
 {
     add(hasher, optional.hasValue());
     if (optional.hasValue())

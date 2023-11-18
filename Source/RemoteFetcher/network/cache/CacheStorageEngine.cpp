@@ -206,21 +206,17 @@ static uint64_t getDirectorySize(const String& directoryPath)
     paths.append(directoryPath);
     while (!paths.isEmpty()) {
         auto path = paths.takeFirst();
-        if (FileSystem::fileIsDirectory(path, FileSystem::ShouldFollowSymbolicLinks::No)) {
-            auto newPaths = FileSystem::listDirectory(path, "*"_s);
-            for (auto& newPath : newPaths) {
+        if (FileSystem::fileType(path) == FileSystem::FileType::Directory) {
+            auto fileNames = FileSystem::listDirectory(path);
+            for (auto& fileName : fileNames) {
                 // Files in /Blobs directory are hard link.
-                auto fileName = FileSystem::lastComponentOfPathIgnoringTrailingSlash(newPath);
                 if (fileName == "Blobs")
                     continue;
-                paths.append(newPath);
+                paths.append(FileSystem::pathByAppendingComponent(path, fileName));
             }
             continue;
         }
-
-        long long fileSize = 0;
-        FileSystem::getFileSize(path, fileSize);
-        directorySize += fileSize;
+        directorySize += FileSystem::fileSize(path).value_or(0);
     }
     return directorySize;
 }
@@ -355,13 +351,13 @@ void Engine::initialize(CompletionCallback&& callback)
     }
 
     if (m_salt) {
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
         return;
     }
 
     if (!shouldPersist()) {
         m_salt = NetworkCache::Salt { };
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
         return;
     }
 
@@ -382,14 +378,14 @@ void Engine::initialize(CompletionCallback&& callback)
 
             auto callbacks = WTFMove(m_initializationCallbacks);
             for (auto& callback : callbacks)
-                callback(m_salt ? PurCWTF::nullopt : makeOptional(Error::WriteDisk));
+                callback(m_salt ? std::nullopt : std::make_optional(Error::WriteDisk));
         });
     });
 }
 
 void Engine::readCachesFromDisk(const PurCFetcher::ClientOrigin& origin, CachesCallback&& callback)
 {
-    initialize([this, origin, callback = WTFMove(callback)](Optional<Error>&& error) mutable {
+    initialize([this, origin, callback = WTFMove(callback)](std::optional<Error>&& error) mutable {
         if (error) {
             callback(makeUnexpected(error.value()));
             return;
@@ -405,7 +401,7 @@ void Engine::readCachesFromDisk(const PurCFetcher::ClientOrigin& origin, CachesC
             return;
         }
 
-        caches->initialize([callback = WTFMove(callback), caches = caches.copyRef()](Optional<Error>&& error) mutable {
+        caches->initialize([callback = WTFMove(callback), caches = caches.copyRef()](std::optional<Error>&& error) mutable {
             if (error) {
                 callback(makeUnexpected(error.value()));
                 return;
@@ -424,7 +420,7 @@ void Engine::readCache(uint64_t cacheIdentifier, CacheCallback&& callback)
         return;
     }
     if (!cache->isOpened()) {
-        cache->open([this, protectedThis = makeRef(*this), cacheIdentifier, callback = WTFMove(callback)](Optional<Error>&& error) mutable {
+        cache->open([this, protectedThis = makeRef(*this), cacheIdentifier, callback = WTFMove(callback)](std::optional<Error>&& error) mutable {
             if (error) {
                 callback(makeUnexpected(error.value()));
                 return;
@@ -456,14 +452,14 @@ Cache* Engine::cache(uint64_t cacheIdentifier)
 void Engine::writeFile(const String& filename, NetworkCache::Data&& data, PurCFetcher::DOMCacheEngine::CompletionCallback&& callback)
 {
     if (!shouldPersist()) {
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
         return;
     }
 
     m_pendingWriteCallbacks.add(++m_pendingCallbacksCounter, WTFMove(callback));
     m_ioQueue->dispatch([this, weakThis = makeWeakPtr(this), identifier = m_pendingCallbacksCounter, data = WTFMove(data), filename = filename.isolatedCopy()]() mutable {
 
-        String directoryPath = FileSystem::directoryName(filename);
+        String directoryPath = FileSystem::parentPath(filename);
         if (!FileSystem::fileExists(directoryPath))
             FileSystem::makeAllDirectories(directoryPath);
 
@@ -480,7 +476,7 @@ void Engine::writeFile(const String& filename, NetworkCache::Data&& data, PurCFe
                 callback(Error::WriteDisk);
                 return;
             }
-            callback(PurCWTF::nullopt);
+            callback(std::nullopt);
         });
     });
 }
@@ -554,7 +550,7 @@ void Engine::writeSizeFile(const String& path, uint64_t size, CompletionHandler<
     });
 }
 
-Optional<uint64_t> Engine::readSizeFile(const String& path)
+std::optional<uint64_t> Engine::readSizeFile(const String& path)
 {
     ASSERT(!RunLoop::isMain());
 
@@ -565,20 +561,20 @@ Optional<uint64_t> Engine::readSizeFile(const String& path)
     });
 
     if (!FileSystem::isHandleValid(fileHandle))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    long long fileSize = 0;
-    if (!FileSystem::getFileSize(path, fileSize) || !fileSize)
-        return PurCWTF::nullopt;
+    auto fileSize = FileSystem::fileSize(path).value_or(0);
+    if (!fileSize)
+        return std::nullopt;
 
     size_t bytesToRead;
     if (!PurCWTF::convertSafely(fileSize, bytesToRead))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     Vector<unsigned char> buffer(bytesToRead);
     size_t totalBytesRead = FileSystem::readFromFile(fileHandle, reinterpret_cast<char*>(buffer.data()), buffer.size());
     if (totalBytesRead != bytesToRead)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return charactersToUIntStrict(buffer.data(), totalBytesRead);
 }
@@ -614,9 +610,10 @@ void Engine::getDirectories(CompletionHandler<void(const Vector<String>&)>&& com
 {
     m_ioQueue->dispatch([path = m_rootPath.isolatedCopy(), completionHandler = WTFMove(completionHandler)]() mutable {
         Vector<String> folderPaths;
-        for (auto& filename : FileSystem::listDirectory(path, "*")) {
-            if (FileSystem::fileIsDirectory(filename, FileSystem::ShouldFollowSymbolicLinks::No))
-                folderPaths.append(filename.isolatedCopy());
+        for (auto& fileName : FileSystem::listDirectory(path)) {
+            auto filePath = FileSystem::pathByAppendingComponent(path, fileName);
+            if (FileSystem::fileType(filePath) == FileSystem::FileType::Directory)
+                folderPaths.append(filePath.isolatedCopy());
         }
 
         RunLoop::main().dispatch([folderPaths = WTFMove(folderPaths), completionHandler = WTFMove(completionHandler)]() mutable {
@@ -700,10 +697,11 @@ void Engine::clearAllCachesFromDisk(CompletionHandler<void()>&& completionHandle
     ASSERT(RunLoop::isMain());
 
     m_ioQueue->dispatch([path = m_rootPath.isolatedCopy(), completionHandler = WTFMove(completionHandler)]() mutable {
-        LockHolder locker(globalSizeFileLock);
-        for (auto& filename : FileSystem::listDirectory(path, "*")) {
-            if (FileSystem::fileIsDirectory(filename, FileSystem::ShouldFollowSymbolicLinks::No))
-                deleteDirectoryRecursively(filename);
+        Locker locker { globalSizeFileLock };
+        for (auto& fileName : FileSystem::listDirectory(path)) {
+            auto filePath = FileSystem::pathByAppendingComponent(path, fileName);
+            if (FileSystem::fileType(filePath) == FileSystem::FileType::Directory)
+                FileSystem::deleteNonEmptyDirectory(filePath);
         }
         RunLoop::main().dispatch(WTFMove(completionHandler));
     });
@@ -742,7 +740,7 @@ void Engine::clearCachesForOriginFromDirectories(const Vector<String>& folderPat
 {
     auto callbackAggregator = CallbackAggregator::create(WTFMove(completionHandler));
     for (auto& folderPath : folderPaths) {
-        Caches::retrieveOriginFromDirectory(folderPath, *m_ioQueue, [this, protectedThis = makeRef(*this), origin, callbackAggregator = callbackAggregator.copyRef(), folderPath] (Optional<PurCFetcher::ClientOrigin>&& folderOrigin) mutable {
+        Caches::retrieveOriginFromDirectory(folderPath, *m_ioQueue, [this, protectedThis = makeRef(*this), origin, callbackAggregator = callbackAggregator.copyRef(), folderPath] (std::optional<PurCFetcher::ClientOrigin>&& folderOrigin) mutable {
             if (!folderOrigin)
                 return;
             if (folderOrigin->topOrigin != origin && folderOrigin->clientOrigin != origin)
@@ -775,7 +773,7 @@ void Engine::clearMemoryRepresentation(const PurCFetcher::ClientOrigin& origin, 
             return;
         }
         result.value().get().clearMemoryRepresentation();
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
     });
 }
 

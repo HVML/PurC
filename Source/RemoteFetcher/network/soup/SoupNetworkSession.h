@@ -67,7 +67,7 @@ public:
     void setAcceptLanguages(const CString&);
 
     PURCFETCHER_EXPORT static void setShouldIgnoreTLSErrors(bool);
-    static Optional<ResourceError> checkTLSErrors(const URL&, GTlsCertificate*, GTlsCertificateFlags);
+    static std::optional<ResourceError> checkTLSErrors(const URL&, GTlsCertificate*, GTlsCertificateFlags);
     static void allowSpecificHTTPSCertificateForHost(const CertificateInfo&, const String& host);
 
     void getHostNamesWithHSTSCache(HashSet<String>&);

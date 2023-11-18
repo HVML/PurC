@@ -33,7 +33,7 @@
 
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/Optional.h>
+#include <optional>
 
 namespace PurCFetcher {
 
@@ -613,7 +613,7 @@ private:
 
 #if ENABLE(TOUCH_EVENTS)
     bool m_mouseEventsSimulationEnabled { false };
-    Optional<bool> m_touchEventsEnabled;
+    std::optional<bool> m_touchEventsEnabled;
 #endif
 
     bool m_isITPDatabaseEnabled { true };

@@ -30,7 +30,7 @@
 #include <unicode/utypes.h>
 #endif
 #include <wtf/Forward.h>
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/RetainPtr.h>
 #include <wtf/Vector.h>
 #include <wtf/text/CString.h>
@@ -39,6 +39,8 @@
 #include <wtf/text/StringCommon.h>
 #include <wtf/text/UTF8ConversionError.h>
 #include <wtf/text/UChar.h>
+
+#include <optional>
 
 // FIXME: Enabling the StringView lifetime checking causes the MSVC build to fail. Figure out why.
 #if defined(NDEBUG) || COMPILER(MSVC)
@@ -173,7 +175,7 @@ public:
     int toInt() const;
     int toInt(bool& isValid) const;
     int toIntStrict(bool& isValid) const;
-    Optional<uint64_t> toUInt64Strict() const;
+    std::optional<uint64_t> toUInt64Strict() const;
     float toFloat(bool& isValid) const;
 
     static void invalidate(const StringImpl&);
@@ -249,7 +251,7 @@ WTF_EXPORT_PRIVATE StringViewWithUnderlyingString normalizedNFC(StringView);
 WTF_EXPORT_PRIVATE String normalizedNFC(const String&);
 #endif
 
-WTF_EXPORT_PRIVATE Optional<uint16_t> parseUInt16(StringView);
+WTF_EXPORT_PRIVATE std::optional<uint16_t> parseUInt16(StringView);
 
 }
 
@@ -601,11 +603,11 @@ inline int StringView::toIntStrict(bool& isValid) const
     return charactersToIntStrict(characters16(), m_length, &isValid);
 }
 
-inline Optional<uint64_t> StringView::toUInt64Strict() const
+inline std::optional<uint64_t> StringView::toUInt64Strict() const
 {
     bool isValid;
     uint64_t result = is8Bit() ? charactersToUInt64Strict(characters8(), m_length, &isValid) : charactersToUInt64Strict(characters16(), m_length, &isValid);
-    return isValid ? makeOptional(result) : PurCWTF::nullopt;
+    return isValid ? std::make_optional(result) : std::nullopt;
 }
 
 inline String StringView::toStringWithoutCopying() const
@@ -822,7 +824,7 @@ public:
 
 private:
     std::reference_wrapper<const StringView> m_stringView;
-    Optional<unsigned> m_nextCodePointOffset;
+    std::optional<unsigned> m_nextCodePointOffset;
     UChar32 m_codePoint;
 };
 
@@ -892,7 +894,7 @@ inline auto StringView::CodePoints::Iterator::operator++() -> Iterator&
 {
     ASSERT(m_nextCodePointOffset);
     if (m_nextCodePointOffset.value() == m_stringView.get().length()) {
-        m_nextCodePointOffset = PurCWTF::nullopt;
+        m_nextCodePointOffset = std::nullopt;
         return *this;
     }
     if (m_stringView.get().is8Bit())

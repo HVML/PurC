@@ -48,7 +48,7 @@ private:
     void didRemoveItem(uint64_t mapSeed, const String& key);
     void didClear(uint64_t mapSeed);
 
-    void dispatchStorageEvent(const Optional<StorageAreaImplIdentifier>& sourceStorageAreaID, const String& key, const String& oldValue, const String& newValue, const String& urlString);
+    void dispatchStorageEvent(const std::optional<StorageAreaImplIdentifier>& sourceStorageAreaID, const String& key, const String& oldValue, const String& newValue, const String& urlString);
     void clearCache();
 };
 

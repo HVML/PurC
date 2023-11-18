@@ -46,7 +46,7 @@ typedef uint64_t ResourceLoadIdentifier;
 class NetworkResourceLoadParameters : public NetworkLoadParameters {
 public:
     void encode(IPC::Encoder&) const;
-    static Optional<NetworkResourceLoadParameters> decode(IPC::Decoder&);
+    static std::optional<NetworkResourceLoadParameters> decode(IPC::Decoder&);
 
     ResourceLoadIdentifier identifier { 0 };
     Vector<RefPtr<SandboxExtension>> requestBodySandboxExtensions; // Created automatically for the sender.
@@ -54,7 +54,7 @@ public:
     Seconds maximumBufferingTime;
     RefPtr<PurCFetcher::SecurityOrigin> sourceOrigin;
     PurCFetcher::FetchOptions options;
-    Optional<PurCFetcher::ContentSecurityPolicyResponseHeaders> cspResponseHeaders;
+    std::optional<PurCFetcher::ContentSecurityPolicyResponseHeaders> cspResponseHeaders;
     PurCFetcher::HTTPHeaderMap originalRequestHeaders;
     bool shouldRestrictHTTPResponseAccess { false };
     PurCFetcher::PreflightPolicy preflightPolicy { PurCFetcher::PreflightPolicy::Consider };
@@ -62,21 +62,21 @@ public:
     Vector<RefPtr<PurCFetcher::SecurityOrigin>> frameAncestorOrigins;
     bool isHTTPSUpgradeEnabled { false };
     bool pageHasResourceLoadClient { false };
-    Optional<PurCFetcher::FrameIdentifier> parentFrameID;
+    std::optional<PurCFetcher::FrameIdentifier> parentFrameID;
     bool crossOriginAccessControlCheckEnabled { true };
 
 #if ENABLE(SERVICE_WORKER)
     PurCFetcher::ServiceWorkersMode serviceWorkersMode { PurCFetcher::ServiceWorkersMode::None };
-    Optional<PurCFetcher::ServiceWorkerRegistrationIdentifier> serviceWorkerRegistrationIdentifier;
+    std::optional<PurCFetcher::ServiceWorkerRegistrationIdentifier> serviceWorkerRegistrationIdentifier;
     OptionSet<PurCFetcher::HTTPHeadersToKeepFromCleaning> httpHeadersToKeep;
 #endif
 
 #if ENABLE(CONTENT_EXTENSIONS)
     URL mainDocumentURL;
-    Optional<UserContentControllerIdentifier> userContentControllerIdentifier;
+    std::optional<UserContentControllerIdentifier> userContentControllerIdentifier;
 #endif
     
-    Optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { NavigatingToAppBoundDomain::No };
+    std::optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { NavigatingToAppBoundDomain::No };
 };
 
 } // namespace PurCFetcher

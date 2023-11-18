@@ -79,7 +79,7 @@ public:
     bool operator==(const PolicyCheckIdentifier& other) const { return m_process == other.m_process && m_policyCheck == other.m_policyCheck; }
 
     template<class Encoder> void encode(Encoder&) const;
-    template<class Decoder> static Optional<PolicyCheckIdentifier> decode(Decoder&);
+    template<class Decoder> static std::optional<PolicyCheckIdentifier> decode(Decoder&);
 
 private:
     PolicyCheckIdentifier(ProcessIdentifier process, uint64_t policyCheck)
@@ -98,15 +98,15 @@ void PolicyCheckIdentifier::encode(Encoder& encoder) const
 }
 
 template<class Decoder>
-Optional<PolicyCheckIdentifier> PolicyCheckIdentifier::decode(Decoder& decoder)
+std::optional<PolicyCheckIdentifier> PolicyCheckIdentifier::decode(Decoder& decoder)
 {
     auto process = ProcessIdentifier::decode(decoder);
     if (!process)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     uint64_t policyCheck;
     if (!decoder.decode(policyCheck))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return PolicyCheckIdentifier { *process, policyCheck };
 }

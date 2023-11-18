@@ -616,6 +616,7 @@ on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
 
         const char *s_comm = purc_variant_get_string_const(comm);
         const char *s_uri = purc_variant_get_string_const(uri);
+        PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n", s_uri, inst->app_name, inst->runner_name);
         pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
     else {

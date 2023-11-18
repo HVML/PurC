@@ -39,7 +39,7 @@ class SubresourceInfo {
     WTF_MAKE_FAST_ALLOCATED;
 public:
     void encode(PurCWTF::Persistence::Encoder&) const;
-    static Optional<SubresourceInfo> decode(PurCWTF::Persistence::Decoder&);
+    static std::optional<SubresourceInfo> decode(PurCWTF::Persistence::Decoder&);
 
     SubresourceInfo() = default;
     SubresourceInfo(const Key&, const PurCFetcher::ResourceRequest&, const SubresourceInfo* previousInfo);

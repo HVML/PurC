@@ -32,8 +32,12 @@
 #include <wtf/WorkQueue.h>
 #include <wtf/text/WTFString.h>
 
-#if USE(SOUP)
+#if USE(GLIB)
 #include <wtf/glib/GRefPtr.h>
+
+typedef struct _GFileIOStream GFileIOStream;
+typedef struct _GInputStream GInputStream;
+typedef struct _GOutputStream GOutputStream;
 #endif
 
 namespace PurCFetcher {
@@ -42,7 +46,7 @@ namespace NetworkCache {
 class IOChannel : public ThreadSafeRefCounted<IOChannel> {
 public:
     enum class Type { Read, Write, Create };
-    static Ref<IOChannel> open(const String& file, Type type, Optional<WorkQueue::QOS> qos = { }) { return adoptRef(*new IOChannel(file, type, qos)); }
+    static Ref<IOChannel> open(const String& file, Type type, std::optional<WorkQueue::QOS> qos = { }) { return adoptRef(*new IOChannel(file, type, qos)); }
 
     // Using nullptr as queue submits the result to the main queue.
     // FIXME: We should add WorkQueue::main() instead.
@@ -61,7 +65,7 @@ public:
     ~IOChannel();
 
 private:
-    IOChannel(const String& filePath, IOChannel::Type, Optional<WorkQueue::QOS>);
+    IOChannel(const String& filePath, IOChannel::Type, std::optional<WorkQueue::QOS>);
 
 #if USE(SOUP)
     void readSyncInThread(size_t offset, size_t, WorkQueue*, Function<void (Data&, int error)>&&);

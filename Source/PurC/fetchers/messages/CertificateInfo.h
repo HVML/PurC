@@ -28,7 +28,7 @@
 
 #include <gio/gio.h>
 
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/Seconds.h>
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
@@ -65,7 +65,7 @@ public:
 
     bool containsNonRootSHA1SignedCertificate() const { return false; }
 
-    Optional<SummaryInfo> summaryInfo() const { return PurCWTF::nullopt; }
+    std::optional<SummaryInfo> summaryInfo() const { return std::nullopt; }
 
     bool isEmpty() const { return !m_certificate; }
 
@@ -86,17 +86,17 @@ template<> struct Coder<GRefPtr<GByteArray>> {
         encoder.encodeFixedLengthData(byteArray->data, byteArray->len);
     }
 
-    static Optional<GRefPtr<GByteArray>> decode(Decoder& decoder)
+    static std::optional<GRefPtr<GByteArray>> decode(Decoder& decoder)
     {
-        Optional<uint32_t> size;
+        std::optional<uint32_t> size;
         decoder >> size;
         if (!size)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         GRefPtr<GByteArray> byteArray = adoptGRef(g_byte_array_sized_new(*size));
         g_byte_array_set_size(byteArray.get(), *size);
         if (!decoder.decodeFixedLengthData(byteArray->data, *size))
-            return PurCWTF::nullopt;
+            return std::nullopt;
         return byteArray;
     }
 };
@@ -152,12 +152,12 @@ template<> struct Coder<PurCFetcher::CertificateInfo> {
         encoder << static_cast<uint32_t>(certificateInfo.tlsErrors());
     }
 
-    static Optional<PurCFetcher::CertificateInfo> decode(Decoder& decoder)
+    static std::optional<PurCFetcher::CertificateInfo> decode(Decoder& decoder)
     {
-        Optional<Vector<GRefPtr<GByteArray>>> certificatesDataList;
+        std::optional<Vector<GRefPtr<GByteArray>>> certificatesDataList;
         decoder >> certificatesDataList;
         if (!certificatesDataList)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         PurCFetcher::CertificateInfo certificateInfo;
         if (certificatesDataList->isEmpty())
@@ -165,13 +165,13 @@ template<> struct Coder<PurCFetcher::CertificateInfo> {
 
         auto certificate = certificateFromCertificatesDataList(certificatesDataList.value());
         if (!certificate)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         certificateInfo.setCertificate(certificate.get());
 
-        Optional<uint32_t> tlsErrors;
+        std::optional<uint32_t> tlsErrors;
         decoder >> tlsErrors;
         if (!tlsErrors)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         certificateInfo.setTLSErrors(static_cast<GTlsCertificateFlags>(*tlsErrors));
 
         return certificateInfo;

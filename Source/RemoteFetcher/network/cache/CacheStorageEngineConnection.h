@@ -74,7 +74,7 @@ private:
     void reference(uint64_t cacheIdentifier);
     void dereference(uint64_t cacheIdentifier);
 
-    void clearMemoryRepresentation(PurCFetcher::ClientOrigin&&, CompletionHandler<void(Optional<PurCFetcher::DOMCacheEngine::Error>&&)>&&);
+    void clearMemoryRepresentation(PurCFetcher::ClientOrigin&&, CompletionHandler<void(std::optional<PurCFetcher::DOMCacheEngine::Error>&&)>&&);
     void engineRepresentation( CompletionHandler<void(String&&)>&&);
     
     PAL::SessionID sessionID() const;

@@ -311,13 +311,13 @@ void StorageManagerSet::connectToLocalStorageArea(IPC::Connection& connection, P
 
     auto* storageManager = m_storageManagers.get(sessionID);
     if (!storageManager) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 
     auto* storageArea = storageManager->createLocalStorageArea(storageNamespaceID, WTFMove(originData), m_queue.copyRef());
     if (!storageArea) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 
@@ -336,13 +336,13 @@ void StorageManagerSet::connectToTransientLocalStorageArea(IPC::Connection& conn
 
     auto* storageManager = m_storageManagers.get(sessionID);
     if (!storageManager) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 
     auto* storageArea = storageManager->createTransientLocalStorageArea(storageNamespaceID, WTFMove(topLevelOriginData), WTFMove(originData), m_queue.copyRef());
     if (!storageArea) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 
@@ -361,13 +361,13 @@ void StorageManagerSet::connectToSessionStorageArea(IPC::Connection& connection,
 
     auto* storageManager = m_storageManagers.get(sessionID);
     if (!storageManager) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 
     auto* storageArea = storageManager->createSessionStorageArea(storageNamespaceID, WTFMove(originData), m_queue.copyRef());
     if (!storageArea) {
-        completionHandler(PurCWTF::nullopt);
+        completionHandler(std::nullopt);
         return;
     }
 

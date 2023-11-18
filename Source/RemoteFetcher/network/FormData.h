@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004, 2006, 2008, 2011 Apple Inc. All rights reserved.
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -29,18 +30,19 @@
 namespace PurCFetcher {
 
 class SharedBuffer;
+class TextEncoding;
 
 struct FormDataElement {
     struct EncodedFileData;
     struct EncodedBlobData;
-    using Data = Variant<Vector<char>, EncodedFileData, EncodedBlobData>;
+    using Data = Variant<Vector<uint8_t>, EncodedFileData, EncodedBlobData>;
 
     FormDataElement() = default;
     explicit FormDataElement(Data&& data)
         : data(WTFMove(data)) { }
-    explicit FormDataElement(Vector<char>&& array)
+    explicit FormDataElement(Vector<uint8_t>&& array)
         : data(WTFMove(array)) { }
-    FormDataElement(const String& filename, int64_t fileStart, int64_t fileLength, Optional<WallTime> expectedFileModificationTime)
+    FormDataElement(const String& filename, int64_t fileStart, int64_t fileLength, std::optional<WallTime> expectedFileModificationTime)
         : data(EncodedFileData { filename, fileStart, fileLength, expectedFileModificationTime }) { }
     explicit FormDataElement(const URL& blobURL)
         : data(EncodedBlobData { blobURL }) { }
@@ -54,12 +56,12 @@ struct FormDataElement {
     {
         encoder << data;
     }
-    template<typename Decoder> static Optional<FormDataElement> decode(Decoder& decoder)
+    template<typename Decoder> static std::optional<FormDataElement> decode(Decoder& decoder)
     {
-        Optional<Data> data;
+        std::optional<Data> data;
         decoder >> data;
         if (!data)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         return FormDataElement(WTFMove(*data));
     }
 
@@ -67,7 +69,7 @@ struct FormDataElement {
         String filename;
         int64_t fileStart { 0 };
         int64_t fileLength { 0 };
-        Optional<WallTime> expectedFileModificationTime;
+        std::optional<WallTime> expectedFileModificationTime;
 
         bool fileModificationTimeMatchesExpectation() const;
 
@@ -75,7 +77,7 @@ struct FormDataElement {
         {
             return { filename.isolatedCopy(), fileStart, fileLength, expectedFileModificationTime };
         }
-        
+
         bool operator==(const EncodedFileData& other) const
         {
             return filename == other.filename
@@ -87,27 +89,27 @@ struct FormDataElement {
         {
             encoder << filename << fileStart << fileLength << expectedFileModificationTime;
         }
-        template<typename Decoder> static Optional<EncodedFileData> decode(Decoder& decoder)
+        template<typename Decoder> static std::optional<EncodedFileData> decode(Decoder& decoder)
         {
-            Optional<String> filename;
+            std::optional<String> filename;
             decoder >> filename;
             if (!filename)
-                return PurCWTF::nullopt;
-            
-            Optional<int64_t> fileStart;
+                return std::nullopt;
+
+            std::optional<int64_t> fileStart;
             decoder >> fileStart;
             if (!fileStart)
-                return PurCWTF::nullopt;
-            
-            Optional<int64_t> fileLength;
+                return std::nullopt;
+
+            std::optional<int64_t> fileLength;
             decoder >> fileLength;
             if (!fileLength)
-                return PurCWTF::nullopt;
-            
-            Optional<Optional<WallTime>> expectedFileModificationTime;
+                return std::nullopt;
+
+            std::optional<std::optional<WallTime>> expectedFileModificationTime;
             decoder >> expectedFileModificationTime;
             if (!expectedFileModificationTime)
-                return PurCWTF::nullopt;
+                return std::nullopt;
 
             return {{
                 WTFMove(*filename),
@@ -118,7 +120,7 @@ struct FormDataElement {
         }
 
     };
-    
+
     struct EncodedBlobData {
         URL url;
 
@@ -130,17 +132,17 @@ struct FormDataElement {
         {
             encoder << url;
         }
-        template<typename Decoder> static Optional<EncodedBlobData> decode(Decoder& decoder)
+        template<typename Decoder> static std::optional<EncodedBlobData> decode(Decoder& decoder)
         {
-            Optional<URL> url;
+            std::optional<URL> url;
             decoder >> url;
             if (!url)
-                return PurCWTF::nullopt;
+                return std::nullopt;
 
             return {{ WTFMove(*url) }};
         }
     };
-    
+
     bool operator==(const FormDataElement& other) const
     {
         if (&other == this)
@@ -157,7 +159,7 @@ struct FormDataElement {
     {
         return !(*this == other);
     }
-    
+
     Data data;
 };
 
@@ -172,7 +174,7 @@ public:
 private:
     friend class FormData;
     FormDataForUpload(FormData&, Vector<String>&&);
-    
+
     Ref<FormData> m_data;
     Vector<String> m_temporaryZipFiles;
 };
@@ -188,7 +190,7 @@ public:
     PURCFETCHER_EXPORT static Ref<FormData> create();
     PURCFETCHER_EXPORT static Ref<FormData> create(const void*, size_t);
     static Ref<FormData> create(const CString&);
-    static Ref<FormData> create(Vector<char>&&);
+    static Ref<FormData> create(Vector<uint8_t>&&);
     static Ref<FormData> create(const Vector<char>&);
     static Ref<FormData> create(const Vector<uint8_t>&);
     PURCFETCHER_EXPORT ~FormData();
@@ -205,10 +207,10 @@ public:
 
     PURCFETCHER_EXPORT void appendData(const void* data, size_t);
     void appendFile(const String& filePath);
-    PURCFETCHER_EXPORT void appendFileRange(const String& filename, long long start, long long length, Optional<WallTime> expectedModificationTime);
+    PURCFETCHER_EXPORT void appendFileRange(const String& filename, long long start, long long length, std::optional<WallTime> expectedModificationTime);
     PURCFETCHER_EXPORT void appendBlob(const URL& blobURL);
 
-    PURCFETCHER_EXPORT Vector<char> flatten() const; // omits files
+    PURCFETCHER_EXPORT Vector<uint8_t> flatten() const; // omits files
     String flattenToString() const; // omits files
 
 
@@ -216,7 +218,7 @@ public:
 
     bool isEmpty() const { return m_elements.isEmpty(); }
     const Vector<FormDataElement>& elements() const { return m_elements; }
-    const Vector<char>& boundary() const { return m_boundary; }
+    const Vector<uint8_t>& boundary() const { return m_boundary; }
 
     RefPtr<SharedBuffer> asSharedBuffer() const;
 
@@ -248,13 +250,15 @@ private:
     FormData();
     FormData(const FormData&);
 
+    void appendMultiPartStringValue(const String&, Vector<uint8_t>& header, TextEncoding&);
+
     Vector<FormDataElement> m_elements;
 
     int64_t m_identifier { 0 };
     bool m_alwaysStream { false };
-    Vector<char> m_boundary;
+    Vector<uint8_t> m_boundary;
     bool m_containsPasswordData { false };
-    mutable Optional<uint64_t> m_lengthInBytes;
+    mutable std::optional<uint64_t> m_lengthInBytes;
 };
 
 inline bool operator==(const FormData& a, const FormData& b)

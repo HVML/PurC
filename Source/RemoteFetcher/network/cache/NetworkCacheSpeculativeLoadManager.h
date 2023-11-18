@@ -49,7 +49,7 @@ public:
     explicit SpeculativeLoadManager(Cache&, Storage&);
     ~SpeculativeLoadManager();
 
-    void registerLoad(const GlobalFrameID&, const PurCFetcher::ResourceRequest&, const Key& resourceKey, Optional<NavigatingToAppBoundDomain>);
+    void registerLoad(const GlobalFrameID&, const PurCFetcher::ResourceRequest&, const Key& resourceKey, std::optional<NavigatingToAppBoundDomain>);
     void registerMainResourceLoadResponse(const GlobalFrameID&, const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceResponse&);
 
     typedef Function<void (std::unique_ptr<Entry>)> RetrieveCompletionHandler;
@@ -61,14 +61,14 @@ private:
     class PreloadedEntry;
 
     static bool shouldRegisterLoad(const PurCFetcher::ResourceRequest&);
-    void addPreloadedEntry(std::unique_ptr<Entry>, const GlobalFrameID&, Optional<PurCFetcher::ResourceRequest>&& revalidationRequest = PurCWTF::nullopt);
-    void preloadEntry(const Key&, const SubresourceInfo&, const GlobalFrameID&, Optional<NavigatingToAppBoundDomain>);
+    void addPreloadedEntry(std::unique_ptr<Entry>, const GlobalFrameID&, std::optional<PurCFetcher::ResourceRequest>&& revalidationRequest = std::nullopt);
+    void preloadEntry(const Key&, const SubresourceInfo&, const GlobalFrameID&, std::optional<NavigatingToAppBoundDomain>);
     void retrieveEntryFromStorage(const SubresourceInfo&, RetrieveCompletionHandler&&);
-    void revalidateSubresource(const SubresourceInfo&, std::unique_ptr<Entry>, const GlobalFrameID&, Optional<NavigatingToAppBoundDomain>);
-    void preconnectForSubresource(const SubresourceInfo&, Entry*, const GlobalFrameID&, Optional<NavigatingToAppBoundDomain>);
+    void revalidateSubresource(const SubresourceInfo&, std::unique_ptr<Entry>, const GlobalFrameID&, std::optional<NavigatingToAppBoundDomain>);
+    void preconnectForSubresource(const SubresourceInfo&, Entry*, const GlobalFrameID&, std::optional<NavigatingToAppBoundDomain>);
     bool satisfyPendingRequests(const Key&, Entry*);
     void retrieveSubresourcesEntry(const Key& storageKey, PurCWTF::Function<void (std::unique_ptr<SubresourcesEntry>)>&&);
-    void startSpeculativeRevalidation(const GlobalFrameID&, SubresourcesEntry&, Optional<NavigatingToAppBoundDomain>);
+    void startSpeculativeRevalidation(const GlobalFrameID&, SubresourcesEntry&, std::optional<NavigatingToAppBoundDomain>);
 
     static bool canUsePreloadedEntry(const PreloadedEntry&, const PurCFetcher::ResourceRequest& actualRequest);
     static bool canUsePendingPreload(const SpeculativeLoad&, const PurCFetcher::ResourceRequest& actualRequest);

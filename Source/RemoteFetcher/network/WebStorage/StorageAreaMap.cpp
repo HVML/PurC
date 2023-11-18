@@ -48,7 +48,7 @@ void StorageAreaMap::didClear(uint64_t)
 {
 }
 
-void StorageAreaMap::dispatchStorageEvent(const Optional<StorageAreaImplIdentifier>&, const String&, const String&, const String&, const String&)
+void StorageAreaMap::dispatchStorageEvent(const std::optional<StorageAreaImplIdentifier>&, const String&, const String&, const String&, const String&)
 {
 }
 

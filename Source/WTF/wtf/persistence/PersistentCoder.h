@@ -41,7 +41,7 @@ template<typename T> struct Coder {
         t.encode(encoder);
     }
 
-    static Optional<T> decode(Decoder& decoder)
+    static std::optional<T> decode(Decoder& decoder)
     {
         return T::decode(decoder);
     }

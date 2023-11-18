@@ -56,107 +56,107 @@ void NetworkSessionCreationParameters::encode(IPC::Encoder& encoder) const
     encoder << resourceLoadStatisticsParameters;
 }
 
-Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::decode(IPC::Decoder& decoder)
+std::optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::decode(IPC::Decoder& decoder)
 {
-    Optional<PAL::SessionID> sessionID;
+    std::optional<PAL::SessionID> sessionID;
     decoder >> sessionID;
     if (!sessionID)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<String> boundInterfaceIdentifier;
+    std::optional<String> boundInterfaceIdentifier;
     decoder >> boundInterfaceIdentifier;
     if (!boundInterfaceIdentifier)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<AllowsCellularAccess> allowsCellularAccess;
+    std::optional<AllowsCellularAccess> allowsCellularAccess;
     decoder >> allowsCellularAccess;
     if (!allowsCellularAccess)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<String> cookiePersistentStoragePath;
+    std::optional<String> cookiePersistentStoragePath;
     decoder >> cookiePersistentStoragePath;
     if (!cookiePersistentStoragePath)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<CookiePersistentStorageType> cookiePersistentStorageType;
+    std::optional<CookiePersistentStorageType> cookiePersistentStorageType;
     decoder >> cookiePersistentStorageType;
     if (!cookiePersistentStorageType)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<String> networkCacheDirectory;
+    std::optional<String> networkCacheDirectory;
     decoder >> networkCacheDirectory;
     if (!networkCacheDirectory)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<SandboxExtension::Handle> networkCacheDirectoryExtensionHandle;
+    std::optional<SandboxExtension::Handle> networkCacheDirectoryExtensionHandle;
     decoder >> networkCacheDirectoryExtensionHandle;
     if (!networkCacheDirectoryExtensionHandle)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> deviceManagementRestrictionsEnabled;
+    std::optional<bool> deviceManagementRestrictionsEnabled;
     decoder >> deviceManagementRestrictionsEnabled;
     if (!deviceManagementRestrictionsEnabled)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> allLoadsBlockedByDeviceManagementRestrictionsForTesting;
+    std::optional<bool> allLoadsBlockedByDeviceManagementRestrictionsForTesting;
     decoder >> allLoadsBlockedByDeviceManagementRestrictionsForTesting;
     if (!allLoadsBlockedByDeviceManagementRestrictionsForTesting)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<String> dataConnectionServiceType;
+    std::optional<String> dataConnectionServiceType;
     decoder >> dataConnectionServiceType;
     if (!dataConnectionServiceType)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> fastServerTrustEvaluationEnabled;
+    std::optional<bool> fastServerTrustEvaluationEnabled;
     decoder >> fastServerTrustEvaluationEnabled;
     if (!fastServerTrustEvaluationEnabled)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> networkCacheSpeculativeValidationEnabled;
+    std::optional<bool> networkCacheSpeculativeValidationEnabled;
     decoder >> networkCacheSpeculativeValidationEnabled;
     if (!networkCacheSpeculativeValidationEnabled)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> shouldUseTestingNetworkSession;
+    std::optional<bool> shouldUseTestingNetworkSession;
     decoder >> shouldUseTestingNetworkSession;
     if (!shouldUseTestingNetworkSession)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> staleWhileRevalidateEnabled;
+    std::optional<bool> staleWhileRevalidateEnabled;
     decoder >> staleWhileRevalidateEnabled;
     if (!staleWhileRevalidateEnabled)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<unsigned> testSpeedMultiplier;
+    std::optional<unsigned> testSpeedMultiplier;
     decoder >> testSpeedMultiplier;
     if (!testSpeedMultiplier)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> suppressesConnectionTerminationOnSystemChange;
+    std::optional<bool> suppressesConnectionTerminationOnSystemChange;
     decoder >> suppressesConnectionTerminationOnSystemChange;
     if (!suppressesConnectionTerminationOnSystemChange)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> allowsServerPreconnect;
+    std::optional<bool> allowsServerPreconnect;
     decoder >> allowsServerPreconnect;
     if (!allowsServerPreconnect)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> requiresSecureHTTPSProxyConnection;
+    std::optional<bool> requiresSecureHTTPSProxyConnection;
     decoder >> requiresSecureHTTPSProxyConnection;
     if (!requiresSecureHTTPSProxyConnection)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<bool> preventsSystemHTTPProxyAuthentication;
+    std::optional<bool> preventsSystemHTTPProxyAuthentication;
     decoder >> preventsSystemHTTPProxyAuthentication;
     if (!preventsSystemHTTPProxyAuthentication)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<ResourceLoadStatisticsParameters> resourceLoadStatisticsParameters;
+    std::optional<ResourceLoadStatisticsParameters> resourceLoadStatisticsParameters;
     decoder >> resourceLoadStatisticsParameters;
     if (!resourceLoadStatisticsParameters)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return {{
         *sessionID

@@ -41,21 +41,21 @@ void WebsiteData::Entry::encode(IPC::Encoder& encoder) const
     encoder << size;
 }
 
-auto WebsiteData::Entry::decode(IPC::Decoder& decoder) -> Optional<Entry>
+auto WebsiteData::Entry::decode(IPC::Decoder& decoder) -> std::optional<Entry>
 {
     Entry result;
 
-    Optional<PurCFetcher::SecurityOriginData> securityOriginData;
+    std::optional<PurCFetcher::SecurityOriginData> securityOriginData;
     decoder >> securityOriginData;
     if (!securityOriginData)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     result.origin = WTFMove(*securityOriginData);
 
     if (!decoder.decode(result.type))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     if (!decoder.decode(result.size))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return result;
 }

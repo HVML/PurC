@@ -36,9 +36,10 @@
 #include <unicode/uidna.h>
 #include <unicode/uscript.h>
 #endif
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/text/WTFString.h>
 #include <wtf/text/UChar.h>
+#include <optional>
 
 namespace PurCWTF {
 namespace URLHelpers {
@@ -116,7 +117,7 @@ template<typename CharacterType> inline bool isASCIIDigitOrValidHostCharacter(Ch
 }
 
 #if ENABLE(ICU)
-static bool isLookalikeCharacter(const Optional<UChar32>& previousCodePoint, UChar32 charCode)
+static bool isLookalikeCharacter(const std::optional<UChar32>& previousCodePoint, UChar32 charCode)
 {
     // This function treats the following as unsafe, lookalike characters:
     // any non-printable character, any character considered as whitespace,
@@ -329,7 +330,7 @@ static bool allCharactersInIDNScriptWhiteList(const UChar* buffer, int32_t lengt
 {
     loadIDNScriptWhiteList();
     int32_t i = 0;
-    Optional<UChar32> previousCodePoint;
+    std::optional<UChar32> previousCodePoint;
     while (i < length) {
         UChar32 c;
         U16_NEXT(buffer, i, length, c);
@@ -560,7 +561,7 @@ static bool allCharactersAllowedByTLDRules(const UChar* buffer, int32_t length)
 #endif
 
 // Return value of null means no mapping is necessary.
-Optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFunction)
+std::optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFunction)
 {
     if (hostName.length() > hostNameBufferLength)
         return String();
@@ -599,7 +600,7 @@ Optional<String> mapHostName(const String& hostName, URLDecodeFunction decodeFun
 #endif
 }
 
-using MappingRangesVector = Optional<Vector<std::tuple<unsigned, unsigned, String>>>;
+using MappingRangesVector = std::optional<Vector<std::tuple<unsigned, unsigned, String>>>;
 
 static void collectRangesThatNeedMapping(const String& string, unsigned location, unsigned length, MappingRangesVector& array, URLDecodeFunction decodeFunction)
 {
@@ -607,7 +608,7 @@ static void collectRangesThatNeedMapping(const String& string, unsigned location
     // Therefore, we use null to indicate no mapping here and an empty array to indicate error.
 
     String substring = string.substringSharingImpl(location, length);
-    Optional<String> host = mapHostName(substring, decodeFunction);
+    std::optional<String> host = mapHostName(substring, decodeFunction);
 
     if (host && !*host)
         return;
@@ -764,7 +765,7 @@ static String escapeUnsafeCharacters(const String& sourceBuffer)
 {
     unsigned length = sourceBuffer.length();
 
-    Optional<UChar32> previousCodePoint;
+    std::optional<UChar32> previousCodePoint;
 
     unsigned i;
     for (i = 0; i < length; ) {

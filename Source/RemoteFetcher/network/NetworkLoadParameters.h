@@ -49,7 +49,7 @@ public:
     RefPtr<PurCFetcher::SecurityOrigin> topOrigin;
     PurCWTF::ProcessID parentPID { 0 };
 #if HAVE(AUDIT_TOKEN)
-    Optional<audit_token_t> networkProcessAuditToken;
+    std::optional<audit_token_t> networkProcessAuditToken;
 #endif
     PurCFetcher::ResourceRequest request;
     PurCFetcher::ContentSniffingPolicy contentSniffingPolicy { PurCFetcher::ContentSniffingPolicy::SniffContent };
@@ -62,8 +62,8 @@ public:
     bool isMainResourceNavigationForAnyFrame { false };
     PurCFetcher::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking { PurCFetcher::ShouldRelaxThirdPartyCookieBlocking::No };
     PreconnectOnly shouldPreconnectOnly { PreconnectOnly::No };
-    Optional<NetworkActivityTracker> networkActivityTracker;
-    Optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { NavigatingToAppBoundDomain::No };
+    std::optional<NetworkActivityTracker> networkActivityTracker;
+    std::optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { NavigatingToAppBoundDomain::No };
 };
 
 } // namespace PurCFetcher

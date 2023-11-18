@@ -82,9 +82,9 @@ public:
 
     PURCFETCHER_EXPORT static String computeHashForFileName(const String& fileName);
 
-    static long long getDatabaseFileSize(const String& fileName);
-    PURCFETCHER_EXPORT static Optional<WallTime> databaseCreationTime(const String& fileName);
-    PURCFETCHER_EXPORT static Optional<WallTime> databaseModificationTime(const String& fileName);
+    static uint64_t getDatabaseFileSize(const String& fileName);
+    PURCFETCHER_EXPORT static std::optional<WallTime> databaseCreationTime(const String& fileName);
+    PURCFETCHER_EXPORT static std::optional<WallTime> databaseModificationTime(const String& fileName);
 
 private:
     // do not instantiate this class

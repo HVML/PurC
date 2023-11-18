@@ -86,7 +86,7 @@ std::unique_ptr<StackTrace> StackTrace::captureStackTrace(int maxFrames, int fra
     return trace;
 }
 
-auto StackTrace::demangle(void* pc) -> Optional<DemangleEntry>
+auto StackTrace::demangle(void* pc) -> std::optional<DemangleEntry>
 {
 #if HAVE(DLADDR)
     const char* mangledName = nullptr;
@@ -104,7 +104,7 @@ auto StackTrace::demangle(void* pc) -> Optional<DemangleEntry>
 #else
     UNUSED_PARAM(pc);
 #endif
-    return PurCWTF::nullopt;
+    return std::nullopt;
 }
 
 void StackTrace::dump(PrintStream& out, const char* indentString) const

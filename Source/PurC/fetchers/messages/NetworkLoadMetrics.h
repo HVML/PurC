@@ -29,7 +29,7 @@
 
 #include "HTTPHeaderMap.h"
 #include <wtf/Box.h>
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/Seconds.h>
 #include <wtf/persistence/PersistentCoder.h>
 #include <wtf/text/WTFString.h>
@@ -245,13 +245,13 @@ bool NetworkLoadMetrics::decode(Decoder& decoder, NetworkLoadMetrics& metrics)
 namespace PurCWTF {
 namespace Persistence {
 
-template<> struct Coder<Optional<PurCFetcher::NetworkLoadPriority>> {
-    static NO_RETURN_DUE_TO_ASSERT void encode(Encoder&, const Optional<PurCFetcher::NetworkLoadPriority>&)
+template<> struct Coder<std::optional<PurCFetcher::NetworkLoadPriority>> {
+    static NO_RETURN_DUE_TO_ASSERT void encode(Encoder&, const std::optional<PurCFetcher::NetworkLoadPriority>&)
     {
         ASSERT_NOT_REACHED();
     }
 
-    static bool decode(Decoder&, Optional<PurCFetcher::NetworkLoadPriority>&)
+    static bool decode(Decoder&, std::optional<PurCFetcher::NetworkLoadPriority>&)
     {
         ASSERT_NOT_REACHED();
         return false;

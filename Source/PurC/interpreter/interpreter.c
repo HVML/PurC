@@ -3881,6 +3881,7 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
 
     if (cor->stage == CO_STAGE_OBSERVING) {
         r = pcintr_rdr_page_control_load(inst, &cor->stack);
+        PC_TIMESTAMP("new renderer page load: app:%s runner: %s ret: %d\n", inst->app_name, inst->runner_name, r);
         if (!r) {
             ret = -1;
             goto out;

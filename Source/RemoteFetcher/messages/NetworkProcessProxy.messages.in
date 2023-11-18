@@ -21,7 +21,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 messages -> NetworkProcessProxy LegacyReceiver NotRefCounted {
-    DidReceiveAuthenticationChallenge(PAL::SessionID sessionID, PurCFetcher::WebPageProxyIdentifier pageID, Optional<PurCFetcher::SecurityOriginData> topOrigin, PurCFetcher::AuthenticationChallenge challenge, bool negotiatedLegacyTLS, uint64_t challengeID)
+    DidReceiveAuthenticationChallenge(PAL::SessionID sessionID, PurCFetcher::WebPageProxyIdentifier pageID, std::optional<PurCFetcher::SecurityOriginData> topOrigin, PurCFetcher::AuthenticationChallenge challenge, bool negotiatedLegacyTLS, uint64_t challengeID)
     NegotiatedLegacyTLS(PurCFetcher::WebPageProxyIdentifier pageID)
     DidNegotiateModernTLS(PurCFetcher::WebPageProxyIdentifier pageID, PurCFetcher::AuthenticationChallenge challenge)
 
@@ -71,9 +71,9 @@ messages -> NetworkProcessProxy LegacyReceiver NotRefCounted {
 
     GetAppBoundDomains(PAL::SessionID sessionID) -> (HashSet<PurCFetcher::RegistrableDomain> appBoundDomains) Async
 
-    RequestStorageSpace(PAL::SessionID sessionID, struct PurCFetcher::ClientOrigin origin, uint64_t quota, uint64_t currentSize, uint64_t spaceRequired) -> (Optional<uint64_t> newQuota) Async
+    RequestStorageSpace(PAL::SessionID sessionID, struct PurCFetcher::ClientOrigin origin, uint64_t quota, uint64_t currentSize, uint64_t spaceRequired) -> (std::optional<uint64_t> newQuota) Async
     
-    ResourceLoadDidSendRequest(PurCFetcher::WebPageProxyIdentifier pageIdentifier, struct PurCFetcher::ResourceLoadInfo resourceLoadInfo, PurCFetcher::ResourceRequest request, Optional<IPC::FormDataReference> httpBody)
+    ResourceLoadDidSendRequest(PurCFetcher::WebPageProxyIdentifier pageIdentifier, struct PurCFetcher::ResourceLoadInfo resourceLoadInfo, PurCFetcher::ResourceRequest request, std::optional<IPC::FormDataReference> httpBody)
     ResourceLoadDidPerformHTTPRedirection(PurCFetcher::WebPageProxyIdentifier pageIdentifier, struct PurCFetcher::ResourceLoadInfo resourceLoadInfo, PurCFetcher::ResourceResponse resourceResponse, PurCFetcher::ResourceRequest request)
     ResourceLoadDidReceiveChallenge(PurCFetcher::WebPageProxyIdentifier pageIdentifier, struct PurCFetcher::ResourceLoadInfo resourceLoadInfo, PurCFetcher::AuthenticationChallenge challenge)
     ResourceLoadDidReceiveResponse(PurCFetcher::WebPageProxyIdentifier pageIdentifier, struct PurCFetcher::ResourceLoadInfo resourceLoadInfo, PurCFetcher::ResourceResponse response)

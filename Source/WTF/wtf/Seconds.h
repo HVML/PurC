@@ -26,7 +26,8 @@
 #pragma once
 
 #include <wtf/MathExtras.h>
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
+#include <optional>
 
 namespace PurCWTF {
 
@@ -228,12 +229,12 @@ public:
     }
 
     template<class Decoder>
-    static Optional<Seconds> decode(Decoder& decoder)
+    static std::optional<Seconds> decode(Decoder& decoder)
     {
-        Optional<double> seconds;
+        std::optional<double> seconds;
         decoder >> seconds;
         if (!seconds)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         return Seconds(*seconds);
     }
 

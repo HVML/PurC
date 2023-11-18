@@ -61,7 +61,7 @@ bool SQLiteFileSystem::ensureDatabaseFileExists(const String& fileName, bool che
         return false;
 
     if (checkPathOnly) {
-        String dir = FileSystem::directoryName(fileName);
+        String dir = FileSystem::parentPath(fileName);
         return ensureDatabaseDirectoryExists(dir);
     }
 
@@ -87,31 +87,30 @@ bool SQLiteFileSystem::deleteDatabaseFile(const String& fileName)
     return !FileSystem::fileExists(fileName) && !FileSystem::fileExists(walFileName) && !FileSystem::fileExists(shmFileName);
 }
 
-long long SQLiteFileSystem::getDatabaseFileSize(const String& fileName)
+uint64_t SQLiteFileSystem::getDatabaseFileSize(const String& fileName)
 {
-    long long fileSize = 0;
-    long long totalSize = 0;
+    uint64_t totalSize = 0;
 
-    if (FileSystem::getFileSize(fileName, fileSize))
-        totalSize += fileSize;
+    if (auto fileSize = FileSystem::fileSize(fileName))
+        totalSize += *fileSize;
 
-    if (FileSystem::getFileSize(makeString(fileName, "-wal"_s), fileSize))
-        totalSize += fileSize;
+    if (auto fileSize = FileSystem::fileSize(makeString(fileName, "-wal"_s)))
+        totalSize += *fileSize;
 
-    if (FileSystem::getFileSize(makeString(fileName, "-shm"_s), fileSize))
-        totalSize += fileSize;
+    if (auto fileSize = FileSystem::fileSize(makeString(fileName, "-shm"_s)))
+        totalSize += *fileSize;
 
     return totalSize;
 }
 
-Optional<WallTime> SQLiteFileSystem::databaseCreationTime(const String& fileName)
+std::optional<WallTime> SQLiteFileSystem::databaseCreationTime(const String& fileName)
 {
-    return FileSystem::getFileCreationTime(fileName);
+    return FileSystem::fileCreationTime(fileName);
 }
 
-Optional<WallTime> SQLiteFileSystem::databaseModificationTime(const String& fileName)
+std::optional<WallTime> SQLiteFileSystem::databaseModificationTime(const String& fileName)
 {
-    return FileSystem::getFileModificationTime(fileName);
+    return FileSystem::fileModificationTime(fileName);
 }
 
 String SQLiteFileSystem::computeHashForFileName(const String& fileName)

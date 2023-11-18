@@ -32,7 +32,7 @@
 
 #if USE(UNIX_DOMAIN_SOCKETS)
 #include "Attachment.h"
-#include <wtf/Optional.h>
+#include <optional>
 #endif
 
 namespace IPC {
@@ -106,7 +106,7 @@ private:
     void* m_data;
 
 #if USE(UNIX_DOMAIN_SOCKETS)
-    Optional<int> m_fileDescriptor;
+    std::optional<int> m_fileDescriptor;
     bool m_isWrappingMap { false };
 #endif
 };

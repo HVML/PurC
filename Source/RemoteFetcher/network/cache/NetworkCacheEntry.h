@@ -58,7 +58,7 @@ public:
     const Vector<std::pair<String, String>>& varyingRequestHeaders() const { return m_varyingRequestHeaders; }
 
     PurCFetcher::SharedBuffer* buffer() const;
-    const Optional<PurCFetcher::ResourceRequest>& redirectRequest() const { return m_redirectRequest; }
+    const std::optional<PurCFetcher::ResourceRequest>& redirectRequest() const { return m_redirectRequest; }
 
 #if ENABLE(SHAREABLE_RESOURCE)
     ShareableResource::Handle& shareableResourceHandle() const;
@@ -87,7 +87,7 @@ private:
     PurCFetcher::ResourceResponse m_response;
     Vector<std::pair<String, String>> m_varyingRequestHeaders;
 
-    Optional<PurCFetcher::ResourceRequest> m_redirectRequest;
+    std::optional<PurCFetcher::ResourceRequest> m_redirectRequest;
     mutable RefPtr<PurCFetcher::SharedBuffer> m_buffer;
 #if ENABLE(SHAREABLE_RESOURCE)
     mutable ShareableResource::Handle m_shareableResourceHandle;
@@ -95,7 +95,7 @@ private:
 
     Storage::Record m_sourceStorageRecord { };
     
-    Optional<Seconds> m_maxAgeCap;
+    std::optional<Seconds> m_maxAgeCap;
 };
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Yusuke Suzuki <utatane.tea@gmail.com>
+ * Copyright (C) 2020 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,36 +23,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include <wtf/CPUTime.h>
-#include <wtf/FastMalloc.h>
-
-#include <sys/resource.h>
-#include <sys/time.h>
-#include <time.h>
-#include <optional>
+#pragma once
 
 namespace PurCWTF {
 
-static Seconds timevalToSeconds(const struct timeval& value)
-{
-    return Seconds(value.tv_sec) + Seconds::fromMicroseconds(value.tv_usec);
-}
+enum class FailureAction {
+    Crash,
+    Report
+};
 
-std::optional<CPUTime> CPUTime::get()
-{
-    struct rusage resource { };
-    int ret = getrusage(RUSAGE_SELF, &resource);
-    ASSERT_UNUSED(ret, !ret);
-    return CPUTime { MonotonicTime::now(), timevalToSeconds(resource.ru_utime), timevalToSeconds(resource.ru_stime) };
-}
-
-Seconds CPUTime::forCurrentThread()
-{
-    struct timespec ts { };
-    int ret = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-    RELEASE_ASSERT(!ret);
-    return Seconds(ts.tv_sec) + Seconds::fromNanoseconds(ts.tv_nsec);
-}
-
-}
+} // namespace WTF

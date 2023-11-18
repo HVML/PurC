@@ -67,23 +67,23 @@ public:
         encoder << sandboxExtensionHandles;
     }
 
-    static Optional<FormDataReference> decode(Decoder& decoder)
+    static std::optional<FormDataReference> decode(Decoder& decoder)
     {
-        Optional<bool> hasFormData;
+        std::optional<bool> hasFormData;
         decoder >> hasFormData;
         if (!hasFormData)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         if (!hasFormData.value())
             return FormDataReference { };
 
         auto formData = PurCFetcher::FormData::decode(decoder);
         if (!formData)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<PurCFetcher::SandboxExtension::HandleArray> sandboxExtensionHandles;
+        std::optional<PurCFetcher::SandboxExtension::HandleArray> sandboxExtensionHandles;
         decoder >> sandboxExtensionHandles;
         if (!sandboxExtensionHandles)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         PurCFetcher::SandboxExtension::consumePermanently(*sandboxExtensionHandles);
 

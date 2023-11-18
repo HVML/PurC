@@ -35,9 +35,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <wtf/ASCIICType.h>
 #include <wtf/HashMap.h>
 #include <wtf/Lock.h>
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/text/StringToIntegerConversion.h>
 #include <wtf/text/UChar.h>
+
+#include <optional>
 
 #if ENABLE(ICU)
 #include <wtf/text/TextBreakIterator.h>
@@ -145,7 +147,7 @@ auto StringView::SplitResult::Iterator::operator++() -> Iterator&
 class StringView::GraphemeClusters::Iterator::Impl {
     WTF_MAKE_FAST_ALLOCATED;
 public:
-    Impl(const StringView& stringView, Optional<NonSharedCharacterBreakIterator>&& iterator, unsigned index)
+    Impl(const StringView& stringView, std::optional<NonSharedCharacterBreakIterator>&& iterator, unsigned index)
         : m_stringView(stringView)
         , m_iterator(WTFMove(iterator))
         , m_index(index)
@@ -186,13 +188,13 @@ public:
 
 private:
     const StringView& m_stringView;
-    Optional<NonSharedCharacterBreakIterator> m_iterator;
+    std::optional<NonSharedCharacterBreakIterator> m_iterator;
     unsigned m_index;
     unsigned m_indexEnd;
 };
 
 StringView::GraphemeClusters::Iterator::Iterator(const StringView& stringView, unsigned index)
-    : m_impl(makeUnique<Impl>(stringView, stringView.isNull() ? PurCWTF::nullopt : Optional<NonSharedCharacterBreakIterator>(NonSharedCharacterBreakIterator(stringView)), index))
+    : m_impl(makeUnique<Impl>(stringView, stringView.isNull() ? std::nullopt : std::optional<NonSharedCharacterBreakIterator>(NonSharedCharacterBreakIterator(stringView)), index))
 {
 }
 
@@ -323,12 +325,12 @@ String normalizedNFC(const String& string)
 
 // FIXME: Should this be named parseNumber<uint16_t> instead?
 // FIXME: Should we replace the toInt family of functions with this style?
-Optional<uint16_t> parseUInt16(StringView string)
+std::optional<uint16_t> parseUInt16(StringView string)
 {
     bool ok = false;
     auto number = toIntegralType<uint16_t>(string, &ok);
     if (!ok)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     return number;
 }
 

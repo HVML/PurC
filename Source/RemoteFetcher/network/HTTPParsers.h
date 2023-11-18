@@ -76,7 +76,7 @@ bool isValidLanguageHeaderValue(const String&);
 PURCFETCHER_EXPORT bool isValidUserAgentHeaderValue(const String&);
 #endif
 bool isValidHTTPToken(const String&);
-Optional<WallTime> parseHTTPDate(const String&);
+std::optional<WallTime> parseHTTPDate(const String&);
 String filenameFromHTTPContentDisposition(const String&);
 String extractMIMETypeFromMediaType(const String&);
 String extractCharsetFromMediaType(const String&);
@@ -156,7 +156,7 @@ bool addToAccessControlAllowList(const String& string, unsigned start, unsigned 
 }
 
 template<class HashType = DefaultHash<String>::Hash>
-Optional<HashSet<String, HashType>> parseAccessControlAllowList(const String& string)
+std::optional<HashSet<String, HashType>> parseAccessControlAllowList(const String& string)
 {
     HashSet<String, HashType> set;
     unsigned start = 0;

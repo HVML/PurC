@@ -218,15 +218,15 @@ protected:
         return value->asInteger(output);
     }
 
-    template<class T> Optional<T> getNumber(const String& name) const
+    template<class T> std::optional<T> getNumber(const String& name) const
     {
         RefPtr<Value> value;
         if (!getValue(name, value))
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         T result;
         if (!value->asDouble(result))
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         return result;
     }

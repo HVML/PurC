@@ -98,10 +98,14 @@ namespace PurCFetcher {
         void setSoupMessageFlags(SoupMessageFlags soupFlags) { m_soupFlags = soupFlags; }
 
         // WebPageProxyIdentifier.
-        Optional<uint64_t> initiatingPageID() const { return m_initiatingPageID; }
+        std::optional<uint64_t> initiatingPageID() const { return m_initiatingPageID; }
         void setInitiatingPageID(uint64_t pageID) { m_initiatingPageID = pageID; }
 
-        GUniquePtr<SoupURI> createSoupURI() const;
+#if USE(SOUP2)
+    GUniquePtr<SoupURI> createSoupURI() const;
+#else
+    GRefPtr<GUri> createSoupURI() const;
+#endif
 
         template<class Encoder> void encodeWithPlatformData(Encoder&) const;
         template<class Decoder> WARN_UNUSED_RETURN bool decodeWithPlatformData(Decoder&);
@@ -111,7 +115,7 @@ namespace PurCFetcher {
 
         bool m_acceptEncoding : 1;
         SoupMessageFlags m_soupFlags;
-        Optional<uint64_t> m_initiatingPageID;
+        std::optional<uint64_t> m_initiatingPageID;
 
         void updateSoupMessageMembers(SoupMessage*) const;
         void updateSoupMessageBody(SoupMessage*) const;
@@ -161,7 +165,7 @@ bool ResourceRequest::decodeWithPlatformData(Decoder& decoder)
         return false;
     m_soupFlags = static_cast<SoupMessageFlags>(soupMessageFlags);
 
-    Optional<Optional<uint64_t>> initiatingPageID;
+    std::optional<std::optional<uint64_t>> initiatingPageID;
     decoder >> initiatingPageID;
     if (!initiatingPageID)
         return false;

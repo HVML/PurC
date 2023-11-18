@@ -47,7 +47,7 @@ public:
     static Ref<Caches> create(Engine&, PurCFetcher::ClientOrigin&&, String&& rootPath);
     ~Caches();
 
-    static void retrieveOriginFromDirectory(const String& folderPath, WorkQueue&, PurCWTF::CompletionHandler<void(Optional<PurCFetcher::ClientOrigin>&&)>&&);
+    static void retrieveOriginFromDirectory(const String& folderPath, WorkQueue&, PurCWTF::CompletionHandler<void(std::optional<PurCFetcher::ClientOrigin>&&)>&&);
 
     void initialize(PurCFetcher::DOMCacheEngine::CompletionCallback&&);
     void open(const String& name, PurCFetcher::DOMCacheEngine::CacheIdentifierCallback&&);
@@ -90,7 +90,7 @@ private:
     void writeCachesToDisk(PurCFetcher::DOMCacheEngine::CompletionCallback&&);
 
     void storeOrigin(PurCFetcher::DOMCacheEngine::CompletionCallback&&);
-    static Optional<PurCFetcher::ClientOrigin> readOrigin(const NetworkCache::Data&);
+    static std::optional<PurCFetcher::ClientOrigin> readOrigin(const NetworkCache::Data&);
 
     Cache* find(const String& name);
     void clearPendingWritingCachesToDiskCallbacks();
@@ -110,10 +110,10 @@ private:
     Vector<Cache> m_removedCaches;
     RefPtr<NetworkCache::Storage> m_storage;
     HashMap<NetworkCache::Key, PurCFetcher::DOMCacheEngine::Record> m_volatileStorage;
-    mutable Optional<NetworkCache::Salt> m_volatileSalt;
+    mutable std::optional<NetworkCache::Salt> m_volatileSalt;
     Vector<PurCFetcher::DOMCacheEngine::CompletionCallback> m_pendingInitializationCallbacks;
     bool m_isWritingCachesToDisk { false };
-    Deque<CompletionHandler<void(Optional<PurCFetcher::DOMCacheEngine::Error>)>> m_pendingWritingCachesToDiskCallbacks;
+    Deque<CompletionHandler<void(std::optional<PurCFetcher::DOMCacheEngine::Error>)>> m_pendingWritingCachesToDiskCallbacks;
 };
 
 } // namespace CacheStorage

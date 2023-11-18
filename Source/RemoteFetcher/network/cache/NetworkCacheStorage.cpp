@@ -34,6 +34,7 @@
 #include "NetworkCacheIOChannel.h"
 #include <mutex>
 #include <wtf/Condition.h>
+#include <wtf/FileSystem.h>
 #include <wtf/Lock.h>
 #include <wtf/PageBlock.h>
 #include <wtf/RandomNumber.h>
@@ -185,7 +186,7 @@ RefPtr<Storage> Storage::open(const String& baseCachePath, Mode mode, size_t cap
     if (!FileSystem::makeAllDirectories(makeVersionedDirectoryPath(cachePath)))
         return nullptr;
 
-    auto salt = readOrMakeSalt(makeSaltFilePath(cachePath));
+    auto salt = FileSystem::readOrMakeSalt(makeSaltFilePath(cachePath));
     if (!salt)
         return nullptr;
 
@@ -436,49 +437,49 @@ static WARN_UNUSED_RETURN bool decodeRecordMetaData(RecordMetaData& metaData, co
     fileData.apply([&metaData, &success](const uint8_t* data, size_t size) {
         PurCWTF::Persistence::Decoder decoder(data, size);
         
-        Optional<unsigned> cacheStorageVersion;
+        std::optional<unsigned> cacheStorageVersion;
         decoder >> cacheStorageVersion;
         if (!cacheStorageVersion)
             return false;
         metaData.cacheStorageVersion = WTFMove(*cacheStorageVersion);
 
-        Optional<Key> key;
+        std::optional<Key> key;
         decoder >> key;
         if (!key)
             return false;
         metaData.key = WTFMove(*key);
 
-        Optional<WallTime> timeStamp;
+        std::optional<WallTime> timeStamp;
         decoder >> timeStamp;
         if (!timeStamp)
             return false;
         metaData.timeStamp = WTFMove(*timeStamp);
 
-        Optional<SHA1::Digest> headerHash;
+        std::optional<SHA1::Digest> headerHash;
         decoder >> headerHash;
         if (!headerHash)
             return false;
         metaData.headerHash = WTFMove(*headerHash);
 
-        Optional<uint64_t> headerSize;
+        std::optional<uint64_t> headerSize;
         decoder >> headerSize;
         if (!headerSize)
             return false;
         metaData.headerSize = WTFMove(*headerSize);
 
-        Optional<SHA1::Digest> bodyHash;
+        std::optional<SHA1::Digest> bodyHash;
         decoder >> bodyHash;
         if (!bodyHash)
             return false;
         metaData.bodyHash = WTFMove(*bodyHash);
 
-        Optional<uint64_t> bodySize;
+        std::optional<uint64_t> bodySize;
         decoder >> bodySize;
         if (!bodySize)
             return false;
         metaData.bodySize = WTFMove(*bodySize);
 
-        Optional<bool> isBodyInline;
+        std::optional<bool> isBodyInline;
         decoder >> isBodyInline;
         if (!isBodyInline)
             return false;
@@ -568,7 +569,7 @@ static Data encodeRecordMetaData(const RecordMetaData& metaData)
     return Data(encoder.buffer(), encoder.bufferSize());
 }
 
-Optional<BlobStorage::Blob> Storage::storeBodyAsBlob(WriteOperation& writeOperation)
+std::optional<BlobStorage::Blob> Storage::storeBodyAsBlob(WriteOperation& writeOperation)
 {
     auto blobPath = blobPathForKey(writeOperation.record.key);
 
@@ -593,7 +594,7 @@ Optional<BlobStorage::Blob> Storage::storeBodyAsBlob(WriteOperation& writeOperat
     return blob;
 }
 
-Data Storage::encodeRecord(const Record& record, Optional<BlobStorage::Blob> blob)
+Data Storage::encodeRecord(const Record& record, std::optional<BlobStorage::Blob> blob)
 {
     ASSERT(!blob || bytesEqual(blob.value().data, record.body));
 
@@ -857,7 +858,7 @@ void Storage::dispatchWriteOperation(std::unique_ptr<WriteOperation> writeOperat
         ++writeOperation.activeCount;
 
         bool shouldStoreAsBlob = shouldStoreBodyAsBlob(writeOperation.record.body);
-        auto blob = shouldStoreAsBlob ? storeBodyAsBlob(writeOperation) : PurCWTF::nullopt;
+        auto blob = shouldStoreAsBlob ? storeBodyAsBlob(writeOperation) : std::nullopt;
 
         auto recordData = encodeRecord(writeOperation.record, blob);
 

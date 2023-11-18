@@ -24,10 +24,12 @@
 #include <unicode/ubrk.h>
 #endif
 
-#include <wtf/Optional.h>
+#include <wtf/FastMalloc.h>
 #include <wtf/text/StringView.h>
 #include <wtf/text/icu/UTextProviderLatin1.h>
 #include <wtf/text/UChar.h>
+
+#include <optional>
 
 namespace PurCWTF {
 
@@ -124,7 +126,7 @@ public:
         ASSERT(U_SUCCESS(status));
     }
 
-    Optional<unsigned> preceding(unsigned location) const
+    std::optional<unsigned> preceding(unsigned location) const
     {
         auto result = ubrk_preceding(m_iterator, location);
         if (result == UBRK_DONE)
@@ -132,7 +134,7 @@ public:
         return result;
     }
 
-    Optional<unsigned> following(unsigned location) const
+    std::optional<unsigned> following(unsigned location) const
     {
         auto result = ubrk_following(m_iterator, location);
         if (result == UBRK_DONE)

@@ -72,7 +72,7 @@ public:
         String httpStatusText;
         String httpVersion;
         HTTPHeaderMap httpHeaderFields;
-        Optional<NetworkLoadMetrics> networkLoadMetrics;
+        std::optional<NetworkLoadMetrics> networkLoadMetrics;
         Type type;
         Tainting tainting;
         bool isRedirected;
@@ -136,7 +136,7 @@ public:
     PURCFETCHER_EXPORT static String sanitizeSuggestedFilename(const String&);
 
     PURCFETCHER_EXPORT void includeCertificateInfo() const;
-    const Optional<CertificateInfo>& certificateInfo() const { return m_certificateInfo; };
+    const std::optional<CertificateInfo>& certificateInfo() const { return m_certificateInfo; };
     bool usedLegacyTLS() const { return m_usedLegacyTLS == UsedLegacyTLS::Yes; }
     void setUsedLegacyTLS(UsedLegacyTLS used) { m_usedLegacyTLS = used; }
     
@@ -146,12 +146,12 @@ public:
     PURCFETCHER_EXPORT bool cacheControlContainsMustRevalidate() const;
     PURCFETCHER_EXPORT bool cacheControlContainsImmutable() const;
     PURCFETCHER_EXPORT bool hasCacheValidatorFields() const;
-    PURCFETCHER_EXPORT Optional<Seconds> cacheControlMaxAge() const;
-    PURCFETCHER_EXPORT Optional<Seconds> cacheControlStaleWhileRevalidate() const;
-    PURCFETCHER_EXPORT Optional<WallTime> date() const;
-    PURCFETCHER_EXPORT Optional<Seconds> age() const;
-    PURCFETCHER_EXPORT Optional<WallTime> expires() const;
-    PURCFETCHER_EXPORT Optional<WallTime> lastModified() const;
+    PURCFETCHER_EXPORT std::optional<Seconds> cacheControlMaxAge() const;
+    PURCFETCHER_EXPORT std::optional<Seconds> cacheControlStaleWhileRevalidate() const;
+    PURCFETCHER_EXPORT std::optional<WallTime> date() const;
+    PURCFETCHER_EXPORT std::optional<Seconds> age() const;
+    PURCFETCHER_EXPORT std::optional<WallTime> expires() const;
+    PURCFETCHER_EXPORT std::optional<WallTime> lastModified() const;
     const ParsedContentRange& contentRange() const;
 
     enum class Source : uint8_t { Unknown, Network, DiskCache, DiskCacheAfterValidation, MemoryCache, MemoryCacheAfterValidation, ServiceWorker, ApplicationCache, DOMCache, InspectorOverride };
@@ -244,7 +244,7 @@ protected:
     HTTPHeaderMap m_httpHeaderFields;
     Box<NetworkLoadMetrics> m_networkLoadMetrics;
 
-    mutable Optional<CertificateInfo> m_certificateInfo;
+    mutable std::optional<CertificateInfo> m_certificateInfo;
 
 private:
     mutable Markable<Seconds, Seconds::MarkableTraits> m_age;
@@ -319,7 +319,7 @@ template<class Decoder>
 bool ResourceResponseBase::decode(Decoder& decoder, ResourceResponseBase& response)
 {
     ASSERT(response.m_isNull);
-    Optional<bool> responseIsNull;
+    std::optional<bool> responseIsNull;
     decoder >> responseIsNull;
     if (!responseIsNull)
         return false;
@@ -328,43 +328,43 @@ bool ResourceResponseBase::decode(Decoder& decoder, ResourceResponseBase& respon
 
     response.m_isNull = false;
 
-    Optional<URL> url;
+    std::optional<URL> url;
     decoder >> url;
     if (!url)
         return false;
     response.m_url = WTFMove(*url);
 
-    Optional<String> mimeType;
+    std::optional<String> mimeType;
     decoder >> mimeType;
     if (!mimeType)
         return false;
     response.m_mimeType = WTFMove(*mimeType);
 
-    Optional<int64_t> expectedContentLength;
+    std::optional<int64_t> expectedContentLength;
     decoder >> expectedContentLength;
     if (!expectedContentLength)
         return false;
     response.m_expectedContentLength = *expectedContentLength;
 
-    Optional<AtomString> textEncodingName;
+    std::optional<AtomString> textEncodingName;
     decoder >> textEncodingName;
     if (!textEncodingName)
         return false;
     response.m_textEncodingName = WTFMove(*textEncodingName);
 
-    Optional<AtomString> httpStatusText;
+    std::optional<AtomString> httpStatusText;
     decoder >> httpStatusText;
     if (!httpStatusText)
         return false;
     response.m_httpStatusText = WTFMove(*httpStatusText);
 
-    Optional<AtomString> httpVersion;
+    std::optional<AtomString> httpVersion;
     decoder >> httpVersion;
     if (!httpVersion)
         return false;
     response.m_httpVersion = WTFMove(*httpVersion);
 
-    Optional<HTTPHeaderMap> httpHeaderFields;
+    std::optional<HTTPHeaderMap> httpHeaderFields;
     decoder >> httpHeaderFields;
     if (!httpHeaderFields)
         return false;
@@ -372,56 +372,56 @@ bool ResourceResponseBase::decode(Decoder& decoder, ResourceResponseBase& respon
 
     // The networkLoadMetrics info is only send over IPC and not stored in disk cache.
     if constexpr (Decoder::isIPCDecoder) {
-        Optional<Box<NetworkLoadMetrics>> networkLoadMetrics;
+        std::optional<Box<NetworkLoadMetrics>> networkLoadMetrics;
         decoder >> networkLoadMetrics;
         if (!networkLoadMetrics)
             return false;
         response.m_networkLoadMetrics = WTFMove(*networkLoadMetrics);
     }
 
-    Optional<short> httpStatusCode;
+    std::optional<short> httpStatusCode;
     decoder >> httpStatusCode;
     if (!httpStatusCode)
         return false;
     response.m_httpStatusCode = WTFMove(*httpStatusCode);
 
-    Optional<Optional<CertificateInfo>> certificateInfo;
+    std::optional<std::optional<CertificateInfo>> certificateInfo;
     decoder >> certificateInfo;
     if (!certificateInfo)
         return false;
     response.m_certificateInfo = WTFMove(*certificateInfo);
 
-    Optional<Source> source;
+    std::optional<Source> source;
     decoder >> source;
     if (!source)
         return false;
     response.m_source = WTFMove(*source);
 
-    Optional<Type> type;
+    std::optional<Type> type;
     decoder >> type;
     if (!type)
         return false;
     response.m_type = WTFMove(*type);
 
-    Optional<Tainting> tainting;
+    std::optional<Tainting> tainting;
     decoder >> tainting;
     if (!tainting)
         return false;
     response.m_tainting = WTFMove(*tainting);
 
-    Optional<bool> isRedirected;
+    std::optional<bool> isRedirected;
     decoder >> isRedirected;
     if (!isRedirected)
         return false;
     response.m_isRedirected = WTFMove(*isRedirected);
 
-    Optional<UsedLegacyTLS> usedLegacyTLS;
+    std::optional<UsedLegacyTLS> usedLegacyTLS;
     decoder >> usedLegacyTLS;
     if (!usedLegacyTLS)
         return false;
     response.m_usedLegacyTLS = WTFMove(*usedLegacyTLS);
 
-    Optional<bool> isRangeRequested;
+    std::optional<bool> isRangeRequested;
     decoder >> isRangeRequested;
     if (!isRangeRequested)
         return false;

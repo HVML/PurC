@@ -26,13 +26,13 @@
 #include "ReferrerPolicy.h"
 
 #include "HTTPParsers.h"
-#include <wtf/Optional.h>
+#include <optional>
 
 namespace PurCFetcher {
 
 enum class ShouldParseLegacyKeywords { No, Yes };
 
-static Optional<ReferrerPolicy> parseReferrerPolicyToken(StringView policy, ShouldParseLegacyKeywords shouldParseLegacyKeywords)
+static std::optional<ReferrerPolicy> parseReferrerPolicyToken(StringView policy, ShouldParseLegacyKeywords shouldParseLegacyKeywords)
 {
     // "never" / "default" / "always" are legacy keywords that we support and still defined in the HTML specification:
     // https://html.spec.whatwg.org/#meta-referrer
@@ -64,15 +64,15 @@ static Optional<ReferrerPolicy> parseReferrerPolicyToken(StringView policy, Shou
     if (!policy.isNull() && policy.isEmpty())
         return ReferrerPolicy::EmptyString;
 
-    return PurCWTF::nullopt;
+    return std::nullopt;
 }
     
-Optional<ReferrerPolicy> parseReferrerPolicy(StringView policyString, ReferrerPolicySource source)
+std::optional<ReferrerPolicy> parseReferrerPolicy(StringView policyString, ReferrerPolicySource source)
 {
     switch (source) {
     case ReferrerPolicySource::HTTPHeader: {
         // Implementing https://www.w3.org/TR/2017/CR-referrer-policy-20170126/#parse-referrer-policy-from-header.
-        Optional<ReferrerPolicy> result;
+        std::optional<ReferrerPolicy> result;
         for (auto tokenView : policyString.split(',')) {
             auto token = parseReferrerPolicyToken(stripLeadingAndTrailingHTTPSpaces(tokenView), ShouldParseLegacyKeywords::No);
             if (token && token.value() != ReferrerPolicy::EmptyString)
@@ -86,7 +86,7 @@ Optional<ReferrerPolicy> parseReferrerPolicy(StringView policyString, ReferrerPo
         return parseReferrerPolicyToken(policyString, ShouldParseLegacyKeywords::No);
     }
     ASSERT_NOT_REACHED();
-    return PurCWTF::nullopt;
+    return std::nullopt;
 }
 
 String referrerPolicyToString(const ReferrerPolicy& referrerPolicy)

@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/Seconds.h>
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
@@ -43,7 +43,7 @@ public:
         Vector<String> dnsNames;
         Vector<String> ipAddresses;
     };
-    Optional<SummaryInfo> summaryInfo() const { return PurCWTF::nullopt; };
+    std::optional<SummaryInfo> summaryInfo() const { return std::nullopt; };
 
     bool isEmpty() const { return true; };
 };

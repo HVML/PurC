@@ -96,7 +96,7 @@ private:
 
     // Message handlers
     void didReceiveNetworkProcessProxyMessage(IPC::Connection&, IPC::Decoder&);
-    void didReceiveAuthenticationChallenge(PAL::SessionID, WebPageProxyIdentifier, const Optional<PurCFetcher::SecurityOriginData>&, PurCFetcher::AuthenticationChallenge&&, bool, uint64_t challengeID);
+    void didReceiveAuthenticationChallenge(PAL::SessionID, WebPageProxyIdentifier, const std::optional<PurCFetcher::SecurityOriginData>&, PurCFetcher::AuthenticationChallenge&&, bool, uint64_t challengeID);
     void negotiatedLegacyTLS(WebPageProxyIdentifier);
     void didNegotiateModernTLS(WebPageProxyIdentifier, const PurCFetcher::AuthenticationChallenge&);
     void didFetchWebsiteData(CallbackID, const WebsiteData&);
@@ -110,7 +110,7 @@ private:
 
     void terminateWebProcess(PurCFetcher::ProcessIdentifier);
 
-    void requestStorageSpace(PAL::SessionID, const PurCFetcher::ClientOrigin&, uint64_t quota, uint64_t currentSize, uint64_t spaceRequired, CompletionHandler<void(Optional<uint64_t> quota)>&&);
+    void requestStorageSpace(PAL::SessionID, const PurCFetcher::ClientOrigin&, uint64_t quota, uint64_t currentSize, uint64_t spaceRequired, CompletionHandler<void(std::optional<uint64_t> quota)>&&);
 
     void syncAllCookies();
     void didSyncAllCookies();
@@ -118,7 +118,7 @@ private:
     void setIsHoldingLockedFiles(bool);
     void getAppBoundDomains(PAL::SessionID, CompletionHandler<void(HashSet<PurCFetcher::RegistrableDomain>&&)>&&);
 
-    void resourceLoadDidSendRequest(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceRequest&&, Optional<IPC::FormDataReference>&&);
+    void resourceLoadDidSendRequest(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceRequest&&, std::optional<IPC::FormDataReference>&&);
     void resourceLoadDidPerformHTTPRedirection(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceResponse&&, PurCFetcher::ResourceRequest&&);
     void resourceLoadDidReceiveChallenge(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::AuthenticationChallenge&&);
     void resourceLoadDidReceiveResponse(WebPageProxyIdentifier, ResourceLoadInfo&&, PurCFetcher::ResourceResponse&&);

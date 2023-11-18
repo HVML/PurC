@@ -28,7 +28,7 @@
 #include "RegistrableDomain.h"
 #include <wtf/CompletionHandler.h>
 #include <wtf/Forward.h>
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/URL.h>
 #include <wtf/WallTime.h>
 #include <wtf/text/StringHash.h>
@@ -228,7 +228,7 @@ public:
         WasSent wasSent = WasSent::No;
 
         template<class Encoder> void encode(Encoder&) const;
-        template<class Decoder> static Optional<Conversion> decode(Decoder&);
+        template<class Decoder> static std::optional<Conversion> decode(Decoder&);
     };
 
     AdClickAttribution() = default;
@@ -241,14 +241,14 @@ public:
     }
 
     PURCFETCHER_EXPORT static Expected<Conversion, String> parseConversionRequest(const URL& redirectURL);
-    PURCFETCHER_EXPORT Optional<Seconds> convertAndGetEarliestTimeToSend(Conversion&&);
+    PURCFETCHER_EXPORT std::optional<Seconds> convertAndGetEarliestTimeToSend(Conversion&&);
     PURCFETCHER_EXPORT bool hasHigherPriorityThan(const AdClickAttribution&) const;
     PURCFETCHER_EXPORT URL url() const;
     PURCFETCHER_EXPORT URL urlForTesting(const URL& baseURLForTesting) const;
     PURCFETCHER_EXPORT URL referrer() const;
     const Source& source() const { return m_source; };
     const Destination& destination() const { return m_destination; };
-    Optional<WallTime> earliestTimeToSend() const { return m_earliestTimeToSend; };
+    std::optional<WallTime> earliestTimeToSend() const { return m_earliestTimeToSend; };
     PURCFETCHER_EXPORT void markAsExpired();
     PURCFETCHER_EXPORT bool hasExpired() const;
     PURCFETCHER_EXPORT void markConversionAsSent();
@@ -259,7 +259,7 @@ public:
     PURCFETCHER_EXPORT String toString() const;
 
     template<class Encoder> void encode(Encoder&) const;
-    template<class Decoder> static Optional<AdClickAttribution> decode(Decoder&);
+    template<class Decoder> static std::optional<AdClickAttribution> decode(Decoder&);
 
 private:
     bool isValid() const;
@@ -270,8 +270,8 @@ private:
     Destination m_destination;
     WallTime m_timeOfAdClick;
 
-    Optional<Conversion> m_conversion;
-    Optional<WallTime> m_earliestTimeToSend;
+    std::optional<Conversion> m_conversion;
+    std::optional<WallTime> m_earliestTimeToSend;
 };
 
 template<class Encoder>
@@ -281,37 +281,37 @@ void AdClickAttribution::encode(Encoder& encoder) const
 }
 
 template<class Decoder>
-Optional<AdClickAttribution> AdClickAttribution::decode(Decoder& decoder)
+std::optional<AdClickAttribution> AdClickAttribution::decode(Decoder& decoder)
 {
-    Optional<CampaignId> campaignId;
+    std::optional<CampaignId> campaignId;
     decoder >> campaignId;
     if (!campaignId)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<RegistrableDomain> sourceRegistrableDomain;
+    std::optional<RegistrableDomain> sourceRegistrableDomain;
     decoder >> sourceRegistrableDomain;
     if (!sourceRegistrableDomain)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<RegistrableDomain> destinationRegistrableDomain;
+    std::optional<RegistrableDomain> destinationRegistrableDomain;
     decoder >> destinationRegistrableDomain;
     if (!destinationRegistrableDomain)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<WallTime> timeOfAdClick;
+    std::optional<WallTime> timeOfAdClick;
     decoder >> timeOfAdClick;
     if (!timeOfAdClick)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<Optional<Conversion>> conversion;
+    std::optional<std::optional<Conversion>> conversion;
     decoder >> conversion;
     if (!conversion)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<Optional<WallTime>> earliestTimeToSend;
+    std::optional<std::optional<WallTime>> earliestTimeToSend;
     decoder >> earliestTimeToSend;
     if (!earliestTimeToSend)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     AdClickAttribution attribution { Campaign { WTFMove(*campaignId) }, Source { WTFMove(*sourceRegistrableDomain) }, Destination { WTFMove(*destinationRegistrableDomain) } };
     attribution.m_conversion = WTFMove(*conversion);
@@ -327,22 +327,22 @@ void AdClickAttribution::Conversion::encode(Encoder& encoder) const
 }
 
 template<class Decoder>
-Optional<AdClickAttribution::Conversion> AdClickAttribution::Conversion::decode(Decoder& decoder)
+std::optional<AdClickAttribution::Conversion> AdClickAttribution::Conversion::decode(Decoder& decoder)
 {
-    Optional<ConversionData> data;
+    std::optional<ConversionData> data;
     decoder >> data;
     if (!data)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<PriorityValue> priority;
+    std::optional<PriorityValue> priority;
     decoder >> priority;
     if (!priority)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<WasSent> wasSent;
+    std::optional<WasSent> wasSent;
     decoder >> wasSent;
     if (!wasSent)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     return Conversion { WTFMove(*data), Priority { *priority }, *wasSent };
 }

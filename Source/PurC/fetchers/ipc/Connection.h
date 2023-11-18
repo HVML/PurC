@@ -441,7 +441,7 @@ template<typename T> bool Connection::sendSync(T&& message, typename T::Reply&& 
         return false;
 
     // Decode the reply.
-    Optional<typename T::ReplyArguments> replyArguments;
+    std::optional<typename T::ReplyArguments> replyArguments;
     *replyDecoder >> replyArguments;
     if (!replyArguments)
         return false;

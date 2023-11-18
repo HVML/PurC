@@ -56,10 +56,10 @@ RetainPtr<id> makeNSArrayElement(const String& vectorElement)
 #pragma clang diagnostic pop
 }
 
-Optional<String> makeVectorElement(const String*, id arrayElement)
+std::optional<String> makeVectorElement(const String*, id arrayElement)
 {
     if (![arrayElement isKindOfClass:NSString.class])
-        return PurCWTF::nullopt;
+        return std::nullopt;
     return { { arrayElement } };
 }
 

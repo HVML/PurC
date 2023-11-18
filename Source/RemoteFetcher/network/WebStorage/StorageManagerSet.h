@@ -39,7 +39,7 @@ namespace PurCFetcher {
 
 class SandboxExtension;
 
-using ConnectToStorageAreaCallback = CompletionHandler<void(const Optional<StorageAreaIdentifier>&)>;
+using ConnectToStorageAreaCallback = CompletionHandler<void(const std::optional<StorageAreaIdentifier>&)>;
 using GetValuesCallback = CompletionHandler<void(const HashMap<String, String>&)>;
 using GetOriginsCallback = CompletionHandler<void(HashSet<PurCFetcher::SecurityOriginData>&&)>;
 using GetOriginDetailsCallback = CompletionHandler<void(Vector<LocalStorageDatabaseTracker::OriginDetails>&&)>;

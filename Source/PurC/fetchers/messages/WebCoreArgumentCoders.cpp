@@ -116,11 +116,11 @@ void ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::encode(Encoder& encoder, 
     encodeSharedBuffer(encoder, buffer.get());
 }
 
-Optional<RefPtr<SharedBuffer>> ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
+std::optional<RefPtr<SharedBuffer>> ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return buffer;
 }
@@ -130,11 +130,11 @@ void ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::encode(Encoder& encoder, con
     encodeSharedBuffer(encoder, buffer.ptr());
 }
 
-Optional<Ref<SharedBuffer>> ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
+std::optional<Ref<SharedBuffer>> ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer) || !buffer)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return buffer.releaseNonNull();
 }

@@ -63,7 +63,7 @@ bool NetworkStateNotifier::onLine()
 {
     if (!m_isOnLine)
         updateState();
-    return m_isOnLine.valueOr(true);
+    return m_isOnLine.value_or(true);
 }
 
 void NetworkStateNotifier::addListener(PurCWTF::Function<void(bool)>&& listener)

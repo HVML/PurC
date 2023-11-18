@@ -300,7 +300,7 @@ _expected_superclass_results = {
                 ('bool', 'value'),
             ),
             'reply_parameters': (
-                ('Optional<PurCFetcher::TestClassName>', 'optionalReply'),
+                ('std::optional<PurCFetcher::TestClassName>', 'optionalReply'),
             ),
             'conditions': (None),
         },

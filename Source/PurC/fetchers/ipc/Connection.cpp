@@ -978,7 +978,7 @@ void Connection::dispatchMessage(Decoder& decoder)
 {
     RELEASE_ASSERT(isValid());
     if (decoder.messageReceiverName() == ReceiverName::AsyncReply) {
-        Optional<uint64_t> listenerID;
+        std::optional<uint64_t> listenerID;
         decoder >> listenerID;
         if (!listenerID) {
             ASSERT_NOT_REACHED();

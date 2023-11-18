@@ -156,7 +156,7 @@ SecurityOrigin::SecurityOrigin(const URL& url)
     m_domain = m_data.host;
 
     if (m_data.port && PurCWTF::isDefaultPortForProtocol(m_data.port.value(), m_data.protocol))
-        m_data.port = PurCWTF::nullopt;
+        m_data.port = std::nullopt;
 
     // By default, only local SecurityOrigins can load local resources.
     m_canLoadLocalResources = isLocal();
@@ -168,7 +168,7 @@ SecurityOrigin::SecurityOrigin(const URL& url)
 }
 
 SecurityOrigin::SecurityOrigin()
-    : m_data { emptyString(), emptyString(), PurCWTF::nullopt }
+    : m_data { emptyString(), emptyString(), std::nullopt }
     , m_domain { emptyString() }
     , m_isUnique { true }
     , m_isPotentiallyTrustworthy { false }
@@ -553,7 +553,7 @@ Ref<SecurityOrigin> SecurityOrigin::createFromString(const String& originString)
     return SecurityOrigin::create(URL(URL(), originString));
 }
 
-Ref<SecurityOrigin> SecurityOrigin::create(const String& protocol, const String& host, Optional<uint16_t> port)
+Ref<SecurityOrigin> SecurityOrigin::create(const String& protocol, const String& host, std::optional<uint16_t> port)
 {
     String decodedHost = decodeURLEscapeSequences(host);
     auto origin = create(URL(URL(), protocol + "://" + host + "/"));

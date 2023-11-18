@@ -129,7 +129,7 @@ public:
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS) && !RELEASE_LOG_DISABLED
     static bool shouldLogCookieInformation(NetworkConnectionToWebProcess&, const PAL::SessionID&);
-    static void logCookieInformation(NetworkConnectionToWebProcess&, const String& label, const void* loggedObject, const PurCFetcher::NetworkStorageSession&, const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, const String& referrer, Optional<PurCFetcher::FrameIdentifier>, Optional<PurCFetcher::PageIdentifier>, Optional<uint64_t> identifier);
+    static void logCookieInformation(NetworkConnectionToWebProcess&, const String& label, const void* loggedObject, const PurCFetcher::NetworkStorageSession&, const URL& firstParty, const PurCFetcher::SameSiteInfo&, const URL&, const String& referrer, std::optional<PurCFetcher::FrameIdentifier>, std::optional<PurCFetcher::PageIdentifier>, std::optional<uint64_t> identifier);
 #endif
 
     void disableExtraNetworkLoadMetricsCapture() { m_shouldCaptureExtraNetworkLoadMetrics = false; }
@@ -191,7 +191,7 @@ private:
     void logCookieInformation() const;
 #endif
 
-    void continueWillSendRedirectedRequest(PurCFetcher::ResourceRequest&&, PurCFetcher::ResourceRequest&& redirectRequest, PurCFetcher::ResourceResponse&&, Optional<PurCFetcher::AdClickAttribution::Conversion>&&);
+    void continueWillSendRedirectedRequest(PurCFetcher::ResourceRequest&&, PurCFetcher::ResourceRequest&& redirectRequest, PurCFetcher::ResourceResponse&&, std::optional<PurCFetcher::AdClickAttribution::Conversion>&&);
     void didFinishWithRedirectResponse(PurCFetcher::ResourceRequest&&, PurCFetcher::ResourceRequest&& redirectRequest, PurCFetcher::ResourceResponse&&);
     PurCFetcher::ResourceResponse sanitizeResponseIfPossible(PurCFetcher::ResourceResponse&&, PurCFetcher::ResourceResponse::SanitizationType);
 
@@ -203,7 +203,7 @@ private:
 
     void handleAdClickAttributionConversion(PurCFetcher::AdClickAttribution::Conversion&&, const URL&, const PurCFetcher::ResourceRequest&);
 
-    Optional<Seconds> validateCacheEntryForMaxAgeCapValidation(const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceRequest& redirectRequest, const PurCFetcher::ResourceResponse&);
+    std::optional<Seconds> validateCacheEntryForMaxAgeCapValidation(const PurCFetcher::ResourceRequest&, const PurCFetcher::ResourceRequest& redirectRequest, const PurCFetcher::ResourceResponse&);
 
     ResourceLoadInfo resourceLoadInfo();
 
@@ -241,7 +241,7 @@ private:
     bool m_shouldCaptureExtraNetworkLoadMetrics { false };
     bool m_isKeptAlive { false };
 
-    Optional<NetworkActivityTracker> m_networkActivityTracker;
+    std::optional<NetworkActivityTracker> m_networkActivityTracker;
 
     // gengyue
     int m_httpresponsecode;

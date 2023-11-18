@@ -2,7 +2,7 @@
  * Copyright (C) 2006-2020 Apple Inc. All rights reserved.
  * Copyright (C) 2007-2009 Torch Mobile, Inc.
  * Copyright (C) 2010, 2011 Research In Motion Limited. All rights reserved.
- * Copyright (C) 2020 Beijing FMSoft Technologies Co., Ltd.
+ * Copyright (C) 2020, 2023 Beijing FMSoft Technologies Co., Ltd.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -96,6 +96,22 @@
 
 #if !defined(HAVE_ACCESSIBILITY) && (PLATFORM(COCOA) || PLATFORM(WIN) || PLATFORM(GTK) || PLATFORM(WPE) || PLATFORM(LINUX))
 #define HAVE_ACCESSIBILITY 1
+#endif
+
+#if !defined(HAVE_STD_FILESYSTEM)
+#if __has_include(<filesystem>)
+#define HAVE_STD_FILESYSTEM 1
+#else
+#define HAVE_STD_FILESYSTEM 0
+#endif
+#endif
+
+#if !defined(HAVE_STD_EXPERIMENTAL_FILESYSTEM)
+#if __has_include(<experimental/filesystem>)
+#define STD_EXPERIMENTAL_FILESYSTEM 1
+#else
+#define STD_EXPERIMENTAL_FILESYSTEM 0
+#endif
 #endif
 
 /* FIXME: Remove after CMake build enabled on Darwin */

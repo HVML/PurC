@@ -35,6 +35,8 @@
 #include <wtf/Assertions.h>
 #include <wtf/text/CString.h>
 
+#include <cstdio>
+
 namespace PurCWTF {
 
 #if PLATFORM(COCOA)

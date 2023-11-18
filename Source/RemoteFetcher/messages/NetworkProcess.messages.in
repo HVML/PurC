@@ -25,7 +25,7 @@ messages -> NetworkProcess LegacyReceiver {
     InitializeNetworkProcess(struct PurCFetcher::NetworkProcessCreationParameters processCreationParameters)
 
     # Creates a connection for communication with a WebProcess
-    CreateNetworkConnectionToWebProcess(PurCFetcher::ProcessIdentifier processIdentifier, PAL::SessionID sessionID) -> (Optional<IPC::Attachment> connectionIdentifier, enum:uint8_t PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy) -> () Synchronous
+    CreateNetworkConnectionToWebProcess(PurCFetcher::ProcessIdentifier processIdentifier, PAL::SessionID sessionID) -> (std::optional<IPC::Attachment> connectionIdentifier, enum:uint8_t PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy) -> () Synchronous
 
 #if USE(SOUP)
     SetIgnoreTLSErrors(bool ignoreTLSErrors)
@@ -48,7 +48,7 @@ messages -> NetworkProcess LegacyReceiver {
     DeleteWebsiteDataForOrigins(PAL::SessionID sessionID, OptionSet<PurCFetcher::WebsiteDataType> websiteDataTypes, Vector<PurCFetcher::SecurityOriginData> origins, Vector<String> cookieHostNames, Vector<String> HSTSCacheHostNames, Vector<PurCFetcher::RegistrableDomain> registrableDomains, PurCFetcher::CallbackID callbackID)
     RenameOriginInWebsiteData(PAL::SessionID sessionID, URL oldDomain, URL newDomain, OptionSet<PurCFetcher::WebsiteDataType> websiteDataTypes) -> () Async
 
-    DownloadRequest(PAL::SessionID sessionID, PurCFetcher::DownloadID downloadID, PurCFetcher::ResourceRequest request, enum:bool Optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain, String suggestedFilename)
+    DownloadRequest(PAL::SessionID sessionID, PurCFetcher::DownloadID downloadID, PurCFetcher::ResourceRequest request, enum:bool std::optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain, String suggestedFilename)
     ResumeDownload(PAL::SessionID sessionID, PurCFetcher::DownloadID downloadID, IPC::DataReference resumeData, String path, PurCFetcher::SandboxExtension::Handle sandboxExtensionHandle)
     CancelDownload(PurCFetcher::DownloadID downloadID)
     ApplicationDidEnterBackground()
@@ -73,7 +73,7 @@ messages -> NetworkProcess LegacyReceiver {
     PrepareToSuspend(bool isSuspensionImminent) -> () Async
     ProcessDidResume()
 
-    PreconnectTo(PAL::SessionID sessionID, PurCFetcher::WebPageProxyIdentifier webPageProxyID, PurCFetcher::PageIdentifier webPageID, URL url, String userAgent, enum:uint8_t PurCFetcher::StoredCredentialsPolicy storedCredentialsPolicy, enum:bool Optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain);
+    PreconnectTo(PAL::SessionID sessionID, PurCFetcher::WebPageProxyIdentifier webPageProxyID, PurCFetcher::PageIdentifier webPageID, URL url, String userAgent, enum:uint8_t PurCFetcher::StoredCredentialsPolicy storedCredentialsPolicy, enum:bool std::optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain);
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
     ClearPrevalentResource(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain resourceDomain) -> () Async
@@ -85,7 +85,7 @@ messages -> NetworkProcess LegacyReceiver {
     IsGrandfathered(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain targetDomain) -> (bool isGrandfathered) Async
     IsPrevalentResource(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain targetDomain) -> (bool isPrevalent) Async
     IsVeryPrevalentResource(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain targetDomain) -> (bool isVeryPrevalent) Async
-    SetAgeCapForClientSideCookies(PAL::SessionID sessionID, Optional<Seconds> seconds) -> () Async
+    SetAgeCapForClientSideCookies(PAL::SessionID sessionID, std::optional<Seconds> seconds) -> () Async
     SetLastSeen(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain resourceDomain, Seconds seconds) -> () Async
     MergeStatisticForTesting(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain resourceDomain, PurCFetcher::RegistrableDomain topFrameDomain1, PurCFetcher::RegistrableDomain topFrameDomain2, Seconds lastSeen, bool hadUserInteraction, Seconds mostRecentUserInteraction, bool isGrandfathered, bool isPrevalent, bool isVeryPrevalent, uint64_t dataRecordsRemoved) -> () Async
     InsertExpiredStatisticForTesting(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain resourceDomain, bool hadUserInteraction, bool isScheduledForAllButCookieDataRemoval, bool isPrevalent) -> () Async
@@ -103,7 +103,7 @@ messages -> NetworkProcess LegacyReceiver {
     LogFrameNavigation(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain targetDomain, PurCFetcher::RegistrableDomain topFrameDomain, PurCFetcher::RegistrableDomain sourceDomain, bool isRedirect, bool isMainFrame, Seconds delayAfterMainFrameDocumentLoad, bool wasPotentiallyInitiatedByUser)
     LogUserInteraction(PAL::SessionID sessionID, PurCFetcher::RegistrableDomain topFrameDomain) -> () Async
     ResetParametersToDefaultValues(PAL::SessionID sessionID) -> () Async
-    ScheduleClearInMemoryAndPersistent(PAL::SessionID sessionID, Optional<WallTime> modifiedSince, enum:bool PurCFetcher::ShouldGrandfatherStatistics shouldGrandfather) -> () Async
+    ScheduleClearInMemoryAndPersistent(PAL::SessionID sessionID, std::optional<WallTime> modifiedSince, enum:bool PurCFetcher::ShouldGrandfatherStatistics shouldGrandfather) -> () Async
     ScheduleCookieBlockingUpdate(PAL::SessionID sessionID) -> () Async
     ScheduleStatisticsAndDataRecordsProcessing(PAL::SessionID sessionID) -> () Async
     StatisticsDatabaseHasAllTables(PAL::SessionID sessionID) -> (bool hasAllTables) Async

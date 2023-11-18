@@ -75,12 +75,12 @@ Data mapFile(const char* path)
     auto file = FileSystem::openFile(path, FileSystem::FileOpenMode::Read);
     if (!FileSystem::isHandleValid(file))
         return { };
-    long long size;
-    if (!FileSystem::getFileSize(file, size)) {
+    auto size = FileSystem::fileSize(file);
+    if (!size) {
         FileSystem::closeFile(file);
         return { };
     }
-    return adoptAndMapFile(file, 0, size);
+    return adoptAndMapFile(file, 0, *size);
 }
 
 Data mapFile(const String& path)
@@ -137,7 +137,7 @@ static Salt makeSalt()
     return salt;
 }
 
-Optional<Salt> readOrMakeSalt(const String& path)
+std::optional<Salt> readOrMakeSalt(const String& path)
 {
     if (FileSystem::fileExists(path)) {
         auto file = FileSystem::openFile(path, FileSystem::FileOpenMode::Read);

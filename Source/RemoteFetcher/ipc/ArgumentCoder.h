@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <wtf/Optional.h>
+#include <optional>
 
 namespace PurCFetcher {
 class IntConstraint;
@@ -47,9 +47,9 @@ template<typename U>
 class UsesModernDecoder {
 private:
     template<typename T, T> struct Helper;
-    template<typename T> static uint8_t check(Helper<Optional<U> (*)(Decoder&), &T::decode>*);
+    template<typename T> static uint8_t check(Helper<std::optional<U> (*)(Decoder&), &T::decode>*);
     template<typename T> static uint16_t check(...);
-    template<typename T> static uint8_t checkArgumentCoder(Helper<Optional<U> (*)(Decoder&), &ArgumentCoder<T>::decode>*);
+    template<typename T> static uint8_t checkArgumentCoder(Helper<std::optional<U> (*)(Decoder&), &ArgumentCoder<T>::decode>*);
     template<typename T> static uint16_t checkArgumentCoder(...);
 public:
     static constexpr bool argumentCoderValue = sizeof(check<U>(nullptr)) == sizeof(uint8_t);
@@ -106,7 +106,7 @@ template<typename T> struct ArgumentCoder {
     }
 
     template<typename U = T, std::enable_if_t<UsesModernDecoder<U>::argumentCoderValue>* = nullptr>
-    static Optional<U> decode(Decoder& decoder)
+    static std::optional<U> decode(Decoder& decoder)
     {
         return U::decode(decoder);
     }

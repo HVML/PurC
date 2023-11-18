@@ -95,10 +95,10 @@ RetainPtr<id> makeNSArrayElement(const URL& vectorElement)
 #pragma clang diagnostic pop
 }
 
-Optional<URL> makeVectorElement(const URL*, id arrayElement)
+std::optional<URL> makeVectorElement(const URL*, id arrayElement)
 {
     if (![arrayElement isKindOfClass:NSURL.class])
-        return PurCWTF::nullopt;
+        return std::nullopt;
     return { { arrayElement } };
 }
 

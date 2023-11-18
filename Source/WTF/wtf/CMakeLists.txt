@@ -62,6 +62,7 @@ set(WTF_PUBLIC_HEADERS
     EnumTraits.h
     Expected.h
     ExportMacros.h
+    FailureAction.h
     FastBitVector.h
     FastMalloc.h
     FastTLS.h
@@ -157,7 +158,6 @@ set(WTF_PUBLIC_HEADERS
     ObjectIdentifier.h
     OptionSet.h
     OptionSetHash.h
-    Optional.h
     OrderMaker.h
     Packed.h
     PackedRef.h
@@ -230,6 +230,7 @@ set(WTF_PUBLIC_HEADERS
     SixCharacterHash.h
     SmallPtrSet.h
     SoftLinking.h
+    Span.h
     SpanningTree.h
     Spectrum.h
     StackBounds.h
@@ -239,6 +240,7 @@ set(WTF_PUBLIC_HEADERS
     StackShotProfiler.h
     StackStats.h
     StackTrace.h
+    StdFilesystem.h
     StdIntExtras.h
     StdLibExtras.h
     StdList.h

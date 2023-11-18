@@ -34,25 +34,11 @@
 
 namespace PurCWTF {
 
-bool FileSystem::deleteEmptyDirectory(const String& path)
-{
-    auto fileManager = adoptNS([[NSFileManager alloc] init]);
-
-    if (NSArray *directoryContents = [fileManager contentsOfDirectoryAtPath:path error:nullptr]) {
-        // Explicitly look for and delete .DS_Store files.
-        if (directoryContents.count == 1 && [directoryContents.firstObject isEqualToString:@".DS_Store"])
-            [fileManager removeItemAtPath:[path stringByAppendingPathComponent:directoryContents.firstObject] error:nullptr];
-    }
-
-    // rmdir(...) returns 0 on successful deletion of the path and non-zero in any other case (including invalid permissions or non-existent file)
-    return !rmdir(FileSystem::fileSystemRepresentation(path).data());
-}
-
 void FileSystem::setMetadataURL(const String& path, const String& metadataURLString, const String& referrer)
 {
     String urlString;
     if (NSURL *url = URLWithUserTypedString(metadataURLString, nil))
-        urlString = PurCWTF::userVisibleString(PurCWTF::URLByRemovingUserInfo(url));
+        urlString = WTF::userVisibleString(WTF::URLByRemovingUserInfo(url));
     else
         urlString = metadataURLString;
 

@@ -161,7 +161,7 @@ static TraversalResult isolatedCopy(TraversalResult&& result)
 void Cache::open(CompletionCallback&& callback)
 {
     if (m_state == State::Open) {
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
         return;
     }
     if (m_state == State::Opening) {
@@ -182,7 +182,7 @@ void Cache::open(CompletionCallback&& callback)
                     return;
                 }
                 cache->m_records = WTFMove(traversalResult.records);
-                cache->finishOpening(WTFMove(callback), PurCWTF::nullopt);
+                cache->finishOpening(WTFMove(callback), std::nullopt);
             });
             return;
         }
@@ -204,7 +204,7 @@ void Cache::open(CompletionCallback&& callback)
     });
 }
 
-void Cache::finishOpening(CompletionCallback&& callback, Optional<Error>&& error)
+void Cache::finishOpening(CompletionCallback&& callback, std::optional<Error>&& error)
 {
     Vector<std::reference_wrapper<RecordInformation>> records;
     for (auto& value : m_records.values()) {
@@ -227,10 +227,10 @@ void Cache::finishOpening(CompletionCallback&& callback, Optional<Error>&& error
     }
     m_state = State::Open;
 
-    callback(PurCWTF::nullopt);
+    callback(std::nullopt);
     auto callbacks = WTFMove(m_pendingOpeningCallbacks);
     for (auto& callback : callbacks)
-        callback(PurCWTF::nullopt);
+        callback(std::nullopt);
 }
 
 class ReadRecordTaskCounter : public RefCounted<ReadRecordTaskCounter> {
@@ -385,7 +385,7 @@ private:
     {
     }
 
-    Optional<Error> m_error;
+    std::optional<Error> m_error;
     RecordIdentifiersCallback m_callback;
     Vector<uint64_t> m_recordIdentifiers;
 };
@@ -436,7 +436,7 @@ void Cache::put(Vector<Record>&& records, RecordIdentifiersCallback&& callback)
         }
     }
 
-    m_caches.requestSpace(spaceRequired, [caches = makeRef(m_caches), identifier = m_identifier, records = WTFMove(records), callback = WTFMove(callback)](Optional<DOMCacheEngine::Error>&& error) mutable {
+    m_caches.requestSpace(spaceRequired, [caches = makeRef(m_caches), identifier = m_identifier, records = WTFMove(records), callback = WTFMove(callback)](std::optional<DOMCacheEngine::Error>&& error) mutable {
         if (error) {
             callback(makeUnexpected(error.value()));
             return;
@@ -494,7 +494,7 @@ void Cache::removeFromRecordList(const Vector<uint64_t>& recordIdentifiers)
 
 void Cache::writeRecordToDisk(const RecordInformation& recordInformation, Record&& record, Ref<AsynchronousPutTaskCounter>&& taskCounter, uint64_t previousRecordSize)
 {
-    m_caches.writeRecord(*this, recordInformation, WTFMove(record), previousRecordSize, [taskCounter = WTFMove(taskCounter)](Optional<Error>&& error) {
+    m_caches.writeRecord(*this, recordInformation, WTFMove(record), previousRecordSize, [taskCounter = WTFMove(taskCounter)](std::optional<Error>&& error) {
         if (error)
             taskCounter->setError(error.value());
     });
@@ -573,42 +573,42 @@ Storage::Record Cache::encode(const RecordInformation& recordInformation, const 
     return { recordInformation.key, { }, header, body, { } };
 }
 
-static Optional<PurCFetcher::DOMCacheEngine::Record> decodeDOMCacheRecord(PurCWTF::Persistence::Decoder& decoder)
+static std::optional<PurCFetcher::DOMCacheEngine::Record> decodeDOMCacheRecord(PurCWTF::Persistence::Decoder& decoder)
 {
-    Optional<FetchHeaders::Guard> requestHeadersGuard;
+    std::optional<FetchHeaders::Guard> requestHeadersGuard;
     decoder >> requestHeadersGuard;
     if (!requestHeadersGuard)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     ResourceRequest request;
     if (!request.decodeWithoutPlatformData(decoder))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     FetchOptions options;
     if (!FetchOptions::decodePersistent(decoder, options))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<String> referrer;
+    std::optional<String> referrer;
     decoder >> referrer;
     if (!referrer)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<FetchHeaders::Guard> responseHeadersGuard;
+    std::optional<FetchHeaders::Guard> responseHeadersGuard;
     decoder >> responseHeadersGuard;
     if (!responseHeadersGuard)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     ResourceResponse response;
     if (!ResourceResponse::decode(decoder, response))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<uint64_t> responseBodySize;
+    std::optional<uint64_t> responseBodySize;
     decoder >> responseBodySize;
     if (!responseBodySize)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     if (!decoder.verifyChecksum())
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return {{
         0,
@@ -624,23 +624,23 @@ static Optional<PurCFetcher::DOMCacheEngine::Record> decodeDOMCacheRecord(PurCWT
     }};
 }
 
-Optional<Cache::DecodedRecord> Cache::decodeRecordHeader(const Storage::Record& storage)
+std::optional<Cache::DecodedRecord> Cache::decodeRecordHeader(const Storage::Record& storage)
 {
     PurCWTF::Persistence::Decoder decoder(storage.header.data(), storage.header.size());
 
-    Optional<double> insertionTime;
+    std::optional<double> insertionTime;
     decoder >> insertionTime;
     if (!insertionTime)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<uint64_t> size;
+    std::optional<uint64_t> size;
     decoder >> size;
     if (!size)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<PurCFetcher::DOMCacheEngine::Record> record = decodeDOMCacheRecord(decoder);
+    std::optional<PurCFetcher::DOMCacheEngine::Record> record = decodeDOMCacheRecord(decoder);
     if (!record)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return {{
         WTFMove(*insertionTime),
@@ -649,12 +649,12 @@ Optional<Cache::DecodedRecord> Cache::decodeRecordHeader(const Storage::Record& 
     }};
 }
 
-Optional<Record> Cache::decode(const Storage::Record& storage)
+std::optional<Record> Cache::decode(const Storage::Record& storage)
 {
     auto result = decodeRecordHeader(storage);
 
     if (!result)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     auto record = WTFMove(result->record);
     record.responseBody = PurCFetcher::SharedBuffer::create(storage.body.data(), storage.body.size());

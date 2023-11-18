@@ -128,7 +128,7 @@ void NetworkDataTask::didReceiveResponse(ResourceResponse&& response, Negotiated
 {
     if (response.isHTTP09()) {
         auto url = response.url();
-        Optional<uint16_t> port = url.port();
+        std::optional<uint16_t> port = url.port();
         if (port && !PurCWTF::isDefaultPortForProtocol(port.value(), url.protocol())) {
             completionHandler(PolicyAction::Ignore);
             cancel();

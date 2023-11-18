@@ -30,6 +30,9 @@
 #pragma once
 
 #include <wtf/Forward.h>
+#include <wtf/FastMalloc.h>
+
+#include <optional>
 
 namespace PurCWTF {
 namespace URLHelpers {
@@ -42,7 +45,7 @@ WTF_EXPORT_PRIVATE String userVisibleURL(const CString& URL);
 void loadIDNScriptWhiteList();
 void whiteListIDNScript(const char* scriptName);
 void initializeDefaultIDNScriptWhiteList();
-Optional<String> mapHostName(const String&, URLDecodeFunction);
+std::optional<String> mapHostName(const String&, URLDecodeFunction);
 String mapHostNames(const String&, URLDecodeFunction);
 
 } // namespace URLHelpers

@@ -427,7 +427,7 @@ void TimerBase::updateHeapIfNeeded(MonotonicTime oldTime)
         return;
 
 #if ENABLE_ASSERTS
-    Optional<unsigned> oldHeapIndex;
+    std::optional<unsigned> oldHeapIndex;
     if (m_heapItem->isInHeap())
         oldHeapIndex = m_heapItem->heapIndex();
 #endif
@@ -442,7 +442,7 @@ void TimerBase::updateHeapIfNeeded(MonotonicTime oldTime)
         heapIncreaseKey();
 
 #if ENABLE_ASSERTS
-    Optional<unsigned> newHeapIndex;
+    std::optional<unsigned> newHeapIndex;
     if (m_heapItem->isInHeap())
         newHeapIndex = m_heapItem->heapIndex();
     ASSERT(newHeapIndex != oldHeapIndex);

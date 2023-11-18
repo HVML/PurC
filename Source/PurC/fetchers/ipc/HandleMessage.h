@@ -104,7 +104,7 @@ struct CodingType<std::tuple<Ts...>> {
 template<typename T, typename C, typename MF>
 void handleMessage(Decoder& decoder, C* object, MF function)
 {
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();
@@ -117,7 +117,7 @@ void handleMessage(Decoder& decoder, C* object, MF function)
 template<typename T, typename C, typename MF>
 void handleMessage(Connection& connection, Decoder& decoder, C* object, MF function)
 {
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();
@@ -129,7 +129,7 @@ void handleMessage(Connection& connection, Decoder& decoder, C* object, MF funct
 template<typename T, typename C, typename MF>
 void handleMessageSynchronous(Connection& connection, Decoder& decoder, std::unique_ptr<Encoder>& replyEncoder, C* object, MF function)
 {
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();
@@ -145,7 +145,7 @@ void handleMessageSynchronous(Connection& connection, Decoder& decoder, std::uni
 template<typename T, typename C, typename MF>
 void handleMessageSynchronousWantsConnection(Connection& connection, Decoder& decoder, std::unique_ptr<Encoder>& replyEncoder, C* object, MF function)
 {
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();
@@ -161,14 +161,14 @@ void handleMessageSynchronousWantsConnection(Connection& connection, Decoder& de
 template<typename T, typename C, typename MF>
 void handleMessageAsync(Connection& connection, Decoder& decoder, C* object, MF function)
 {
-    Optional<uint64_t> listenerID;
+    std::optional<uint64_t> listenerID;
     decoder >> listenerID;
     if (!listenerID) {
         decoder.markInvalid();
         return;
     }
     
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();
@@ -186,14 +186,14 @@ void handleMessageAsync(Connection& connection, Decoder& decoder, C* object, MF 
 template<typename T, typename C, typename MF>
 void handleMessageAsyncWantsConnection(Connection& connection, Decoder& decoder, C* object, MF function)
 {
-    Optional<uint64_t> listenerID;
+    std::optional<uint64_t> listenerID;
     decoder >> listenerID;
     if (!listenerID) {
         decoder.markInvalid();
         return;
     }
 
-    Optional<typename CodingType<typename T::Arguments>::Type> arguments;
+    std::optional<typename CodingType<typename T::Arguments>::Type> arguments;
     decoder >> arguments;
     if (!arguments) {
         decoder.markInvalid();

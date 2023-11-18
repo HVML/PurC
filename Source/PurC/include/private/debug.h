@@ -76,6 +76,15 @@ extern "C" {
 #define PC_NOTICE(x, ...)   purc_log_notice(x, ##__VA_ARGS__)
 #define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
 
+#define PC_TIMESTAMP(x, ...)                                                \
+    do {                                                                    \
+        FILE* fp = fopen("/tmp/purc_run.log", "a+");                        \
+        fprintf(fp, "timestamp: %ld : %s[%d]:%s(): " x ,                     \
+            pcutils_get_monotoic_time_ms(),                                 \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__); \
+        fclose(fp);    \
+    } while (0)
+
 #ifndef NDEBUG
 
 #define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)

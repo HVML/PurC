@@ -48,9 +48,9 @@ void MemoryPressureHandler::respondToMemoryPressure(Critical, Synchronous)
 {
 }
 
-Optional<MemoryPressureHandler::ReliefLogger::MemoryUsage> MemoryPressureHandler::ReliefLogger::platformMemoryUsage()
+std::optional<MemoryPressureHandler::ReliefLogger::MemoryUsage> MemoryPressureHandler::ReliefLogger::platformMemoryUsage()
 {
-    return PurCWTF::nullopt;
+    return std::nullopt;
 }
 
 } // namespace PurCWTF

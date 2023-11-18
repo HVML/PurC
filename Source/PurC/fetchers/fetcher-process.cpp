@@ -139,7 +139,7 @@ bool PcFetcherProcess::wasTerminated() const
 
 bool PcFetcherProcess::sendMessage(std::unique_ptr<IPC::Encoder> encoder,
         OptionSet<IPC::SendOption> sendOptions,
-        Optional<std::pair<CompletionHandler<void(IPC::Decoder*)>, uint64_t>>&& asyncReplyInfo,
+        std::optional<std::pair<CompletionHandler<void(IPC::Decoder*)>, uint64_t>>&& asyncReplyInfo,
         ShouldStartProcessThrottlerActivity shouldStartProcessThrottlerActivity)
 {
     auto clocker = holdLock(m_controlLock);
@@ -258,7 +258,7 @@ PcFetcherRequest* PcFetcherProcess::createRequest(void)
 //    PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
     PAL::SessionID sid(1);
     uint64_t destinationID = ProcessIdentifier::generate().toUInt64();
-    Optional<IPC::Attachment> attachment;
+    std::optional<IPC::Attachment> attachment;
     PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy;
     sendSync(
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess { pid, sid },

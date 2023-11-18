@@ -35,12 +35,12 @@ namespace PurCFetcher {
 
 struct PolicyDecision {
     PurCFetcher::PolicyCheckIdentifier identifier { };
-    Optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { PurCWTF::nullopt };
+    std::optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain { std::nullopt };
     PurCFetcher::PolicyAction policyAction { PurCFetcher::PolicyAction::Ignore };
     uint64_t navigationID { 0 };
     DownloadID downloadID { 0 };
-    Optional<WebsitePoliciesData> websitePoliciesData { PurCWTF::nullopt };
-    Optional<SandboxExtension::Handle> sandboxExtensionHandle { PurCWTF::nullopt };
+    std::optional<WebsitePoliciesData> websitePoliciesData { std::nullopt };
+    std::optional<SandboxExtension::Handle> sandboxExtensionHandle { std::nullopt };
 
     template<class Encoder>
     void encode(Encoder& encoder) const
@@ -55,42 +55,42 @@ struct PolicyDecision {
     }
 
     template<class Decoder>
-    static Optional<PolicyDecision> decode(Decoder& decoder)
+    static std::optional<PolicyDecision> decode(Decoder& decoder)
     {
-        Optional<PurCFetcher::PolicyCheckIdentifier> decodedIdentifier;
+        std::optional<PurCFetcher::PolicyCheckIdentifier> decodedIdentifier;
         decoder >> decodedIdentifier;
         if (!decodedIdentifier)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         
-        Optional<Optional<NavigatingToAppBoundDomain>> decodedIsNavigatingToAppBoundDomain;
+        std::optional<std::optional<NavigatingToAppBoundDomain>> decodedIsNavigatingToAppBoundDomain;
         decoder >> decodedIsNavigatingToAppBoundDomain;
         if (!decodedIsNavigatingToAppBoundDomain)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<PurCFetcher::PolicyAction> decodedPolicyAction;
+        std::optional<PurCFetcher::PolicyAction> decodedPolicyAction;
         decoder >> decodedPolicyAction;
         if (!decodedPolicyAction)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<uint64_t> decodedNavigationID;
+        std::optional<uint64_t> decodedNavigationID;
         decoder >> decodedNavigationID;
         if (!decodedNavigationID)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<DownloadID> decodedDownloadID;
+        std::optional<DownloadID> decodedDownloadID;
         decoder >> decodedDownloadID;
         if (!decodedDownloadID)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<Optional<WebsitePoliciesData>> decodedWebsitePoliciesData;
+        std::optional<std::optional<WebsitePoliciesData>> decodedWebsitePoliciesData;
         decoder >> decodedWebsitePoliciesData;
         if (!decodedWebsitePoliciesData)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<Optional<SandboxExtension::Handle>> sandboxExtensionHandle;
+        std::optional<std::optional<SandboxExtension::Handle>> sandboxExtensionHandle;
         decoder >> sandboxExtensionHandle;
         if (!sandboxExtensionHandle)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         return {{ WTFMove(*decodedIdentifier), WTFMove(*decodedIsNavigatingToAppBoundDomain), WTFMove(*decodedPolicyAction), WTFMove(*decodedNavigationID), WTFMove(*decodedDownloadID), WTFMove(*decodedWebsitePoliciesData), WTFMove(*sandboxExtensionHandle)}};
     }

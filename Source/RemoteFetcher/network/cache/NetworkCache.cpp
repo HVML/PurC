@@ -62,12 +62,11 @@ static size_t computeCapacity(CacheModel cacheModel, const String& cachePath)
 {
     unsigned urlCacheMemoryCapacity = 0;
     uint64_t urlCacheDiskCapacity = 0;
-    uint64_t diskFreeSize = 0;
-    if (FileSystem::getVolumeFreeSpace(cachePath, diskFreeSize)) {
+    if (auto diskFreeSize = FileSystem::volumeFreeSpace(cachePath)) {
         // As a fudge factor, use 1000 instead of 1024, in case the reported byte
         // count doesn't align exactly to a megabyte boundary.
-        diskFreeSize /= KB * 1000;
-        calculateURLCacheSizes(cacheModel, diskFreeSize, urlCacheMemoryCapacity, urlCacheDiskCapacity);
+        *diskFreeSize /= KB * 1000;
+        calculateURLCacheSizes(cacheModel, *diskFreeSize, urlCacheMemoryCapacity, urlCacheDiskCapacity);
     }
     return urlCacheDiskCapacity;
 }
@@ -148,7 +147,7 @@ static bool cachePolicyAllowsExpired(PurCFetcher::ResourceRequestCachePolicy pol
     return false;
 }
 
-static UseDecision responseNeedsRevalidation(NetworkSession& networkSession, const PurCFetcher::ResourceResponse& response, WallTime timestamp, Optional<Seconds> maxStale)
+static UseDecision responseNeedsRevalidation(NetworkSession& networkSession, const PurCFetcher::ResourceResponse& response, WallTime timestamp, std::optional<Seconds> maxStale)
 {
     UNUSED_PARAM(networkSession);
     if (response.cacheControlContainsNoCache())
@@ -286,7 +285,7 @@ static StoreDecision makeStoreDecision(const PurCFetcher::ResourceRequest& origi
 }
 
 #if ENABLE(NETWORK_CACHE_STALE_WHILE_REVALIDATE)
-void Cache::startAsyncRevalidationIfNeeded(const PurCFetcher::ResourceRequest& request, const NetworkCache::Key& key, std::unique_ptr<Entry>&& entry, const GlobalFrameID& frameID, Optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain)
+void Cache::startAsyncRevalidationIfNeeded(const PurCFetcher::ResourceRequest& request, const NetworkCache::Key& key, std::unique_ptr<Entry>&& entry, const GlobalFrameID& frameID, std::optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain)
 {
     m_pendingAsyncRevalidations.ensure(key, [&] {
         auto addResult = m_pendingAsyncRevalidationByPage.ensure(frameID, [] {
@@ -315,7 +314,7 @@ void Cache::browsingContextRemoved(WebPageProxyIdentifier webPageProxyID, PurCFe
 #endif
 }
 
-void Cache::retrieve(const PurCFetcher::ResourceRequest& request, const GlobalFrameID& frameID, Optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain, RetrieveCompletionHandler&& completionHandler)
+void Cache::retrieve(const PurCFetcher::ResourceRequest& request, const GlobalFrameID& frameID, std::optional<NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain, RetrieveCompletionHandler&& completionHandler)
 {
     ASSERT(request.url().protocolIsInHTTPFamily());
 
@@ -441,7 +440,7 @@ std::unique_ptr<Entry> Cache::store(const PurCFetcher::ResourceRequest& request,
     return cacheEntry;
 }
 
-std::unique_ptr<Entry> Cache::storeRedirect(const PurCFetcher::ResourceRequest& request, const PurCFetcher::ResourceResponse& response, const PurCFetcher::ResourceRequest& redirectRequest, Optional<Seconds> maxAgeCap)
+std::unique_ptr<Entry> Cache::storeRedirect(const PurCFetcher::ResourceRequest& request, const PurCFetcher::ResourceResponse& response, const PurCFetcher::ResourceRequest& redirectRequest, std::optional<Seconds> maxAgeCap)
 {
     LOG(NetworkCache, "(NetworkProcess) storing redirect %s -> %s", request.url().string().latin1().data(), redirectRequest.url().string().latin1().data());
 

@@ -47,12 +47,12 @@ WARN_UNUSED_RETURN bool ArgumentCoder<WallTime>::decode(Decoder& decoder, WallTi
     return true;
 }
 
-WARN_UNUSED_RETURN Optional<WallTime> ArgumentCoder<WallTime>::decode(Decoder& decoder)
+WARN_UNUSED_RETURN std::optional<WallTime> ArgumentCoder<WallTime>::decode(Decoder& decoder)
 {
-    Optional<double> time;
+    std::optional<double> time;
     decoder >> time;
     if (!time)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     return WallTime::fromRawSeconds(*time);
 }
 
@@ -132,27 +132,27 @@ void ArgumentCoder<String>::encode(Encoder& encoder, const String& string)
 }
 
 template <typename CharacterType>
-static inline Optional<String> decodeStringText(Decoder& decoder, uint32_t length)
+static inline std::optional<String> decodeStringText(Decoder& decoder, uint32_t length)
 {
     // Before allocating the string, make sure that the decoder buffer is big enough.
     if (!decoder.bufferIsLargeEnoughToContain<CharacterType>(length)) {
         decoder.markInvalid();
-        return PurCWTF::nullopt;
+        return std::nullopt;
     }
     
     CharacterType* buffer;
     String string = String::createUninitialized(length, buffer);
     if (!decoder.decodeFixedLengthData(reinterpret_cast<uint8_t*>(buffer), length * sizeof(CharacterType), alignof(CharacterType)))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     return string;
 }
 
-WARN_UNUSED_RETURN Optional<String> ArgumentCoder<String>::decode(Decoder& decoder)
+WARN_UNUSED_RETURN std::optional<String> ArgumentCoder<String>::decode(Decoder& decoder)
 {
     uint32_t length;
     if (!decoder.decode(length))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     if (length == std::numeric_limits<uint32_t>::max()) {
         // This is the null string.
@@ -161,7 +161,7 @@ WARN_UNUSED_RETURN Optional<String> ArgumentCoder<String>::decode(Decoder& decod
     
     bool is8Bit;
     if (!decoder.decode(is8Bit))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     if (is8Bit)
         return decodeStringText<LChar>(decoder, length);
@@ -170,7 +170,7 @@ WARN_UNUSED_RETURN Optional<String> ArgumentCoder<String>::decode(Decoder& decod
 
 WARN_UNUSED_RETURN bool ArgumentCoder<String>::decode(Decoder& decoder, String& result)
 {
-    Optional<String> string;
+    std::optional<String> string;
     decoder >> string;
     if (!string)
         return false;
@@ -209,7 +209,7 @@ void ArgumentCoder<Monostate>::encode(Encoder&, const Monostate&)
 {
 }
 
-WARN_UNUSED_RETURN Optional<Monostate> ArgumentCoder<Monostate>::decode(Decoder&)
+WARN_UNUSED_RETURN std::optional<Monostate> ArgumentCoder<Monostate>::decode(Decoder&)
 {
     return Monostate { };
 }

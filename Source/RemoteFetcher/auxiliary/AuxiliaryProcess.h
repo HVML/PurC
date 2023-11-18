@@ -106,7 +106,7 @@ protected:
     void didReceiveMemoryPressureEvent(bool isCritical);
 #endif
 
-    static Optional<std::pair<IPC::Connection::Identifier, IPC::Attachment>> createIPCConnectionPair();
+    static std::optional<std::pair<IPC::Connection::Identifier, IPC::Attachment>> createIPCConnectionPair();
 
 private:
     virtual bool shouldOverrideQuarantine() { return true; }
@@ -145,7 +145,7 @@ private:
 struct AuxiliaryProcessInitializationParameters {
     String uiProcessName;
     String clientIdentifier;
-    Optional<PurCFetcher::ProcessIdentifier> processIdentifier;
+    std::optional<PurCFetcher::ProcessIdentifier> processIdentifier;
     IPC::Connection::Identifier connectionIdentifier;
     HashMap<String, String> extraInitializationData;
     AuxiliaryProcess::ProcessType processType;

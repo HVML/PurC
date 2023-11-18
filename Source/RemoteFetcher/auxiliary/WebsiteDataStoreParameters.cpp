@@ -49,68 +49,68 @@ void WebsiteDataStoreParameters::encode(IPC::Encoder& encoder) const
     encoder << perThirdPartyOriginStorageQuota;
 }
 
-Optional<WebsiteDataStoreParameters> WebsiteDataStoreParameters::decode(IPC::Decoder& decoder)
+std::optional<WebsiteDataStoreParameters> WebsiteDataStoreParameters::decode(IPC::Decoder& decoder)
 {
     WebsiteDataStoreParameters parameters;
 
-    Optional<NetworkSessionCreationParameters> networkSessionParameters;
+    std::optional<NetworkSessionCreationParameters> networkSessionParameters;
     decoder >> networkSessionParameters;
     if (!networkSessionParameters)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.networkSessionParameters = WTFMove(*networkSessionParameters);
 
-    Optional<Vector<uint8_t>> uiProcessCookieStorageIdentifier;
+    std::optional<Vector<uint8_t>> uiProcessCookieStorageIdentifier;
     decoder >> uiProcessCookieStorageIdentifier;
     if (!uiProcessCookieStorageIdentifier)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.uiProcessCookieStorageIdentifier = WTFMove(*uiProcessCookieStorageIdentifier);
 
-    Optional<SandboxExtension::Handle> cookieStoragePathExtensionHandle;
+    std::optional<SandboxExtension::Handle> cookieStoragePathExtensionHandle;
     decoder >> cookieStoragePathExtensionHandle;
     if (!cookieStoragePathExtensionHandle)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.cookieStoragePathExtensionHandle = WTFMove(*cookieStoragePathExtensionHandle);
 
-    Optional<Vector<PurCFetcher::Cookie>> pendingCookies;
+    std::optional<Vector<PurCFetcher::Cookie>> pendingCookies;
     decoder >> pendingCookies;
     if (!pendingCookies)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.pendingCookies = WTFMove(*pendingCookies);
 
-    Optional<String> localStorageDirectory;
+    std::optional<String> localStorageDirectory;
     decoder >> localStorageDirectory;
     if (!localStorageDirectory)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.localStorageDirectory = WTFMove(*localStorageDirectory);
 
-    Optional<SandboxExtension::Handle> localStorageDirectoryExtensionHandle;
+    std::optional<SandboxExtension::Handle> localStorageDirectoryExtensionHandle;
     decoder >> localStorageDirectoryExtensionHandle;
     if (!localStorageDirectoryExtensionHandle)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.localStorageDirectoryExtensionHandle = WTFMove(*localStorageDirectoryExtensionHandle);
 
-    Optional<String> cacheStorageDirectory;
+    std::optional<String> cacheStorageDirectory;
     decoder >> cacheStorageDirectory;
     if (!cacheStorageDirectory)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.cacheStorageDirectory = WTFMove(*cacheStorageDirectory);
 
-    Optional<SandboxExtension::Handle> cacheStorageDirectoryExtensionHandle;
+    std::optional<SandboxExtension::Handle> cacheStorageDirectoryExtensionHandle;
     decoder >> cacheStorageDirectoryExtensionHandle;
     if (!cacheStorageDirectoryExtensionHandle)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.cacheStorageDirectoryExtensionHandle = WTFMove(*cacheStorageDirectoryExtensionHandle);
 
-    Optional<uint64_t> perOriginStorageQuota;
+    std::optional<uint64_t> perOriginStorageQuota;
     decoder >> perOriginStorageQuota;
     if (!perOriginStorageQuota)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.perOriginStorageQuota = *perOriginStorageQuota;
 
-    Optional<uint64_t> perThirdPartyOriginStorageQuota;
+    std::optional<uint64_t> perThirdPartyOriginStorageQuota;
     decoder >> perThirdPartyOriginStorageQuota;
     if (!perThirdPartyOriginStorageQuota)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     parameters.perThirdPartyOriginStorageQuota = *perThirdPartyOriginStorageQuota;
     
     return parameters;

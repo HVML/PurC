@@ -83,7 +83,7 @@ public:
     String partitionHashAsString() const { return hashAsString(m_partitionHash); }
 
     void encode(PurCWTF::Persistence::Encoder&) const;
-    static Optional<Key> decode(PurCWTF::Persistence::Decoder&);
+    static std::optional<Key> decode(PurCWTF::Persistence::Decoder&);
 
     bool operator==(const Key&) const;
     bool operator!=(const Key& other) const { return !(*this == other); }

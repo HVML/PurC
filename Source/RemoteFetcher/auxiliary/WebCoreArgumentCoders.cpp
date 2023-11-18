@@ -232,11 +232,11 @@ void ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::encode(Encoder& encoder, 
     encodeSharedBuffer(encoder, buffer.get());
 }
 
-Optional<RefPtr<SharedBuffer>> ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
+std::optional<RefPtr<SharedBuffer>> ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return buffer;
 }
@@ -246,11 +246,11 @@ void ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::encode(Encoder& encoder, con
     encodeSharedBuffer(encoder, buffer.ptr());
 }
 
-Optional<Ref<SharedBuffer>> ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
+std::optional<Ref<SharedBuffer>> ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::decode(Decoder& decoder)
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer) || !buffer)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     return buffer.releaseNonNull();
 }
@@ -377,17 +377,17 @@ void ArgumentCoder<DOMCacheEngine::CacheInfo>::encode(Encoder& encoder, const DO
     encoder << info.name;
 }
 
-auto ArgumentCoder<DOMCacheEngine::CacheInfo>::decode(Decoder& decoder) -> Optional<DOMCacheEngine::CacheInfo>
+auto ArgumentCoder<DOMCacheEngine::CacheInfo>::decode(Decoder& decoder) -> std::optional<DOMCacheEngine::CacheInfo>
 {
-    Optional<uint64_t> identifier;
+    std::optional<uint64_t> identifier;
     decoder >> identifier;
     if (!identifier)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
-    Optional<String> name;
+    std::optional<String> name;
     decoder >> name;
     if (!name)
-        return PurCWTF::nullopt;
+        return std::nullopt;
     
     return {{ WTFMove(*identifier), WTFMove(*name) }};
 }
@@ -419,64 +419,64 @@ void ArgumentCoder<DOMCacheEngine::Record>::encode(Encoder& encoder, const DOMCa
     });
 }
 
-Optional<DOMCacheEngine::Record> ArgumentCoder<DOMCacheEngine::Record>::decode(Decoder& decoder)
+std::optional<DOMCacheEngine::Record> ArgumentCoder<DOMCacheEngine::Record>::decode(Decoder& decoder)
 {
     uint64_t identifier;
     if (!decoder.decode(identifier))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     FetchHeaders::Guard requestHeadersGuard;
     if (!decoder.decode(requestHeadersGuard))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     PurCFetcher::ResourceRequest request;
     if (!decoder.decode(request))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
-    Optional<PurCFetcher::FetchOptions> options;
+    std::optional<PurCFetcher::FetchOptions> options;
     decoder >> options;
     if (!options)
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     String referrer;
     if (!decoder.decode(referrer))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     FetchHeaders::Guard responseHeadersGuard;
     if (!decoder.decode(responseHeadersGuard))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     PurCFetcher::ResourceResponse response;
     if (!decoder.decode(response))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     uint64_t updateResponseCounter;
     if (!decoder.decode(updateResponseCounter))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     uint64_t responseBodySize;
     if (!decoder.decode(responseBodySize))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     PurCFetcher::DOMCacheEngine::ResponseBody responseBody;
     bool hasSharedBufferBody;
     if (!decoder.decode(hasSharedBufferBody))
-        return PurCWTF::nullopt;
+        return std::nullopt;
 
     if (hasSharedBufferBody) {
         RefPtr<SharedBuffer> buffer;
         if (!decodeSharedBuffer(decoder, buffer))
-            return PurCWTF::nullopt;
+            return std::nullopt;
         if (buffer)
             responseBody = buffer.releaseNonNull();
     } else {
         bool hasFormDataBody;
         if (!decoder.decode(hasFormDataBody))
-            return PurCWTF::nullopt;
+            return std::nullopt;
         if (hasFormDataBody) {
             auto formData = FormData::decode(decoder);
             if (!formData)
-                return PurCWTF::nullopt;
+                return std::nullopt;
             responseBody = formData.releaseNonNull();
         }
     }

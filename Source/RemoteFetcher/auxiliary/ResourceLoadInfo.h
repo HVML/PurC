@@ -54,8 +54,8 @@ struct ResourceLoadInfo {
     };
     
     NetworkResourceLoadIdentifier resourceLoadID;
-    Optional<PurCFetcher::FrameIdentifier> frameID;
-    Optional<PurCFetcher::FrameIdentifier> parentFrameID;
+    std::optional<PurCFetcher::FrameIdentifier> frameID;
+    std::optional<PurCFetcher::FrameIdentifier> parentFrameID;
     URL originalURL;
     String originalHTTPMethod;
     WallTime eventTimestamp;
@@ -74,47 +74,47 @@ struct ResourceLoadInfo {
         encoder << type;
     }
 
-    static Optional<ResourceLoadInfo> decode(IPC::Decoder& decoder)
+    static std::optional<ResourceLoadInfo> decode(IPC::Decoder& decoder)
     {
-        Optional<NetworkResourceLoadIdentifier> resourceLoadID;
+        std::optional<NetworkResourceLoadIdentifier> resourceLoadID;
         decoder >> resourceLoadID;
         if (!resourceLoadID)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<Optional<PurCFetcher::FrameIdentifier>> frameID;
+        std::optional<std::optional<PurCFetcher::FrameIdentifier>> frameID;
         decoder >> frameID;
         if (!frameID)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<Optional<PurCFetcher::FrameIdentifier>> parentFrameID;
+        std::optional<std::optional<PurCFetcher::FrameIdentifier>> parentFrameID;
         decoder >> parentFrameID;
         if (!parentFrameID)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<URL> originalURL;
+        std::optional<URL> originalURL;
         decoder >> originalURL;
         if (!originalURL)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<String> originalHTTPMethod;
+        std::optional<String> originalHTTPMethod;
         decoder >> originalHTTPMethod;
         if (!originalHTTPMethod)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<WallTime> eventTimestamp;
+        std::optional<WallTime> eventTimestamp;
         decoder >> eventTimestamp;
         if (!eventTimestamp)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<bool> loadedFromCache;
+        std::optional<bool> loadedFromCache;
         decoder >> loadedFromCache;
         if (!loadedFromCache)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<Type> type;
+        std::optional<Type> type;
         decoder >> type;
         if (!type)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         return {{
             WTFMove(*resourceLoadID),

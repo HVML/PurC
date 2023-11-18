@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <wtf/Optional.h>
+#include <optional>
 #include <wtf/URL.h>
 #include <wtf/text/StringHash.h>
 #include <wtf/text/WTFString.h>
@@ -49,7 +49,7 @@ struct Cookie {
     }
 
     template<class Encoder> void encode(Encoder&) const;
-    template<class Decoder> static Optional<Cookie> decode(Decoder&);
+    template<class Decoder> static std::optional<Cookie> decode(Decoder&);
 
     PURCFETCHER_EXPORT bool operator==(const Cookie&) const;
     PURCFETCHER_EXPORT unsigned hash() const;
@@ -90,7 +90,7 @@ struct Cookie {
     String path;
     // Creation and expiration dates are expressed as milliseconds since the UNIX epoch.
     double created { 0 };
-    Optional<double> expires;
+    std::optional<double> expires;
     bool httpOnly { false };
     bool secure { false };
     bool session { false };
@@ -134,35 +134,35 @@ void Cookie::encode(Encoder& encoder) const
 }
 
 template<class Decoder>
-Optional<Cookie> Cookie::decode(Decoder& decoder)
+std::optional<Cookie> Cookie::decode(Decoder& decoder)
 {
     Cookie cookie;
     if (!decoder.decode(cookie.name))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.value))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.domain))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.path))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.created))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.expires))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.httpOnly))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.secure))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.session))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.comment))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.commentURL))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.ports))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     if (!decoder.decode(cookie.sameSite))
-        return PurCWTF::nullopt;
+        return std::nullopt;
     return cookie;
 }
 

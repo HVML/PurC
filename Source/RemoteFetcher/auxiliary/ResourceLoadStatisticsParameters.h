@@ -70,74 +70,74 @@ struct ResourceLoadStatisticsParameters {
         encoder << manualPrevalentResource;
     }
 
-    static Optional<ResourceLoadStatisticsParameters> decode(IPC::Decoder& decoder)
+    static std::optional<ResourceLoadStatisticsParameters> decode(IPC::Decoder& decoder)
     {
-        Optional<String> directory;
+        std::optional<String> directory;
         decoder >> directory;
         if (!directory)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         
-        Optional<SandboxExtension::Handle> directoryExtensionHandle;
+        std::optional<SandboxExtension::Handle> directoryExtensionHandle;
         decoder >> directoryExtensionHandle;
         if (!directoryExtensionHandle)
-            return PurCWTF::nullopt;
+            return std::nullopt;
         
-        Optional<bool> enabled;
+        std::optional<bool> enabled;
         decoder >> enabled;
         if (!enabled)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<bool> isItpStateExplicitlySet;
+        std::optional<bool> isItpStateExplicitlySet;
         decoder >> isItpStateExplicitlySet;
         if (!isItpStateExplicitlySet)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<bool> enableLogTestingEvent;
+        std::optional<bool> enableLogTestingEvent;
         decoder >> enableLogTestingEvent;
         if (!enableLogTestingEvent)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<bool> shouldIncludeLocalhost;
+        std::optional<bool> shouldIncludeLocalhost;
         decoder >> shouldIncludeLocalhost;
         if (!shouldIncludeLocalhost)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<bool> enableDebugMode;
+        std::optional<bool> enableDebugMode;
         decoder >> enableDebugMode;
         if (!enableDebugMode)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
-        Optional<PurCFetcher::ThirdPartyCookieBlockingMode> thirdPartyCookieBlockingMode;
+        std::optional<PurCFetcher::ThirdPartyCookieBlockingMode> thirdPartyCookieBlockingMode;
         decoder >> thirdPartyCookieBlockingMode;
         if (!thirdPartyCookieBlockingMode)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<PurCFetcher::SameSiteStrictEnforcementEnabled> sameSiteStrictEnforcementEnabled;
+        std::optional<PurCFetcher::SameSiteStrictEnforcementEnabled> sameSiteStrictEnforcementEnabled;
         decoder >> sameSiteStrictEnforcementEnabled;
         if (!sameSiteStrictEnforcementEnabled)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 #endif
 
-        Optional<PurCFetcher::FirstPartyWebsiteDataRemovalMode> firstPartyWebsiteDataRemovalMode;
+        std::optional<PurCFetcher::FirstPartyWebsiteDataRemovalMode> firstPartyWebsiteDataRemovalMode;
         decoder >> firstPartyWebsiteDataRemovalMode;
         if (!firstPartyWebsiteDataRemovalMode)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<PurCFetcher::RegistrableDomain> standaloneApplicationDomain;
+        std::optional<PurCFetcher::RegistrableDomain> standaloneApplicationDomain;
         decoder >> standaloneApplicationDomain;
         if (!standaloneApplicationDomain)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<HashSet<PurCFetcher::RegistrableDomain>> appBoundDomains;
+        std::optional<HashSet<PurCFetcher::RegistrableDomain>> appBoundDomains;
         decoder >> appBoundDomains;
         if (!appBoundDomains)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
-        Optional<PurCFetcher::RegistrableDomain> manualPrevalentResource;
+        std::optional<PurCFetcher::RegistrableDomain> manualPrevalentResource;
         decoder >> manualPrevalentResource;
         if (!manualPrevalentResource)
-            return PurCWTF::nullopt;
+            return std::nullopt;
 
         return {{
             WTFMove(*directory),
