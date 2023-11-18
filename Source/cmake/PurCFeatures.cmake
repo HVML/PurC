@@ -111,6 +111,8 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(ENABLE_SCHEMA_LSQL "Toggle support for LSQL schema in the remote fetcher" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_SCHEMA_RSQL "Toggle support for RSQL schema in the remote fetcher" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_SCHEMA_HTTP "Toggle support for HTTP schema in the remote fetcher" PUBLIC ON)
+
+    PURC_OPTION_DEFINE(USE_SOUP2 "Whether to enable usage of Soup 2 instead of Soup 3" PUBLIC OFF)
 #PURC_OPTION_DEPEND(ENABLE_XSLT ENABLE_DOCTYPE_XML)
 endmacro()
 
