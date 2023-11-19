@@ -28,6 +28,7 @@
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "URLSoup.h"
+#include "SoupVersioning.h"
 //#include <unicode/uset.h>
 #include <wtf/text/CString.h>
 #include <wtf/text/WTFString.h>
@@ -52,16 +53,29 @@ void ResourceResponse::updateFromSoupMessage(SoupMessage* soupMessage)
         m_httpVersion = AtomString("HTTP/1.1", AtomString::ConstructFromLiteral);
         break;
     }
+#if USE(SOUP2)
     m_httpStatusCode = soupMessage->status_code;
     setHTTPStatusText(soupMessage->reason_phrase);
+#else
+    m_httpStatusCode = soup_message_get_status(soupMessage);
+    setHTTPStatusText(soup_message_get_reason_phrase(soupMessage));
+#endif
 
     m_soupFlags = soup_message_get_flags(soupMessage);
 
-    GTlsCertificate* certificate = 0;
-    soup_message_get_https_status(soupMessage, &certificate, &m_tlsErrors);
-    m_certificate = certificate;
+#if USE(SOUP2)
+    m_certificate = soup_message_get_tls_certificate(soupMessage);
+    m_tlsErrors = soup_message_get_tls_certificate_errors(soupMessage);
+#else
+    m_certificate = soup_message_get_tls_peer_certificate(soupMessage);
+    m_tlsErrors = soup_message_get_tls_peer_certificate_errors(soupMessage);
+#endif
 
+#if USE(SOUP2)
     updateFromSoupMessageHeaders(soupMessage->response_headers);
+#else
+    updateFromSoupMessageHeaders(soup_message_get_request_headers(soupMessage));
+#endif
 }
 
 void ResourceResponse::updateFromSoupMessageHeaders(const SoupMessageHeaders* messageHeaders)
@@ -144,7 +158,11 @@ String ResourceResponse::platformSuggestedFilename() const
     soup_message_headers_append(soupHeaders, "Content-Disposition", contentDisposition.utf8().data());
     GRefPtr<GHashTable> params;
     soup_message_headers_get_content_disposition(soupHeaders, nullptr, &params.outPtr());
+#if USE(SOUP2)
     soup_message_headers_free(soupHeaders);
+#else
+    soup_message_headers_unref(soupHeaders);
+#endif
     auto filename = params ? String::fromUTF8(static_cast<char*>(g_hash_table_lookup(params.get(), "filename"))) : String();
     return sanitizeFilename(filename);
 }

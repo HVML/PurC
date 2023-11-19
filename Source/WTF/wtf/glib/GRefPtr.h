@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef WTF_GRefPtr_h
-#define WTF_GRefPtr_h
+#pragma once
 
 #if USE(GLIB)
 
@@ -29,6 +28,9 @@
 #include <algorithm>
 #include <glib.h>
 #include <glib-object.h>
+
+extern "C" void g_object_unref(gpointer);
+extern "C" gpointer g_object_ref_sink(gpointer);
 
 namespace PurCWTF {
 
@@ -240,6 +242,11 @@ template <> WTF_EXPORT_PRIVATE void derefGPtr(GRegex*);
 template <> WTF_EXPORT_PRIVATE GMappedFile* refGPtr(GMappedFile*);
 template <> WTF_EXPORT_PRIVATE void derefGPtr(GMappedFile*);
 
+#if HAVE(GURI)
+template <> WTF_EXPORT_PRIVATE GUri* refGPtr(GUri*);
+template <> WTF_EXPORT_PRIVATE void derefGPtr(GUri*);
+#endif
+
 template <typename T> inline T* refGPtr(T* ptr)
 {
     if (ptr)
@@ -277,5 +284,3 @@ using PurCWTF::GRefPtr;
 using PurCWTF::adoptGRef;
 
 #endif // USE(GLIB)
-
-#endif // WTF_GRefPtr_h

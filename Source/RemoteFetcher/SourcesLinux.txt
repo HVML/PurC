@@ -14,7 +14,7 @@ network/soup/CertificateInfoSoup.cpp
 network/soup/CookieSoup.cpp
 network/soup/CookieStorageSoup.cpp
 network/soup/CredentialStorageSoup.cpp
-network/soup/DNSResolveQueueSoup.cpp
+network/soup/DNSResolveQueueGLib.cpp
 network/soup/WebKitDirectoryInputStream.cpp
 network/soup/NetworkDataTaskSoup.cpp
 network/soup/NetworkProcessMainSoup.cpp

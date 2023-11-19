@@ -105,7 +105,11 @@ private:
     static void gotHeadersCallback(SoupMessage*, NetworkDataTaskSoup*);
     void didGetHeaders();
 
+#if USE(SOUP2)
     static void wroteBodyDataCallback(SoupMessage*, SoupBuffer*, NetworkDataTaskSoup*);
+#else
+    static void wroteBodyDataCallback(SoupMessage*, unsigned, NetworkDataTaskSoup*);
+#endif
     void didWriteBodyData(uint64_t bytesSent);
 
     void download();

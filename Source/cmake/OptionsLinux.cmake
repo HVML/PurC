@@ -81,6 +81,11 @@ else ()
     endif ()
 endif ()
 
+# GUri is available in GLib since version 2.66, but we only want to use it if version is >= 2.67.1.↵
+if (PC_GLIB_VERSION VERSION_GREATER "2.67.1" OR PC_GLIB_VERSION STREQUAL "2.67.1")
+    SET_AND_EXPOSE_TO_BUILD(HAVE_GURI 1)
+endif ()
+
 if (NOT Ncurses_FOUND)
     set(ENABLE_RENDERER_FOIL_DEFAULT OFF)
     SET_AND_EXPOSE_TO_BUILD(HAVE_NCURSES OFF)

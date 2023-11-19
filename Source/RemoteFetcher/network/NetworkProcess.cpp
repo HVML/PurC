@@ -94,7 +94,7 @@
 
 #if USE(SOUP)
 #include "NetworkSessionSoup.h"
-#include "DNSResolveQueueSoup.h"
+#include "DNSResolveQueueGLib.h"
 #include "SoupNetworkSession.h"
 #endif
 
@@ -147,12 +147,6 @@ NetworkProcess::NetworkProcess(AuxiliaryProcessInitializationParameters&& parame
     addSupplement<WebCookieManager>();
 #if ENABLE(LEGACY_CUSTOM_PROTOCOL_MANAGER)
     addSupplement<LegacyCustomProtocolManager>();
-#endif
-
-#if USE(SOUP)
-    DNSResolveQueueSoup::setGlobalDefaultSoupSessionAccessor([this]() -> SoupSession* {
-        return static_cast<NetworkSessionSoup&>(*networkSession(PAL::SessionID::defaultSessionID())).soupSession();
-    });
 #endif
 
     NetworkStateNotifier::singleton().addListener([weakThis = makeWeakPtr(*this)](bool isOnLine) {

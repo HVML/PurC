@@ -28,7 +28,7 @@
 #include "DNSResolveQueue.h"
 
 #if USE(SOUP)
-#include "DNSResolveQueueSoup.h"
+#include "DNSResolveQueueGLib.h"
 #elif USE(CURL)
 #include "DNSResolveQueueCurl.h"
 #elif USE(CF)

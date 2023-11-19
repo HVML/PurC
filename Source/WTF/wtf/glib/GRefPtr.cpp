@@ -182,6 +182,34 @@ template <> void derefGPtr(GMappedFile* ptr)
         g_mapped_file_unref(ptr);
 }
 
-} // namespace PurCWTF
+template <> GDateTime* refGPtr(GDateTime* ptr)
+{
+    if (ptr)
+        g_date_time_ref(ptr);
+    return ptr;
+}
+
+template <> void derefGPtr(GDateTime* ptr)
+{
+    if (ptr)
+        g_date_time_unref(ptr);
+}
+
+#if HAVE(GURI)
+template <> GUri* refGPtr(GUri* ptr)
+{
+    if (ptr)
+        g_uri_ref(ptr);
+    return ptr;
+}
+
+template <> void derefGPtr(GUri* ptr)
+{
+    if (ptr)
+        g_uri_unref(ptr);
+}
+#endif
+
+} // namespace WTF
 
 #endif // USE(GLIB)

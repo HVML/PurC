@@ -129,24 +129,26 @@ SoupNetworkSession::SoupNetworkSession(PAL::SessionID sessionID)
     static const int maxConnectionsPerHost = 6;
 
     g_object_set(m_soupSession.get(),
-        SOUP_SESSION_MAX_CONNS, maxConnections,
-        SOUP_SESSION_MAX_CONNS_PER_HOST, maxConnectionsPerHost,
-        SOUP_SESSION_TIMEOUT, 0,
-        SOUP_SESSION_IDLE_TIMEOUT, 0,
-        SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_CONTENT_SNIFFER,
-#if SOUP_CHECK_VERSION(2, 67, 90)
-        SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_WEBSOCKET_EXTENSION_MANAGER,
-#endif
+        "max-conns", maxConnections,
+        "max-conns-per-host", maxConnectionsPerHost,
+        "timeout", 0,
+        "idle-timeout", 0,
         nullptr);
+
+    soup_session_add_feature_by_type(m_soupSession.get(), SOUP_TYPE_CONTENT_SNIFFER);
+    soup_session_add_feature_by_type(m_soupSession.get(), SOUP_TYPE_AUTH_NTLM);
+#if SOUP_CHECK_VERSION(2, 67, 1)
+    soup_session_add_feature_by_type(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER);
+#endif
+#if SOUP_CHECK_VERSION(2, 67, 90)
+    soup_session_add_feature_by_type(m_soupSession.get(), SOUP_TYPE_WEBSOCKET_EXTENSION_MANAGER);
+#endif
 
     if (!initialAcceptLanguages().isNull())
         setAcceptLanguages(initialAcceptLanguages());
 
-    if (soup_auth_negotiate_supported() && !m_sessionID.isEphemeral()) {
-        g_object_set(m_soupSession.get(),
-            SOUP_SESSION_ADD_FEATURE_BY_TYPE, SOUP_TYPE_AUTH_NEGOTIATE,
-            nullptr);
-    }
+    if (soup_auth_negotiate_supported() && !m_sessionID.isEphemeral())
+        soup_session_add_feature_by_type(m_soupSession.get(), SOUP_TYPE_AUTH_NEGOTIATE);
 
     if (proxySettings().mode != SoupNetworkProxySettings::Mode::Default)
         setupProxy();
@@ -166,7 +168,11 @@ void SoupNetworkSession::setupLogger()
     if (LogNetwork.state != WTFLogChannelState::On || soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_LOGGER))
         return;
 
-    GRefPtr<SoupLogger> logger = adoptGRef(soup_logger_new(SOUP_LOGGER_LOG_BODY, -1));
+#if USE(SOUP2)
+    GRefPtr<SoupLogger> logger = adoptGRef(soup_logger_new(SOUP_LOGGER_LOG_HEADERS, -1));
+#else
+    GRefPtr<SoupLogger> logger = adoptGRef(soup_logger_new(SOUP_LOGGER_LOG_HEADERS));
+#endif
     soup_session_add_feature(m_soupSession.get(), SOUP_SESSION_FEATURE(logger.get()));
     soup_logger_set_printer(logger.get(), soupLogPrinter, nullptr, nullptr);
 #endif
@@ -215,9 +221,8 @@ void SoupNetworkSession::setupHSTSEnforcer()
 void SoupNetworkSession::getHostNamesWithHSTSCache(HashSet<String>& hostNames)
 {
 #if SOUP_CHECK_VERSION(2, 67, 91)
-    SoupHSTSEnforcer* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
-    if (!enforcer)
-        return;
+    auto* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
+    ASSERT(enforcer);
 
     GUniquePtr<GList> domains(soup_hsts_enforcer_get_domains(enforcer, FALSE));
     for (GList* iter = domains.get(); iter; iter = iter->next) {
@@ -232,9 +237,8 @@ void SoupNetworkSession::getHostNamesWithHSTSCache(HashSet<String>& hostNames)
 void SoupNetworkSession::deleteHSTSCacheForHostNames(const Vector<String>& hostNames)
 {
 #if SOUP_CHECK_VERSION(2, 67, 1)
-    SoupHSTSEnforcer* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
-    if (!enforcer)
-        return;
+    auto* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
+    ASSERT(enforcer);
 
     for (const auto& hostName : hostNames) {
         GUniquePtr<SoupHSTSPolicy> policy(soup_hsts_policy_new(hostName.utf8().data(), SOUP_HSTS_POLICY_MAX_AGE_PAST, FALSE));
@@ -248,16 +252,19 @@ void SoupNetworkSession::deleteHSTSCacheForHostNames(const Vector<String>& hostN
 void SoupNetworkSession::clearHSTSCache(WallTime modifiedSince)
 {
 #if SOUP_CHECK_VERSION(2, 67, 91)
-    SoupHSTSEnforcer* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
-    if (!enforcer)
-        return;
+    auto* enforcer = SOUP_HSTS_ENFORCER(soup_session_get_feature(m_soupSession.get(), SOUP_TYPE_HSTS_ENFORCER));
+    ASSERT(enforcer);
 
     GUniquePtr<GList> policies(soup_hsts_enforcer_get_policies(enforcer, FALSE));
     for (GList* iter = policies.get(); iter != nullptr; iter = iter->next) {
         GUniquePtr<SoupHSTSPolicy> policy(static_cast<SoupHSTSPolicy*>(iter->data));
+#if USE(SOUP2)
         auto modified = soup_date_to_time_t(policy.get()->expires) - policy.get()->max_age;
+#else
+        auto modified = g_date_time_to_unix(soup_hsts_policy_get_expires(policy.get())) - soup_hsts_policy_get_max_age(policy.get());
+#endif
         if (modified >= modifiedSince.secondsSinceEpoch().seconds()) {
-            GUniquePtr<SoupHSTSPolicy> newPolicy(soup_hsts_policy_new(policy.get()->domain, SOUP_HSTS_POLICY_MAX_AGE_PAST, FALSE));
+            GUniquePtr<SoupHSTSPolicy> newPolicy(soup_hsts_policy_new(soup_hsts_policy_get_domain(policy.get()), SOUP_HSTS_POLICY_MAX_AGE_PAST, FALSE));
             soup_hsts_enforcer_set_policy(enforcer, newPolicy.get());
         }
     }
@@ -290,7 +297,7 @@ void SoupNetworkSession::setupProxy()
     switch (proxySettings().mode) {
     case SoupNetworkProxySettings::Mode::Default: {
         GRefPtr<GProxyResolver> currentResolver;
-        g_object_get(m_soupSession.get(), SOUP_SESSION_PROXY_RESOLVER, &currentResolver.outPtr(), nullptr);
+        g_object_get(m_soupSession.get(), "proxy-resolver", &currentResolver.outPtr(), nullptr);
         GProxyResolver* defaultResolver = g_proxy_resolver_get_default();
         if (currentResolver.get() == defaultResolver)
             return;
@@ -311,7 +318,7 @@ void SoupNetworkSession::setupProxy()
         break;
     }
 
-    g_object_set(m_soupSession.get(), SOUP_SESSION_PROXY_RESOLVER, resolver.get(), nullptr);
+    g_object_set(m_soupSession.get(), "proxy-resolver", resolver.get(), nullptr);
     soup_session_abort(m_soupSession.get());
 }
 

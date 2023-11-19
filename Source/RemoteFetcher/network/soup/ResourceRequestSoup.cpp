@@ -39,6 +39,7 @@ void ResourceRequest::updateSoupMessageBody(SoupMessage* soupMessage) const
     if (!formData || formData->isEmpty())
         return;
 
+#if USE(SOUP2)
     soup_message_body_set_accumulate(soupMessage->request_body, FALSE);
     uint64_t bodySize = 0;
     for (const auto& element : formData->elements()) {
@@ -66,20 +67,47 @@ void ResourceRequest::updateSoupMessageBody(SoupMessage* soupMessage) const
     }
 
     ASSERT(bodySize == static_cast<uint64_t>(soupMessage->request_body->length));
+#else
+    uint64_t bodySize = 0;
+    GRefPtr<GInputStream> stream = adoptGRef(g_memory_input_stream_new());
+    for (const auto& element : formData->elements()) {
+        switchOn(element.data,
+            [&] (const Vector<uint8_t>& bytes) {
+                g_memory_input_stream_add_data(G_MEMORY_INPUT_STREAM(stream.get()), bytes.data(), bytes.size(), NULL);
+                bodySize += bytes.size();
+            }, [&] (const FormDataElement::EncodedFileData& fileData) {
+                if (auto buffer = SharedBuffer::createWithContentsOfFile(fileData.filename)) {
+                    if (buffer->isEmpty())
+                        return;
+
+                    g_memory_input_stream_add_data(G_MEMORY_INPUT_STREAM(stream.get()), buffer->data(), buffer->size(), NULL);
+                    bodySize += buffer->size();
+                }
+            }, [&] (const FormDataElement::EncodedBlobData& blob) {
+                (void) blob;
+            }
+        );
+    }
+    soup_message_set_request_body(soupMessage, nullptr, stream.get(), bodySize);
+#endif
 }
 
 void ResourceRequest::updateSoupMessageMembers(SoupMessage* soupMessage) const
 {
+#if USE(SOUP2)
     updateSoupMessageHeaders(soupMessage->request_headers);
+#else
+    updateSoupMessageHeaders(soup_message_get_request_headers(soupMessage));
+#endif
 
-    GUniquePtr<SoupURI> firstParty = urlToSoupURI(firstPartyForCookies());
+    auto firstParty = urlToSoupURI(firstPartyForCookies());
     if (firstParty)
         soup_message_set_first_party(soupMessage, firstParty.get());
 
 #if SOUP_CHECK_VERSION(2, 69, 90)
     if (!isSameSiteUnspecified()) {
         if (isSameSite()) {
-            GUniquePtr<SoupURI> siteForCookies = urlToSoupURI(m_url);
+            auto siteForCookies = urlToSoupURI(m_url);
             soup_message_set_site_for_cookies(soupMessage, siteForCookies.get());
         }
         soup_message_set_is_top_level_navigation(soupMessage, isTopSite());
@@ -117,9 +145,9 @@ void ResourceRequest::updateFromSoupMessageHeaders(SoupMessageHeaders* soupHeade
 
 void ResourceRequest::updateSoupMessage(SoupMessage* soupMessage) const
 {
-    g_object_set(soupMessage, SOUP_MESSAGE_METHOD, httpMethod().ascii().data(), NULL);
+    g_object_set(soupMessage, "method", httpMethod().ascii().data(), NULL);
 
-    GUniquePtr<SoupURI> uri = createSoupURI();
+    auto uri = createSoupURI();
     soup_message_set_uri(soupMessage, uri.get());
 
     updateSoupMessageMembers(soupMessage);
@@ -136,20 +164,31 @@ void ResourceRequest::updateFromSoupMessage(SoupMessage* soupMessage)
     if (shouldPortBeResetToZero)
         m_url.setPort(0);
 
+#if USE(SOUP2)
     m_httpMethod = String(soupMessage->method);
+#else
+    m_httpMethod = String(soup_message_get_method(soupMessage));
+#endif
 
+#if USE(SOUP2)
     updateFromSoupMessageHeaders(soupMessage->request_headers);
+#else
+    updateFromSoupMessageHeaders(soup_message_get_request_headers(soupMessage));
+#endif
 
+#if USE(SOUP2)
+    // FIXME: by xue
     if (soupMessage->request_body->data)
         m_httpBody = FormData::create(soupMessage->request_body->data, soupMessage->request_body->length);
+#endif
 
-    if (SoupURI* firstParty = soup_message_get_first_party(soupMessage))
+    if (auto firstParty = soup_message_get_first_party(soupMessage))
         m_firstPartyForCookies = soupURIToURL(firstParty);
 
 #if SOUP_CHECK_VERSION(2, 69, 90)
     setIsTopSite(soup_message_get_is_top_level_navigation(soupMessage));
 
-    if (SoupURI* siteForCookies = soup_message_get_site_for_cookies(soupMessage))
+    if (auto siteForCookies = soup_message_get_site_for_cookies(soupMessage))
         setIsSameSite(areRegistrableDomainsEqual(soupURIToURL(siteForCookies), m_url));
     else
         m_sameSiteDisposition = SameSiteDisposition::Unspecified;
@@ -173,7 +212,11 @@ unsigned initializeMaximumHTTPConnectionCountPerHost()
     return 10000;
 }
 
+#if USE(SOUP2)
 GUniquePtr<SoupURI> ResourceRequest::createSoupURI() const
+#else
+GRefPtr<GUri> ResourceRequest::createSoupURI() const
+#endif
 {
     // WebKit does not support fragment identifiers in data URLs, but soup does.
     // Before passing the URL to soup, we should make sure to urlencode any '#'
@@ -182,11 +225,12 @@ GUniquePtr<SoupURI> ResourceRequest::createSoupURI() const
     if (m_url.protocolIsData()) {
         String urlString = m_url.string();
         urlString.replace("#", "%23");
-        return GUniquePtr<SoupURI>(soup_uri_new(urlString.utf8().data()));
+        return urlToSoupURI(URL(URL(), urlString));
     }
 
-    GUniquePtr<SoupURI> soupURI = urlToSoupURI(m_url);
+    auto soupURI = urlToSoupURI(m_url);
 
+#if USE(SOUP2)
     // Versions of libsoup prior to 2.42 have a soup_uri_new that will convert empty passwords that are not
     // prefixed by a colon into null. Some parts of soup like the SoupAuthenticationManager will only be active
     // when both the username and password are non-null. When we have credentials, empty usernames and passwords
@@ -197,6 +241,7 @@ GUniquePtr<SoupURI> ResourceRequest::createSoupURI() const
         soup_uri_set_user(soupURI.get(), urlUser.utf8().data());
         soup_uri_set_password(soupURI.get(), urlPass.utf8().data());
     }
+#endif
 
     return soupURI;
 }
