@@ -5,7 +5,6 @@ auxiliary/unix/AuxiliaryProcessMain.cpp
 auxiliary/unix/SharedMemoryUnix.cpp
 auxiliary/crypto/gcrypt/CryptoDigestGCrypt.cpp
 auxiliary/soup/PublicSuffixSoup.cpp
-auxiliary/soup/SharedBufferSoup.cpp
 auxiliary/soup/WebCoreArgumentCodersSoup.cpp
 
 auxiliary/MIMETypeRegistryXdg.cpp
@@ -16,7 +15,6 @@ network/soup/CookieSoup.cpp
 network/soup/CookieStorageSoup.cpp
 network/soup/CredentialStorageSoup.cpp
 network/soup/DNSResolveQueueSoup.cpp
-network/soup/GRefPtrSoup.cpp
 network/soup/WebKitDirectoryInputStream.cpp
 network/soup/NetworkDataTaskSoup.cpp
 network/soup/NetworkProcessMainSoup.cpp

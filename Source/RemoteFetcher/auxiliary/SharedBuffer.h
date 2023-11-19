@@ -34,8 +34,8 @@
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
 
-#if USE(SOUP)
-#include "GUniquePtrSoup.h"
+#if USE(CF)
+#include <wtf/RetainPtr.h>
 #endif
 
 #if USE(GLIB)
@@ -63,9 +63,16 @@ public:
     static Ref<SharedBuffer> create(Vector<char>&&);
     static Ref<SharedBuffer> create(Vector<uint8_t>&&);
 
-#if USE(SOUP)
-    GUniquePtr<SoupBuffer> createSoupBuffer(unsigned offset = 0, unsigned size = 0);
-    static Ref<SharedBuffer> wrapSoupBuffer(SoupBuffer*);
+#if USE(FOUNDATION)
+    RetainPtr<NSData> createNSData() const;
+    RetainPtr<NSArray> createNSDataArray() const;
+    static Ref<SharedBuffer> create(NSData *);
+    void append(NSData *);
+#endif
+#if USE(CF)
+    RetainPtr<CFDataRef> createCFData() const;
+    static Ref<SharedBuffer> create(CFDataRef);
+    void append(CFDataRef);
 #endif
 
 #if USE(GLIB)
@@ -73,10 +80,20 @@ public:
     GRefPtr<GBytes> createGBytes() const;
 #endif
 
+#if USE(GSTREAMER)
+    static Ref<SharedBuffer> create(GstMappedOwnedBuffer&);
+#endif
     // Calling data() causes all the data segments to be copied into one segment if they are not already.
     // Iterate the segments using begin() and end() instead.
     // FIXME: Audit the call sites of this function and replace them with iteration if possible.
     const char* data() const;
+    const uint8_t* dataAsUInt8Ptr() const;
+
+#if 0
+    // Creates an ArrayBuffer and copies this SharedBuffer's contents to that
+    // ArrayBuffer without merging segmented buffers into a flat buffer.
+    RefPtr<ArrayBuffer> tryCreateArrayBuffer() const;
+#endif
 
     size_t size() const { return m_size; }
 
@@ -103,34 +120,48 @@ public:
             return adoptRef(*new DataSegment(WTFMove(data)));
         }
 
-#if USE(SOUP)
-        static Ref<DataSegment> create(GUniquePtr<SoupBuffer>&& data) { return adoptRef(*new DataSegment(WTFMove(data))); }
+#if USE(CF)
+        static Ref<DataSegment> create(RetainPtr<CFDataRef>&& data) { return adoptRef(*new DataSegment(WTFMove(data))); }
 #endif
 #if USE(GLIB)
         static Ref<DataSegment> create(GRefPtr<GBytes>&& data) { return adoptRef(*new DataSegment(WTFMove(data))); }
 #endif
+#if USE(GSTREAMER)
+        static Ref<DataSegment> create(RefPtr<GstMappedOwnedBuffer>&& data) { return adoptRef(*new DataSegment(WTFMove(data))); }
+#endif
         static Ref<DataSegment> create(FileSystem::MappedFileData&& data) { return adoptRef(*new DataSegment(WTFMove(data))); }
+
+#if USE(FOUNDATION)
+        RetainPtr<NSData> createNSData() const;
+#endif
 
     private:
         DataSegment(Vector<char>&& data)
             : m_immutableData(WTFMove(data)) { }
-#if USE(SOUP)
-        DataSegment(GUniquePtr<SoupBuffer>&& data)
+#if USE(CF)
+        DataSegment(RetainPtr<CFDataRef>&& data)
             : m_immutableData(WTFMove(data)) { }
 #endif
 #if USE(GLIB)
         DataSegment(GRefPtr<GBytes>&& data)
             : m_immutableData(WTFMove(data)) { }
 #endif
+#if USE(GSTREAMER)
+        DataSegment(RefPtr<GstMappedOwnedBuffer>&& data)
+            : m_immutableData(WTFMove(data)) { }
+#endif
         DataSegment(FileSystem::MappedFileData&& data)
             : m_immutableData(WTFMove(data)) { }
 
         Variant<Vector<char>,
-#if USE(SOUP)
-            GUniquePtr<SoupBuffer>,
+#if USE(CF)
+            RetainPtr<CFDataRef>,
 #endif
 #if USE(GLIB)
             GRefPtr<GBytes>,
+#endif
+#if USE(GSTREAMER)
+            RefPtr<GstMappedOwnedBuffer>,
 #endif
             FileSystem::MappedFileData> m_immutableData;
         friend class SharedBuffer;
@@ -162,15 +193,18 @@ private:
     explicit SharedBuffer(const unsigned char*, size_t);
     explicit SharedBuffer(Vector<char>&&);
     explicit SharedBuffer(FileSystem::MappedFileData&&);
-#if USE(SOUP)
-    explicit SharedBuffer(SoupBuffer*);
+#if USE(CF)
+    explicit SharedBuffer(CFDataRef);
 #endif
 #if USE(GLIB)
     explicit SharedBuffer(GBytes*);
 #endif
+#if USE(GSTREAMER)
+    explicit SharedBuffer(GstMappedOwnedBuffer&);
+#endif
 
     void combineIntoOneSegment() const;
-
+    
     static RefPtr<SharedBuffer> createFromReadingFile(const String& filePath);
 
     size_t m_size { 0 };
@@ -197,6 +231,9 @@ public:
     SharedBufferDataView(Ref<SharedBuffer::DataSegment>&&, size_t);
     size_t size() const;
     const char* data() const;
+#if USE(FOUNDATION)
+    RetainPtr<NSData> createNSData() const;
+#endif
 private:
     size_t m_positionWithinSegment;
     Ref<SharedBuffer::DataSegment> m_segment;

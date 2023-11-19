@@ -31,8 +31,12 @@
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/text/WTFString.h>
 
-#if USE(SOUP)
-#include "GRefPtrSoup.h"
+#if PLATFORM(COCOA)
+#include <wtf/OSObjectPtr.h>
+#endif
+
+#if USE(GLIB)
+#include <wtf/glib/GRefPtr.h>
 #endif
 
 #if USE(CURL)
@@ -56,8 +60,12 @@ public:
     static Data empty();
     static Data adoptMap(FileSystem::MappedFileData&&, FileSystem::PlatformFileHandle);
 
-#if USE(SOUP)
-    Data(GRefPtr<SoupBuffer>&&, FileSystem::PlatformFileHandle fd = FileSystem::invalidPlatformFileHandle);
+#if PLATFORM(COCOA)
+    enum class Backing { Buffer, Map };
+    Data(OSObjectPtr<dispatch_data_t>&&, Backing = Backing::Buffer);
+#endif
+#if USE(GLIB)
+    Data(GRefPtr<GBytes>&&, FileSystem::PlatformFileHandle fd = FileSystem::invalidPlatformFileHandle);
 #elif USE(CURL)
     Data(Variant<Vector<uint8_t>, FileSystem::MappedFileData>&&);
 #endif
@@ -75,12 +83,19 @@ public:
 
     Data mapToFile(const String& path) const;
 
-#if USE(SOUP)
-    SoupBuffer* soupBuffer() const { return m_buffer.get(); }
+#if PLATFORM(COCOA)
+    dispatch_data_t dispatchData() const { return m_dispatchData.get(); }
+#endif
+
+#if USE(GLIB)
+    GBytes* bytes() const { return m_buffer.get(); }
 #endif
 private:
-#if USE(SOUP)
-    mutable GRefPtr<SoupBuffer> m_buffer;
+#if PLATFORM(COCOA)
+    mutable OSObjectPtr<dispatch_data_t> m_dispatchData;
+#endif
+#if USE(GLIB)
+    mutable GRefPtr<GBytes> m_buffer;
     FileSystem::PlatformFileHandle m_fileDescriptor { FileSystem::invalidPlatformFileHandle };
 #endif
 #if USE(CURL)

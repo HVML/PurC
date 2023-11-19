@@ -29,6 +29,7 @@
 #include "PageIdentifier.h"
 #include "ResourceRequestBase.h"
 #include "URLSoup.h"
+#include <wtf/glib/GRefPtr.h>
 
 namespace PurCFetcher {
 
@@ -68,7 +69,11 @@ public:
     SoupMessageFlags soupMessageFlags() const { return m_soupFlags; }
     void setSoupMessageFlags(SoupMessageFlags soupFlags) { m_soupFlags = soupFlags; }
 
+#if USE(SOUP2)
     GUniquePtr<SoupURI> createSoupURI() const;
+#else
+    GRefPtr<GUri> createSoupURI() const;
+#endif
 
     template<class Encoder> void encodeWithPlatformData(Encoder&) const;
     template<class Decoder> WARN_UNUSED_RETURN bool decodeWithPlatformData(Decoder&);

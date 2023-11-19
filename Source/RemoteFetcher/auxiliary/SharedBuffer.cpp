@@ -57,6 +57,19 @@ SharedBuffer::SharedBuffer(Vector<char>&& data)
     append(WTFMove(data));
 }
 
+#if USE(GSTREAMER)
+Ref<SharedBuffer> SharedBuffer::create(GstMappedOwnedBuffer& mappedBuffer)
+{
+    return adoptRef(*new SharedBuffer(mappedBuffer));
+}
+
+SharedBuffer::SharedBuffer(GstMappedOwnedBuffer& mappedBuffer)
+    : m_size(mappedBuffer.size())
+{
+    m_segments.append({0, DataSegment::create(&mappedBuffer)});
+}
+#endif
+
 RefPtr<SharedBuffer> SharedBuffer::createWithContentsOfFile(const String& filePath)
 {
     bool mappingSuccess;
@@ -109,6 +122,11 @@ const char* SharedBuffer::data() const
     return m_segments[0].segment->data();
 }
 
+const uint8_t* SharedBuffer::dataAsUInt8Ptr() const
+{
+    return reinterpret_cast<const uint8_t*>(data());
+}
+
 SharedBufferDataView SharedBuffer::getSomeData(size_t position) const
 {
     RELEASE_ASSERT(position < m_size);
@@ -129,6 +147,27 @@ String SharedBuffer::toHexString() const
     }
     return stringBuilder.toString();
 }
+
+#if 0
+RefPtr<ArrayBuffer> SharedBuffer::tryCreateArrayBuffer() const
+{
+    auto arrayBuffer = ArrayBuffer::tryCreateUninitialized(static_cast<unsigned>(size()), sizeof(char));
+    if (!arrayBuffer) {
+        WTFLogAlways("SharedBuffer::tryCreateArrayBuffer Unable to create buffer. Requested size was %zu\n", size());
+        return nullptr;
+    }
+
+    size_t position = 0;
+    for (const auto& segment : m_segments) {
+        memcpy(static_cast<char*>(arrayBuffer->data()) + position, segment.segment->data(), segment.segment->size());
+        position += segment.segment->size();
+    }
+
+    ASSERT(position == m_size);
+    ASSERT(internallyConsistent());
+    return arrayBuffer;
+}
+#endif
 
 void SharedBuffer::append(const SharedBuffer& data)
 {
@@ -196,20 +235,25 @@ const char* SharedBuffer::DataSegment::data() const
 {
     auto visitor = PurCWTF::makeVisitor(
         [](const Vector<char>& data) { return data.data(); },
-#if USE(SOUP)
-        [](const GUniquePtr<SoupBuffer>& data) { return data->data; },
+#if USE(CF)
+        [](const RetainPtr<CFDataRef>& data) { return reinterpret_cast<const char*>(CFDataGetBytePtr(data.get())); },
 #endif
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return reinterpret_cast<const char*>(g_bytes_get_data(data.get(), nullptr)); },
+#endif
+#if USE(GSTREAMER)
+        [](const RefPtr<GstMappedOwnedBuffer>& data) { return reinterpret_cast<const char*>(data->data()); },
 #endif
         [](const FileSystem::MappedFileData& data) { return reinterpret_cast<const char*>(data.data()); }
     );
     return PurCWTF::visit(visitor, m_immutableData);
 }
 
+#if !USE(CF)
 void SharedBuffer::hintMemoryNotNeededSoon() const
 {
 }
+#endif
 
 PurCWTF::Persistence::Decoder SharedBuffer::decoder() const
 {
@@ -269,11 +313,14 @@ size_t SharedBuffer::DataSegment::size() const
 {
     auto visitor = PurCWTF::makeVisitor(
         [](const Vector<char>& data) { return data.size(); },
-#if USE(SOUP)
-        [](const GUniquePtr<SoupBuffer>& data) { return static_cast<size_t>(data->length); },
+#if USE(CF)
+        [](const RetainPtr<CFDataRef>& data) { return CFDataGetLength(data.get()); },
 #endif
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return g_bytes_get_size(data.get()); },
+#endif
+#if USE(GSTREAMER)
+        [](const RefPtr<GstMappedOwnedBuffer>& data) { return data->size(); },
 #endif
         [](const FileSystem::MappedFileData& data) { return data.size(); }
     );

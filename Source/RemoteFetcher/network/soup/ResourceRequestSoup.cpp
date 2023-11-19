@@ -51,12 +51,16 @@ void ResourceRequest::updateSoupMessageBody(SoupMessage* soupMessage) const
                     if (buffer->isEmpty())
                         return;
 
-                    GUniquePtr<SoupBuffer> soupBuffer(buffer->createSoupBuffer());
+                    GUniquePtr<SoupBuffer> soupBuffer(soup_buffer_new_with_owner(buffer->data(), buffer->size(), buffer.get(), [](void* data) {
+                                static_cast<SharedBuffer*>(data)->deref();
+                                }));
+
                     bodySize += buffer->size();
                     if (soupBuffer->length)
                         soup_message_body_append_buffer(soupMessage->request_body, soupBuffer.get());
                 }
             }, [&] (const FormDataElement::EncodedBlobData& blob) {
+                (void) blob;
             }
         );
     }
