@@ -118,11 +118,15 @@ void NetworkDataTaskSoup::createRequest(ResourceRequest&& request, WasBlockingCo
         return;
     }
 
-    GUniquePtr<SoupURI> soupURI = m_currentRequest.createSoupURI();
+    auto soupURI = m_currentRequest.createSoupURI();
+#if USE(SOUP2)
     if (!soupURI || !SOUP_URI_VALID_FOR_HTTP(soupURI.get())) {
         scheduleFailure(InvalidURLFailure);
         return;
     }
+#else
+    // TODO:
+#endif
 
     restrictRequestReferrerToOriginIfNeeded(m_currentRequest);
 
@@ -163,14 +167,22 @@ void NetworkDataTaskSoup::createRequest(ResourceRequest&& request, WasBlockingCo
 #endif
 
     // Make sure we have an Accept header for subresources; some sites want this to serve some of their subresources.
-    if (!soup_message_headers_get_one(m_soupMessage->request_headers, "Accept"))
-        soup_message_headers_append(m_soupMessage->request_headers, "Accept", "*/*");
+#if USE(SOUP2)
+    auto requestHeaders = m_soupMessage->request_headers;
+#else
+    auto requestHeaders = soup_message_get_request_headers(m_soupMessage.get());
+#endif
+    if (!soup_message_headers_get_one(requestHeaders, "Accept"))
+        soup_message_headers_append(requestHeaders, "Accept", "*/*");
 
+#if USE(SOUP2)
     // In the case of XHR .send() and .send("") explicitly tell libsoup to send a zero content-lenght header
     // for consistency with other UA implementations like Firefox. It's done in the backend here instead of
     // in XHR code since in XHR CORS checking prevents us from this kind of late header manipulation.
     if ((m_soupMessage->method == SOUP_METHOD_POST || m_soupMessage->method == SOUP_METHOD_PUT) && !m_soupMessage->request_body->length)
         soup_message_headers_set_content_length(m_soupMessage->request_headers, 0);
+#endif
+
 
     g_signal_connect(m_soupMessage.get(), "got-headers", G_CALLBACK(gotHeadersCallback), this);
     g_signal_connect(m_soupMessage.get(), "wrote-body-data", G_CALLBACK(wroteBodyDataCallback), this);
@@ -201,8 +213,10 @@ void NetworkDataTaskSoup::clearRequest()
     m_isBlockingCookies = false;
     if (m_soupMessage) {
         g_signal_handlers_disconnect_matched(m_soupMessage.get(), G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, this);
+#if USE(SOUP2)
         if (m_session)
             soup_session_cancel_message(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), m_soupMessage.get(), SOUP_STATUS_CANCELLED);
+#endif
         m_soupMessage = nullptr;
     }
     if (m_session) {
@@ -229,8 +243,13 @@ void NetworkDataTaskSoup::resume()
         // We need to protect cancellable here, because soup_session_send_async uses it after emitting SoupSession::request-queued, and we
         // might cancel the operation in a feature callback emitted on request-queued, for example hsts-enforced.
         GRefPtr<GCancellable> protectCancellable(m_cancellable);
+#if USE(SOUP2)
         soup_session_send_async(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), m_soupMessage.get(), m_cancellable.get(),
             reinterpret_cast<GAsyncReadyCallback>(sendRequestCallback), new SendRequestData({ m_soupMessage, WTFMove(protectedThis) }));
+#else
+        soup_session_send_async(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), m_soupMessage.get(), RunLoopSourcePriority::AsyncIONetwork, m_cancellable.get(),
+            reinterpret_cast<GAsyncReadyCallback>(sendRequestCallback), new SendRequestData({ m_soupMessage, WTFMove(protectedThis) }));
+#endif
         return;
     }
 
@@ -267,8 +286,10 @@ void NetworkDataTaskSoup::cancel()
 
     m_state = State::Canceling;
 
+#if USE(SOUP2)
     if (m_soupMessage)
         soup_session_cancel_message(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), m_soupMessage.get(), SOUP_STATUS_CANCELLED);
+#endif
 
     g_cancellable_cancel(m_cancellable.get());
 
@@ -351,10 +372,15 @@ void NetworkDataTaskSoup::sendRequestCallback(SoupSession* soupSession, GAsyncRe
 
 void NetworkDataTaskSoup::didSendRequest(GRefPtr<GInputStream>&& inputStream)
 {
-    if (!m_sniffedContentType.isNull() && m_soupMessage->status_code != SOUP_STATUS_NOT_MODIFIED)
+#if USE(SOUP2)
+    auto status_code = m_soupMessage->status_code;
+#else
+    auto status_code = soup_message_get_status(m_soupMessage.get());
+#endif
+    if (!m_sniffedContentType.isNull() && status_code != SOUP_STATUS_NOT_MODIFIED)
         m_response.setSniffedContentType(m_sniffedContentType.data());
     m_response.updateFromSoupMessage(m_soupMessage.get());
-    if (m_response.mimeType().isEmpty() && m_soupMessage->status_code != SOUP_STATUS_NOT_MODIFIED)
+    if (m_response.mimeType().isEmpty() && status_code != SOUP_STATUS_NOT_MODIFIED)
         m_response.setMimeType(MIMETypeRegistry::mimeTypeForPath(m_response.url().path().toString()));
 
     if (shouldStartHTTPRedirection()) {
@@ -508,7 +534,12 @@ void NetworkDataTaskSoup::authenticateCallback(SoupSession* session, SoupMessage
     // it's proxy authentication and the request URL is HTTPS, because in that case libsoup uses a
     // tunnel internally and the SoupMessage used for the authentication is the tunneling one.
     // See https://bugs.webkit.org/show_bug.cgi?id=175378.
-    if (soupMessage != task->m_soupMessage.get() && (soupMessage->status_code != SOUP_STATUS_PROXY_AUTHENTICATION_REQUIRED || !task->m_currentRequest.url().protocolIs("https")))
+#if USE(SOUP2)
+    auto status_code = soupMessage->status_code;
+#else
+    auto status_code = soup_message_get_status(soupMessage);
+#endif
+    if (soupMessage != task->m_soupMessage.get() && (status_code != SOUP_STATUS_PROXY_AUTHENTICATION_REQUIRED || !task->m_currentRequest.url().protocolIs("https")))
         return;
 
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
@@ -550,7 +581,9 @@ void NetworkDataTaskSoup::authenticate(AuthenticationChallenge&& challenge)
         }
     }
 
+#if USE(SOUP2)
     soup_session_pause_message(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), challenge.soupMessage());
+#endif
 
     // We could also do this before we even start the request, but that would be at the expense
     // of all request latency, versus a one-time latency for the small subset of requests that
@@ -604,7 +637,9 @@ void NetworkDataTaskSoup::continueAuthenticate(AuthenticationChallenge&& challen
             soup_auth_authenticate(challenge.soupAuth(), credential.user().utf8().data(), credential.password().utf8().data());
         }
 
+#if USE(SOUP2)
         soup_session_unpause_message(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), challenge.soupMessage());
+#endif
     });
 }
 
@@ -643,20 +678,30 @@ void NetworkDataTaskSoup::didFinishSkipInputStreamForRedirection()
 
 static bool shouldRedirectAsGET(SoupMessage* message, bool crossOrigin)
 {
-    if (message->method == SOUP_METHOD_GET || message->method == SOUP_METHOD_HEAD)
+#if USE(SOUP2)
+    auto method = message->method;
+#else
+    auto method = soup_message_get_method(message);
+#endif
+    if (method == SOUP_METHOD_GET || method == SOUP_METHOD_HEAD)
         return false;
 
-    switch (message->status_code) {
+#if USE(SOUP2)
+    auto status_code = message->status_code;
+#else
+    auto status_code = soup_message_get_status(message);
+#endif
+    switch (status_code) {
     case SOUP_STATUS_SEE_OTHER:
         return true;
     case SOUP_STATUS_FOUND:
     case SOUP_STATUS_MOVED_PERMANENTLY:
-        if (message->method == SOUP_METHOD_POST)
+        if (method == SOUP_METHOD_POST)
             return true;
         break;
     }
 
-    if (crossOrigin && message->method == SOUP_METHOD_DELETE)
+    if (crossOrigin && method == SOUP_METHOD_DELETE)
         return true;
 
     return false;
@@ -713,7 +758,12 @@ void NetworkDataTaskSoup::continueHTTPRedirection()
     bool isCrossOrigin = !protocolHostAndPortAreEqual(m_currentRequest.url(), request.url());
     if (!equalLettersIgnoringASCIICase(request.httpMethod(), "get")) {
         // Change newRequest method to GET if change was made during a previous redirection or if current redirection says so.
-        if (m_soupMessage->method == SOUP_METHOD_GET || !request.url().protocolIsInHTTPFamily() || shouldRedirectAsGET(m_soupMessage.get(), isCrossOrigin)) {
+#if USE(SOUP2)
+    auto method = m_soupMessage->method;
+#else
+    auto method = soup_message_get_method(m_soupMessage.get());
+#endif
+        if (method == SOUP_METHOD_GET || !request.url().protocolIsInHTTPFamily() || shouldRedirectAsGET(m_soupMessage.get(), isCrossOrigin)) {
             request.setHTTPMethod("GET");
             request.setHTTPBody(nullptr);
             request.clearHTTPContentType();
@@ -912,7 +962,12 @@ void NetworkDataTaskSoup::didGetHeaders()
     // since we are waiting until we know that this authentication succeeded before actually storing.
     // This is because we want to avoid hitting the disk twice (once to add and once to remove) for
     // incorrect credentials or polluting the keychain with invalid credentials.
-    if (!isAuthenticationFailureStatusCode(m_soupMessage->status_code) && m_soupMessage->status_code < 500 && persistentCredentialStorageEnabled()) {
+#if USE(SOUP2)
+    auto status_code = m_soupMessage->status_code;
+#else
+    auto status_code = soup_message_get_status(m_soupMessage.get());
+#endif
+    if (!isAuthenticationFailureStatusCode(status_code) && status_code < 500 && persistentCredentialStorageEnabled()) {
         m_session->networkStorageSession()->saveCredentialToPersistentStorage(m_protectionSpaceForPersistentStorage, m_credentialForPersistentStorage);
         m_protectionSpaceForPersistentStorage = ProtectionSpace();
         m_credentialForPersistentStorage = Credential();
@@ -924,7 +979,12 @@ void NetworkDataTaskSoup::didGetHeaders()
     if (shouldCaptureExtraNetworkLoadMetrics()) {
         HTTPHeaderMap requestHeaders;
         SoupMessageHeadersIter headersIter;
-        soup_message_headers_iter_init(&headersIter, m_soupMessage->request_headers);
+#if USE(SOUP2)
+        auto request_headers = m_soupMessage->request_headers;
+#else
+        auto request_headers = soup_message_get_request_headers(m_soupMessage.get());
+#endif
+        soup_message_headers_iter_init(&headersIter, request_headers);
         const char* headerName;
         const char* headerValue;
         while (soup_message_headers_iter_next(&headersIter, &headerName, &headerValue))
@@ -933,21 +993,33 @@ void NetworkDataTaskSoup::didGetHeaders()
     }
 }
 
+#if USE(SOUP2)
 void NetworkDataTaskSoup::wroteBodyDataCallback(SoupMessage* soupMessage, SoupBuffer* buffer, NetworkDataTaskSoup* task)
+#else
+void NetworkDataTaskSoup::wroteBodyDataCallback(SoupMessage* soupMessage, unsigned length, NetworkDataTaskSoup* task)
+#endif
 {
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
         task->clearRequest();
         return;
     }
     ASSERT(task->m_soupMessage.get() == soupMessage);
+#if USE(SOUP2)
     task->didWriteBodyData(buffer->length);
+#else
+    task->didWriteBodyData(length);
+#endif
 }
 
 void NetworkDataTaskSoup::didWriteBodyData(uint64_t bytesSent)
 {
     RefPtr<NetworkDataTaskSoup> protectedThis(this);
     m_bodyDataTotalBytesSent += bytesSent;
+#if USE(SOUP2)
     m_client->didSendData(m_bodyDataTotalBytesSent, m_soupMessage->request_body->length);
+#else
+    m_client->didSendData(m_bodyDataTotalBytesSent, soup_message_headers_get_content_length(soup_message_get_request_headers(m_soupMessage.get())));
+#endif
 }
 
 void NetworkDataTaskSoup::download()
