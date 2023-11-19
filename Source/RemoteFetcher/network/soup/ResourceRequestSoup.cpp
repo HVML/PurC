@@ -57,7 +57,6 @@ void ResourceRequest::updateSoupMessageBody(SoupMessage* soupMessage) const
                         soup_message_body_append_buffer(soupMessage->request_body, soupBuffer.get());
                 }
             }, [&] (const FormDataElement::EncodedBlobData& blob) {
-                UNUSED_PARAM(blob);
             }
         );
     }
@@ -74,12 +73,13 @@ void ResourceRequest::updateSoupMessageMembers(SoupMessage* soupMessage) const
         soup_message_set_first_party(soupMessage, firstParty.get());
 
 #if SOUP_CHECK_VERSION(2, 69, 90)
-    if (m_sameSiteDisposition == ResourceRequest::SameSiteDisposition::SameSite) {
-        GUniquePtr<SoupURI> siteForCookies = urlToSoupURI(m_url);
-        soup_message_set_site_for_cookies(soupMessage, siteForCookies.get());
+    if (!isSameSiteUnspecified()) {
+        if (isSameSite()) {
+            GUniquePtr<SoupURI> siteForCookies = urlToSoupURI(m_url);
+            soup_message_set_site_for_cookies(soupMessage, siteForCookies.get());
+        }
+        soup_message_set_is_top_level_navigation(soupMessage, isTopSite());
     }
-
-    soup_message_set_is_top_level_navigation(soupMessage, isTopSite());
 #endif
 
     soup_message_set_flags(soupMessage, m_soupFlags);
@@ -155,25 +155,10 @@ void ResourceRequest::updateFromSoupMessage(SoupMessage* soupMessage)
 
     m_soupFlags = soup_message_get_flags(soupMessage);
 
-    // FIXME: m_allowCookies should probably be handled here and on
-    // doUpdatePlatformRequest somehow.
-}
-
-static const char* gSoupRequestInitiatingPageIDKey = "wk-soup-request-initiating-page-id";
-
-void ResourceRequest::updateSoupRequest(SoupRequest* soupRequest) const
-{
-    if (m_initiatingPageID) {
-        uint64_t* initiatingPageIDPtr = static_cast<uint64_t*>(fastMalloc(sizeof(uint64_t)));
-        *initiatingPageIDPtr = *m_initiatingPageID;
-        g_object_set_data_full(G_OBJECT(soupRequest), g_intern_static_string(gSoupRequestInitiatingPageIDKey), initiatingPageIDPtr, fastFree);
-    }
-}
-
-void ResourceRequest::updateFromSoupRequest(SoupRequest* soupRequest)
-{
-    uint64_t* initiatingPageIDPtr = static_cast<uint64_t*>(g_object_get_data(G_OBJECT(soupRequest), gSoupRequestInitiatingPageIDKey));
-    m_initiatingPageID = initiatingPageIDPtr ? *initiatingPageIDPtr : 0;
+#if SOUP_CHECK_VERSION(2, 71, 0)
+    m_acceptEncoding = !soup_message_is_feature_disabled(soupMessage, SOUP_TYPE_CONTENT_DECODER);
+    m_allowCookies = !soup_message_is_feature_disabled(soupMessage, SOUP_TYPE_COOKIE_JAR);
+#endif
 }
 
 unsigned initializeMaximumHTTPConnectionCountPerHost()
@@ -186,7 +171,7 @@ unsigned initializeMaximumHTTPConnectionCountPerHost()
 
 GUniquePtr<SoupURI> ResourceRequest::createSoupURI() const
 {
-    // PurCFetcher does not support fragment identifiers in data URLs, but soup does.
+    // WebKit does not support fragment identifiers in data URLs, but soup does.
     // Before passing the URL to soup, we should make sure to urlencode any '#'
     // characters, so that soup does not interpret them as fragment identifiers.
     // See http://wkbug.com/68089

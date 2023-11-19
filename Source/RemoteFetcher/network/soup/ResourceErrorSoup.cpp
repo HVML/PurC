@@ -35,54 +35,48 @@
 
 namespace PurCFetcher {
 
-static URL failingURI(SoupURI* soupURI)
+#if USE(SOUP2)
+#define SOUP_HTTP_ERROR_DOMAIN SOUP_HTTP_ERROR
+#else
+#define SOUP_HTTP_ERROR_DOMAIN SOUP_SESSION_ERROR
+#endif
+
+ResourceError ResourceError::transportError(const URL& failingURL, int statusCode, const String& reasonPhrase)
 {
-    ASSERT(soupURI);
-    return soupURIToURL(soupURI);
+    return ResourceError(g_quark_to_string(SOUP_HTTP_ERROR_DOMAIN), statusCode, failingURL, reasonPhrase);
 }
 
-static URL failingURI(SoupRequest* request)
+ResourceError ResourceError::httpError(SoupMessage* message, GError* error)
 {
-    ASSERT(request);
-    return failingURI(soup_request_get_uri(request));
-}
-
-ResourceError ResourceError::transportError(SoupRequest* request, int statusCode, const String& reasonPhrase)
-{
-    return ResourceError(g_quark_to_string(SOUP_HTTP_ERROR), statusCode,
-        failingURI(request), reasonPhrase);
-}
-
-ResourceError ResourceError::httpError(SoupMessage* message, GError* error, SoupRequest* request)
-{
-    if (message && SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code))
-        return transportError(request, message->status_code,
-            String::fromUTF8(message->reason_phrase));
-    else
-        return genericGError(error, request);
+    ASSERT(message);
+#if USE(SOUP2)
+    if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code))
+        return transportError(soupURIToURL(soup_message_get_uri(message)), message->status_code, String::fromUTF8(message->reason_phrase));
+#endif
+    return genericGError(soupURIToURL(soup_message_get_uri(message)), error);
 }
 
 ResourceError ResourceError::authenticationError(SoupMessage* message)
 {
     ASSERT(message);
-    return ResourceError(g_quark_to_string(SOUP_HTTP_ERROR), message->status_code,
-        failingURI(soup_message_get_uri(message)), String::fromUTF8(message->reason_phrase));
+#if USE(SOUP2)
+    return ResourceError(g_quark_to_string(SOUP_HTTP_ERROR_DOMAIN), message->status_code,
+        soupURIToURL(soup_message_get_uri(message)), String::fromUTF8(message->reason_phrase));
+#else
+    return ResourceError(g_quark_to_string(SOUP_SESSION_ERROR), soup_message_get_status(message),
+        soup_message_get_uri(message), String::fromUTF8(soup_message_get_reason_phrase(message)));
+#endif
 }
 
-ResourceError ResourceError::genericGError(GError* error, SoupRequest* request)
+ResourceError ResourceError::genericGError(const URL& failingURL, GError* error)
 {
-    return ResourceError(g_quark_to_string(error->domain), error->code,
-        failingURI(request), String::fromUTF8(error->message));
-}
-
-String unacceptableTLSCertificate()
-{
-    return "Unacceptable TLS certificate, Unacceptable TLS certificate error";
+    return ResourceError(g_quark_to_string(error->domain), error->code, failingURL, String::fromUTF8(error->message));
 }
 
 ResourceError ResourceError::tlsError(const URL& failingURL, unsigned tlsErrors, GTlsCertificate* certificate)
 {
-    ResourceError resourceError(g_quark_to_string(SOUP_HTTP_ERROR), SOUP_STATUS_SSL_FAILED, failingURL, unacceptableTLSCertificate());
+    ResourceError resourceError(g_quark_to_string(G_TLS_ERROR), G_TLS_ERROR_BAD_CERTIFICATE, failingURL,
+            "Unacceptable TLS certificate, Unacceptable TLS certificate error");
     resourceError.setTLSErrors(tlsErrors);
     resourceError.setCertificate(certificate);
     return resourceError;

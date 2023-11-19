@@ -63,7 +63,13 @@ private:
     enum class WasBlockingCookies { No, Yes };
     void createRequest(PurCFetcher::ResourceRequest&&, WasBlockingCookies);
     void clearRequest();
-    static void sendRequestCallback(SoupRequest*, GAsyncResult*, NetworkDataTaskSoup*);
+
+    struct SendRequestData {
+        WTF_MAKE_STRUCT_FAST_ALLOCATED;
+        GRefPtr<SoupMessage> soupMessage;
+        RefPtr<NetworkDataTaskSoup> task;
+    };
+    static void sendRequestCallback(SoupSession*, GAsyncResult*, SendRequestData*);
     void didSendRequest(GRefPtr<GInputStream>&&);
     void dispatchDidReceiveResponse();
     void dispatchDidCompleteWithError(const PurCFetcher::ResourceError&);
@@ -71,6 +77,10 @@ private:
     static gboolean tlsConnectionAcceptCertificateCallback(GTlsConnection*, GTlsCertificate*, GTlsCertificateFlags, NetworkDataTaskSoup*);
     bool tlsConnectionAcceptCertificate(GTlsCertificate*, GTlsCertificateFlags);
 
+    static void didSniffContentCallback(SoupMessage*, const char* contentType, GHashTable* parameters, NetworkDataTaskSoup*);
+    void didSniffContent(CString&&);
+
+    bool persistentCredentialStorageEnabled() const;
     void applyAuthenticationToRequest(PurCFetcher::ResourceRequest&);
     static void authenticateCallback(SoupSession*, SoupMessage*, SoupAuth*, gboolean retrying, NetworkDataTaskSoup*);
     void authenticate(PurCFetcher::AuthenticationChallenge&&);
@@ -125,12 +135,18 @@ private:
     static void restartedCallback(SoupMessage*, NetworkDataTaskSoup*);
     void didRestart();
 
+    static void fileQueryInfoCallback(GFile*, GAsyncResult*, NetworkDataTaskSoup*);
+    void didGetFileInfo(GFileInfo*);
+    static void readFileCallback(GFile*, GAsyncResult*, NetworkDataTaskSoup*);
+    static void enumerateFileChildrenCallback(GFile*, GAsyncResult*, NetworkDataTaskSoup*);
+    void didReadFile(GRefPtr<GInputStream>&&);
+
     PurCFetcher::FrameIdentifier m_frameID;
     PurCFetcher::PageIdentifier m_pageID;
     State m_state { State::Suspended };
     PurCFetcher::ContentSniffingPolicy m_shouldContentSniff;
-    GRefPtr<SoupRequest> m_soupRequest;
     GRefPtr<SoupMessage> m_soupMessage;
+    GRefPtr<GFile> m_file;
     GRefPtr<GInputStream> m_inputStream;
     GRefPtr<SoupMultipartInputStream> m_multipartInputStream;
     GRefPtr<GCancellable> m_cancellable;
@@ -139,6 +155,7 @@ private:
     PurCFetcher::Credential m_credentialForPersistentStorage;
     PurCFetcher::ResourceRequest m_currentRequest;
     PurCFetcher::ResourceResponse m_response;
+    CString m_sniffedContentType;
     Vector<char> m_readBuffer;
     unsigned m_redirectCount { 0 };
     uint64_t m_bodyDataTotalBytesSent { 0 };

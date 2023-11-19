@@ -54,15 +54,12 @@ private:
 
 class MIMETypeRegistry {
 public:
-    PURCFETCHER_EXPORT static String getMIMETypeForExtension(const String& extension);
+    PURCFETCHER_EXPORT static String mimeTypeForExtension(const String& extension);
+    PURCFETCHER_EXPORT static Vector<String> extensionsForMIMEType(const String& type);
+    PURCFETCHER_EXPORT static String preferredExtensionForMIMEType(const String& type);
+    PURCFETCHER_EXPORT static String mediaMIMETypeForExtension(const String& extension);
 
-    // FIXME: PurCFetcher coding style says we should not have the word "get" in the names of these functions.
-    static Vector<String> getExtensionsForMIMEType(const String& type);
-    PURCFETCHER_EXPORT static String getPreferredExtensionForMIMEType(const String& type);
-    PURCFETCHER_EXPORT static String getMediaMIMETypeForExtension(const String& extension);
-    static Vector<String> getMediaMIMETypesForExtension(const String& extension);
-
-    static String getMIMETypeForPath(const String& path);
+    PURCFETCHER_EXPORT static String mimeTypeForPath(const String& path);
 
     static std::unique_ptr<MIMETypeRegistryThreadGlobalData> createMIMETypeRegistryThreadGlobalData();
 
@@ -140,12 +137,16 @@ public:
     PURCFETCHER_EXPORT static const HashSet<String, ASCIICaseInsensitiveHash>& unsupportedTextMIMETypes();
     PURCFETCHER_EXPORT static const HashSet<String, ASCIICaseInsensitiveHash>& systemPreviewMIMETypes();
 
-    // FIXME: PurCFetcher coding style says we should not have the word "get" in the name of this function.
     // FIXME: Unclear what the concept of a normalized MIME type is; currently it's a platform-specific notion.
-    static String getNormalizedMIMEType(const String&);
+    static String normalizedMIMEType(const String&);
 
     PURCFETCHER_EXPORT static String appendFileExtensionIfNecessary(const String& filename, const String& mimeType);
 
+    PURCFETCHER_EXPORT static String preferredImageMIMETypeForEncoding(const Vector<String>& mimeTypes, const Vector<String>& extensions);
+    PURCFETCHER_EXPORT static bool containsImageMIMETypeForEncoding(const Vector<String>& mimeTypes, const Vector<String>& extensions);
+    PURCFETCHER_EXPORT static Vector<String> allowedMIMETypes(const Vector<String>& mimeTypes, const Vector<String>& extensions);
+    PURCFETCHER_EXPORT static Vector<String> allowedFileExtensions(const Vector<String>& mimeTypes, const Vector<String>& extensions);
+    
 private:
     // Check to see if the MIME type is not suitable for being loaded as a text
     // document in a frame. Only valid for MIME types begining with "text/".

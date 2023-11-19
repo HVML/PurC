@@ -52,12 +52,16 @@ public:
 
     void setCookiePersistentStorage(const String& storagePath, SoupCookiePersistentStorageType);
 
+    void setPersistentCredentialStorageEnabled(bool enabled) { m_persistentCredentialStorageEnabled = enabled; }
+    bool persistentCredentialStorageEnabled() const { return m_persistentCredentialStorageEnabled; }
+
     void flushCache();
 
 private:
     void clearCredentials() final;
 
     std::unique_ptr<PurCFetcher::SoupNetworkSession> m_networkSession;
+    bool m_persistentCredentialStorageEnabled { true };
 };
 
 } // namespace PurCFetcher

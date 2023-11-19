@@ -32,49 +32,39 @@
 
 namespace PurCFetcher {
 
-    class BlobRegistryImpl;
+class ResourceRequest : public ResourceRequestBase {
+public:
+    explicit ResourceRequest(const String& url)
+        : ResourceRequestBase(URL({ }, url), ResourceRequestCachePolicy::UseProtocolCachePolicy)
+    {
+    }
 
-    class ResourceRequest : public ResourceRequestBase {
-    public:
-        ResourceRequest(const String& url)
-            : ResourceRequestBase(URL({ }, url), ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            , m_acceptEncoding(true)
-            , m_flags(0)
-        {
-        }
+    ResourceRequest(const URL& url)
+        : ResourceRequestBase(url, ResourceRequestCachePolicy::UseProtocolCachePolicy)
+    {
+    }
 
-        ResourceRequest(const URL& url)
-            : ResourceRequestBase(url, ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            , m_acceptEncoding(true)
-            , m_flags(0)
-        {
-        }
+    ResourceRequest(const URL& url, const String& referrer, ResourceRequestCachePolicy policy = ResourceRequestCachePolicy::UseProtocolCachePolicy)
+        : ResourceRequestBase(url, policy)
+    {
+        setHTTPReferrer(referrer);
+    }
 
-        ResourceRequest(const URL& url, const String& referrer, ResourceRequestCachePolicy policy = ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            : ResourceRequestBase(url, policy)
-            , m_acceptEncoding(true)
-            , m_flags(0)
-        {
-            setHTTPReferrer(referrer);
-        }
+    ResourceRequest()
+        : ResourceRequestBase(URL(), ResourceRequestCachePolicy::UseProtocolCachePolicy)
+    {
+    }
 
-        ResourceRequest()
-            : ResourceRequestBase(URL(), ResourceRequestCachePolicy::UseProtocolCachePolicy)
-            , m_acceptEncoding(true)
-            , m_flags(0)
-        {
-        }
 
-        template<class Encoder> void encodeWithPlatformData(Encoder&) const;
-        template<class Decoder> WARN_UNUSED_RETURN bool decodeWithPlatformData(Decoder&);
+    template<class Encoder> void encodeWithPlatformData(Encoder&) const;
+    template<class Decoder> WARN_UNUSED_RETURN bool decodeWithPlatformData(Decoder&);
 
-    private:
-        friend class ResourceRequestBase;
+private:
+    friend class ResourceRequestBase;
 
-        bool m_acceptEncoding : 1;
-        uint32_t m_flags;
-        std::optional<uint64_t> m_initiatingPageID;
-    };
+    bool m_acceptEncoding { true };
+    uint32_t m_soupFlags { 0 };
+};
 
 template<class Encoder>
 void ResourceRequest::encodeWithPlatformData(Encoder& encoder) const
@@ -88,8 +78,7 @@ void ResourceRequest::encodeWithPlatformData(Encoder& encoder) const
     if (m_httpBody)
         encoder << m_httpBody->flattenToString();
 
-    encoder << m_flags;
-    encoder << m_initiatingPageID;
+    encoder << static_cast<uint32_t>(m_soupFlags);
     encoder << static_cast<bool>(m_acceptEncoding);
 }
 
@@ -112,13 +101,7 @@ bool ResourceRequest::decodeWithPlatformData(Decoder& decoder)
     uint32_t soupMessageFlags;
     if (!decoder.decode(soupMessageFlags))
         return false;
-    m_flags = soupMessageFlags;
-
-    std::optional<std::optional<uint64_t>> initiatingPageID;
-    decoder >> initiatingPageID;
-    if (!initiatingPageID)
-        return false;
-    m_initiatingPageID = *initiatingPageID;
+    m_soupFlags = soupMessageFlags;
 
     bool acceptEncoding;
     if (!decoder.decode(acceptEncoding))
@@ -130,4 +113,4 @@ bool ResourceRequest::decodeWithPlatformData(Decoder& decoder)
 
 } // namespace PurCFetcher
 
-#endif // ResourceRequest_h
+#endif // ResourceRequest_huint32_tm_soupFlags
