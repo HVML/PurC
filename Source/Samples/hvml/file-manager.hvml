@@ -76,6 +76,8 @@
               background-color: #0a58ca;
           }
         </style>
+
+        <init as 'v_loadbyurl' with $CRTN.sendingDocumentByURL(! false) />
     </head>
 
     <body>
