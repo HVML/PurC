@@ -45,12 +45,15 @@ void ResourceResponse::updateFromSoupMessage(SoupMessage* soupMessage)
 {
     m_url = soupURIToURL(soup_message_get_uri(soupMessage));
 
+    //SoupHTTPVersion version = soup_message_get_http_version(soupMessage);
     switch (soup_message_get_http_version(soupMessage)) {
     case SOUP_HTTP_1_0:
         m_httpVersion = AtomString("HTTP/1.0", AtomString::ConstructFromLiteral);
         break;
     case SOUP_HTTP_1_1:
         m_httpVersion = AtomString("HTTP/1.1", AtomString::ConstructFromLiteral);
+        break;
+    default:
         break;
     }
 #if USE(SOUP2)

@@ -107,6 +107,7 @@ void NetworkDataTaskSoup::setPendingDownloadLocation(const String& filename, San
 
 void NetworkDataTaskSoup::createRequest(ResourceRequest&& request, WasBlockingCookies wasBlockingCookies)
 {
+    (void) wasBlockingCookies;
     m_currentRequest = WTFMove(request);
     if (m_currentRequest.url().isLocalFile()) {
         m_file = adoptGRef(g_file_new_for_path(m_currentRequest.url().fileSystemPath().utf8().data()));
@@ -186,7 +187,12 @@ void NetworkDataTaskSoup::createRequest(ResourceRequest&& request, WasBlockingCo
 
     g_signal_connect(m_soupMessage.get(), "got-headers", G_CALLBACK(gotHeadersCallback), this);
     g_signal_connect(m_soupMessage.get(), "wrote-body-data", G_CALLBACK(wroteBodyDataCallback), this);
+#if USE(SOUP2)
     g_signal_connect(static_cast<NetworkSessionSoup&>(*m_session).soupSession(), "authenticate",  G_CALLBACK(authenticateCallback), this);
+#else
+    g_signal_connect(m_soupMessage.get(), "authenticate", G_CALLBACK(authenticateCallback), this);
+    g_signal_connect(m_soupMessage.get(), "accept-certificate", G_CALLBACK(acceptCertificateCallback), this);
+#endif
     g_signal_connect(m_soupMessage.get(), "network-event", G_CALLBACK(networkEventCallback), this);
     g_signal_connect(m_soupMessage.get(), "restarted", G_CALLBACK(restartedCallback), this);
     g_signal_connect(m_soupMessage.get(), "starting", G_CALLBACK(startingCallback), this);
@@ -340,7 +346,7 @@ void NetworkDataTaskSoup::sendRequestCallback(SoupSession* soupSession, GAsyncRe
         // This can happen when the request is cancelled and a new one is started before
         // the previous async operation completed. This is common when forcing a redirection
         // due to HSTS. We can simply ignore this old request.
-#if ASSERT_ENABLED
+#if ENABLE_ASSERTS
         GUniqueOutPtr<GError> error;
         GRefPtr<GInputStream> inputStream = adoptGRef(soup_session_send_finish(soupSession, result, &error.outPtr()));
         ASSERT(g_error_matches(error.get(), G_IO_ERROR, G_IO_ERROR_CANCELLED));
@@ -451,6 +457,7 @@ void NetworkDataTaskSoup::dispatchDidCompleteWithError(const ResourceError& erro
     m_client->didCompleteWithError(error, m_networkLoadMetrics);
 }
 
+#if USE(SOUP2)
 gboolean NetworkDataTaskSoup::tlsConnectionAcceptCertificateCallback(GTlsConnection* connection, GTlsCertificate* certificate, GTlsCertificateFlags errors, NetworkDataTaskSoup* task)
 {
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
@@ -462,10 +469,22 @@ gboolean NetworkDataTaskSoup::tlsConnectionAcceptCertificateCallback(GTlsConnect
     if (connectionMessage != task->m_soupMessage.get())
         return FALSE;
 
-    return task->tlsConnectionAcceptCertificate(certificate, errors);
+    return task->acceptCertificate(certificate, errors);
 }
+#else
+gboolean NetworkDataTaskSoup::acceptCertificateCallback(SoupMessage* message, GTlsCertificate* certificate, GTlsCertificateFlags errors, NetworkDataTaskSoup* task)
+{
+    (void) message;
+    if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client)
+        return FALSE;
 
-bool NetworkDataTaskSoup::tlsConnectionAcceptCertificate(GTlsCertificate* certificate, GTlsCertificateFlags tlsErrors)
+    ASSERT(task->m_soupMessage.get() == soupMessage);
+
+    return task->acceptCertificate(certificate, errors);
+}
+#endif
+
+bool NetworkDataTaskSoup::acceptCertificate(GTlsCertificate* certificate, GTlsCertificateFlags tlsErrors)
 {
     ASSERT(m_soupMessage);
     URL url = soupURIToURL(soup_message_get_uri(m_soupMessage.get()));
@@ -481,6 +500,7 @@ bool NetworkDataTaskSoup::tlsConnectionAcceptCertificate(GTlsCertificate* certif
 
 void NetworkDataTaskSoup::didSniffContentCallback(SoupMessage* soupMessage, const char* contentType, GHashTable* parameters, NetworkDataTaskSoup* task)
 {
+    (void) soupMessage;
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client)
         return;
 
@@ -526,20 +546,17 @@ void NetworkDataTaskSoup::applyAuthenticationToRequest(ResourceRequest& request)
     m_password = String();
 }
 
+#if USE(SOUP2)
 void NetworkDataTaskSoup::authenticateCallback(SoupSession* session, SoupMessage* soupMessage, SoupAuth* soupAuth, gboolean retrying, NetworkDataTaskSoup* task)
 {
+    (void) session;
     ASSERT(session == static_cast<NetworkSessionSoup&>(*task->m_session).soupSession());
 
     // We don't return early here in case the given soupMessage is different to m_soupMessage when
     // it's proxy authentication and the request URL is HTTPS, because in that case libsoup uses a
     // tunnel internally and the SoupMessage used for the authentication is the tunneling one.
     // See https://bugs.webkit.org/show_bug.cgi?id=175378.
-#if USE(SOUP2)
-    auto status_code = soupMessage->status_code;
-#else
-    auto status_code = soup_message_get_status(soupMessage);
-#endif
-    if (soupMessage != task->m_soupMessage.get() && (status_code != SOUP_STATUS_PROXY_AUTHENTICATION_REQUIRED || !task->m_currentRequest.url().protocolIs("https")))
+    if (soupMessage != task->m_soupMessage.get() && (soupMessage->status_code != SOUP_STATUS_PROXY_AUTHENTICATION_REQUIRED || !task->m_currentRequest.url().protocolIs("https")))
         return;
 
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
@@ -549,6 +566,19 @@ void NetworkDataTaskSoup::authenticateCallback(SoupSession* session, SoupMessage
 
     task->authenticate(AuthenticationChallenge(soupMessage, soupAuth, retrying));
 }
+#else
+gboolean NetworkDataTaskSoup::authenticateCallback(SoupMessage* soupMessage, SoupAuth* soupAuth, gboolean retrying, NetworkDataTaskSoup* task)
+{
+    if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
+        task->clearRequest();
+        return FALSE;
+    }
+    ASSERT(task->m_soupMessage.get() == soupMessage);
+
+    task->authenticate(AuthenticationChallenge(soupMessage, soupAuth, retrying));
+    return TRUE;
+}
+#endif
 
 static inline bool isAuthenticationFailureStatusCode(int httpStatusCode)
 {
@@ -698,6 +728,8 @@ static bool shouldRedirectAsGET(SoupMessage* message, bool crossOrigin)
     case SOUP_STATUS_MOVED_PERMANENTLY:
         if (method == SOUP_METHOD_POST)
             return true;
+        break;
+    default:
         break;
     }
 
@@ -948,6 +980,7 @@ void NetworkDataTaskSoup::didFinishRequestNextPart()
 
 void NetworkDataTaskSoup::gotHeadersCallback(SoupMessage* soupMessage, NetworkDataTaskSoup* task)
 {
+    (void) soupMessage;
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
         task->clearRequest();
         return;
@@ -999,6 +1032,7 @@ void NetworkDataTaskSoup::wroteBodyDataCallback(SoupMessage* soupMessage, SoupBu
 void NetworkDataTaskSoup::wroteBodyDataCallback(SoupMessage* soupMessage, unsigned length, NetworkDataTaskSoup* task)
 #endif
 {
+    (void) soupMessage;
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client) {
         task->clearRequest();
         return;
@@ -1165,6 +1199,7 @@ void NetworkDataTaskSoup::didFail(const ResourceError& error)
 
 void NetworkDataTaskSoup::networkEventCallback(SoupMessage* soupMessage, GSocketClientEvent event, GIOStream* stream, NetworkDataTaskSoup* task)
 {
+    (void) soupMessage;
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client)
         return;
 
@@ -1196,8 +1231,10 @@ void NetworkDataTaskSoup::networkEvent(GSocketClientEvent event, GIOStream* stre
     case G_SOCKET_CLIENT_TLS_HANDSHAKING:
         m_networkLoadMetrics.secureConnectionStart = deltaTime;
         RELEASE_ASSERT(G_IS_TLS_CONNECTION(stream));
+#if USE(SOUP2)
         g_object_set_data(G_OBJECT(stream), "wk-soup-message", m_soupMessage.get());
         g_signal_connect(stream, "accept-certificate", G_CALLBACK(tlsConnectionAcceptCertificateCallback), this);
+#endif
         break;
     case G_SOCKET_CLIENT_TLS_HANDSHAKED:
         break;
@@ -1212,6 +1249,7 @@ void NetworkDataTaskSoup::networkEvent(GSocketClientEvent event, GIOStream* stre
 
 void NetworkDataTaskSoup::startingCallback(SoupMessage* soupMessage, NetworkDataTaskSoup* task)
 {
+    (void) soupMessage;
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client)
         return;
 
@@ -1268,6 +1306,7 @@ void NetworkDataTaskSoup::didStartRequest()
 
 void NetworkDataTaskSoup::restartedCallback(SoupMessage* soupMessage, NetworkDataTaskSoup* task)
 {
+    (void) soupMessage;
     // Called each time the message is going to be sent again except the first time.
     // This happens when libsoup handles HTTP authentication.
     if (task->state() == State::Canceling || task->state() == State::Completed || !task->m_client)

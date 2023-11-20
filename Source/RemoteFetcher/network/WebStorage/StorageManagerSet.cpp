@@ -394,6 +394,7 @@ void StorageManagerSet::disconnectFromStorageArea(IPC::Connection& connection, S
 
 void StorageManagerSet::getValues(IPC::Connection& connection, StorageAreaIdentifier storageAreaID, GetValuesCallback&& completionHandler)
 {
+    (void) connection;
     ASSERT(!RunLoop::isMain());
 
     const auto& storageArea = m_storageAreas.get(storageAreaID);

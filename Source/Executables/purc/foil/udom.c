@@ -1159,6 +1159,7 @@ foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
     return (uint8_t)FOIL_LANGCODE_unknown;
 }
 
+#ifndef NDEBUG
 static void
 dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
         unsigned level)
@@ -1184,6 +1185,7 @@ static void dump_udom(pcmcth_udom *udom)
     LOG_DEBUG("Calling dump_rdrtree...\n");
     dump_rdrtree(&render_ctxt, udom->initial_cblock, 0);
 }
+#endif
 
 pcmcth_udom *
 foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)

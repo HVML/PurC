@@ -67,6 +67,7 @@ static GBytes* webkitDirectoryInputStreamCreateHeader(WebKitDirectoryInputStream
 
 static GBytes* webkitDirectoryInputStreamCreateFooter(WebKitDirectoryInputStream *stream)
 {
+    (void) stream;
     static const char* footer = "</table></body></html>";
     return g_bytes_new_static(footer, strlen(footer));
 }

@@ -125,12 +125,16 @@ SoupNetworkSession::SoupNetworkSession(PAL::SessionID sessionID)
     // the rule "Do What Every Other Modern Browser Is Doing". They seem
     // to significantly improve page loading time compared to soup's
     // default values.
+#if USE(SOUP2)
     static const int maxConnections = 17;
     static const int maxConnectionsPerHost = 6;
+#endif
 
     g_object_set(m_soupSession.get(),
+#if USE(SOUP2)
         "max-conns", maxConnections,
         "max-conns-per-host", maxConnectionsPerHost,
+#endif
         "timeout", 0,
         "idle-timeout", 0,
         nullptr);

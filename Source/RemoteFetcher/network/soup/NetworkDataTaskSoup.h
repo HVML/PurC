@@ -74,15 +74,23 @@ private:
     void dispatchDidReceiveResponse();
     void dispatchDidCompleteWithError(const PurCFetcher::ResourceError&);
 
+#if USE(SOUP2)
     static gboolean tlsConnectionAcceptCertificateCallback(GTlsConnection*, GTlsCertificate*, GTlsCertificateFlags, NetworkDataTaskSoup*);
-    bool tlsConnectionAcceptCertificate(GTlsCertificate*, GTlsCertificateFlags);
+#else
+    static gboolean acceptCertificateCallback(SoupMessage*, GTlsCertificate*, GTlsCertificateFlags, NetworkDataTaskSoup*);
+#endif
+    bool acceptCertificate(GTlsCertificate*, GTlsCertificateFlags);
 
     static void didSniffContentCallback(SoupMessage*, const char* contentType, GHashTable* parameters, NetworkDataTaskSoup*);
     void didSniffContent(CString&&);
 
     bool persistentCredentialStorageEnabled() const;
     void applyAuthenticationToRequest(PurCFetcher::ResourceRequest&);
+#if USE(SOUP2)
     static void authenticateCallback(SoupSession*, SoupMessage*, SoupAuth*, gboolean retrying, NetworkDataTaskSoup*);
+#else
+    static gboolean authenticateCallback(SoupMessage*, SoupAuth*, gboolean retrying, NetworkDataTaskSoup*);
+#endif
     void authenticate(PurCFetcher::AuthenticationChallenge&&);
     void continueAuthenticate(PurCFetcher::AuthenticationChallenge&&);
 
