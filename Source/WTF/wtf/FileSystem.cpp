@@ -425,12 +425,12 @@ void makeSafeToUseMemoryMapForPath(const String&)
 }
 #endif
 
-#if !PLATFORM(COCOA)
+//#if !PLATFORM(COCOA)
 String createTemporaryZipArchive(const String&)
 {
     return { };
 }
-#endif
+//#endif
 
 MappedFileData mapToFile(const String& path, size_t bytesSize, Function<void(const Function<bool(Span<const uint8_t>)>&)>&& apply, PlatformFileHandle* outputHandle)
 {
