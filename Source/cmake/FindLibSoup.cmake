@@ -42,7 +42,7 @@ endif ()
 # .pc file, so we need to rely on PC_LIBSOUP_VERSION and REQUIRE the .pc file
 # to be found.
 find_package(PkgConfig QUIET)
-pkg_check_modules(PC_LIBSOUP QUIET "libsoup-${LIBSOUP_API_VERSION}")
+pkg_check_modules(PC_LIBSOUP QUIET "libsoup")
 
 find_path(LIBSOUP_INCLUDE_DIRS
     NAMES libsoup/soup.h
@@ -57,6 +57,19 @@ find_library(LIBSOUP_LIBRARIES
           ${PC_LIBSOUP_LIBRARY_DIRS}
 )
 
+if (NOT PC_LIBSOUP_VERSION)
+    if (EXISTS "${LIBSOUP_INCLUDE_DIRS}/libsoup/soup-version.h")
+        file(READ "${LIBSOUP_INCLUDE_DIRS}/libsoup/soup-version.h" SOUP_VERSION_H_CONTENTS)
+        string(REGEX MATCH "#define SOUP_MAJOR_VERSION .([0-9]+)." _dummy "${SOUP_VERSION_H_CONTENTS}")
+        set(SOUP_VERSION_MAJOR "${CMAKE_MATCH_1}")
+        string(REGEX MATCH "#define SOUP_MINOR_VERSION .([0-9]+)." _dummy "${SOUP_VERSION_H_CONTENTS}")
+        set(SOUP_VERSION_MINOR "${CMAKE_MATCH_1}")
+        string(REGEX MATCH "#define SOUP_MICRO_VERSION .([0-9]+)." _dummy "${SOUP_VERSION_H_CONTENTS}")
+        set(SOUP_VERSION_MICRO "${CMAKE_MATCH_1}")
+        set(PC_LIBSOUP_VERSION "${SOUP_VERSION_MAJOR}.${SOUP_VERSION_MINOR}.${SOUP_VERSION_MICRO}")
+    endif ()
+endif ()
+
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibSoup REQUIRED_VARS LIBSOUP_INCLUDE_DIRS LIBSOUP_LIBRARIES
                                           VERSION_VAR   PC_LIBSOUP_VERSION)
@@ -65,3 +78,4 @@ mark_as_advanced(
     LIBSOUP_INCLUDE_DIRS
     LIBSOUP_LIBRARIES
 )
+

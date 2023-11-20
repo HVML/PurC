@@ -37,23 +37,23 @@
 #include <wtf/StdLibExtras.h>
 
 #if USE(CG)
-#include "ImageSourceCG.h"
-#include "UTIRegistry.h"
+//#include "ImageSourceCG.h"
+//#include "UTIRegistry.h"
 #include <ImageIO/ImageIO.h>
 #include <wtf/RetainPtr.h>
 #endif
 
 #if USE(CG) && PLATFORM(COCOA)
-#include "UTIUtilities.h"
+//#include "UTIUtilities.h"
 #endif
 
 #if ENABLE(WEB_ARCHIVE) || ENABLE(MHTML)
-#include "ArchiveFactory.h"
+//#include "ArchiveFactory.h"
 #endif
 
 #if HAVE(AVASSETREADER)
-#include "ContentType.h"
-#include "ImageDecoderAVFObjC.h"
+//#include "ContentType.h"
+//#include "ImageDecoderAVFObjC.h"
 #endif
 
 #if USE(QUICK_LOOK)
@@ -152,6 +152,7 @@ const HashSet<String, ASCIICaseInsensitiveHash>& MIMETypeRegistry::supportedImag
 #endif
     };
 
+#if 0
 #if USE(CG)
 #ifndef NDEBUG
     // Esnure supportedImageMIMETypes() is in sync with defaultSupportedImageTypes().
@@ -162,6 +163,7 @@ const HashSet<String, ASCIICaseInsensitiveHash>& MIMETypeRegistry::supportedImag
             ASSERT_IMPLIES(!mimeType.isEmpty(), supportedImageMIMETypes.get().contains(mimeType));
         }
     });
+#endif
 #endif
 #endif
     return supportedImageMIMETypes;
@@ -223,7 +225,7 @@ HashSet<String, ASCIICaseInsensitiveHash>& MIMETypeRegistry::supportedNonImageMI
         // This can result in cross-site scripting vulnerabilities.
         };
         supportedNonImageMIMETypes.add(supportedJavaScriptMIMETypes().begin(), supportedJavaScriptMIMETypes().end());
-#if ENABLE(WEB_ARCHIVE) || ENABLE(MHTML)
+#if 0 // ENABLE(WEB_ARCHIVE) || ENABLE(MHTML)
         ArchiveFactory::registerKnownArchiveMIMETypes(supportedNonImageMIMETypes);
 #endif
         return supportedNonImageMIMETypes;
@@ -426,12 +428,12 @@ bool MIMETypeRegistry::isSupportedImageVideoOrSVGMIMEType(const String& mimeType
     if (isSupportedImageMIMEType(mimeType) || equalLettersIgnoringASCIICase(mimeType, "image/svg+xml"))
         return true;
 
-#if HAVE(AVASSETREADER)
+#if 0 //HAVE(AVASSETREADER)
     if (ImageDecoderAVFObjC::supportsContainerType(mimeType))
         return true;
 #endif
 
-#if USE(GSTREAMER) && ENABLE(VIDEO)
+#if 0 //USE(GSTREAMER) && ENABLE(VIDEO)
     if (ImageDecoderGStreamer::supportsContainerType(mimeType))
         return true;
 #endif
@@ -441,7 +443,7 @@ bool MIMETypeRegistry::isSupportedImageVideoOrSVGMIMEType(const String& mimeType
 
 std::unique_ptr<MIMETypeRegistryThreadGlobalData> MIMETypeRegistry::createMIMETypeRegistryThreadGlobalData()
 {
-#if PLATFORM(COCOA)
+#if 0 //PLATFORM(COCOA)
     RetainPtr<CFArrayRef> supportedTypes = adoptCF(CGImageDestinationCopyTypeIdentifiers());
     HashSet<String, ASCIICaseInsensitiveHash> supportedImageMIMETypesForEncoding;
     CFIndex count = CFArrayGetCount(supportedTypes.get());
