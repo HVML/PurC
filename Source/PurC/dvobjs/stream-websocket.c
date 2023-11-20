@@ -998,6 +998,7 @@ static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, char code)
     return 0;
 }
 
+#if 0
 /*
  * Send a PING message to the peer.
  *
@@ -1007,6 +1008,7 @@ static int ws_ping_peer(struct pcdvobjs_stream *stream)
 {
     return ws_send_ctrl_frame(stream, WS_OPCODE_PING);
 }
+#endif
 
 /*
  * Send a PONG message to the peer.

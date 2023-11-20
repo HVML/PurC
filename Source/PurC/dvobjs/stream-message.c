@@ -685,6 +685,7 @@ us_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
     return true;
 }
 
+#if 0
 /*
  * Send a PING message to the peer.
  *
@@ -704,6 +705,7 @@ static int us_ping_peer(struct pcdvobjs_stream *stream)
         return -1;
     return 0;
 }
+#endif
 
 /*
  * Send a PONG message to the peer.
