@@ -398,6 +398,7 @@ static int init_modules(struct pcinst *curr_inst,
 static void cleanup_modules(struct pcinst *curr_inst)
 {
     PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
+    PURC_VARIANT_SAFE_CLEAR(curr_inst->app_manifest);
 
     // cleanup modules
     for (size_t i = PCA_TABLESIZE(_pc_modules); i > 0; ) {
@@ -415,9 +416,6 @@ static void cleanup_instance(struct pcinst *curr_inst)
         pcutils_uomap_destroy(curr_inst->local_data_map);
         curr_inst->local_data_map = NULL;
     }
-
-    if (curr_inst->app_manifest)
-        purc_variant_unref(curr_inst->app_manifest);
 
     if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
         fclose(curr_inst->fp_log);

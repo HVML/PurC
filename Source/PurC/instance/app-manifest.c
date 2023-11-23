@@ -164,7 +164,7 @@ purc_get_app_manifest(void)
     if (inst == NULL)
         return PURC_VARIANT_INVALID;
 
-    if (inst->app_manifest) {
+    if (!inst->app_manifest) {
         inst->app_manifest = pcinst_load_app_manifest(inst->app_name);
     }
 
