@@ -186,9 +186,10 @@ failed:
 }
 
 static int set_session_args(struct pcinst *inst,
-        purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr)
+        purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr,
+        struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[12] = { NULL };
+    purc_variant_t vs[18] = { NULL };
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -205,6 +206,14 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
     vs[n++] = purc_variant_make_string_static("allowSwitchingRdr", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
+
+    vs[n++] = purc_variant_make_string_static("appLabel", false);
+    vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
+    vs[n++] = purc_variant_make_string_static("appDesc", false);
+    vs[n++] = purc_variant_ref(purc_get_app_description(rdr_caps->locale));
+    vs[n++] = purc_variant_make_string_static("appIcon", false);
+    vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
+            rdr_caps->locale);
 
     if (vs[n - 1] == NULL) {
         goto failed;
@@ -237,7 +246,7 @@ failed:
 static int append_authenticate_args(struct pcinst *inst,
         purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[12] = { NULL };
+    purc_variant_t vs[6] = { NULL };
     int n = 0;
 
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
@@ -248,13 +257,6 @@ static int append_authenticate_args(struct pcinst *inst,
         }
     }
 
-    vs[n++] = purc_variant_make_string_static("appLabel", false);
-    vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
-    vs[n++] = purc_variant_make_string_static("appDesc", false);
-    vs[n++] = purc_variant_ref(purc_get_app_description(rdr_caps->locale));
-    vs[n++] = purc_variant_make_string_static("appIcon", false);
-    vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
-            rdr_caps->locale);
     vs[n++] = purc_variant_make_string_static("signature", false);
     vs[n++] = make_signature(inst, rdr_caps);
     vs[n++] = purc_variant_make_string_static("encodedIn", false);
@@ -373,7 +375,8 @@ static int connect_to_renderer(struct pcinst *inst,
         goto failed;
     }
 
-    if (set_session_args(inst, session_data, inst->conn_to_rdr)) {
+    if (set_session_args(inst, session_data, inst->conn_to_rdr,
+                inst->rdr_caps)) {
         goto failed;
     }
 
@@ -623,7 +626,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         goto failed;
     }
 
-    if (set_session_args(inst, session_data, n_conn_to_rdr)) {
+    if (set_session_args(inst, session_data, n_conn_to_rdr, n_rdr_caps)) {
         goto failed;
     }
 
