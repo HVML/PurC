@@ -36,6 +36,7 @@
 #define KEY_LABEL           "label"
 #define KEY_DESC            "description"
 #define KEY_ICON            "icon"
+#define KEY_RUNNERS         "runners"
 
 static const char *label_for_unlabeled_app =
     "{"
@@ -54,6 +55,13 @@ static const char *desc_for_unlabeled_app =
 static const char *icon_for_unlabeled_app =
     "{"
         "hdpi: null"
+    "}";
+
+static const char *label_for_unlabeled_runner =
+    "{"
+        "en: 'Unlabeled',"
+        "zh_CN: '未标记',"
+        "zh: '未標記'"
     "}";
 
 purc_variant_t
@@ -318,5 +326,109 @@ purc_get_app_icon_url(const char *display_density, const char *locale)
 
 fallback:
     return purc_variant_make_null();
+}
+
+purc_variant_t
+pcinst_get_runner_label(const char *runner_name, const char *locale)
+{
+    purc_variant_t manifest, v;
+    purc_variant_t runner = PURC_VARIANT_INVALID;
+    purc_variant_t runner_label = PURC_VARIANT_INVALID;
+
+    manifest = purc_get_app_manifest();
+    if (manifest == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    v = purc_variant_object_get_by_ckey(manifest, KEY_RUNNERS);
+    if (!v) {
+        purc_clr_error();
+        v = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        if (v == PURC_VARIANT_INVALID) {
+            return PURC_VARIANT_INVALID;
+        }
+        purc_variant_object_set_by_ckey(manifest, KEY_RUNNERS, v);
+        purc_variant_unref(v);
+    }
+
+    assert(purc_variant_is_array(v));
+
+    size_t nr = purc_variant_array_get_size(v);
+    for (size_t i = 0; i < nr; i++) {
+        purc_variant_t val = purc_variant_array_get(v, i);
+        if (!purc_variant_is_object(v)) {
+            continue;
+        }
+        purc_variant_t name = purc_variant_object_get_by_ckey(val, "name");
+        if (!name) {
+            continue;
+        }
+        if (strcasecmp(runner_name, purc_variant_get_string_const(name)) != 0) {
+            continue;
+        }
+
+        runner = val;
+        break;
+    }
+
+    if (!runner) {
+        runner = purc_variant_make_object_0();
+        purc_variant_array_append(v, runner);
+        purc_variant_unref(runner);
+    }
+
+    runner_label = purc_variant_object_get_by_ckey(runner, KEY_LABEL);
+    if (!runner_label) {
+        runner_label = purc_variant_make_from_json_string(
+                label_for_unlabeled_runner,
+                strlen(label_for_unlabeled_runner));
+        if (runner_label == PURC_VARIANT_INVALID) {
+            return PURC_VARIANT_INVALID;
+        }
+        purc_variant_object_set_by_ckey(runner, KEY_LABEL, runner_label);
+        purc_variant_unref(runner_label);
+    }
+
+    if (purc_variant_is_string(runner_label)) {
+        return runner_label;
+    }
+
+    assert(purc_variant_is_object(runner_label));
+
+    char lang[3], country_region[3];
+    if (!split_locale(locale, lang, country_region)) {
+        strcpy(lang, "en");
+        strcpy(country_region, "US");
+    }
+
+    char subkey[7];
+    strcpy(subkey, lang);
+
+    strcat(subkey, "_");
+    strcat(subkey, country_region);
+
+    purc_variant_t value;
+    value = purc_variant_object_get_by_ckey(runner_label, subkey);
+    if (value) {
+        return value;
+    }
+
+    purc_clr_error(); /* clr NoSuchKey */
+
+    strcpy(subkey, lang);
+    value = purc_variant_object_get_by_ckey(runner_label, subkey);
+    if (value) {
+        return value;
+    }
+
+    purc_clr_error(); /* clr NoSuchKey */
+
+    /* fallback */
+    value = purc_variant_object_get_by_ckey(runner_label, "en");
+
+    purc_clr_error(); /* clr NoSuchKey */
+    assert(value);
+    return value;
+
 }
 

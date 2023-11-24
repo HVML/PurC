@@ -189,7 +189,7 @@ static int set_session_args(struct pcinst *inst,
         purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr,
         struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[18] = { NULL };
+    purc_variant_t vs[20] = { NULL };
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -214,6 +214,8 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("appIcon", false);
     vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
             rdr_caps->locale);
+    vs[n++] = purc_variant_make_string_static("runnerLabel", false);
+    vs[n++] = pcinst_get_runner_label(inst->runner_name, rdr_caps->locale);
 
     if (vs[n - 1] == NULL) {
         goto failed;
