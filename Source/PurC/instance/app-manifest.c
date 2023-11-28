@@ -222,7 +222,7 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     assert(purc_variant_is_object(v));
 
     char lang[3], country_region[3];
-    if (!split_locale(locale, lang, country_region)) {
+    if (!locale || !split_locale(locale, lang, country_region)) {
         strcpy(lang, "en");
         strcpy(country_region, "US");
     }
@@ -396,7 +396,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
     assert(purc_variant_is_object(runner_label));
 
     char lang[3], country_region[3];
-    if (!split_locale(locale, lang, country_region)) {
+    if (!locale || !split_locale(locale, lang, country_region)) {
         strcpy(lang, "en");
         strcpy(country_region, "US");
     }
