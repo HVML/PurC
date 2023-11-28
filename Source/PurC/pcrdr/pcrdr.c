@@ -189,7 +189,8 @@ static int set_session_args(struct pcinst *inst,
         purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr,
         struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[20] = { NULL };
+    (void) rdr_caps;
+    purc_variant_t vs[12] = { NULL };
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -207,6 +208,7 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("allowSwitchingRdr", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
+#if 0
     vs[n++] = purc_variant_make_string_static("appLabel", false);
     vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appDesc", false);
@@ -216,6 +218,7 @@ static int set_session_args(struct pcinst *inst,
             rdr_caps->locale);
     vs[n++] = purc_variant_make_string_static("runnerLabel", false);
     vs[n++] = pcinst_get_runner_label(inst->runner_name, rdr_caps->locale);
+#endif
 
     if (vs[n - 1] == NULL) {
         goto failed;
@@ -248,7 +251,7 @@ failed:
 static int append_authenticate_args(struct pcinst *inst,
         purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[6] = { NULL };
+    purc_variant_t vs[12] = { NULL };
     int n = 0;
 
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
@@ -265,6 +268,13 @@ static int append_authenticate_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("base64", false);
     vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
     vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
+    vs[n++] = purc_variant_make_string_static("appLabel", false);
+    vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
+    vs[n++] = purc_variant_make_string_static("appDesc", false);
+    vs[n++] = purc_variant_ref(purc_get_app_description(rdr_caps->locale));
+    vs[n++] = purc_variant_make_string_static("appIcon", false);
+    vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
+            rdr_caps->locale);
 
     if (vs[n - 1] == NULL) {
         goto failed;
