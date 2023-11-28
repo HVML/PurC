@@ -295,7 +295,7 @@ purc_get_app_icon_url(const char *display_density, const char *locale)
     purc_variant_t v;
     v = get_app_manifest_via_key(KEY_ICON, display_density, locale);
     if (v == PURC_VARIANT_INVALID) {
-        return v;
+        goto fallback;
     }
 
     if (purc_variant_is_null(v)) {
