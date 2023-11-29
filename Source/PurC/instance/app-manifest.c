@@ -356,7 +356,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
     size_t nr = purc_variant_array_get_size(v);
     for (size_t i = 0; i < nr; i++) {
         purc_variant_t val = purc_variant_array_get(v, i);
-        if (!purc_variant_is_object(v)) {
+        if (!purc_variant_is_object(val)) {
             continue;
         }
         purc_variant_t name = purc_variant_object_get_by_ckey(val, "name");
