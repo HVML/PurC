@@ -212,10 +212,11 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("appDesc", false);
     vs[n++] = purc_variant_ref(purc_get_app_description(rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appIcon", false);
-    vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
-            rdr_caps->locale);
+    vs[n++] = purc_variant_ref(purc_get_app_icon_url(rdr_caps->display_density,
+            rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("runnerLabel", false);
-    vs[n++] = pcinst_get_runner_label(inst->runner_name, rdr_caps->locale);
+    vs[n++] = purc_variant_ref(pcinst_get_runner_label(inst->runner_name,
+                rdr_caps->locale));
 
     if (vs[n - 1] == NULL) {
         goto failed;

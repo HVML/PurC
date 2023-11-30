@@ -273,7 +273,7 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     }
 
     purc_clr_error(); /* clr NoSuchKey */
-    assert(value);
+//    assert(value);
     return value;
 }
 
@@ -337,7 +337,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
 
     manifest = purc_get_app_manifest();
     if (manifest == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
+        return purc_variant_make_null();
     }
 
     v = purc_variant_object_get_by_ckey(manifest, KEY_RUNNERS);
@@ -345,7 +345,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
         purc_clr_error();
         v = purc_variant_make_array(0, PURC_VARIANT_INVALID);
         if (v == PURC_VARIANT_INVALID) {
-            return PURC_VARIANT_INVALID;
+            return purc_variant_make_null();
         }
         purc_variant_object_set_by_ckey(manifest, KEY_RUNNERS, v);
         purc_variant_unref(v);
@@ -383,7 +383,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
                 label_for_unlabeled_runner,
                 strlen(label_for_unlabeled_runner));
         if (runner_label == PURC_VARIANT_INVALID) {
-            return PURC_VARIANT_INVALID;
+            return purc_variant_make_null();
         }
         purc_variant_object_set_by_ckey(runner, KEY_LABEL, runner_label);
         purc_variant_unref(runner_label);
