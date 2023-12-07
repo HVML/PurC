@@ -113,6 +113,7 @@ $ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpyth
 
 # For remote fetcher:
 $ sudo apt install libsoup-3.0-dev libgcrypt20-dev libgpg-error-dev libicu-dev libunistring-dev libssl-dev
+```
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
