@@ -23,6 +23,7 @@ gantt
 
 # Release Notes
 
+- [Version 0.9.18](#version-0918)
 - [Version 0.9.17](#version-0917)
 - [Version 0.9.16](#version-0916)
 - [Version 0.9.15](#version-0915)
@@ -38,6 +39,39 @@ gantt
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.18
+
+On Dec. 7, 2023, HVML Community announces the availability of PurC 0.9.18,
+   which is also the 15th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.18
+
+In this version, we fixed a few bugs and made some major enhancements:
+
+* CHANGES:
+* ENHANCEMENTS:
+   - Update WTF to use libsoup-3.0; use `-DUSE_SOUP2=ON` if you want use libsoup-2.x.
+   - Support for PURCMC version 160.
+   - Add a new renderer `seeker` for seeking a real available remote renderer.
+   - Support for switching amone renderers.
+   - Add `transitionStyle` and `layoutStyle` for windows.
+   - Support for app menifest.
+   - Support for `template` attribute of `hvml` tag.
+   - Add a new API: `purc_evaluate_standalone_window_transition_from_styles()`.
+   - Add a new API: `purc_evaluate_standalone_window_geometry_from_styles()`.
+   - Add a new API: `purc_split_page_identifier()`.
+   - Add a new API: `purc_get_app_icon_content()`.
+   - Add a new API: `purc_get_app_icon_url()`.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix some minor bugs.
+   - Fix some memory leaks.
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.17
 

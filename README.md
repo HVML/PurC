@@ -97,14 +97,14 @@ To build PurC from source code, please make sure that the following tools or lib
 
 If you want to enable the remote data fetcher, the following libraries are needed too:
 
-1. libsoup2.
+1. libsoup2 or libsoup3.
 1. ...
 
-If you are using Ubuntu 22.04 LTS or other similiar Linux distribution, use the following commands to install all above dependencies:
+If you are using Ubuntu 22.04 LTS or other similiar Linux distribution, you can use the following commands to install all above dependencies:
 
 ```console
 $ sudo apt install gcc-12 g++-12 bison flex python3
-$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev
+$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev libsoup-3.0-dev libgcrypt20-dev
 ```
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
@@ -704,6 +704,13 @@ The following options can be supplied to the command:
   -T --toolkit-style
         The toolkit style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin` or `widget`.
+
+  -A --transition-style
+        The transition style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin`.
+
+  -s --allow-switching-rdr=< true | false >
+        Allow switching renderer.
 
   -l --parallel
         Execute multiple programs in parallel.
