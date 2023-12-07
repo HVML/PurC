@@ -51,7 +51,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 - HVML 文档：<https://github.com/HVML/hvml-docs>。
 - PurC（HVML 解释器）：<https://github.com/HVML/PurC>。
 - xGUI Pro（基于 WebKit 的高级 HVML 渲染器）：<https://github.com/HVML/xGUI-Pro>。
-- PurC Midnight Commander（HVML 字符渲染器）：<https://github.com/HVML/PurC-Midnight-Commander>。
+- HVML FPM（HVML 的 FastCGI 进程管理器）：<https://github.com/HVML/HVML-FPM>。
 
 使用 HVML 开发的一些示例应用，可访问如下仓库获得：
 
@@ -86,6 +86,25 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 1. BISON 3.0 或更高版本
 1. FLEX 2.6.4 或更高版本
 1. Ncurses 5.0 或更高版本（可选；`purc` 中的 Foil 渲染器需要此函数库）
+
+如果要启用远程数据获取器，则需要下面两个函数库：
+
+1. libsoup2 或 libsoup3
+1. libgcrypt
+1. libicu
+1. libgpg-error
+1. libunistring
+1. openssl
+
+如果您使用 Ubuntu 22.04 LTS 或者其他类似的 Linux 发行版，则可使用如下命令安装以上所有工具或依赖库：
+
+```console
+$ sudo apt install gcc-12 g++-12 bison flex python3
+$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev
+
+# For remote fetcher:
+$ sudo apt install libsoup-3.0-dev libgcrypt20-dev libgpg-error-dev libicu-dev libunistring-dev libssl-dev
+```
 
 虽然针对 Windows 的移植仍在进行中，但可以在 Windows 10 2004 或更高版本上构建 PurC：你可以在 Windows 系统上安装 WSL（适用于 Linux 的 Windows 子系统）和 Linux 发行版，例如 Ubuntu，然后在 Ubuntu 环境中构建 PurC。
 

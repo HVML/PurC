@@ -65,6 +65,7 @@ For documents, specifications, and open-source software related to HVML, please 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
+- HVML FPM (the FastCGI Process Manager for HVML): <https://github.com/HVML/HVML-FPM>.
 
 For sample applications wrotten by using HVML, please refer to the following repository:
 
@@ -97,15 +98,21 @@ To build PurC from source code, please make sure that the following tools or lib
 
 If you want to enable the remote data fetcher, the following libraries are needed too:
 
-1. libsoup2 or libsoup3.
-1. ...
+1. libsoup2 or libsoup3
+1. libgcrypt
+1. libicu
+1. libgpg-error
+1. libunistring
+1. openssl
 
 If you are using Ubuntu 22.04 LTS or other similiar Linux distribution, you can use the following commands to install all above dependencies:
 
 ```console
 $ sudo apt install gcc-12 g++-12 bison flex python3
-$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev libsoup-3.0-dev libgcrypt20-dev
-```
+$ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev
+
+# For remote fetcher:
+$ sudo apt install libsoup-3.0-dev libgcrypt20-dev libgpg-error-dev libicu-dev libunistring-dev libssl-dev
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
