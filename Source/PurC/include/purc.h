@@ -107,6 +107,11 @@ typedef struct purc_instance_extra_info {
      */
     unsigned int    allow_switching_rdr:1;
 
+    /**
+     * Whether allow scaling by density.
+     */
+    unsigned int    allow_scaling_by_density:1;
+
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN

@@ -190,7 +190,7 @@ static int set_session_args(struct pcinst *inst,
         struct renderer_capabilities *rdr_caps)
 {
     (void) rdr_caps;
-    purc_variant_t vs[20] = { NULL };
+    purc_variant_t vs[22] = { NULL };
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -207,6 +207,8 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
     vs[n++] = purc_variant_make_string_static("allowSwitchingRdr", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
+    vs[n++] = purc_variant_make_string_static("allowScalingByDensity", false);
+    vs[n++] = purc_variant_make_boolean(inst->allow_scaling_by_density);
     vs[n++] = purc_variant_make_string_static("appLabel", false);
     vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appDesc", false);
@@ -357,9 +359,11 @@ static int connect_to_renderer(struct pcinst *inst,
     /* Since 0.9.18 */
     if (extra_info) {
         inst->allow_switching_rdr = extra_info->allow_switching_rdr;
+        inst->allow_scaling_by_density = extra_info->allow_scaling_by_density;
     }
     else {
         inst->allow_switching_rdr = 1;
+        inst->allow_scaling_by_density = 0;
     }
 
     inst->conn_to_rdr->stats.start_time = purc_get_monotoic_time();

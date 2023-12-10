@@ -1044,6 +1044,11 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
 
+        tmp = purc_variant_object_get_by_ckey(runner, "allowScalingByDensity");
+        if (tmp) {
+            inst_info.allow_scaling_by_density = purc_variant_booleanize(tmp);
+        }
+
         tmp = purc_variant_object_get_by_ckey(runner, "renderer");
         if (tmp)
             fill_run_rdr_info(opts, &inst_info, tmp);

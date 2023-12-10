@@ -439,6 +439,11 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.allow_switching_rdr = purc_variant_booleanize(tmp);
     }
 
+    tmp = purc_variant_object_get_by_ckey(request->data, "allowScalingByDensity");
+    if (tmp && purc_variant_is_boolean(tmp)) {
+        info.allow_scaling_by_density = purc_variant_booleanize(tmp);
+    }
+
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI");
     if (tmp) {
         info.renderer_uri = purc_variant_get_string_const(tmp);
@@ -829,6 +834,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 
         tmp = purc_variant_make_boolean(extra_info->allow_switching_rdr);
         purc_variant_object_set_by_static_ckey(data, "allowSwitchingRdr", tmp);
+        purc_variant_unref(tmp);
+
+        tmp = purc_variant_make_boolean(extra_info->allow_scaling_by_density);
+        purc_variant_object_set_by_static_ckey(data, "allowScalingByDensity", tmp);
         purc_variant_unref(tmp);
 
         if (extra_info->renderer_uri) {

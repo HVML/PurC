@@ -46,6 +46,7 @@ static struct purc_instance_extra_info worker_info = {
     "workspaceTitle",
     "<html></html>",            // workspace_layout
     0,                          // allow_switching_rdr
+    0,                          // allow_scaling_by_denisty
 };
 
 static const char *cond_names[] = {

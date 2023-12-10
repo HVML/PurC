@@ -76,6 +76,7 @@ struct pcinst {
     unsigned int            is_instmgr:1;
     unsigned int            allow_switching_rdr:1;
     unsigned int            auto_switching_rdr:1;
+    unsigned int            allow_scaling_by_density:1;
 
     char                   *app_name;
     char                   *runner_name;
