@@ -137,7 +137,10 @@ app_label_getter(purc_variant_t root,
     UNUSED_PARAM(call_flags);
 
     struct pcinst* inst = pcinst_current();
-    return purc_variant_ref(purc_get_app_label(inst->rdr_caps->locale));
+    purc_variant_t v;
+    const char *locale = inst->rdr_caps ? inst->rdr_caps->locale : NULL;
+    v = purc_get_app_label(locale);
+    return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
 
 static purc_variant_t
@@ -164,7 +167,8 @@ runner_label_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     purc_variant_t v;
-    v = pcinst_get_runner_label(inst->runner_name, inst->rdr_caps->locale);
+    const char *locale = inst->rdr_caps ? inst->rdr_caps->locale : NULL;
+    v = pcinst_get_runner_label(inst->runner_name, locale);
     return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
 
@@ -342,16 +346,18 @@ purc_dvobj_runner_new(void)
         { "uri",                uri_getter,             NULL },
         { "autoSwitchingRdr",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
-        { "chan",               chan_getter,    chan_setter },
+        { "chan",               chan_getter,            chan_setter },
 #if ENABLE(CHINESE_NAMES)
-        { "用户",               user_getter,    user_setter },
-        { "应用名",             app_getter,     NULL },
-        { "行者名",             runner_getter,  NULL },
-        { "行者标识符",         rid_getter,     NULL },
-        { "统一资源标识符",     uri_getter,     NULL },
+        { "用户",               user_getter,            user_setter },
+        { "应用名",             app_getter,             NULL },
+        { "应用标签",           app_label_getter,       NULL },
+        { "行者名",             runner_getter,          NULL },
+        { "行者标签",           runner_label_getter,    NULL },
+        { "行者标识符",         rid_getter,             NULL },
+        { "统一资源标识符",     uri_getter,             NULL },
         { "自动切换渲染器",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
-        { "通道",               chan_getter,    chan_setter },
+        { "通道",               chan_getter,            chan_setter },
 #endif
     };
 

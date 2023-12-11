@@ -5,3 +5,15 @@ positive:
 positive:
     "$行者.应用名，$行者.行者名"
     'cn.fmsoft.hvml.test，dvobjs'
+
+positive:
+    "$RUNNER.应用标签"
+    'Unlabeled'
+
+positive:
+    "$行者.应用标签"
+    'Unlabeled'
+
+positive:
+    "$行者.行者标签"
+    'Unlabeled'

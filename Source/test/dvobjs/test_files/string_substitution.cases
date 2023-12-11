@@ -13,3 +13,11 @@ positive:
 positive:
     "foo($RUNNER.app_name, $RUNNER.run_name)"
     'foo(cn.fmsoft.hvml.test, dvobjs)'
+
+positive:
+    "$RUNNER.appLabel"
+    'Unlabeled'
+
+positive:
+    "$RUNNER.runLabel"
+    'Unlabeled'
