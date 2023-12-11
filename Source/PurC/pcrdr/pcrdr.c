@@ -191,6 +191,7 @@ static int set_session_args(struct pcinst *inst,
 {
     (void) rdr_caps;
     purc_variant_t vs[22] = { NULL };
+    purc_variant_t tmp;
     int n = 0;
 
     vs[n++] = purc_variant_make_string_static("protocolName", false);
@@ -209,13 +210,17 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
     vs[n++] = purc_variant_make_string_static("allowScalingByDensity", false);
     vs[n++] = purc_variant_make_boolean(inst->allow_scaling_by_density);
+
     vs[n++] = purc_variant_make_string_static("appLabel", false);
-    vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
+    tmp = purc_get_app_label(rdr_caps->locale);
+    vs[n++] = tmp ? purc_variant_ref(tmp) : purc_variant_make_null();
+
     vs[n++] = purc_variant_make_string_static("appDesc", false);
     vs[n++] = purc_variant_ref(purc_get_app_description(rdr_caps->locale));
+
     vs[n++] = purc_variant_make_string_static("appIcon", false);
-    vs[n++] = purc_variant_ref(purc_get_app_icon_url(rdr_caps->display_density,
-            rdr_caps->locale));
+    tmp = purc_get_app_icon_url(rdr_caps->display_density, rdr_caps->locale);
+    vs[n++] = tmp ? purc_variant_ref(tmp) : purc_variant_make_null();
     vs[n++] = purc_variant_make_string_static("runnerLabel", false);
     vs[n++] = purc_variant_ref(pcinst_get_runner_label(inst->runner_name,
                 rdr_caps->locale));
