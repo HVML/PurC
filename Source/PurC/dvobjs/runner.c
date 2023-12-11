@@ -28,6 +28,7 @@
 #include "private/dvobjs.h"
 #include "private/url.h"
 #include "private/channel.h"
+#include "private/pcrdr.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -127,6 +128,19 @@ app_getter(purc_variant_t root,
 }
 
 static purc_variant_t
+app_label_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_ref(purc_get_app_label(inst->rdr_caps->locale));
+}
+
+static purc_variant_t
 runner_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
@@ -137,6 +151,21 @@ runner_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     return purc_variant_make_string(inst->runner_name, false);
+}
+
+static purc_variant_t
+runner_label_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    struct pcinst* inst = pcinst_current();
+    purc_variant_t v;
+    v = pcinst_get_runner_label(inst->runner_name, inst->rdr_caps->locale);
+    return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
 
 static purc_variant_t
@@ -302,13 +331,15 @@ purc_dvobj_runner_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        { "user",               user_getter,    user_setter },
-        { "app_name",           app_getter,     NULL },  // TODO: remove
-        { "run_name",           runner_getter,  NULL },  // TODO: remove
-        { "appName",            app_getter,     NULL },
-        { "runName",            runner_getter,  NULL },
-        { "rid",                rid_getter,     NULL },
-        { "uri",                uri_getter,     NULL },
+        { "user",               user_getter,            user_setter },
+        { "app_name",           app_getter,             NULL },  // TODO: remove
+        { "run_name",           runner_getter,          NULL },  // TODO: remove
+        { "appName",            app_getter,             NULL },
+        { "appLabel",           app_label_getter,       NULL },
+        { "runName",            runner_getter,          NULL },
+        { "runLabel",           runner_label_getter,    NULL },
+        { "rid",                rid_getter,             NULL },
+        { "uri",                uri_getter,             NULL },
         { "autoSwitchingRdr",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "chan",               chan_getter,    chan_setter },
