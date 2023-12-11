@@ -189,6 +189,9 @@ static void print_usage(FILE *fp)
         "  -s --allow-switching-rdr=< true | false >\n"
         "        Allow switching renderer.\n"
         "\n"
+        "  -S --allow-scaling-by-density=< true | false >\n"
+        "        Allow scaling by density.\n"
+        "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
         "\n"
@@ -230,6 +233,7 @@ struct my_opts {
     const char *toolkit_style;
     const char *transition_style;
     const char *allow_switching_rdr;
+    const char *allow_scaling_by_density;
     const char *chroot;
     const char *setuser;
     const char *setgroup;
@@ -433,28 +437,29 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:R:U:G:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:lvCVh";
     static const struct option long_opts[] = {
-        { "app"                  , required_argument , NULL , 'a' },
-        { "runner"               , required_argument , NULL , 'r' },
-        { "data-fetcher"         , required_argument , NULL , 'd' },
-        { "rdr-comm"             , required_argument , NULL , 'c' },
-        { "rdr-uri"              , required_argument , NULL , 'u' },
-        { "request"              , required_argument , NULL , 'j' },
-        { "query"                , required_argument , NULL , 'q' },
-        { "pageid"               , required_argument , NULL , 'P' },
-        { "layout-style"         , required_argument , NULL , 'L' },
-        { "toolkit-style"        , required_argument , NULL , 'T' },
-        { "transition-style"     , required_argument , NULL , 'A' },
-        { "allow-switching-rdr"  , required_argument , NULL , 's' },
-        { "chroot"               , required_argument , NULL , 'R' },
-        { "setuser"              , required_argument , NULL , 'U' },
-        { "setgroup"             , required_argument , NULL , 'G' },
-        { "parallel"             , no_argument       , NULL , 'l' },
-        { "verbose"              , no_argument       , NULL , 'v' },
-        { "copying"              , no_argument       , NULL , 'C' },
-        { "version"              , no_argument       , NULL , 'V' },
-        { "help"                 , no_argument       , NULL , 'h' },
+        { "app"                         , required_argument , NULL , 'a' },
+        { "runner"                      , required_argument , NULL , 'r' },
+        { "data-fetcher"                , required_argument , NULL , 'd' },
+        { "rdr-comm"                    , required_argument , NULL , 'c' },
+        { "rdr-uri"                     , required_argument , NULL , 'u' },
+        { "request"                     , required_argument , NULL , 'j' },
+        { "query"                       , required_argument , NULL , 'q' },
+        { "pageid"                      , required_argument , NULL , 'P' },
+        { "layout-style"                , required_argument , NULL , 'L' },
+        { "toolkit-style"               , required_argument , NULL , 'T' },
+        { "transition-style"            , required_argument , NULL , 'A' },
+        { "allow-switching-rdr"         , required_argument , NULL , 's' },
+        { "allow-scaling-by-density"    , required_argument , NULL , 'S' },
+        { "chroot"                      , required_argument , NULL , 'R' },
+        { "setuser"                     , required_argument , NULL , 'U' },
+        { "setgroup"                    , required_argument , NULL , 'G' },
+        { "parallel"                    , no_argument       , NULL , 'l' },
+        { "verbose"                     , no_argument       , NULL , 'v' },
+        { "copying"                     , no_argument       , NULL , 'C' },
+        { "version"                     , no_argument       , NULL , 'V' },
+        { "help"                        , no_argument       , NULL , 'h' },
         { 0, 0, 0, 0 }
     };
 
@@ -577,6 +582,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 's':
             opts->allow_switching_rdr = optarg;
+            break;
+
+        case 'S':
+            opts->allow_scaling_by_density = optarg;
             break;
 
         case 'R':
@@ -1042,6 +1051,16 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         tmp = purc_variant_object_get_by_ckey(runner, "allowSwitchingRdr");
         if (tmp) {
             inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
+        }
+
+        inst_info.allow_scaling_by_density = 0;
+        if (opts->allow_scaling_by_density) {
+            if (strcmp(opts->allow_scaling_by_density, "true") == 0) {
+                inst_info.allow_scaling_by_density = 1;
+            }
+            else {
+                inst_info.allow_scaling_by_density = 0;
+            }
         }
 
         tmp = purc_variant_object_get_by_ckey(runner, "allowScalingByDensity");
@@ -1859,6 +1878,18 @@ int main(int argc, char** argv)
     }
     else {
         extra_info.allow_switching_rdr = 1;
+    }
+
+    if (opts->allow_scaling_by_density) {
+        if (strcmp(opts->allow_scaling_by_density, "true") == 0) {
+            extra_info.allow_scaling_by_density = 1;
+        }
+        else {
+            extra_info.allow_scaling_by_density = 0;
+        }
+    }
+    else {
+        extra_info.allow_scaling_by_density = 0;
     }
 
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
