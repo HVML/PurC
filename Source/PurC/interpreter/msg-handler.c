@@ -714,6 +714,10 @@ pcintr_post_event(purc_atom_t rid, purc_atom_t cid,
 
     if (!rid) {
         rid = purc_get_rid_by_cid(cid);
+        if (rid == 0) {
+            /* clear PURC_ERROR_ENTITY_NOT_FOUND */
+            purc_clr_error();
+        }
     }
 
     pcrdr_msg *msg = pcinst_get_message();

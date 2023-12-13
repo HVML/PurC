@@ -541,7 +541,6 @@ pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
 
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     if (data) {
-        data = purc_variant_ref(data);
         data_type = PCRDR_MSG_DATA_TYPE_JSON;
     }
 
@@ -565,10 +564,6 @@ pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
     pcrdr_release_message(response_msg);
 
 out:
-    if (data) {
-        purc_variant_unref(data);
-    }
-
     return page_handle;
 }
 
@@ -913,7 +908,6 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
                             extra_info->toolkit_style)) {
                     errors++;
                 }
-                purc_variant_unref(extra_info->toolkit_style);
             }
 
             if (extra_info->transition_style) {
@@ -928,8 +922,9 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
 
         if (errors > 0) {
             purc_log_error("Failed to create data for page.\n");
-            if (data)
+            if (data) {
                 purc_variant_unref(data);
+            }
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }

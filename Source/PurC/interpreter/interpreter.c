@@ -3874,6 +3874,10 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
             cor->target_page_type, cor->target_workspace,
             cor->target_group, cor->page_name, &rdr_info);
 
+    if (rdr_info.toolkit_style) {
+        purc_variant_ref(cor->toolkit_style);
+    }
+
     if (!r) {
         ret = -1;
         goto out;

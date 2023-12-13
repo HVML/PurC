@@ -181,6 +181,10 @@ purc_get_app_manifest(void)
 
 static bool split_locale(const char *locale, char *lang, char *country_region)
 {
+    if (strlen(locale) < 3) {
+        return false;
+    }
+
     if (locale[0] < 'a' && locale[0] > 'z')
         return false;
     lang[0] = locale[0];

@@ -74,6 +74,7 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
     delete remote->process;
     if (remote->base_uri) {
         free(remote->base_uri);
+        remote->base_uri = NULL;
     }
     free(remote);
 
@@ -90,6 +91,7 @@ const char* pcfetcher_remote_set_base_url(struct pcfetcher* fetcher,
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     if (remote->base_uri) {
         free(remote->base_uri);
+        remote->base_uri = NULL;
     }
 
     if (base_url == NULL) {
