@@ -180,6 +180,8 @@ static ssize_t ws_read(int fd, void *buf, size_t length)
 
 static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
 {
+    ssize_t nr_result = 0;
+
     if (conn->sticky) {
         size_t nr_last = 0;
         nr_last = conn->nr_sticky - (conn->sticky_pos - conn->sticky);
@@ -200,13 +202,26 @@ static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
             return length;
         }
 
-        return nr_last + ws_read(conn->fd, (char *)buf + nr_last, length - nr_last);
+        nr_result = nr_last;
     }
-    ssize_t nr_ret = ws_read(conn->fd, buf, length);
-    if (nr_ret < length) {
-        nr_ret += ws_read(conn->fd, buf + nr_ret, length - nr_ret);
+
+    if ((size_t)nr_result == length) {
+        return nr_result;
     }
-    return nr_ret;
+
+    char *p = (char *)buf + nr_result;
+    ssize_t nr_read = 0;
+    size_t nr_len = length - nr_result;
+    while ((nr_read = ws_read(conn->fd, p, nr_len)) != -1) {
+        nr_result += nr_read;
+        if ((size_t)nr_read == nr_len) {
+            break;
+        }
+        nr_len = length - nr_result;
+        p += nr_read;
+    }
+
+    return nr_result;
 }
 
 static int ws_send_ctrl_frame(int fd, char code)
