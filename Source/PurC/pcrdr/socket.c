@@ -202,7 +202,11 @@ static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
 
         return nr_last + ws_read(conn->fd, (char *)buf + nr_last, length - nr_last);
     }
-    return ws_read(conn->fd, buf, length);
+    ssize_t nr_ret = ws_read(conn->fd, buf, length);
+    if (nr_ret < length) {
+        nr_ret += ws_read(conn->fd, buf + nr_ret, length - nr_ret);
+    }
+    return nr_ret;
 }
 
 static int ws_send_ctrl_frame(int fd, char code)
