@@ -593,6 +593,36 @@ out:
 #define KEY_URI         "uri"
 
 static void
+broadcast_rdr_idle_event(struct pcinst *inst, purc_variant_t data)
+{
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_TYPE_IDLE,
+                data, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_TYPE_IDLE,
+                data, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+}
+
+static void
 on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
@@ -619,7 +649,10 @@ on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
         PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n", s_uri, inst->app_name, inst->runner_name);
         pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
-    else {
+    if (strcmp(type, MSG_TYPE_RDR_STATE) == 0
+            && sub_type && strcmp(type, MSG_TYPE_IDLE)) {
+        broadcast_rdr_idle_event(inst, msg->data);
+    } else {
         // TODO: other event
     }
 }
