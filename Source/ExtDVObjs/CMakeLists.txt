@@ -14,3 +14,6 @@ if (ENABLE_EXTDVOBJ_PY)
     add_subdirectory(py)
 endif ()
 
+if (ENABLE_EXTDVOBJ_SQLITE)
+    add_subdirectory(sqlite)
+endif ()
