@@ -40,6 +40,8 @@
 
 #define MAX_SYMBOL_LEN              64
 
+#define SQLITE_DEFAULT_TIMEOUT      5
+
 #define STR(x)                      #x
 #define STR2(x)                     STR(x)
 #define SQLITE_DVOBJ_VERCODE_STR    STR2(SQLITE_DVOBJ_VERCODE)
@@ -86,8 +88,140 @@ struct dvobj_sqlite_info {
     struct pcvar_listener   *listener;          // the listener
 };
 
+struct dvobj_sqlite_connection {
+    purc_variant_t          root;               // the root variant, itself
+    sqlite3                 *db;
+    char                    *db_name;
+    struct pcvar_listener   *listener;          // the listener
+};
+
+/* $SQLiteConnect begin */
+static inline struct dvobj_sqlite_connection *
+get_connection_from_root(purc_variant_t root)
+{
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    assert(v && purc_variant_is_native(v));
+
+    return (struct dvobj_sqlite_connection *)purc_variant_native_get_entity(v);
+}
+
+static struct dvobj_sqlite_connection *
+create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
+{
+    (void) sqlite_info;
+    int rc;
+    sqlite3 *db = NULL;
+    struct dvobj_sqlite_connection *sqlite_connection = NULL;
+    rc = sqlite3_open_v2(db_name, &db,
+                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+                         , NULL);
+    if (rc == SQLITE_OK) {
+        (void)sqlite3_busy_timeout(db, (int)(SQLITE_DEFAULT_TIMEOUT*1000));
+    }
+
+    if (db == NULL && rc == SQLITE_NOMEM) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    sqlite_connection = calloc(1, sizeof(*sqlite_connection));
+    if (!sqlite_connection) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    sqlite_connection->db = db;
+
+    return sqlite_connection;
+
+failed:
+    if (db) {
+        sqlite3_close(db);
+    }
+    return NULL;
+}
+
+static bool on_sqlite_connection_being_released(purc_variant_t src, pcvar_op_t op,
+        void *ctxt, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    if (op == PCVAR_OPERATION_RELEASING) {
+        struct dvobj_sqlite_connection *sqlite_connection = ctxt;
+        purc_variant_revoke_listener(src, sqlite_connection->listener);
+        free(sqlite_connection);
+    }
+
+    return true;
+}
+
+static purc_variant_t cursor_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t commit_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t rollback_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t close_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t execute_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t executemany_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+/* $SQLiteConnect end */
+
+/* $SQLITE begin */
 static inline struct dvobj_sqlite_info *
-get_dvobj_sqlite_info_from_root(purc_variant_t root)
+get_sqlite_info_from_root(purc_variant_t root)
 {
     purc_variant_t v;
 
@@ -253,6 +387,77 @@ static purc_variant_t connect_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    static struct purc_dvobj_method methods[] = {
+        { SQLITE_KEY_CURSOR,                cursor_getter,          NULL },
+        { SQLITE_KEY_COMMIT,                commit_getter,          NULL },
+        { SQLITE_KEY_ROLLBACK,              rollback_getter,        NULL },
+        { SQLITE_KEY_CLOSE,                 close_getter,           NULL },
+        { SQLITE_KEY_EXECUTE,               execute_getter,         NULL },
+        { SQLITE_KEY_EXECUTEMANY,           executemany_getter,     NULL },
+    };
+
+    const char *db_name;
+    size_t db_name_len;
+    purc_variant_t connect;
+    purc_variant_t val;
+    struct dvobj_sqlite_info *sqlite_info;
+    struct dvobj_sqlite_connection *sqlite_connection;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    connect = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
+    if (connect == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    sqlite_info = get_sqlite_info_from_root(root);
+    db_name = purc_variant_get_string_const(argv[0]);
+    db_name = pcutils_trim_spaces(db_name, &db_name_len);
+    if (db_name_len == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    sqlite_connection = create_connection(sqlite_info, db_name);
+    if (!sqlite_connection) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    if ((val = purc_variant_make_native((void *)sqlite_info, NULL)) == NULL) {
+        goto failed;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(connect, SQLITE_KEY_HANDLE,
+                val)) {
+        goto failed;
+    }
+    purc_variant_unref(val);
+
+    sqlite_info->listener = purc_variant_register_post_listener(connect,
+            PCVAR_OPERATION_RELEASING, on_sqlite_connection_being_released,
+            sqlite_info);
+
+    return connect;
+failed:
+    if (connect) {
+        purc_variant_unref(connect);
+        connect = NULL;
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -281,6 +486,9 @@ static purc_variant_t create_sqlite(void)
     purc_variant_t val = PURC_VARIANT_INVALID;
 
     sqlite = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
+    if (sqlite == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
 
     struct dvobj_sqlite_info *sqlite_info = NULL;
     if (!sqlite) {
@@ -343,6 +551,7 @@ fatal:
     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
     return PURC_VARIANT_INVALID;
 }
+/* $SQLITE end */
 
 static struct dvobj_info {
     const char *name;
