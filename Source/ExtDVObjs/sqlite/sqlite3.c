@@ -120,7 +120,7 @@ create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
     (void) sqlite_info;
     int rc;
     sqlite3 *db = NULL;
-    struct dvobj_sqlite_connection *sqlite_connection = NULL;
+    struct dvobj_sqlite_connection *connection = NULL;
     rc = sqlite3_open_v2(db_name, &db,
                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
                          , NULL);
@@ -133,15 +133,15 @@ create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
         goto failed;
     }
 
-    sqlite_connection = calloc(1, sizeof(*sqlite_connection));
-    if (!sqlite_connection) {
+    connection = calloc(1, sizeof(*connection));
+    if (!connection) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
-    sqlite_connection->db = db;
+    connection->db = db;
 
-    return sqlite_connection;
+    return connection;
 
 failed:
     if (db) {
@@ -157,9 +157,12 @@ static bool on_sqlite_connection_being_released(purc_variant_t src, pcvar_op_t o
     UNUSED_PARAM(argv);
 
     if (op == PCVAR_OPERATION_RELEASING) {
-        struct dvobj_sqlite_connection *sqlite_connection = ctxt;
-        purc_variant_revoke_listener(src, sqlite_connection->listener);
-        free(sqlite_connection);
+        struct dvobj_sqlite_connection *connection = ctxt;
+        purc_variant_revoke_listener(src, connection->listener);
+        if (connection->db) {
+            sqlite3_close(connection->db);
+        }
+        free(connection);
     }
 
     return true;
@@ -202,7 +205,16 @@ static purc_variant_t close_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    int rc = sqlite3_close(conn->db);
+    bool ret = false;
+    if (rc == SQLITE_OK) {
+        ret = true;
+        conn->db = NULL;
+    }
+
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t execute_getter(purc_variant_t root,
