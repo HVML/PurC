@@ -73,6 +73,30 @@
 
 #define _KW_DELIMITERS              " \t\n\v\f\r"
 
+#if defined(__linux) || defined(__linux__) || defined(linux)
+#define SQLITE_PLATFORM             "Linux"
+#elif defined(__APPLE__)↵
+#define SQLITE_PLATFORM             "Darwin"
+#else
+#define SQLITE_PLATFORM             "Unknown"
+#endif
+
+struct dvobj_sqlite_info {
+    purc_variant_t          root;               // the root variant, i.e., $SQLITE itself
+    struct pcvar_listener   *listener;          // the listener
+};
+
+static inline struct dvobj_sqlite_info *
+get_dvobj_sqlite_info_from_root(purc_variant_t root)
+{
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    assert(v && purc_variant_is_native(v));
+
+    return (struct dvobj_sqlite_info *)purc_variant_native_get_entity(v);
+}
+
 static purc_variant_t make_impl_object(void)
 {
     static const char *kvs[] = {
@@ -125,27 +149,27 @@ fatal:
 
 static const char *sqlite3_get_version(void)
 {
-    return NULL;
+    return SQLITE_VERSION;
 }
 
 static const char *sqlite3_get_platform(void)
 {
-    return NULL;
+    return SQLITE_PLATFORM;
 }
 
 static const char *sqlite3_get_copyright(void)
 {
-    return NULL;
+    return "unknown";
 }
 
 static const char *sqlite3_get_compiler(void)
 {
-    return NULL;
+    return "unknown";
 }
 
 static const char *sqlite3_get_buildinfo(void)
 {
-    return NULL;
+    return SQLITE_SOURCE_ID;
 }
 
 static purc_variant_t make_info_object(void)
@@ -232,6 +256,21 @@ static purc_variant_t connect_getter(purc_variant_t root,
     return PURC_VARIANT_INVALID;
 }
 
+static bool on_sqlite_being_released(purc_variant_t src, pcvar_op_t op,
+        void *ctxt, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    if (op == PCVAR_OPERATION_RELEASING) {
+        struct dvobj_sqlite_info *sqlite_info = ctxt;
+        purc_variant_revoke_listener(src, sqlite_info->listener);
+        free(sqlite_info);
+    }
+
+    return true;
+}
+
 static purc_variant_t create_sqlite(void)
 {
     static struct purc_dvobj_method methods[] = {
@@ -242,6 +281,18 @@ static purc_variant_t create_sqlite(void)
     purc_variant_t val = PURC_VARIANT_INVALID;
 
     sqlite = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
+
+    struct dvobj_sqlite_info *sqlite_info = NULL;
+    if (!sqlite) {
+        goto fatal;
+    }
+
+    sqlite_info = calloc(1, sizeof(*sqlite_info));
+    if (sqlite_info == NULL) {
+        goto failed_info;
+    }
+
+    sqlite_info->root = sqlite;
 
     /* $SQLITE.impl */
     if ((val = make_impl_object()) == PURC_VARIANT_INVALID) {
@@ -261,7 +312,24 @@ static purc_variant_t create_sqlite(void)
     }
     purc_variant_unref(val);
 
+    if ((val = purc_variant_make_native((void *)sqlite_info, NULL)) == NULL) {
+        goto fatal;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(sqlite, SQLITE_KEY_HANDLE, val)) {
+        goto fatal;
+    }
+    purc_variant_unref(val);
+
+    sqlite_info->listener = purc_variant_register_post_listener(sqlite,
+            PCVAR_OPERATION_RELEASING, on_sqlite_being_released, sqlite_info);
+
     return sqlite;
+
+failed_info:
+    if (sqlite_info) {
+        free(sqlite_info);
+    }
 
 fatal:
     if (val) {
