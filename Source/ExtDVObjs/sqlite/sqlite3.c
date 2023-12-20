@@ -89,10 +89,17 @@ struct dvobj_sqlite_info {
 };
 
 struct dvobj_sqlite_connection {
-    purc_variant_t          root;               // the root variant, itself
-    sqlite3                 *db;
-    char                    *db_name;
-    struct pcvar_listener   *listener;          // the listener
+    purc_variant_t              root;               // the root variant, itself
+    sqlite3                     *db;
+    char                        *db_name;
+    struct pcvar_listener       *listener;          // the listener
+};
+
+struct dvobj_sqlite_cursor {
+    purc_variant_t              root;               // the root variant, itself
+    sqlite3                     *db;
+    char                        *db_name;
+    struct pcvar_listener       *listener;          // the listener
 };
 
 /* $SQLiteConnect begin */
@@ -432,6 +439,7 @@ static purc_variant_t connect_getter(purc_variant_t root,
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
+    sqlite_connection->root = connect;;
 
     if ((val = purc_variant_make_native((void *)sqlite_info, NULL)) == NULL) {
         goto failed;
