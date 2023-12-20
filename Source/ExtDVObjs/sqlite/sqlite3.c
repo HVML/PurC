@@ -168,6 +168,25 @@ static bool on_sqlite_connection_being_released(purc_variant_t src, pcvar_op_t o
     return true;
 }
 
+static inline int
+conn_exec_stmt(struct dvobj_sqlite_connection *conn, const char *sql)
+{
+    int rc;
+    int len = (int)strlen(sql) + 1;
+    sqlite3_stmt *stmt;
+    rc = sqlite3_prepare_v2(conn->db, sql, len, &stmt, NULL);
+    if (rc == SQLITE_OK) {
+        (void)sqlite3_step(stmt);
+        rc = sqlite3_finalize(stmt);
+    }
+
+    if (rc != SQLITE_OK) {
+        return -1;
+    }
+    return 0;
+}
+
+
 static purc_variant_t cursor_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
@@ -185,7 +204,23 @@ static purc_variant_t commit_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    bool ret = false;
+    if (conn_exec_stmt(conn, "COMMIT") < 0) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "sqlite error message is %s", sqlite3_errmsg(conn->db));
+        goto out;
+    }
+
+    if (conn_exec_stmt(conn, "BEGIN") < 0) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "sqlite error message is %s", sqlite3_errmsg(conn->db));
+        goto out;
+    }
+
+    ret = true;
+out:
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t rollback_getter(purc_variant_t root,
@@ -195,7 +230,23 @@ static purc_variant_t rollback_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    bool ret = false;
+    if (conn_exec_stmt(conn, "ROLLBACK") < 0) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "sqlite error message is %s", sqlite3_errmsg(conn->db));
+        goto out;
+    }
+
+    if (conn_exec_stmt(conn, "BEGIN") < 0) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "sqlite error message is %s", sqlite3_errmsg(conn->db));
+        goto out;
+    }
+
+    ret = true;
+out:
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t close_getter(purc_variant_t root,
