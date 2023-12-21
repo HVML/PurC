@@ -385,10 +385,16 @@ cursor_exec_query(struct dvobj_sqlite_cursor *cursor, bool multiple,
     }
 
     if (multiple) {
-        param_array = purc_variant_make_array(1, param);
+        if (param) {
+            param_array = purc_variant_ref(param);
+        }
+        else {
+            param_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        }
     }
     else {
-        param_array = purc_variant_ref(param);
+        size_t nr_param = param ? 1 : 0;
+        param_array = purc_variant_make_array(nr_param, param);
     }
 
     /* reset description */
@@ -544,7 +550,38 @@ static purc_variant_t cursor_execute_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    bool ret = false;
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    size_t nr_sql;
+    const char *sql = purc_variant_get_string_const(argv[0]);
+    sql = pcutils_trim_spaces(sql, &nr_sql);
+    if (nr_sql == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    int rc = cursor_exec_query(cursor, false, sql,
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID);
+    if (rc == 0) {
+        ret = true;
+    }
+
+failed:
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t cursor_executemany_getter(purc_variant_t root,
@@ -554,7 +591,38 @@ static purc_variant_t cursor_executemany_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    bool ret = false;
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    size_t nr_sql;
+    const char *sql = purc_variant_get_string_const(argv[0]);
+    sql = pcutils_trim_spaces(sql, &nr_sql);
+    if (nr_sql == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    int rc = cursor_exec_query(cursor, true, sql,
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID);
+    if (rc == 0) {
+        ret = true;
+    }
+
+failed:
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t cursor_fetchone_getter(purc_variant_t root,
