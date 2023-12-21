@@ -97,8 +97,10 @@ struct dvobj_sqlite_cursor {
     purc_variant_t                  root;               // the root variant, itself
     long                            rowcount;
     int64_t                         lastrowid;
+    purc_variant_t                  description;        // description attr
     struct dvobj_sqlite_connection  *conn;
     struct pcvar_listener           *listener;          // the listener
+    sqlite3_stmt                    *st;
 };
 
 /* $SQLiteCursor begin */
@@ -239,7 +241,11 @@ static purc_variant_t cursor_description_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (cursor->description) {
+        return purc_variant_ref(cursor->description);
+    }
+    return purc_variant_make_null();;
 }
 
 static purc_variant_t
@@ -309,6 +315,11 @@ get_connection_from_root(purc_variant_t root)
     assert(v && purc_variant_is_native(v));
 
     return (struct dvobj_sqlite_connection *)purc_variant_native_get_entity(v);
+}
+
+static bool is_conn_closed(struct dvobj_sqlite_connection *conn)
+{
+    return !conn->db;
 }
 
 static struct dvobj_sqlite_connection *
@@ -403,6 +414,13 @@ static purc_variant_t conn_commit_getter(purc_variant_t root,
     (void) call_flags;
     struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
     bool ret = false;
+    if (is_conn_closed(conn)) {
+        ret = false;
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "cannot operate on a closed database");
+        goto out;
+    }
+
     if (conn_exec_stmt(conn, "COMMIT") < 0) {
         purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
                 "sqlite error message is %s", sqlite3_errmsg(conn->db));
@@ -429,6 +447,13 @@ static purc_variant_t conn_rollback_getter(purc_variant_t root,
     (void) call_flags;
     struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
     bool ret = false;
+    if (is_conn_closed(conn)) {
+        ret = false;
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "cannot operate on a closed database");
+        goto out;
+    }
+
     if (conn_exec_stmt(conn, "ROLLBACK") < 0) {
         purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
                 "sqlite error message is %s", sqlite3_errmsg(conn->db));
@@ -454,14 +479,20 @@ static purc_variant_t conn_close_getter(purc_variant_t root,
     (void) argv;
     (void) call_flags;
 
-    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
-    int rc = sqlite3_close(conn->db);
     bool ret = false;
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    if (is_conn_closed(conn)) {
+        ret = true;
+        goto out;
+    }
+
+    int rc = sqlite3_close(conn->db);
     if (rc == SQLITE_OK) {
         ret = true;
         conn->db = NULL;
     }
 
+out:
     return purc_variant_make_boolean(ret);
 }
 
@@ -474,6 +505,11 @@ static purc_variant_t conn_execute_getter(purc_variant_t root,
     (void) call_flags;
 
     struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    if (is_conn_closed(conn)) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "cannot operate on a closed database");
+        goto failed;
+    }
 
     purc_variant_t cursor_val = create_cursor_variant(conn);
     if (!cursor_val) {
@@ -501,6 +537,11 @@ static purc_variant_t conn_executemany_getter(purc_variant_t root,
     (void) call_flags;
 
     struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+    if (is_conn_closed(conn)) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "cannot operate on a closed database");
+        goto failed;
+    }
 
     purc_variant_t cursor_val = create_cursor_variant(conn);
     if (!cursor_val) {
