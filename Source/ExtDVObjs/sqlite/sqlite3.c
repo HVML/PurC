@@ -96,7 +96,7 @@ struct dvobj_sqlite_connection {
 struct dvobj_sqlite_cursor {
     purc_variant_t                  root;               // the root variant, itself
     long                            rowcount;
-    int64_t                         lastrawid;
+    int64_t                         lastrowid;
     struct dvobj_sqlite_connection  *conn;
     struct pcvar_listener           *listener;          // the listener
 };
@@ -122,6 +122,8 @@ create_cursor(struct dvobj_sqlite_connection *sqlite_conn)
         goto failed;
     }
     cursor->conn = sqlite_conn;
+    cursor->rowcount = -1;
+    cursor->lastrowid = -1;
 
     return cursor;
 failed:
@@ -208,7 +210,8 @@ static purc_variant_t cursor_rowcount_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    return purc_variant_make_longint(cursor->rowcount);
 }
 
 static purc_variant_t cursor_lastrowid_getter(purc_variant_t root,
@@ -218,20 +221,18 @@ static purc_variant_t cursor_lastrowid_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
-    return PURC_VARIANT_INVALID;
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    purc_variant_t ret;
+    if (cursor->lastrowid != -1) {
+        ret = purc_variant_make_longint(cursor->lastrowid);
+    }
+    else {
+        ret = purc_variant_make_null();
+    }
+    return ret;
 }
 
 static purc_variant_t cursor_description_getter(purc_variant_t root,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    (void) root;
-    (void) nr_args;
-    (void) argv;
-    (void) call_flags;
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t cursor_connection_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
@@ -253,12 +254,17 @@ create_cursor_variant(struct dvobj_sqlite_connection *sqlite_conn)
         { SQLITE_KEY_ROWCOUNT,          cursor_rowcount_getter,         NULL },
         { SQLITE_KEY_LASTROWID,         cursor_lastrowid_getter,        NULL },
         { SQLITE_KEY_DESCRIPTION,       cursor_description_getter,      NULL },
-        { SQLITE_KEY_CONNECTION,        cursor_connection_getter,       NULL },
     };
 
     purc_variant_t cursor_val = purc_dvobj_make_from_methods(methods,
             PCA_TABLESIZE(methods));
     if (cursor_val == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    /* $SQLiteCursor.connection */
+    if (!purc_variant_object_set_by_static_ckey(cursor_val,
+                SQLITE_KEY_CONNECTION, sqlite_conn->root)) {
         goto failed;
     }
 
