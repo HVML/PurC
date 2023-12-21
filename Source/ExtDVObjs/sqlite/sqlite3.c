@@ -56,8 +56,6 @@
 #define SQLITE_KEY_CLOSE            "close"
 #define SQLITE_KEY_EXECUTE          "execute"
 #define SQLITE_KEY_EXECUTEMANY      "executemany"
-#define SQLITE_KEY_EXECUTE          "execute"
-#define SQLITE_KEY_EXECUTEMANY      "executemany"
 #define SQLITE_KEY_FETCHONE         "fetchone"
 #define SQLITE_KEY_FETCHMANY        "fetchmany"
 #define SQLITE_KEY_FETCHALL         "fetchall"
@@ -96,11 +94,204 @@ struct dvobj_sqlite_connection {
 };
 
 struct dvobj_sqlite_cursor {
-    purc_variant_t              root;               // the root variant, itself
-    sqlite3                     *db;
-    char                        *db_name;
-    struct pcvar_listener       *listener;          // the listener
+    purc_variant_t                  root;               // the root variant, itself
+    long                            rowcount;
+    int64_t                         lastrawid;
+    struct dvobj_sqlite_connection  *conn;
+    struct pcvar_listener           *listener;          // the listener
 };
+
+/* $SQLiteCursor begin */
+static inline struct dvobj_sqlite_cursor *
+get_cursor_from_root(purc_variant_t root)
+{
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    assert(v && purc_variant_is_native(v));
+
+    return (struct dvobj_sqlite_cursor *)purc_variant_native_get_entity(v);
+}
+
+static struct dvobj_sqlite_cursor *
+create_cursor(struct dvobj_sqlite_connection *sqlite_conn)
+{
+    struct dvobj_sqlite_cursor *cursor = calloc(1, sizeof(*cursor));
+    if (!cursor) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    cursor->conn = sqlite_conn;
+
+    return cursor;
+failed:
+    return NULL;
+}
+
+static void destroy_cursor(struct dvobj_sqlite_cursor *cursor)
+{
+    if (cursor->listener) {
+        purc_variant_revoke_listener(cursor->root, cursor->listener);
+    }
+    free(cursor);
+}
+
+static bool on_sqlite_cursor_being_released(purc_variant_t src, pcvar_op_t op,
+        void *ctxt, size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    if (op == PCVAR_OPERATION_RELEASING) {
+        struct dvobj_sqlite_cursor *cursor = ctxt;
+        destroy_cursor(cursor);
+    }
+
+    return true;
+}
+
+static purc_variant_t cursor_execute_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_executemany_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_fetchone_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_fetchmany_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_fetchall_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_rowcount_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_lastrowid_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_description_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_connection_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void) root;
+    (void) nr_args;
+    (void) argv;
+    (void) call_flags;
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+create_cursor_variant(struct dvobj_sqlite_connection *sqlite_conn)
+{
+    static struct purc_dvobj_method methods[] = {
+        { SQLITE_KEY_EXECUTE,           cursor_execute_getter,          NULL },
+        { SQLITE_KEY_EXECUTEMANY,       cursor_executemany_getter,      NULL },
+        { SQLITE_KEY_FETCHONE,          cursor_fetchone_getter,         NULL },
+        { SQLITE_KEY_FETCHMANY,         cursor_fetchmany_getter,        NULL },
+        { SQLITE_KEY_FETCHALL,          cursor_fetchall_getter,         NULL },
+        { SQLITE_KEY_ROWCOUNT,          cursor_rowcount_getter,         NULL },
+        { SQLITE_KEY_LASTROWID,         cursor_lastrowid_getter,        NULL },
+        { SQLITE_KEY_DESCRIPTION,       cursor_description_getter,      NULL },
+        { SQLITE_KEY_CONNECTION,        cursor_connection_getter,       NULL },
+    };
+
+    purc_variant_t cursor_val = purc_dvobj_make_from_methods(methods,
+            PCA_TABLESIZE(methods));
+    if (cursor_val == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    struct dvobj_sqlite_cursor *cursor = create_cursor(sqlite_conn);
+    if (!cursor) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    cursor->root = cursor_val;
+
+    purc_variant_t val;
+    if ((val = purc_variant_make_native((void *)cursor, NULL)) == NULL) {
+        goto failed;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(cursor_val, SQLITE_KEY_HANDLE,
+                val)) {
+        goto failed;
+    }
+    purc_variant_unref(val);
+
+    cursor->listener = purc_variant_register_post_listener(cursor_val,
+            PCVAR_OPERATION_RELEASING, on_sqlite_cursor_being_released,
+            cursor);
+
+failed:
+    if (cursor) {
+        destroy_cursor(cursor);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+/* $SQLiteCursor end */
 
 /* $SQLiteConnect begin */
 static inline struct dvobj_sqlite_connection *
@@ -187,7 +378,7 @@ conn_exec_stmt(struct dvobj_sqlite_connection *conn, const char *sql)
 }
 
 
-static purc_variant_t cursor_getter(purc_variant_t root,
+static purc_variant_t conn_cursor_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
@@ -197,7 +388,7 @@ static purc_variant_t cursor_getter(purc_variant_t root,
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t commit_getter(purc_variant_t root,
+static purc_variant_t conn_commit_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
@@ -223,7 +414,7 @@ out:
     return purc_variant_make_boolean(ret);
 }
 
-static purc_variant_t rollback_getter(purc_variant_t root,
+static purc_variant_t conn_rollback_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
@@ -249,7 +440,7 @@ out:
     return purc_variant_make_boolean(ret);
 }
 
-static purc_variant_t close_getter(purc_variant_t root,
+static purc_variant_t conn_close_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
@@ -268,23 +459,57 @@ static purc_variant_t close_getter(purc_variant_t root,
     return purc_variant_make_boolean(ret);
 }
 
-static purc_variant_t execute_getter(purc_variant_t root,
+static purc_variant_t conn_execute_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+
+    purc_variant_t cursor_val = create_cursor_variant(conn);
+    if (!cursor_val) {
+        goto failed;
+    }
+
+    purc_variant_t val = cursor_execute_getter(cursor_val, nr_args, argv,
+            call_flags);
+    if (val) {
+        purc_variant_unref(val);
+    }
+
+    return cursor_val;
+
+failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t executemany_getter(purc_variant_t root,
+static purc_variant_t conn_executemany_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     (void) root;
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    struct dvobj_sqlite_connection *conn = get_connection_from_root(root);
+
+    purc_variant_t cursor_val = create_cursor_variant(conn);
+    if (!cursor_val) {
+        goto failed;
+    }
+
+    purc_variant_t val = cursor_executemany_getter(cursor_val, nr_args, argv,
+            call_flags);
+    if (val) {
+        purc_variant_unref(val);
+    }
+
+    return cursor_val;
+
+failed:
     return PURC_VARIANT_INVALID;
 }
 /* $SQLiteConnect end */
@@ -459,12 +684,12 @@ static purc_variant_t connect_getter(purc_variant_t root,
     (void) call_flags;
 
     static struct purc_dvobj_method methods[] = {
-        { SQLITE_KEY_CURSOR,                cursor_getter,          NULL },
-        { SQLITE_KEY_COMMIT,                commit_getter,          NULL },
-        { SQLITE_KEY_ROLLBACK,              rollback_getter,        NULL },
-        { SQLITE_KEY_CLOSE,                 close_getter,           NULL },
-        { SQLITE_KEY_EXECUTE,               execute_getter,         NULL },
-        { SQLITE_KEY_EXECUTEMANY,           executemany_getter,     NULL },
+        { SQLITE_KEY_CURSOR,                conn_cursor_getter,          NULL },
+        { SQLITE_KEY_COMMIT,                conn_commit_getter,          NULL },
+        { SQLITE_KEY_ROLLBACK,              conn_rollback_getter,        NULL },
+        { SQLITE_KEY_CLOSE,                 conn_close_getter,           NULL },
+        { SQLITE_KEY_EXECUTE,               conn_execute_getter,         NULL },
+        { SQLITE_KEY_EXECUTEMANY,           conn_executemany_getter,     NULL },
     };
 
     const char *db_name;
