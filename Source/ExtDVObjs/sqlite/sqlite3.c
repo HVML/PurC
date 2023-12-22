@@ -754,6 +754,10 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
     int64_t v = sqlite3_column_int64(st, pos);
 
     switch (dest_type) {
+    case PURC_VARIANT_TYPE_NULL:
+        val = purc_variant_make_null();
+        break;
+
     case PURC_VARIANT_TYPE_LONGINT:
         val = purc_variant_make_longint(v);
         break;
@@ -813,6 +817,10 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
 
     double v = sqlite3_column_double(st, pos);
     switch (dest_type) {
+    case PURC_VARIANT_TYPE_NULL:
+        val = purc_variant_make_null();
+        break;
+
     case PURC_VARIANT_TYPE_LONGINT:
         val = purc_variant_make_longint(v);
         break;
@@ -878,6 +886,10 @@ static purc_variant_t sqlite_text_cast_to_variant(sqlite3 *db,
     size_t nr_text = strlen(text);
 
     switch (dest_type) {
+    case PURC_VARIANT_TYPE_NULL:
+        val = purc_variant_make_null();
+        break;
+
     case PURC_VARIANT_TYPE_LONGINT:
         val = purc_variant_make_longint(sqlite3_column_int64(st, pos));
         break;
@@ -931,6 +943,10 @@ static purc_variant_t sqlite_blob_cast_to_variant(sqlite3 *db,
     int nr_blob = sqlite3_column_bytes(st, pos);
 
     switch (dest_type) {
+    case PURC_VARIANT_TYPE_NULL:
+        val = purc_variant_make_null();
+        break;
+
     case PURC_VARIANT_TYPE_LONGINT:
         val = purc_variant_make_longint(sqlite3_column_int64(st, pos));
         break;
