@@ -384,6 +384,9 @@ cursor_exec_query(struct dvobj_sqlite_cursor *cursor, bool multiple,
         goto failed;
     }
 
+    /* Prevent recursive use of cursors. */
+    cursor->locked = 1;
+
     if (multiple) {
         if (param) {
             param_array = purc_variant_ref(param);
@@ -486,13 +489,14 @@ cursor_exec_query(struct dvobj_sqlite_cursor *cursor, bool multiple,
     }
 
 failed:
+    cursor->locked = 0;
+
     if (param_array) {
         purc_variant_unref(param_array);
     }
     return ret;
 }
-
-static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
+static purc_variant_t cursor_fetch_one_row(struct dvobj_sqlite_cursor *cursor,
         purc_variant_type result_type, purc_variant_t name_mapping,
         purc_variant_t type_conversion)
 {
@@ -501,6 +505,53 @@ static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
     (void) name_mapping;
     (void) type_conversion;
     return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
+        purc_variant_type result_type, purc_variant_t name_mapping,
+        purc_variant_t type_conversion)
+{
+    purc_variant_t row = PURC_VARIANT_INVALID;;
+
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    sqlite3_stmt *stmt = cursor->st;
+    assert(stmt != NULL);
+    assert(sqlite3_data_count(stmt) != 0);
+
+    /* Prevent recursive use of cursors. */
+    cursor->locked = 1;
+    row = cursor_fetch_one_row(cursor, result_type, name_mapping,
+            type_conversion);
+    cursor->locked = 0;
+
+    if (!row || purc_variant_is_null(row)) {
+        goto failed;
+    }
+
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+        if (cursor->is_dml) {
+            cursor->rowcount = (long)sqlite3_changes(cursor->conn->db);
+        }
+        sqlite3_reset(cursor->st);
+        sqlite3_finalize(cursor->st);
+        cursor->st = NULL;
+    }
+    else if (rc != SQLITE_ROW) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "sqlite error message is %s", sqlite3_errmsg(cursor->conn->db));
+        sqlite3_reset(cursor->st);
+        sqlite3_finalize(cursor->st);
+        cursor->st = NULL;
+        purc_variant_unref(row);
+        row = PURC_VARIANT_INVALID;
+    }
+
+failed:
+    return row;
 }
 
 static inline struct dvobj_sqlite_cursor *
