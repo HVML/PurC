@@ -496,15 +496,250 @@ failed:
     }
     return ret;
 }
+
+static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
+        int pos)
+{
+    purc_variant_t val;
+    int col_type = sqlite3_column_type(st, pos);
+    switch (col_type) {
+    case SQLITE_NULL: {
+        val = purc_variant_make_null();
+        break;
+    }
+    case SQLITE_INTEGER: {
+        val = purc_variant_make_longint(sqlite3_column_int64(st, pos));
+        break;
+    }
+    case SQLITE_FLOAT: {
+        val = purc_variant_make_number(sqlite3_column_double(st, pos));
+        break;
+    }
+    case SQLITE3_TEXT: {
+        const char *text = (const char*)sqlite3_column_text(st, pos);
+        if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+        val = purc_variant_make_string(text, true);
+        break;
+    }
+    case SQLITE_BLOB: {
+        const void *blob = sqlite3_column_blob(st, pos);
+        if (blob == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        int nr_blob = sqlite3_column_bytes(st, pos);
+        val = purc_variant_make_byte_sequence(blob, nr_blob);
+        break;
+    }
+    default:
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid sqllite3 column type %d", col_type);
+        break;
+    }
+
+fatal:
+    return val;
+}
+
+static purc_variant_t sqlite_value_to_variant_with_type(sqlite3 *db,
+        sqlite3_stmt *st, int pos, const char *type_name)
+{
+    (void) db;
+    (void) st;
+    (void) pos;
+    (void) type_name;
+    // TODO
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t cursor_fetch_one_row_as_tuple(
+        struct dvobj_sqlite_cursor *cursor, int nr_cols)
+{
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t row = purc_variant_make_tuple(nr_cols, NULL);
+    if (!row) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    sqlite3 *db = cursor->conn->db;
+    sqlite3_stmt *st = cursor->st;
+    for (int i = 0; i < nr_cols; i++) {
+        val = sqlite_value_to_variant(db, st, i);
+        if (!val) {
+            goto fatal;
+        }
+        purc_variant_tuple_set(row, i, val);
+    }
+
+    return row;
+
+fatal:
+    if (val) {
+        purc_variant_unref(val);
+    }
+    if (row) {
+        purc_variant_unref(row);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t build_column_name(struct dvobj_sqlite_cursor *cursor,
+        int pos, const char *name, purc_variant_t name_mapping)
+{
+    (void) cursor;
+    (void) pos;
+    (void) name;
+    (void) name_mapping;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    if (!name_mapping) {
+        val = purc_variant_make_string(name, true);
+        goto out;
+    }
+
+    purc_variant_t v = purc_variant_object_get_by_ckey(name_mapping, name);
+    if (!v) {
+        val = purc_variant_make_string(name, true);
+        goto out;
+    }
+
+    if (!purc_variant_is_string(v)){
+        purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                "wrong data type for name_mapping '%s' type '%s'",
+                name, purc_variant_typename(purc_variant_get_type(v)));
+        goto out;
+    }
+
+    size_t length;
+    const char *str = purc_variant_get_string_const_ex(v, &length);
+    if (length > 0) {
+        val = purc_variant_ref(v);
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid value for  name_mapping '%s' value '%s'",
+                name, str);
+        goto out;
+    }
+
+out:
+    return val;
+}
+
+static purc_variant_t build_column_value(struct dvobj_sqlite_cursor *cursor,
+        int pos, const char *name, purc_variant_t type_conversion)
+{
+    (void) cursor;
+    (void) pos;
+    (void) name;
+    (void) type_conversion;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    if (!type_conversion) {
+        val = sqlite_value_to_variant(cursor->conn->db, cursor->st, pos);
+        goto out;
+    }
+
+    purc_variant_t v = purc_variant_object_get_by_ckey(type_conversion, name);
+    if (!v) {
+        val = sqlite_value_to_variant(cursor->conn->db, cursor->st, pos);
+        goto out;
+    }
+
+    if (!purc_variant_is_string(v)) {
+        purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                "wrong data type for type conversion '%s' type '%s'",
+                name, purc_variant_typename(purc_variant_get_type(v)));
+        goto out;
+    }
+
+    size_t nr_dest_type;
+    const char *dest_type = purc_variant_get_string_const_ex(v, &nr_dest_type);
+    if (nr_dest_type == 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid value for  name_mapping '%s' value '%s'",
+                name, dest_type);
+        goto out;
+    }
+
+    val = sqlite_value_to_variant_with_type(cursor->conn->db, cursor->st, pos,
+            dest_type);
+
+out:
+    return val;
+}
+
+static purc_variant_t cursor_fetch_one_row_as_object(
+        struct dvobj_sqlite_cursor *cursor, int nr_cols,
+        purc_variant_t name_mapping, purc_variant_t type_conversion)
+{
+    purc_variant_t key = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    purc_variant_t row = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!row) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    sqlite3_stmt *st = cursor->st;
+    for (int i = 0; i < nr_cols; i++) {
+        const char *col_name = sqlite3_column_name(st, i);
+        if (col_name == NULL) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+        key = build_column_name(cursor, i, col_name, name_mapping);
+        if (!key) {
+            goto fatal;
+        }
+
+        val = build_column_value(cursor, i, col_name, type_conversion);
+        if (!val) {
+            goto fatal;
+        }
+
+        if (!purc_variant_object_set(row, key, val)) {
+            goto fatal;
+        }
+    }
+
+    return row;
+
+fatal:
+    if (val) {
+        purc_variant_unref(val);
+    }
+    if (row) {
+        purc_variant_unref(row);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t cursor_fetch_one_row(struct dvobj_sqlite_cursor *cursor,
         purc_variant_type result_type, purc_variant_t name_mapping,
         purc_variant_t type_conversion)
 {
-    (void) cursor;
-    (void) result_type;
-    (void) name_mapping;
-    (void) type_conversion;
-    return PURC_VARIANT_INVALID;
+    purc_variant_t row = PURC_VARIANT_INVALID;
+    int nr_cols = sqlite3_data_count(cursor->st);
+    if (nr_cols <= 0) {
+        row = purc_variant_make_null();
+        goto out;
+    }
+
+    if (result_type == PURC_VARIANT_TYPE_TUPLE) {
+        row = cursor_fetch_one_row_as_tuple(cursor, nr_cols);
+    }
+    else {
+        row = cursor_fetch_one_row_as_object(cursor, nr_cols,
+                name_mapping, type_conversion);
+    }
+
+out:
+    return row;
 }
 
 static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
