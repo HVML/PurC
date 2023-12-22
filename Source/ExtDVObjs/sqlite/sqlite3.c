@@ -492,6 +492,17 @@ failed:
     return ret;
 }
 
+static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
+        purc_variant_type result_type, purc_variant_t name_mapping,
+        purc_variant_t type_conversion)
+{
+    (void) cursor;
+    (void) result_type;
+    (void) name_mapping;
+    (void) type_conversion;
+    return PURC_VARIANT_INVALID;
+}
+
 static inline struct dvobj_sqlite_cursor *
 get_cursor_from_root(purc_variant_t root)
 {
@@ -625,6 +636,70 @@ failed:
     return purc_variant_make_boolean(ret);
 }
 
+static int parse_fetch_params(size_t nr_args, purc_variant_t *argv,
+        purc_variant_type *result_type, purc_variant_t *name_mapping,
+        purc_variant_t *type_conversion)
+{
+    purc_variant_t val;
+    if (nr_args > 0) {
+        val = argv[0];
+        if (!purc_variant_is_string(val)) {
+            purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                    "invalid result type '%s'",
+                    purc_variant_typename(purc_variant_get_type(val)));
+            goto failed;
+        }
+        const char *type = purc_variant_get_string_const(val);
+        if (strcasecmp(type, "tuple") == 0) {
+            *result_type = PURC_VARIANT_TYPE_TUPLE;
+        }
+        else if (strcasecmp(type, "object") == 0) {
+            *result_type = PURC_VARIANT_TYPE_OBJECT;
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "invalid result type '%s'", type);
+            goto failed;
+        }
+    }
+
+    if (nr_args > 1) {
+        purc_variant_t val = argv[1];
+        if (purc_variant_is_null(val)) {
+            *name_mapping = PURC_VARIANT_INVALID;
+        }
+        else if (purc_variant_is_object(val)) {
+            *name_mapping = val;
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                    "invalid name mapping type '%s'",
+                    purc_variant_typename(purc_variant_get_type(val)));
+            goto failed;
+        }
+    }
+
+    if (nr_args > 2) {
+        purc_variant_t val = argv[2];
+        if (purc_variant_is_null(val)) {
+            *type_conversion = PURC_VARIANT_INVALID;
+        }
+        else if (purc_variant_is_object(val)) {
+            *type_conversion = val;
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                    "invalid type conversion type '%s'", 
+                    purc_variant_typename(purc_variant_get_type(val)));
+            goto failed;
+        }
+    }
+    return 0;
+
+failed:
+    return -1;
+}
+
 static purc_variant_t cursor_fetchone_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
@@ -632,6 +707,29 @@ static purc_variant_t cursor_fetchone_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    purc_variant_type result_type = PURC_VARIANT_TYPE_TUPLE;
+    purc_variant_t name_mapping = PURC_VARIANT_INVALID;
+    purc_variant_t type_conversion = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    int rc = parse_fetch_params(nr_args, argv, &result_type, &name_mapping,
+            &type_conversion);
+    if (rc != 0) {
+        goto failed;
+    }
+
+    val = cursor_iterator_next(cursor, result_type, name_mapping,
+            type_conversion);
+
+    return val;
+
+failed:
     return PURC_VARIANT_INVALID;
 }
 
@@ -642,6 +740,79 @@ static purc_variant_t cursor_fetchmany_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    purc_variant_type result_type = PURC_VARIANT_TYPE_TUPLE;
+    purc_variant_t name_mapping = PURC_VARIANT_INVALID;
+    purc_variant_t type_conversion = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+    uint64_t size = 0;
+
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    val = argv[0];
+    if (purc_variant_is_longint(val) || purc_variant_is_ulongint(val)) {
+        if (!purc_variant_cast_to_ulongint(val, &size, false)) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "invalid param 'size'");
+            goto failed;
+        }
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_WRONG_DATA_TYPE,
+                "invalid param type '%s'",
+                purc_variant_typename(purc_variant_get_type(val)));
+        goto failed;
+    }
+
+    if (size == 0) {
+        val = purc_variant_make_null();
+        goto out;
+    }
+
+    int rc = parse_fetch_params(nr_args - 1, argv + 1, &result_type,
+            &name_mapping, &type_conversion);
+    if (rc != 0) {
+        goto failed;
+    }
+
+    val = cursor_iterator_next(cursor, result_type, name_mapping,
+            type_conversion);
+
+    if (!val || purc_variant_is_null(val)) {
+        goto out;
+    }
+
+    purc_variant_t arr_val = purc_variant_make_array(1, val);
+    if (!arr_val) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(val);
+        goto failed;
+    }
+
+    size--;
+    while (size != 0) {
+        val = cursor_iterator_next(cursor, result_type, name_mapping,
+             type_conversion);
+        if (!val || purc_variant_is_null(val)) {
+            break;
+        }
+        purc_variant_array_append(arr_val, val);
+        size--;
+    }
+    val = arr_val;
+
+out:
+    return val;
+
+failed:
     return PURC_VARIANT_INVALID;
 }
 
@@ -652,6 +823,51 @@ static purc_variant_t cursor_fetchall_getter(purc_variant_t root,
     (void) nr_args;
     (void) argv;
     (void) call_flags;
+
+    purc_variant_type result_type = PURC_VARIANT_TYPE_TUPLE;
+    purc_variant_t name_mapping = PURC_VARIANT_INVALID;
+    purc_variant_t type_conversion = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+
+    struct dvobj_sqlite_cursor *cursor = get_cursor_from_root(root);
+    if (!check_cursor(cursor)) {
+        goto failed;
+    }
+
+    int rc = parse_fetch_params(nr_args, argv, &result_type, &name_mapping,
+            &type_conversion);
+    if (rc != 0) {
+        goto failed;
+    }
+
+    val = cursor_iterator_next(cursor, result_type, name_mapping,
+            type_conversion);
+
+    if (!val || purc_variant_is_null(val)) {
+        goto out;
+    }
+
+    purc_variant_t arr_val = purc_variant_make_array(1, val);
+    if (!arr_val) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(val);
+        goto failed;
+    }
+
+    while (true) {
+        val = cursor_iterator_next(cursor, result_type, name_mapping,
+             type_conversion);
+        if (!val || purc_variant_is_null(val)) {
+            break;
+        }
+        purc_variant_array_append(arr_val, val);
+    }
+    val = arr_val;
+
+out:
+    return val;
+
+failed:
     return PURC_VARIANT_INVALID;
 }
 
