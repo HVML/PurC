@@ -1426,7 +1426,7 @@ static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
 {
     purc_variant_t row = PURC_VARIANT_INVALID;;
 
-    if (!check_cursor(cursor)) {
+    if (!check_cursor(cursor) || cursor->st == NULL) {
         goto failed;
     }
 

@@ -169,12 +169,104 @@ positive:
     true
 
 positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    -1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    0L
+
+positive:
     $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
     true
 
 positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    1L
+
+positive:
     $RUNNER.myObj.sqliteCursor.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
     true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    2L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select name from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!'zhang san']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(2L)
+    [[!'li si'], [!'wang wu']]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'name']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select age from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(3L)
+    [[!15L], [!16L], [!17L]]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'age']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select age from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall()
+    [[!15L], [!16L], [!17L]]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'age']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!3L]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'count(*)']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) as nr from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'nr']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.description
+    [!'id','name','age','createdAt','expiredAt']
 
 positive:
     $RUNNER.myObj.sqliteConn.commit()
