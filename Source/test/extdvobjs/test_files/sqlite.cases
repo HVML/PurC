@@ -269,6 +269,89 @@ positive:
     [!'id','name','age','createdAt','expiredAt']
 
 positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object')
+    {'age':15L,'createdAt':1703499183L,'expiredAt':'2024-12-25 18:13:03','id':1L,'name':'zhang san'}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object')
+    [{'age':16L,'createdAt':1703499183L,'expiredAt':'2024-12-25 18:13:03','id':2L,'name':'li si'}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall('object')
+    [{'age':17L,'createdAt':1703499183L,'expiredAt':'2024-12-25 18:13:03','id':3L,'name':'wang wu'}]
+
+# fetch with name mapping
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'})
+    {"Age":15L,"CreatedTime":1703499183L,"ID":1L,"Title":"zhang san","expiredAt":"2024-12-25 18:13:03"}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'})
+    [{"Age":16L,"CreatedTime":1703499183L,"ID":2L,"Title":"li si","expiredAt":"2024-12-25 18:13:03"}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'})
+    [{"Age":17L,"CreatedTime":1703499183L,"ID":3L,"Title":"wang wu","expiredAt":"2024-12-25 18:13:03"}]
+
+# fetch with type conversion
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    {"age":15UL,"createdAt":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","id":1UL,"name":"zhang san"}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    [{"age":16UL,"createdAt":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","id":2UL,"name":"li si"}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    [{"age":17UL,"createdAt":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","id":3UL,"name":"wang wu"}]
+
+# fetch with name mapping and type conversion
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    {"Age":15UL,"CreatedTime":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","ID":1UL,"Title":"zhang san"}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    [{"Age":16UL,"CreatedTime":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","ID":2UL,"Title":"li si"}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    [{"Age":17UL,"CreatedTime":"2023-12-25 10:13:03","expiredAt":"2024-12-25 18:13:03","ID":3UL,"Title":"wang wu"}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('SELECT datetime(createdAt, "unixepoch") from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!'2023-12-25 10:13:03']
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('SELECT datetime(createdAt, "unixepoch", "localtime") from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!'2023-12-25 18:13:03']
+
+positive:
     $RUNNER.myObj.sqliteConn.commit()
     true
 
