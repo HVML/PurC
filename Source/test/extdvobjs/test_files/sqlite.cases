@@ -97,3 +97,28 @@ negative:
     $SQLITE.connect('')
     InvalidValue
 
+# \$SQLiteConn.cursor
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect(':memory:'))
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.commit()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.rollback()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
