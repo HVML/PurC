@@ -73,6 +73,9 @@
 
 #define _KW_DELIMITERS              " \t\n\v\f\r"
 
+#define SQLITE_UTC                  "1970-01-01 00:00:00.000"
+#define SQLITE_JULIAN               2440587.5
+
 #if defined(__linux) || defined(__linux__) || defined(linux)
 #define SQLITE_PLATFORM             "Linux"
 #elif defined(__APPLE__)↵
@@ -497,60 +500,6 @@ failed:
     return ret;
 }
 
-static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
-        int pos)
-{
-    purc_variant_t val;
-    int col_type = sqlite3_column_type(st, pos);
-    switch (col_type) {
-    case SQLITE_NULL: {
-        val = purc_variant_make_null();
-        break;
-    }
-
-    case SQLITE_INTEGER: {
-        val = purc_variant_make_longint(sqlite3_column_int64(st, pos));
-        break;
-    }
-
-    case SQLITE_FLOAT: {
-        val = purc_variant_make_number(sqlite3_column_double(st, pos));
-        break;
-    }
-
-    case SQLITE3_TEXT: {
-        const char *text = (const char*)sqlite3_column_text(st, pos);
-        if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fatal;
-        }
-        val = purc_variant_make_string(text, true);
-        break;
-    }
-
-    case SQLITE_BLOB: {
-        const void *blob = sqlite3_column_blob(st, pos);
-        if (blob == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fatal;
-        }
-
-        int nr_blob = sqlite3_column_bytes(st, pos);
-        val = purc_variant_make_byte_sequence(blob, nr_blob);
-        break;
-    }
-
-    default: {
-        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
-              "invalid sqllite3 column type %d", col_type);
-        break;
-    }
-    }
-
-fatal:
-    return val;
-}
-
 enum affinity_type_enum {
     SQLITE_AFFINITY_TYPE_FIRST = 0,
 
@@ -624,40 +573,160 @@ enum affinity_type_enum {
 
 static struct affinity_type {
     const char *type_name;
+    enum affinity_type_enum affinity;
     purc_variant_type type;
 } affinitys[] = {
-    { SQLITE_AFFINITY_TYPE_NAME_BIGINT,            PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_BINARY,            PURC_VARIANT_TYPE_BSEQUENCE },
-    { SQLITE_AFFINITY_TYPE_NAME_BIT,               PURC_VARIANT_TYPE_BOOLEAN },
-    { SQLITE_AFFINITY_TYPE_NAME_BLOB,              PURC_VARIANT_TYPE_BSEQUENCE },
-    { SQLITE_AFFINITY_TYPE_NAME_BOOLEAN,           PURC_VARIANT_TYPE_BOOLEAN },
-    { SQLITE_AFFINITY_TYPE_NAME_CHARACTER,         PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_CLOB,              PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_DATE,              PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_DATETIME,          PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_DECIMAL,           PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_DOUBLE,            PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_DOUBLE_PRECISION,  PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_FLOAT,             PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_INT,               PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_INT2,              PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_INT4,              PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_INT8,              PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_INTEGER,           PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_MEDIUMINT,         PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_NATIVE_CHARACTER,  PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_NCHAR,             PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_NUMERIC,           PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_NVARCHAR,          PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_REAL,              PURC_VARIANT_TYPE_NUMBER },
-    { SQLITE_AFFINITY_TYPE_NAME_SMALLINT,          PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_TEXT,              PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_TINYINT,           PURC_VARIANT_TYPE_LONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_UNSIGNED_BIG_INT,  PURC_VARIANT_TYPE_ULONGINT },
-    { SQLITE_AFFINITY_TYPE_NAME_VARCHAR,           PURC_VARIANT_TYPE_STRING },
-    { SQLITE_AFFINITY_TYPE_NAME_VARYING_CHARACTER, PURC_VARIANT_TYPE_STRING },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_BIGINT,
+        SQLITE_AFFINITY_TYPE_BIGINT,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_BINARY,
+        SQLITE_AFFINITY_TYPE_BINARY,
+        PURC_VARIANT_TYPE_BSEQUENCE
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_BIT,
+        SQLITE_AFFINITY_TYPE_BIT,
+        PURC_VARIANT_TYPE_BOOLEAN
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_BLOB,
+        SQLITE_AFFINITY_TYPE_BLOB,
+        PURC_VARIANT_TYPE_BSEQUENCE
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_BOOLEAN,
+        SQLITE_AFFINITY_TYPE_BOOLEAN,
+        PURC_VARIANT_TYPE_BOOLEAN
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_CHARACTER,
+        SQLITE_AFFINITY_TYPE_CHARACTER,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_CLOB,
+        SQLITE_AFFINITY_TYPE_CLOB,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_DATE,
+        SQLITE_AFFINITY_TYPE_DATE,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_DATETIME,
+        SQLITE_AFFINITY_TYPE_DATETIME,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_DECIMAL,
+        SQLITE_AFFINITY_TYPE_DECIMAL,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_DOUBLE,
+        SQLITE_AFFINITY_TYPE_DOUBLE,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_DOUBLE_PRECISION,
+        SQLITE_AFFINITY_TYPE_DOUBLE_PRECISION,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_FLOAT,
+        SQLITE_AFFINITY_TYPE_FLOAT,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_INT,
+        SQLITE_AFFINITY_TYPE_INT,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_INT2,
+        SQLITE_AFFINITY_TYPE_INT2,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_INT4,
+        SQLITE_AFFINITY_TYPE_INT4,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_INT8,
+        SQLITE_AFFINITY_TYPE_INT8,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_INTEGER,
+        SQLITE_AFFINITY_TYPE_INTEGER,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_MEDIUMINT,
+        SQLITE_AFFINITY_TYPE_MEDIUMINT,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_NATIVE_CHARACTER,
+        SQLITE_AFFINITY_TYPE_NATIVE_CHARACTER,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_NCHAR,
+        SQLITE_AFFINITY_TYPE_NCHAR,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_NUMERIC,
+        SQLITE_AFFINITY_TYPE_NUMERIC,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_NVARCHAR,
+        SQLITE_AFFINITY_TYPE_NVARCHAR,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_REAL,
+        SQLITE_AFFINITY_TYPE_REAL,
+        PURC_VARIANT_TYPE_NUMBER
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_SMALLINT,
+        SQLITE_AFFINITY_TYPE_SMALLINT,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_TEXT,
+        SQLITE_AFFINITY_TYPE_TEXT,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_TINYINT,
+        SQLITE_AFFINITY_TYPE_TINYINT,
+        PURC_VARIANT_TYPE_LONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_UNSIGNED_BIG_INT,
+        SQLITE_AFFINITY_TYPE_UNSIGNED_BIG_INT,
+        PURC_VARIANT_TYPE_ULONGINT
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_VARCHAR,
+        SQLITE_AFFINITY_TYPE_VARCHAR,
+        PURC_VARIANT_TYPE_STRING
+    },
+    {
+        SQLITE_AFFINITY_TYPE_NAME_VARYING_CHARACTER,
+        SQLITE_AFFINITY_TYPE_VARYING_CHARACTER,
+        PURC_VARIANT_TYPE_STRING
+    },
 };
-
 
 /* Make sure the number of handlers matches the number of operations */
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -666,7 +735,7 @@ _COMPILE_TIME_ASSERT(tps,
       sizeof(affinitys)/sizeof(affinitys[0]) == SQLITE_NR_AFFINITY_TYPES);
 #undef _COMPILE_TIME_ASSERT
 
-static purc_variant_type affinity_type_to_variant_type(const char* type_name)
+static struct affinity_type *find_affinity_type(const char* type_name)
 {
     static ssize_t max = sizeof(affinitys)/sizeof(affinitys[0]) - 1;
 
@@ -689,25 +758,93 @@ static purc_variant_type affinity_type_to_variant_type(const char* type_name)
         }
     }
 
-    return PURC_VARIANT_TYPE_STRING;
+    return NULL;
 
 found:
-    return affinitys[mid].type;
+    return &affinitys[mid];
 }
 
-#define NULL_STRING         "null"
-
-static purc_variant_t sqlite_null_cast_to_variant(sqlite3 *db,
-        sqlite3_stmt *st, int pos, purc_variant_type auto_type,
-        purc_variant_type dest_type)
+static inline bool is_date(struct affinity_type *type)
 {
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (auto_type == dest_type) {
-        val = sqlite_value_to_variant(db, st, pos);
-        goto out;
+    if (type && (type->affinity == SQLITE_AFFINITY_TYPE_DATE ||
+                type->affinity == SQLITE_AFFINITY_TYPE_DATETIME)) {
+        return true;
+    }
+    return false;
+}
+
+static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
+        int pos)
+{
+    purc_variant_t val;
+    int col_type = sqlite3_column_type(st, pos);
+    switch (col_type) {
+    case SQLITE_NULL: {
+        val = purc_variant_make_null();
+        break;
     }
 
-    switch (dest_type) {
+    case SQLITE_INTEGER: {
+        val = purc_variant_make_longint(sqlite3_column_int64(st, pos));
+        break;
+    }
+
+    case SQLITE_FLOAT: {
+        val = purc_variant_make_number(sqlite3_column_double(st, pos));
+        break;
+    }
+
+    case SQLITE3_TEXT: {
+        const char *text = (const char*)sqlite3_column_text(st, pos);
+        if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+        val = purc_variant_make_string(text, true);
+        break;
+    }
+
+    case SQLITE_BLOB: {
+        const void *blob = sqlite3_column_blob(st, pos);
+        if (blob == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        int nr_blob = sqlite3_column_bytes(st, pos);
+        val = purc_variant_make_byte_sequence(blob, nr_blob);
+        break;
+    }
+
+    default: {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid sqllite3 column type %d", col_type);
+        break;
+    }
+    }
+
+fatal:
+    return val;
+}
+
+static purc_variant_t sqlite_null_cast_to_variant(sqlite3 *db,
+        sqlite3_stmt *st, int pos, struct affinity_type *dest_type)
+{
+    (void) db;
+    (void) st;
+    (void) pos;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
+    purc_variant_type type = PURC_VARIANT_TYPE_NULL;
+    if (dest_type) {
+        type = dest_type->type;
+    }
+
+    switch (type) {
+    case PURC_VARIANT_TYPE_NULL:
+        val = purc_variant_make_null();
+        break;
+
     case PURC_VARIANT_TYPE_LONGINT:
         val = purc_variant_make_longint(0);
         break;
@@ -725,35 +862,41 @@ static purc_variant_t sqlite_null_cast_to_variant(sqlite3 *db,
         break;
 
     case PURC_VARIANT_TYPE_STRING:
-        val = purc_variant_make_string_static(NULL_STRING, false);
+        if (is_date(dest_type)) {
+            val = purc_variant_make_string(SQLITE_UTC, false);
+            break;
+        }
+        val = purc_variant_make_string(NULL, false);
         break;
 
     case PURC_VARIANT_TYPE_BSEQUENCE:
-        val = purc_variant_make_byte_sequence(NULL_STRING, strlen(NULL_STRING));
+        val = purc_variant_make_byte_sequence_empty();
         break;
 
-    default:
-        val = sqlite_value_to_variant(db, st, pos);
+    default: {
+        /* never reatch here */
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid affinity type %s", dest_type->type_name);
+        assert(0);
         break;
     }
+    }
 
-out:
     return val;
 }
 
 static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
-        sqlite3_stmt *st, int pos, purc_variant_type auto_type,
-        purc_variant_type dest_type)
+        sqlite3_stmt *st, int pos, struct affinity_type *dest_type)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
-    if (auto_type == dest_type) {
-        val = sqlite_value_to_variant(db, st, pos);
-        goto out;
-    }
 
     int64_t v = sqlite3_column_int64(st, pos);
+    purc_variant_type type = PURC_VARIANT_TYPE_LONGINT;
+    if (dest_type) {
+        type = dest_type->type;
+    }
 
-    switch (dest_type) {
+    switch (type) {
     case PURC_VARIANT_TYPE_NULL:
         val = purc_variant_make_null();
         break;
@@ -775,6 +918,18 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
         break;
 
     case PURC_VARIANT_TYPE_STRING: {
+        if (is_date(dest_type)) {
+            struct timeval tv;
+            tv.tv_sec = (time_t)v;
+            tv.tv_usec = 0;
+            struct tm tm;
+            gmtime_r(&tv.tv_sec, &tm);
+            char buf[32];
+            strftime(buf, 32, "%F %T", &tm);
+            val = purc_variant_make_string(buf, false);
+            break;
+        }
+
         const char *text = (const char*)sqlite3_column_text(st, pos);
         if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -796,9 +951,13 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
         break;
     }
 
-    default:
-        val = sqlite_value_to_variant(db, st, pos);
-        break;
+    default: {
+        /* never reatch here */
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid affinity type %s", dest_type->type_name);
+        assert(0);
+    }
+
     }
 
 out:
@@ -806,17 +965,17 @@ out:
 }
 
 static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
-        sqlite3_stmt *st, int pos, purc_variant_type auto_type,
-        purc_variant_type dest_type)
+        sqlite3_stmt *st, int pos, struct affinity_type *dest_type)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
-    if (auto_type == dest_type) {
-        val = sqlite_value_to_variant(db, st, pos);
-        goto out;
-    }
 
     double v = sqlite3_column_double(st, pos);
-    switch (dest_type) {
+    purc_variant_type type = PURC_VARIANT_TYPE_NUMBER;
+    if (dest_type) {
+        type = dest_type->type;
+    }
+
+    switch (type) {
     case PURC_VARIANT_TYPE_NULL:
         val = purc_variant_make_null();
         break;
@@ -838,6 +997,28 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
         break;
 
     case PURC_VARIANT_TYPE_STRING: {
+        if (is_date(dest_type)) {
+            if (v > SQLITE_JULIAN) {
+                int64_t unix_timestamp = (v - SQLITE_JULIAN) * 86400;
+
+                struct timeval tv;
+                tv.tv_sec = (time_t)unix_timestamp;
+                tv.tv_usec = 0;
+                struct tm tm;
+                gmtime_r(&tv.tv_sec, &tm);
+                char buf[32];
+                strftime(buf, 32, "%F %T", &tm);
+                val = purc_variant_make_string(buf, false);
+                break;
+            }
+            else {
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "invalid julay value for date conversion '%f' less than '%f'",
+                        v, SQLITE_JULIAN);
+                break;
+            }
+        }
+
         const char *text = (const char*)sqlite3_column_text(st, pos);
         if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -859,9 +1040,13 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
         break;
     }
 
-    default:
-        val = sqlite_value_to_variant(db, st, pos);
-        break;
+    default: {
+        /* never reatch here */
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid affinity type %s", dest_type->type_name);
+        assert(0);
+    }
+
     }
 
 out:
@@ -869,23 +1054,22 @@ out:
 }
 
 static purc_variant_t sqlite_text_cast_to_variant(sqlite3 *db,
-        sqlite3_stmt *st, int pos, purc_variant_type auto_type,
-        purc_variant_type dest_type)
+        sqlite3_stmt *st, int pos, struct affinity_type *dest_type)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
-    if (auto_type == dest_type) {
-        val = sqlite_value_to_variant(db, st, pos);
-        goto out;
-    }
 
     const char *text = (const char*)sqlite3_column_text(st, pos);
     if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    size_t nr_text = strlen(text);
 
-    switch (dest_type) {
+    purc_variant_type type = PURC_VARIANT_TYPE_STRING;
+    if (dest_type) {
+        type = dest_type->type;
+    }
+
+    switch (type) {
     case PURC_VARIANT_TYPE_NULL:
         val = purc_variant_make_null();
         break;
@@ -902,9 +1086,11 @@ static purc_variant_t sqlite_text_cast_to_variant(sqlite3 *db,
         val = purc_variant_make_number(sqlite3_column_double(st, pos));
         break;
 
-    case PURC_VARIANT_TYPE_BOOLEAN:
+    case PURC_VARIANT_TYPE_BOOLEAN: {
+        size_t nr_text = strlen(text);
         val = purc_variant_make_boolean(nr_text > 0);
         break;
+    }
 
     case PURC_VARIANT_TYPE_STRING: {
         val = purc_variant_make_string(text, true);
@@ -912,13 +1098,18 @@ static purc_variant_t sqlite_text_cast_to_variant(sqlite3 *db,
     }
 
     case PURC_VARIANT_TYPE_BSEQUENCE: {
+        size_t nr_text = strlen(text);
         val = purc_variant_make_byte_sequence(text, nr_text);
         break;
     }
 
-    default:
-        val = sqlite_value_to_variant(db, st, pos);
-        break;
+    default: {
+        /* never reatch here */
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid affinity type %s", dest_type->type_name);
+        assert(0);
+    }
+
     }
 
 out:
@@ -926,23 +1117,23 @@ out:
 }
 
 static purc_variant_t sqlite_blob_cast_to_variant(sqlite3 *db,
-        sqlite3_stmt *st, int pos, purc_variant_type auto_type,
-        purc_variant_type dest_type)
+        sqlite3_stmt *st, int pos, struct affinity_type *dest_type)
 {
     purc_variant_t val = PURC_VARIANT_INVALID;
-    if (auto_type == dest_type) {
-        val = sqlite_value_to_variant(db, st, pos);
-        goto out;
-    }
 
     const void *blob = sqlite3_column_blob(st, pos);
     if (blob == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    int nr_blob = sqlite3_column_bytes(st, pos);
 
-    switch (dest_type) {
+    int nr_blob = sqlite3_column_bytes(st, pos);
+    purc_variant_type type = PURC_VARIANT_TYPE_BSEQUENCE;
+    if (dest_type) {
+        type = dest_type->type;
+    }
+
+    switch (type) {
     case PURC_VARIANT_TYPE_NULL:
         val = purc_variant_make_null();
         break;
@@ -978,9 +1169,13 @@ static purc_variant_t sqlite_blob_cast_to_variant(sqlite3 *db,
         break;
     }
 
-    default:
-        val = sqlite_value_to_variant(db, st, pos);
-        break;
+    default: {
+        /* never reatch here */
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+              "invalid affinity type %s", dest_type->type_name);
+        assert(0);
+    }
+
     }
 
 out:
@@ -996,38 +1191,32 @@ static purc_variant_t sqlite_value_to_variant_with_type(sqlite3 *db,
     (void) type_name;
 
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_type dest_type = affinity_type_to_variant_type(type_name);
-    purc_variant_type auto_type;
+    struct affinity_type *dest_type = find_affinity_type(type_name);
 
     int col_type = sqlite3_column_type(st, pos);
     switch (col_type) {
     case SQLITE_NULL: {
-        auto_type = PURC_VARIANT_TYPE_NULL;
-        val = sqlite_null_cast_to_variant(db, st, pos, auto_type, dest_type);
+        val = sqlite_null_cast_to_variant(db, st, pos, dest_type);
         break;
     }
 
     case SQLITE_INTEGER: {
-        auto_type = PURC_VARIANT_TYPE_LONGINT;
-        val = sqlite_integer_cast_to_variant(db, st, pos, auto_type, dest_type);
+        val = sqlite_integer_cast_to_variant(db, st, pos, dest_type);
         break;
     }
 
     case SQLITE_FLOAT: {
-        auto_type = PURC_VARIANT_TYPE_NUMBER;
-        val = sqlite_float_cast_to_variant(db, st, pos, auto_type, dest_type);
+        val = sqlite_float_cast_to_variant(db, st, pos, dest_type);
         break;
     }
 
     case SQLITE3_TEXT: {
-        auto_type = PURC_VARIANT_TYPE_STRING;
-        val = sqlite_text_cast_to_variant(db, st, pos, auto_type, dest_type);
+        val = sqlite_text_cast_to_variant(db, st, pos, dest_type);
         break;
     }
 
     case SQLITE_BLOB: {
-        auto_type = PURC_VARIANT_TYPE_BSEQUENCE;
-        val = sqlite_blob_cast_to_variant(db, st, pos, auto_type, dest_type);
+        val = sqlite_blob_cast_to_variant(db, st, pos, dest_type);
         break;
     }
 
