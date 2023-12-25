@@ -2379,8 +2379,8 @@ static purc_variant_t connect_getter(purc_variant_t root,
 
     const char *db_name;
     size_t nr_db_name;
-    purc_variant_t connect;
-    purc_variant_t val;
+    purc_variant_t connect = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     struct dvobj_sqlite_info *sqlite_info;
     struct dvobj_sqlite_connection *sqlite_connection;
 

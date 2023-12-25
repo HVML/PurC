@@ -69,3 +69,31 @@ positive:
     $FS.unlink('/tmp/test_extdvobj_sqlite_uri.db')
     true
 
+negative:
+    $SQLITE.connect
+    ArgumentMissed
+
+negative:
+    $SQLITE.connect(1)
+    WrongDataType
+
+negative:
+    $SQLITE.connect(true)
+    WrongDataType
+
+negative:
+    $SQLITE.connect({})
+    WrongDataType
+
+negative:
+    $SQLITE.connect([])
+    WrongDataType
+
+negative:
+    $SQLITE.connect(2.0)
+    WrongDataType
+
+negative:
+    $SQLITE.connect('')
+    InvalidValue
+
