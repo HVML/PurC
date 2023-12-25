@@ -67,8 +67,6 @@
 
 #define SQLITE_INFO_VERSION         "version"
 #define SQLITE_INFO_PLATFORM        "platform"
-#define SQLITE_INFO_COPYRIGHT       "copyright"
-#define SQLITE_INFO_COMPILER        "compiler"
 #define SQLITE_INFO_BUILD_INFO      "build-info"
 
 #define _KW_DELIMITERS              " \t\n\v\f\r"
@@ -2295,16 +2293,6 @@ static const char *sqlite3_get_platform(void)
     return SQLITE_PLATFORM;
 }
 
-static const char *sqlite3_get_copyright(void)
-{
-    return "unknown";
-}
-
-static const char *sqlite3_get_compiler(void)
-{
-    return "unknown";
-}
-
 static const char *sqlite3_get_buildinfo(void)
 {
     return SQLITE_SOURCE_ID;
@@ -2337,26 +2325,6 @@ static purc_variant_t make_info_object(void)
     }
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SQLITE_INFO_PLATFORM, val)) {
-        goto fatal;
-    }
-    purc_variant_unref(val);
-
-    val = purc_variant_make_string_static(sqlite3_get_copyright(), false);
-    if (val == PURC_VARIANT_INVALID) {
-        goto fatal;
-    }
-    if (!purc_variant_object_set_by_static_ckey(retv,
-                SQLITE_INFO_COPYRIGHT, val)) {
-        goto fatal;
-    }
-    purc_variant_unref(val);
-
-    val = purc_variant_make_string_static(sqlite3_get_compiler(), false);
-    if (val == PURC_VARIANT_INVALID) {
-        goto fatal;
-    }
-    if (!purc_variant_object_set_by_static_ckey(retv,
-                SQLITE_INFO_COMPILER, val)) {
         goto fatal;
     }
     purc_variant_unref(val);
