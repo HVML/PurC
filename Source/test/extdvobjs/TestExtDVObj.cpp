@@ -124,6 +124,9 @@ purc_variant_t TestExtDVObj::extdvobj_new(const char *name)
     else if (strcmp(name, "PY") == 0) {
         dvobj = purc_variant_load_dvobj_from_so("PY", "PY");
     }
+    else if (strcmp(name, "SQLITE") == 0) {
+        dvobj = purc_variant_load_dvobj_from_so("SQLITE", "SQLITE");
+    }
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_extdvobjs[name] = dvobj;

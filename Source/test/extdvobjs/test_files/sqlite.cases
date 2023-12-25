@@ -1,0 +1,22 @@
+# test cases for $SQLITE
+
+# $SQLITE.impl and $SQLITE.info
+positive:
+    $SQLITE.impl.vendor
+    'HVML Community'
+
+positive:
+    $SQLITE.impl.author
+    'Nine Xue'
+
+positive:
+    $SQLITE.impl.license
+    'LGPLv3+'
+
+positive:
+    $SQLITE.impl.url
+    'https://hvml.fmsoft.cn'
+
+positive:
+    $SQLITE.impl.repo
+    'https://github.com/HVML'

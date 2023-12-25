@@ -132,3 +132,35 @@ if (ENABLE_EXTDVOBJ_PY)
     GTEST_DISCOVER_TESTS(test_extdvobjs_py DISCOVERY_TIMEOUT 10)
 endif ()
 
+# test_extdvobjs_sqlite
+if (ENABLE_EXTDVOBJ_PY)
+    PURC_EXECUTABLE_DECLARE(test_extdvobjs_sqlite)
+
+    list(APPEND test_extdvobjs_sqlite_PRIVATE_INCLUDE_DIRECTORIES
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
+        ${CMAKE_BINARY_DIR}
+        ${WTF_DIR}
+    )
+
+    PURC_EXECUTABLE(test_extdvobjs_sqlite)
+
+    target_compile_definitions(test_extdvobjs_sqlite PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
+    set(test_extdvobjs_sqlite_SOURCES
+        test_extdvobjs_sqlite.cpp
+        TestExtDVObj.cpp
+        helper.cpp
+    )
+
+    set(test_extdvobjs_sqlite_LIBRARIES
+        PurC::PurC
+        gtest_main
+        gtest
+        pthread
+    )
+
+    PURC_COMPUTE_SOURCES(test_extdvobjs_sqlite)
+    PURC_FRAMEWORK(test_extdvobjs_sqlite)
+    GTEST_DISCOVER_TESTS(test_extdvobjs_sqlite DISCOVERY_TIMEOUT 10)
+endif ()
