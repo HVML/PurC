@@ -1983,17 +1983,24 @@ get_connection_from_root(purc_variant_t root)
 }
 
 static struct dvobj_sqlite_connection *
-create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
+create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name,
+        size_t nr_db_name)
 {
     (void) sqlite_info;
     int rc;
     sqlite3 *db = NULL;
     struct dvobj_sqlite_connection *connection = NULL;
-    rc = sqlite3_open_v2(db_name, &db,
-                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
-                         , NULL);
-    if (rc == SQLITE_OK) {
-        (void)sqlite3_busy_timeout(db, (int)(SQLITE_DEFAULT_TIMEOUT*1000));
+    int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+    if (nr_db_name >= 5 && strncmp(db_name, "file://", 7) == 0) {
+        flags |= SQLITE_OPEN_URI;
+    }
+
+    rc = sqlite3_open_v2(db_name, &db, flags, NULL);
+    if (rc != SQLITE_OK) {
+        purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
+                "open sqlite3 db(%s) faled! sqlite3 err code is %d",
+                db_name, rc);
+        goto failed;
     }
 
     if (db == NULL && rc == SQLITE_NOMEM) {
@@ -2001,6 +2008,7 @@ create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
         goto failed;
     }
 
+    (void)sqlite3_busy_timeout(db, (int)(SQLITE_DEFAULT_TIMEOUT*1000));
     connection = calloc(1, sizeof(*connection));
     if (!connection) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -2370,7 +2378,7 @@ static purc_variant_t connect_getter(purc_variant_t root,
     };
 
     const char *db_name;
-    size_t db_name_len;
+    size_t nr_db_name;
     purc_variant_t connect;
     purc_variant_t val;
     struct dvobj_sqlite_info *sqlite_info;
@@ -2392,14 +2400,14 @@ static purc_variant_t connect_getter(purc_variant_t root,
     }
 
     sqlite_info = get_sqlite_info_from_root(root);
-    db_name = purc_variant_get_string_const_ex(argv[0], &db_name_len);
-    db_name = pcutils_trim_spaces(db_name, &db_name_len);
-    if (db_name_len == 0) {
+    db_name = purc_variant_get_string_const_ex(argv[0], &nr_db_name);
+    db_name = pcutils_trim_spaces(db_name, &nr_db_name);
+    if (nr_db_name == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    sqlite_connection = create_connection(sqlite_info, db_name);
+    sqlite_connection = create_connection(sqlite_info, db_name, nr_db_name);
     if (!sqlite_connection) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;

@@ -22,7 +22,7 @@ positive:
     'https://github.com/HVML'
 
 
-# \$SQLITE.connect
+# \$SQLITE.connect memory
 positive:
     $RUNNER.user(! 'sqliteConn', $SQLITE.connect(':memory:'))
     true
@@ -30,3 +30,42 @@ positive:
 positive:
     $RUNNER.myObj.sqliteConn.close()
     true
+
+# \$SQLITE.connect  path
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite.db')
+    true
+
+# \$SQLITE.connect  URI
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('file:///tmp/test_extdvobj_sqlite_uri.db'))
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite_uri.db')
+    true
+
