@@ -122,3 +122,52 @@ positive:
     $RUNNER.myObj.sqliteConn.close()
     true
 
+positive:
+    $RUNNER.user(! 'sqliteCursor', undefined )
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+# \$SQLiteCursor
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.commit()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite.db')
+    true
+

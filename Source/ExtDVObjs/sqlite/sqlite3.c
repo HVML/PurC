@@ -256,15 +256,16 @@ bind_param(struct dvobj_sqlite_cursor *cursor, int pos,
     int rc = SQLITE_OK;
     const char *string;
     size_t nr_string;
-    enum purc_variant_type paramtype;
+    enum purc_variant_type paramtype = purc_variant_get_type(parameter);
 
-    if (purc_variant_is_null(parameter)) {
+    if (paramtype == PURC_VARIANT_TYPE_NULL) {
         rc = sqlite3_bind_null(cursor->st, pos);
         goto out;
     }
 
     switch (paramtype) {
-        case PURC_VARIANT_TYPE_LONGINT: {
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT: {
             int64_t value;
             if (!purc_variant_cast_to_longint(parameter, &value, false)) {
                 rc = -1;
@@ -316,11 +317,13 @@ bind_param(struct dvobj_sqlite_cursor *cursor, int pos,
             rc = sqlite3_bind_blob(cursor->st, pos, bytes, nr_bytes, SQLITE_TRANSIENT);
             break;
         }
-        default:
+        default: {
             purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
                     "Error binding parameter %d: type '%s' is not supported",
                     pos, purc_variant_typename(paramtype));
             rc = -1;
+            break;
+        }
     }
 
 out:
@@ -348,13 +351,6 @@ bind_parameters(struct dvobj_sqlite_cursor *cursor, purc_variant_t parameters)
     }
 
     for (i = 0; i < num_params; i++) {
-        const char *name = sqlite3_bind_parameter_name(cursor->st, i+1);
-        if (!name) {
-            purc_set_error_with_info(PURC_ERROR_EXTERNAL_FAILURE,
-                    "sqlite error message is %s", sqlite3_errmsg(cursor->conn->db));
-            goto out;
-        }
-
         current_param = purc_variant_array_get(parameters, i);
 
         rc = bind_param(cursor, i + 1, current_param);
@@ -365,6 +361,8 @@ bind_parameters(struct dvobj_sqlite_cursor *cursor, purc_variant_t parameters)
             goto out;
         }
     }
+
+    rc = SQLITE_OK;
 
 out:
     return rc;
@@ -401,6 +399,13 @@ cursor_exec_query(struct dvobj_sqlite_cursor *cursor, bool multiple,
         param_array = purc_variant_make_array(nr_param, param);
     }
 
+    ssize_t nr_param_array = purc_variant_array_get_size(param_array);
+    if (nr_param_array == 0) {
+        purc_variant_t val = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        purc_variant_array_append(param_array, val);
+        purc_variant_unref(val);
+    }
+
     /* reset description */
     if (cursor->description) {
         purc_variant_unref(cursor->description);
@@ -431,7 +436,7 @@ cursor_exec_query(struct dvobj_sqlite_cursor *cursor, bool multiple,
 
     assert(!sqlite3_stmt_busy(cursor->st));
 
-    ssize_t nr_param_array = purc_variant_array_get_size(param_array);
+    nr_param_array = purc_variant_array_get_size(param_array);
     for (ssize_t i = 0; i < nr_param_array; i++) {
         purc_variant_t val = purc_variant_array_get(param_array, i);
         if (!purc_variant_is_array(val)) {
@@ -1541,7 +1546,7 @@ static purc_variant_t cursor_execute_getter(purc_variant_t root,
     }
 
     size_t nr_sql;
-    const char *sql = purc_variant_get_string_const(argv[0]);
+    const char *sql = purc_variant_get_string_const_ex(argv[0], &nr_sql);
     sql = pcutils_trim_spaces(sql, &nr_sql);
     if (nr_sql == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1582,7 +1587,7 @@ static purc_variant_t cursor_executemany_getter(purc_variant_t root,
     }
 
     size_t nr_sql;
-    const char *sql = purc_variant_get_string_const(argv[0]);
+    const char *sql = purc_variant_get_string_const_ex(argv[0], &nr_sql);
     sql = pcutils_trim_spaces(sql, &nr_sql);
     if (nr_sql == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
