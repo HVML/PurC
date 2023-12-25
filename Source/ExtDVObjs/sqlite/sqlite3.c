@@ -2013,7 +2013,7 @@ create_connection(struct dvobj_sqlite_info *sqlite_info, const char *db_name)
 
 failed:
     if (db) {
-        sqlite3_close(db);
+        sqlite3_close_v2(db);
     }
     return NULL;
 }
@@ -2028,7 +2028,7 @@ static bool on_sqlite_connection_being_released(purc_variant_t src, pcvar_op_t o
         struct dvobj_sqlite_connection *connection = ctxt;
         purc_variant_revoke_listener(src, connection->listener);
         if (connection->db) {
-            sqlite3_close(connection->db);
+            sqlite3_close_v2(connection->db);
         }
         free(connection);
     }
@@ -2146,7 +2146,7 @@ static purc_variant_t conn_close_getter(purc_variant_t root,
         goto out;
     }
 
-    int rc = sqlite3_close(conn->db);
+    int rc = sqlite3_close_v2(conn->db);
     if (rc == SQLITE_OK) {
         ret = true;
         conn->db = NULL;
@@ -2392,7 +2392,7 @@ static purc_variant_t connect_getter(purc_variant_t root,
     }
 
     sqlite_info = get_sqlite_info_from_root(root);
-    db_name = purc_variant_get_string_const(argv[0]);
+    db_name = purc_variant_get_string_const_ex(argv[0], &db_name_len);
     db_name = pcutils_trim_spaces(db_name, &db_name_len);
     if (db_name_len == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -2406,7 +2406,7 @@ static purc_variant_t connect_getter(purc_variant_t root,
     }
     sqlite_connection->root = connect;;
 
-    if ((val = purc_variant_make_native((void *)sqlite_info, NULL)) == NULL) {
+    if ((val = purc_variant_make_native((void *)sqlite_connection, NULL)) == NULL) {
         goto failed;
     }
 
@@ -2416,9 +2416,9 @@ static purc_variant_t connect_getter(purc_variant_t root,
     }
     purc_variant_unref(val);
 
-    sqlite_info->listener = purc_variant_register_post_listener(connect,
+    sqlite_connection->listener = purc_variant_register_post_listener(connect,
             PCVAR_OPERATION_RELEASING, on_sqlite_connection_being_released,
-            sqlite_info);
+            sqlite_connection);
 
     return connect;
 failed:

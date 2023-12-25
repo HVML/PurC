@@ -20,3 +20,13 @@ positive:
 positive:
     $SQLITE.impl.repo
     'https://github.com/HVML'
+
+
+# \$SQLITE.connect
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect(':memory:'))
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
