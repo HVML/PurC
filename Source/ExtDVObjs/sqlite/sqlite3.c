@@ -1591,12 +1591,12 @@ static purc_variant_t cursor_executemany_getter(purc_variant_t root,
         goto failed;
     }
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    if (!purc_variant_is_string(argv[0])) {
+    if (!purc_variant_is_string(argv[0]) || !purc_variant_is_array(argv[1])) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }

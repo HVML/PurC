@@ -152,6 +152,14 @@ positive:
     true
 
 positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
     $FS.unlink('/tmp/test_extdvobj_sqlite_conn_exec.db')
     true
 
@@ -564,6 +572,155 @@ positive:
 positive:
     $RUNNER.myObj.sqliteConn.close()
     true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite.db')
+    true
+
+# negative
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.commit()
+    true
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute
+    ArgumentMissed
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute(1)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute(true)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute({})
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute([])
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute(2.0)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute('')
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany
+    ArgumentMissed
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany(1)
+    ArgumentMissed
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany(true, [])
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany({}, [])
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany([], [])
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany(2.0, [])
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany('', [])
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany('select * from user where id=?', 1.0)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany('select * from user where id=?', true)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany('select * from user where id=?', {})
+    WrongDataType
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+negative:
+    $RUNNER.myObj.sqliteCursor.fetchone('object')
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteCursor.fetchmany(2L)
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteCursor.fetchall()
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteCursor.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
+    ExternalFailure
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+negative:
+    $RUNNER.myObj.sqliteConn.cursor()
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteConn.commit()
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteConn.rollback()
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteConn.execute('select * from user;')
+    ExternalFailure
+
+negative:
+    $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
+    ExternalFailure
 
 positive:
     $RUNNER.user(! 'sqliteConn', undefined )
