@@ -291,6 +291,7 @@ parse_window_move(const char *value, size_t value_len,
     if (token && token_len > 0) {
         char buf[token_len + 1];
         strncpy(buf, token, token_len);
+        buf[token_len] = 0;
         unsigned long val = strtoul(buf, NULL, 10);
         if (val == ULONG_MAX) {
             transition->move_func = PURC_WINDOW_TRANSITION_FUNCTION_NONE;

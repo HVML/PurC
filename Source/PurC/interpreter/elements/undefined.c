@@ -114,6 +114,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
     pcintr_util_set_attribute(frame->owner->doc,
             frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0,
             !stack->inherit, false);
+    if (value) {
+        free(value);
+        value = NULL;
+    }
 
     if (name) {
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
