@@ -926,7 +926,8 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
             tv.tv_sec = (time_t)v;
             tv.tv_usec = 0;
             struct tm tm;
-            gmtime_r(&tv.tv_sec, &tm);
+//            gmtime_r(&tv.tv_sec, &tm);
+            localtime_r(&tv.tv_sec, &tm);
             char buf[32];
             strftime(buf, 32, "%F %T", &tm);
             val = purc_variant_make_string(buf, false);
@@ -1008,7 +1009,8 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
                 tv.tv_sec = (time_t)unix_timestamp;
                 tv.tv_usec = 0;
                 struct tm tm;
-                gmtime_r(&tv.tv_sec, &tm);
+                //gmtime_r(&tv.tv_sec, &tm);
+                localtime_r(&tv.tv_sec, &tm);
                 char buf[32];
                 strftime(buf, 32, "%F %T", &tm);
                 val = purc_variant_make_string(buf, false);
