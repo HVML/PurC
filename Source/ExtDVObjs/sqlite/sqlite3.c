@@ -1385,11 +1385,17 @@ static purc_variant_t cursor_fetch_one_row_as_object(
         if (!purc_variant_object_set(row, key, val)) {
             goto fatal;
         }
+
+        purc_variant_unref(key);
+        purc_variant_unref(val);
     }
 
     return row;
 
 fatal:
+    if (key) {
+        purc_variant_unref(key);
+    }
     if (val) {
         purc_variant_unref(val);
     }
