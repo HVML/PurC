@@ -319,12 +319,36 @@ positive:
     [{"age":17UL,"createdAt":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","id":3UL,"name":"wang wu"}]
 
 positive:
-    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
     true
 
 positive:
     $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'boolean', 'age':'text', 'createdAt':'text'})
     {'age':'15','createdAt':'1703499183','expiredAt':'2024-12-25 18:13:03','id':true,'name':'zhang san'}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'int', 'age':'blob', 'createdAt':'text', 'name':'int'})
+    {'age':bx3135,'createdAt':'1703499183','expiredAt':'2024-12-25 18:13:03','id':1L,'name':0L}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'text', 'age':'blob', 'createdAt':'text', 'name':'int'})
+    {'age':bx3135,'createdAt':'1703499183','expiredAt':'2024-12-25 18:13:03','id':'1','name':0L}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'text', 'age':'blob', 'createdAt':'text', 'name':'blob'})
+    {'age':bx3135,'createdAt':'1703499183','expiredAt':'2024-12-25 18:13:03','id':'1','name':bx7a68616e672073616e}
 
 # fetch with name mapping and type conversion
 positive:
