@@ -1434,7 +1434,10 @@ static purc_variant_t cursor_iterator_next(struct dvobj_sqlite_cursor *cursor,
 
     sqlite3_stmt *stmt = cursor->st;
     assert(stmt != NULL);
-    assert(sqlite3_data_count(stmt) != 0);
+    if (sqlite3_data_count(stmt) == 0) {
+        row = purc_variant_make_null();
+        goto failed;
+    }
 
     /* Prevent recursive use of cursors. */
     cursor->locked = 1;

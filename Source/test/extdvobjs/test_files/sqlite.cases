@@ -371,3 +371,172 @@ positive:
     $FS.unlink('/tmp/test_extdvobj_sqlite.db')
     true
 
+# \$SQLiteCursor test rollback
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    -1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    0L
+
+positive:
+    $RUNNER.myObj.sqliteConn.commit()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.rowcount
+    2L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.lastrowid
+    1L
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!3L]
+
+positive:
+    $RUNNER.myObj.sqliteConn.rollback()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!0L]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite.db')
+    true
+
+# \$SQLiteCursor test update/delete/replace
+positive:
+    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select count(*) from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone()
+    [!3L]
+
+positive:
+    $RUNNER.myObj.sqliteConn.commit()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('update user set age=20 where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object')
+    {"age":20L,"createdAt":1703499183L,"expiredAt":"2024-12-25 18:13:03","id":1L,"name":"zhang san"}
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('delete from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user where id=1')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object')
+    null
+
+positive:
+    $RUNNER.myObj.sqliteCursor.executemany('insert or replace into user(id, name, age, createdAt, expiredAt) values (?, ?, ?, ?, ?);', [[2L, 'li si', 20L, 1703499183L, '2024-12-25 18:13:03'], [3L, 'wang wu', 20L, 1703499183L, '2024-12-25 18:13:03']])
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchall('object')
+    [{"age":20L,"createdAt":1703499183L,"expiredAt":"2024-12-25 18:13:03","id":2L,"name":"li si"},{"age":20L,"createdAt":1703499183L,"expiredAt":"2024-12-25 18:13:03","id":3L,"name":"wang wu"}]
+
+positive:
+    $RUNNER.myObj.sqliteCursor.close()
+    true
+
+positive:
+    $RUNNER.myObj.sqliteConn.close()
+    true
+
+positive:
+    $RUNNER.user(! 'sqliteConn', undefined )
+    true
+
+positive:
+    $FS.unlink('/tmp/test_extdvobj_sqlite.db')
+    true
