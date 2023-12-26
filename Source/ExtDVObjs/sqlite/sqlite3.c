@@ -1254,6 +1254,7 @@ static purc_variant_t cursor_fetch_one_row_as_tuple(
             goto fatal;
         }
         purc_variant_tuple_set(row, i, val);
+        purc_variant_unref(val);
     }
 
     return row;
@@ -1508,6 +1509,9 @@ failed:
 
 static void destroy_cursor(struct dvobj_sqlite_cursor *cursor)
 {
+    if (cursor->description) {
+        purc_variant_unref(cursor->description);
+    }
     if (cursor->listener) {
         purc_variant_revoke_listener(cursor->root, cursor->listener);
     }
@@ -1775,6 +1779,7 @@ static purc_variant_t cursor_fetchmany_getter(purc_variant_t root,
         purc_variant_unref(val);
         goto failed;
     }
+    purc_variant_unref(val);
 
     size--;
     while (size != 0) {
@@ -1784,6 +1789,7 @@ static purc_variant_t cursor_fetchmany_getter(purc_variant_t root,
             break;
         }
         purc_variant_array_append(arr_val, val);
+        purc_variant_unref(val);
         size--;
     }
     val = arr_val;
@@ -1832,6 +1838,7 @@ static purc_variant_t cursor_fetchall_getter(purc_variant_t root,
         purc_variant_unref(val);
         goto failed;
     }
+    purc_variant_unref(val);
 
     while (true) {
         val = cursor_iterator_next(cursor, result_type, name_mapping,
@@ -1840,6 +1847,7 @@ static purc_variant_t cursor_fetchall_getter(purc_variant_t root,
             break;
         }
         purc_variant_array_append(arr_val, val);
+        purc_variant_unref(val);
     }
     val = arr_val;
 

@@ -318,6 +318,14 @@ positive:
     $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
     [{"age":17UL,"createdAt":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","id":3UL,"name":"wang wu"}]
 
+positive:
+    $RUNNER.myObj.sqliteCursor.execute('select * from user')
+    true
+
+positive:
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'boolean', 'age':'text', 'createdAt':'text'})
+    {'age':'15','createdAt':'1703499183','expiredAt':'2024-12-25 18:13:03','id':true,'name':'zhang san'}
+
 # fetch with name mapping and type conversion
 positive:
     $RUNNER.myObj.sqliteCursor.execute('select * from user')
