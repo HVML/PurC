@@ -71,7 +71,7 @@
 
 #define _KW_DELIMITERS              " \t\n\v\f\r"
 
-#define SQLITE_UTC                  "1970-01-01 00:00:00.000"
+#define SQLITE_UTC                  "1970-01-01 00:00:00"
 #define SQLITE_JULIAN               2440587.5
 
 #if defined(__linux) || defined(__linux__) || defined(linux)
