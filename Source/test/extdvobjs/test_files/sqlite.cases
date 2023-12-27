@@ -315,15 +315,15 @@ positive:
     true
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchone('object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     {"age":15UL,"createdAt":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","id":1UL,"name":"zhang san"}
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     [{"age":16UL,"createdAt":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","id":2UL,"name":"li si"}]
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     [{"age":17UL,"createdAt":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","id":3UL,"name":"wang wu"}]
 
 positive:
@@ -364,15 +364,15 @@ positive:
     true
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchone('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchone('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     {"Age":15UL,"CreatedTime":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","ID":1UL,"Title":"zhang san"}
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchmany(1L, 'object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     [{"Age":16UL,"CreatedTime":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","ID":2UL,"Title":"li si"}]
 
 positive:
-    $RUNNER.myObj.sqliteCursor.fetchall('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned big int', 'age':'unsigned big int', 'createdAt':'date'})
+    $RUNNER.myObj.sqliteCursor.fetchall('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'date'})
     [{"Age":17UL,"CreatedTime":"2023-12-25 18:13:03","expiredAt":"2024-12-25 18:13:03","ID":3UL,"Title":"wang wu"}]
 
 positive:
