@@ -1784,6 +1784,10 @@ static purc_variant_t cursor_fetchone_getter(purc_variant_t root,
     return val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -1869,6 +1873,10 @@ out:
     return val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -1926,6 +1934,10 @@ out:
     return val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -2186,6 +2198,10 @@ static purc_variant_t conn_cursor_getter(purc_variant_t root,
     return cursor_val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -2309,6 +2325,10 @@ static purc_variant_t conn_execute_getter(purc_variant_t root,
     return cursor_val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -2341,6 +2361,10 @@ static purc_variant_t conn_executemany_getter(purc_variant_t root,
     return cursor_val;
 
 failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
     return PURC_VARIANT_INVALID;
 }
 /* $SQLiteConnect end */
