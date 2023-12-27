@@ -822,13 +822,20 @@ found:
     return &affinitys[mid];
 }
 
+static bool is_type(struct affinity_type *type,
+        enum affinity_type_enum affinity)
+{
+    return type && (type->affinity == affinity);
+}
+
 static inline bool is_date(struct affinity_type *type)
 {
-    if (type && (type->affinity == SQLITE_AFFINITY_TYPE_DATE ||
-                type->affinity == SQLITE_AFFINITY_TYPE_DATETIME)) {
-        return true;
-    }
-    return false;
+    return is_type(type, SQLITE_AFFINITY_TYPE_DATE);
+}
+
+static inline bool is_datetime(struct affinity_type *type)
+{
+    return is_type(type, SQLITE_AFFINITY_TYPE_DATETIME);
 }
 
 static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
@@ -972,7 +979,7 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
         break;
 
     case PURC_VARIANT_TYPE_STRING: {
-        if (is_date(dest_type)) {
+        if (is_datetime(dest_type)) {
             struct timeval tv;
             tv.tv_sec = (time_t)v;
             tv.tv_usec = 0;
@@ -981,6 +988,18 @@ static purc_variant_t sqlite_integer_cast_to_variant(sqlite3 *db,
             localtime_r(&tv.tv_sec, &tm);
             char buf[32];
             strftime(buf, 32, "%F %T", &tm);
+            val = purc_variant_make_string(buf, false);
+            break;
+        }
+        else if (is_date(dest_type)) {
+            struct timeval tv;
+            tv.tv_sec = (time_t)v;
+            tv.tv_usec = 0;
+            struct tm tm;
+//            gmtime_r(&tv.tv_sec, &tm);
+            localtime_r(&tv.tv_sec, &tm);
+            char buf[32];
+            strftime(buf, 32, "%F", &tm);
             val = purc_variant_make_string(buf, false);
             break;
         }
@@ -1052,7 +1071,7 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
         break;
 
     case PURC_VARIANT_TYPE_STRING: {
-        if (is_date(dest_type)) {
+        if (is_date(dest_type) || is_datetime(dest_type)) {
             if (v > SQLITE_JULIAN) {
                 int64_t unix_timestamp = (v - SQLITE_JULIAN) * 86400;
 
@@ -1063,7 +1082,8 @@ static purc_variant_t sqlite_float_cast_to_variant(sqlite3 *db,
                 //gmtime_r(&tv.tv_sec, &tm);
                 localtime_r(&tv.tv_sec, &tm);
                 char buf[32];
-                strftime(buf, 32, "%F %T", &tm);
+                const char *format = is_date(dest_type) ? "%F" : "%F %T";
+                strftime(buf, 32, format, &tm);
                 val = purc_variant_make_string(buf, false);
                 break;
             }
