@@ -133,7 +133,7 @@ if (ENABLE_EXTDVOBJ_PY)
 endif ()
 
 # test_extdvobjs_sqlite
-if (ENABLE_EXTDVOBJ_PY)
+if (ENABLE_EXTDVOBJ_SQLITE)
     PURC_EXECUTABLE_DECLARE(test_extdvobjs_sqlite)
 
     list(APPEND test_extdvobjs_sqlite_PRIVATE_INCLUDE_DIRECTORIES
