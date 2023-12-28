@@ -1,0 +1,193 @@
+<!DOCTYPE hvml SYSTEM 'f: SQLITE FS'>
+<hvml target="html">
+    <head>
+        <meta charset="utf-8" />
+    </head>
+    <body>
+
+        <inherit>
+        {{
+            $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db')) &&
+            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')) &&
+            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])) &&
+            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])) &&
+            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+        }}
+        </inherit>
+
+        <div>
+            <h2> fetchall by object  </h2>
+            <inherit>
+                $RUNNER.myObj.sqliteCursor.execute('select * from user')
+            </inherit>
+            <init as users with $RUNNER.myObj.sqliteCursor.fetchall('object') />
+            <div>
+                <h5> Raw data </h5>
+                $users
+            <div>
+            <hr align="left" style="width: 50%"/>
+            <table>
+                <tr>
+                  <th>id</th>
+                  <th>name</th>
+                  <th>age</th>
+                  <th>createdAt</th>
+                  <th>expiredAt</th>
+                </tr>
+                <iterate on $users>
+                    <tr>
+                      <td>$2?.id</td>
+                      <td>$2?.name</td>
+                      <td>$2?.age</td>
+                      <td>$2?.createdAt</td>
+                      <td>$2?.expiredAt</td>
+                    </tr>
+                </iterate>
+            </table>
+        </div>
+
+        <hr />
+        <div>
+            <h2> fetchall by object with name mapping  </h2>
+            <inherit>
+                $RUNNER.myObj.sqliteCursor.execute('select * from user')
+            </inherit>
+            <init as users with $RUNNER.myObj.sqliteCursor.fetchall('object', {'id':'ID', 'name':'Title', 'age':'Age', 'createdAt':'CreatedTime'}) />
+            <div>
+                <h5> Raw data </h5>
+                $users
+            <div>
+            <hr align="left" style="width: 50%"/>
+            <table>
+                <tr>
+                  <th>id</th>
+                  <th>title</th>
+                  <th>age</th>
+                  <th>createdAt</th>
+                  <th>expiredAt</th>
+                </tr>
+                <iterate on $users>
+                    <tr>
+                      <td>$2?.ID</td>
+                      <td>$2?.Title</td>
+                      <td>$2?.Age</td>
+                      <td>$2?.CreatedTime</td>
+                      <td>$2?.expiredAt</td>
+                    </tr>
+                </iterate>
+            </table>
+        </div>
+
+        <hr />
+        <div>
+            <h2> fetchall by object with type conversion  </h2>
+            <inherit>
+                $RUNNER.myObj.sqliteCursor.execute('select * from user')
+            </inherit>
+            <init as users with $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'datetime'}) />
+            <div>
+                <h5> Raw data </h5>
+                $users
+            <div>
+            <hr align="left" style="width: 50%"/>
+            <table>
+                <tr>
+                  <th>id</th>
+                  <th>name</th>
+                  <th>age</th>
+                  <th>createdAt</th>
+                  <th>expiredAt</th>
+                </tr>
+                <iterate on $users>
+                    <tr>
+                      <td>$2?.id</td>
+                      <td>$2?.name</td>
+                      <td>$2?.age</td>
+                      <td>$2?.createdAt</td>
+                      <td>$2?.expiredAt</td>
+                    </tr>
+                </iterate>
+            </table>
+        </div>
+
+        <hr />
+        <div>
+            <h2> delete from user where id=1  </h2>
+            <inherit>
+                $RUNNER.myObj.sqliteCursor.execute('delete from user where id=1');
+                $RUNNER.myObj.sqliteCursor.execute('select * from user')
+            </inherit>
+            <init as users with $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'datetime'}) />
+            <div>
+                <h5> Raw data </h5>
+                $users
+            <div>
+            <hr align="left" style="width: 50%"/>
+            <table>
+                <tr>
+                  <th>id</th>
+                  <th>name</th>
+                  <th>age</th>
+                  <th>createdAt</th>
+                  <th>expiredAt</th>
+                </tr>
+                <iterate on $users>
+                    <tr>
+                      <td>$2?.id</td>
+                      <td>$2?.name</td>
+                      <td>$2?.age</td>
+                      <td>$2?.createdAt</td>
+                      <td>$2?.expiredAt</td>
+                    </tr>
+                </iterate>
+            </table>
+        </div>
+
+        <hr />
+        <div>
+            <h2> update user set age=20 where id=2  </h2>
+            <inherit>
+                $RUNNER.myObj.sqliteCursor.execute('update user set age=20 where id=2')
+                $RUNNER.myObj.sqliteCursor.execute('select * from user')
+            </inherit>
+            <init as users with $RUNNER.myObj.sqliteCursor.fetchall('object', null, {'id':'unsigned bigint', 'age':'unsigned bigint', 'createdAt':'datetime'}) />
+            <div>
+                <h5> Raw data </h5>
+                $users
+            <div>
+            <hr align="left" style="width: 50%"/>
+            <table>
+                <tr>
+                  <th>id</th>
+                  <th>name</th>
+                  <th>age</th>
+                  <th>createdAt</th>
+                  <th>expiredAt</th>
+                </tr>
+                <iterate on $users>
+                    <tr>
+                      <td>$2?.id</td>
+                      <td>$2?.name</td>
+                      <td>$2?.age</td>
+                      <td>$2?.createdAt</td>
+                      <td>$2?.expiredAt</td>
+                    </tr>
+                </iterate>
+            </table>
+        </div>
+
+
+        <inherit>
+        {{
+            $RUNNER.myObj.sqliteConn.commit();
+            $RUNNER.myObj.sqliteCursor.close();
+            $RUNNER.myObj.sqliteConn.close();
+            $FS.unlink('/tmp/test_extdvobj_sqlite.db');
+        }}
+        </inherit>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+    </body>
+</hvml>

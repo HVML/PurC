@@ -92,6 +92,7 @@ set(sample_HVML_FILES
     "hvml/observe-dest.hvml"
     "hvml/tpl.html"
     "hvml/templ.hvml"
+    "hvml/sqlite.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
