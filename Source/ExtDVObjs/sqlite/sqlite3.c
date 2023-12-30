@@ -75,7 +75,7 @@
 
 #if defined(__linux) || defined(__linux__) || defined(linux)
 #define SQLITE_PLATFORM             "Linux"
-#elif defined(__APPLE__)↵
+#elif defined(__APPLE__)
 #define SQLITE_PLATFORM             "Darwin"
 #else
 #define SQLITE_PLATFORM             "Unknown"
