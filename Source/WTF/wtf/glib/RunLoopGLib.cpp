@@ -126,6 +126,14 @@ void RunLoop::removeFdMonitor(uintptr_t handle)
     }
 }
 
+void RunLoop::setTimeout(GSourceFunc callback, void *ctxt, guint interval)
+{
+    GSource *source = g_timeout_source_new(interval);
+    g_source_set_callback(source, G_SOURCE_FUNC(callback), ctxt, NULL);
+    g_source_attach(source, mainContext());
+    g_source_unref(source);
+}
+
 void RunLoop::run()
 {
     RunLoop& runLoop = RunLoop::current();

@@ -178,6 +178,15 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 
+void purc_runloop_set_timeout(purc_runloop_t runloop,
+        purc_runloop_timeout_callback callback, void *ctxt, uint32_t interval)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    ((RunLoop*)runloop)->setTimeout(G_SOURCE_FUNC(callback), ctxt, interval);
+}
+
 extern "C" purc_atom_t
 pcrun_create_inst_thread(const char *app_name, const char *runner_name,
         purc_cond_handler cond_handler,

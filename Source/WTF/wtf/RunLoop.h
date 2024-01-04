@@ -99,6 +99,7 @@ public:
     WTF_EXPORT_PRIVATE uintptr_t addFdMonitor(gint fd, GIOCondition condition,
             Function<gboolean(gint, GIOCondition)>&& callback);
     WTF_EXPORT_PRIVATE void removeFdMonitor(uintptr_t handle);
+    WTF_EXPORT_PRIVATE void setTimeout(GSourceFunc callback, void *ctxt, guint interval);
 #endif
 
 #if USE(GENERIC_EVENT_LOOP) || USE(WINDOWS_EVENT_LOOP)

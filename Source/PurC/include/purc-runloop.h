@@ -168,6 +168,24 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
 PCA_EXPORT
 void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
 
+typedef bool (*purc_runloop_timeout_callback)(void *ctxt);
+
+/**
+ * Set a timer which executes the callback by interval. When the callback
+ * returns false it will be deleted.
+ *
+ * @param runloop: the runloop
+ * @param callback: the timeout callback
+ * @param interval: the timeout interval in milliseconds
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
+void purc_runloop_set_timeout(purc_runloop_t runloop,
+        purc_runloop_timeout_callback callback, void *ctxt, uint32_t interval);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_RUNLOOP_H */
