@@ -35,7 +35,7 @@
 It is also the abbreviation of `Purring Cat`,
    while `Purring Cat` is the nickname and the mascot of HVML.
 
-The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
+The goal of PurC is to implement all features defined by [HVML Specification V1.0]
 and all predefined dynamic objects defined by [HVML Predefined Variables V1.0] in C language.
 
 You can use PurC to run an HVML program or an HVML app by using the command line tool `purc`,
@@ -884,7 +884,7 @@ This is version 0.9.19 of PurC.
 The main purpose of PurC is to provide a library for you to write your own HVML interpreter.
 The current version implements almost all features defined by [HVML Specification V1.0],
       and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
-We plan to release PurC version 1.0 in June 2023.
+We plan to release PurC version 1.0 in Dec. 2024.
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
 
@@ -985,7 +985,7 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 
 ### PurC
 
-Copyright (C) 2021 ~ 2023 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2024 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1023,7 +1023,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The new source files developed by FMSoft are licensed under LGPLv3:
 
-Copyright (C) 2021 ~ 2023 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2024 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1040,7 +1040,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### DOMRuler
 
-Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
+Copyright (C) 2021 ~ 2024 FMSoft <https://www.fmsoft.cn>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General License as published by
@@ -1075,7 +1075,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
 
-Copyright (C) 2022, 2023 [FMSoft Technologies]
+Copyright (C) 2022, 2024 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1092,7 +1092,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc-fetcher
 
-Copyright (C) 2022, 2023 [FMSoft Technologies]
+Copyright (C) 2022, 2024 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
