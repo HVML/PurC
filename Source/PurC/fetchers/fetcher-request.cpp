@@ -91,17 +91,17 @@ void PcFetcherRequest::close()
     }
 }
 
-static const char* transMethod(enum pcfetcher_request_method method)
+static const char* transMethod(enum pcfetcher_method method)
 {
     switch (method)
     {
-        case PCFETCHER_REQUEST_METHOD_GET:
+        case PCFETCHER_METHOD_GET:
             return "GET";
 
-        case PCFETCHER_REQUEST_METHOD_POST:
+        case PCFETCHER_METHOD_POST:
             return "POST";
 
-        case PCFETCHER_REQUEST_METHOD_DELETE:
+        case PCFETCHER_METHOD_DELETE:
             return "DELETE";
 
         default:
@@ -296,7 +296,7 @@ out:
 
 static int fill_normal_params(
         std::unique_ptr<PurCWTF::URL> &url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         ResourceRequest* request,
         purc_variant_t params)
 {
@@ -311,7 +311,7 @@ static int fill_normal_params(
     encode_p = purc_variant_get_string_const(encode_val);
 
     if (encode_p && encode_p[0]) {
-        if (method == PCFETCHER_REQUEST_METHOD_GET) {
+        if (method == PCFETCHER_METHOD_GET) {
             url->setQuery(encode_p);
         }
         else {
@@ -327,7 +327,7 @@ out:
 
 static int fill_request_param(
         std::unique_ptr<PurCWTF::URL> &url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         ResourceRequest* request,
         purc_variant_t params)
 {
@@ -367,9 +367,10 @@ out:
 }
 
 purc_variant_t PcFetcherRequest::requestAsync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -381,11 +382,13 @@ purc_variant_t PcFetcherRequest::requestAsync(
     UNUSED_PARAM(params);
 
     auto locker = holdLock(m_callbackLock);
+    m_callback->session = session;
     m_callback->handler = handler;
     m_callback->ctxt = ctxt;
     m_callback->tracker = tracker;
     m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
+    m_session = session;
 
     String uri;
     if (base_uri) {
@@ -423,9 +426,10 @@ purc_variant_t PcFetcherRequest::requestAsync(
 }
 
 purc_rwstream_t PcFetcherRequest::requestSync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
@@ -433,6 +437,7 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     // TODO send params with http request
     UNUSED_PARAM(params);
 
+    m_session = session;
     m_is_async = false;
 
     String uri;
@@ -518,7 +523,9 @@ void PcFetcherRequest::stop()
 
     info->header.ret_code = RESP_CODE_USER_STOP;
     m_runloop->dispatch([info, request=this] {
-            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler(info->session, info->req_id, info->ctxt,
+                    PCFETCHER_RESP_TYPE_ERROR,
+                    (const char *)&info->header, 0);
             info->handler = nullptr;
             pcfetcher_destroy_callback_info(info);
             request->m_fetcherProcess->requestFinished(request);
@@ -539,7 +546,9 @@ void PcFetcherRequest::cancel()
 
     info->header.ret_code = RESP_CODE_USER_CANCEL;
     m_runloop->dispatch([info, request=this] {
-            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler(info->session, info->req_id, info->ctxt,
+                    PCFETCHER_RESP_TYPE_ERROR,
+                    (const char *)&info->header, 0);
             info->handler = nullptr;
             pcfetcher_destroy_callback_info(info);
             request->m_fetcherProcess->requestFinished(request);
@@ -641,14 +650,27 @@ void PcFetcherRequest::didReceiveResponse(
     }
     m_bytesReceived = 0;
     m_progressValue = initialProgressValue;
-    if (m_callback->tracker) {
+
+    if (m_is_async) {
         struct pcfetcher_callback_info *info = m_callback;
-        m_runloop->dispatch([info, progress=m_progressValue] {
-                info->tracker(info->req_id, info->tracker_ctxt, progress);
-            }
-        );
+        m_runloop->dispatch([info] {
+                    info->handler(info->session, info->req_id, info->ctxt,
+                            PCFETCHER_RESP_TYPE_HEADER,
+                            (const char *)&info->header, 0);
+                }
+            );
+
+        if (m_callback->tracker) {
+            m_runloop->dispatch([info, progress=m_progressValue] {
+                    info->tracker(info->session, info->req_id, info->tracker_ctxt,
+                            progress);
+                }
+            );
+        }
     }
-    m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
+    else {
+        m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
+    }
 }
 
 void PcFetcherRequest::didReceiveSharedBuffer(
@@ -674,15 +696,33 @@ void PcFetcherRequest::didReceiveSharedBuffer(
     increment = (maxProgressValue - m_progressValue) * percentOfRemainingBytes;
     m_progressValue += increment;
     m_progressValue = std::min(m_progressValue, maxProgressValue);
-    if (m_callback->tracker) {
-        struct pcfetcher_callback_info *info = m_callback;
-        m_runloop->dispatch([info, progress=m_progressValue] {
-                info->tracker(info->req_id, info->tracker_ctxt, progress);
-            }
-        );
-    }
 
-    purc_rwstream_write(m_callback->rws, data.data(), data.size());
+    if (m_is_async) {
+        struct pcfetcher_callback_info *info = m_callback;
+        size_t nr_bytes = data.size();
+        char *buf = strndup(data.data(), nr_bytes);
+        m_runloop->dispatch([info, progress=m_progressValue, buf, nr_bytes] {
+                info->handler(info->session, info->req_id, info->ctxt,
+                        PCFETCHER_RESP_TYPE_DATA,
+                        (const char *)buf, nr_bytes);
+                free(buf);
+                }
+            );
+
+        if (m_callback->tracker) {
+            struct pcfetcher_callback_info *info = m_callback;
+            const char *bytes = data.data();
+            size_t nr_bytes = data.size();
+            m_runloop->dispatch([info, progress=m_progressValue, bytes, nr_bytes] {
+                    info->tracker(info->session, info->req_id, info->tracker_ctxt,
+                            progress);
+                }
+            );
+        }
+    }
+    else {
+        purc_rwstream_write(m_callback->rws, data.data(), data.size());
+    }
 }
 
 void PcFetcherRequest::didFinishResourceLoad(
@@ -703,7 +743,8 @@ void PcFetcherRequest::didFinishResourceLoad(
     if (m_callback->tracker) {
         struct pcfetcher_callback_info *info = m_callback;
         m_runloop->dispatch([info, progress=m_progressValue] {
-                info->tracker(info->req_id, info->tracker_ctxt, progress);
+                info->tracker(info->session, info->req_id, info->tracker_ctxt,
+                        progress);
             }
         );
     }
@@ -711,22 +752,13 @@ void PcFetcherRequest::didFinishResourceLoad(
     if (!m_callback->handler) {
         return;
     }
-    if (!m_callback->header.sz_resp && m_callback->rws) {
-        size_t sz_content = 0;
-        size_t sz_buffer = 0;
-        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                &sz_buffer, false);
-        m_callback->header.sz_resp = sz_content;
-    }
-    if (m_callback->rws) {
-        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-    }
+
     struct pcfetcher_callback_info *info = m_callback;
     m_callback = NULL;
     m_runloop->dispatch([info, request=this] {
-            info->handler(info->req_id, info->ctxt, &info->header,
-                    info->rws);
-            info->rws = NULL;
+            info->handler(info->session, info->req_id, info->ctxt,
+                    PCFETCHER_RESP_TYPE_FINISH,
+                    NULL, 0);
             pcfetcher_destroy_callback_info(info);
             request->m_fetcherProcess->requestFinished(request);
             }
@@ -752,22 +784,12 @@ void PcFetcherRequest::didFailResourceLoad(const ResourceError& error)
         return;
     }
 
-    if (!m_callback->header.sz_resp && m_callback->rws) {
-        size_t sz_content = 0;
-        size_t sz_buffer = 0;
-        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                &sz_buffer, false);
-        m_callback->header.sz_resp = sz_content;
-    }
-    if (m_callback->rws) {
-        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-    }
     struct pcfetcher_callback_info *info = m_callback;
     m_callback = NULL;
     m_runloop->dispatch([info, request=this] {
-            info->handler(info->req_id, info->ctxt, &info->header,
-                    info->rws);
-            info->rws = NULL;
+            info->handler(info->session, info->req_id, info->ctxt,
+                    PCFETCHER_RESP_TYPE_ERROR,
+                    (const char *)&info->header, 0);
             pcfetcher_destroy_callback_info(info);
             request->m_fetcherProcess->requestFinished(request);
             }

@@ -84,8 +84,9 @@ const char* pcfetcher_cookie_remove(const char* domain,
 }
 
 purc_variant_t pcfetcher_request_async(
+        struct pcfetcher_session *session,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -94,19 +95,20 @@ purc_variant_t pcfetcher_request_async(
         void* tracker_ctxt)
 {
     struct pcfetcher* fetcher = get_fetcher();
-    return fetcher ? fetcher->request_async(fetcher, url, method,
+    return fetcher ? fetcher->request_async(session, fetcher, url, method,
             params, timeout, handler, ctxt, tracker, tracker_ctxt) : PURC_VARIANT_INVALID;
 }
 
 purc_rwstream_t pcfetcher_request_sync(
+        struct pcfetcher_session *session,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
     struct pcfetcher* fetcher = get_fetcher();
-    return fetcher ? fetcher->request_sync(fetcher, url, method,
+    return fetcher ? fetcher->request_sync(session, fetcher, url, method,
             params, timeout, resp_header) : NULL;
 }
 

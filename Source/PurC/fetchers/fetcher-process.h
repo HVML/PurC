@@ -105,9 +105,10 @@ public:
     void setProcessSuppressionEnabled(bool);
 
     purc_variant_t requestAsync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -116,9 +117,10 @@ public:
         void* tracker_ctxt);
 
     purc_rwstream_t requestSync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);

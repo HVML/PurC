@@ -289,16 +289,16 @@ attr_found_val(struct pcintr_stack_frame *frame,
 }
 
 static int
-method_by_method(const char *s_method, enum pcfetcher_request_method *method)
+method_by_method(const char *s_method, enum pcfetcher_method *method)
 {
     if (strcmp(s_method, "GET") == 0) {
-        *method = PCFETCHER_REQUEST_METHOD_GET;
+        *method = PCFETCHER_METHOD_GET;
     }
     else if (strcmp(s_method, "POST") == 0) {
-        *method = PCFETCHER_REQUEST_METHOD_POST;
+        *method = PCFETCHER_METHOD_POST;
     }
     else if (strcmp(s_method, "DELETE") == 0) {
-        *method = PCFETCHER_REQUEST_METHOD_DELETE;
+        *method = PCFETCHER_METHOD_DELETE;
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -309,35 +309,78 @@ method_by_method(const char *s_method, enum pcfetcher_request_method *method)
     return 0;
 }
 
-static void on_sync_complete(purc_variant_t request_id, void *ud,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
+static void on_sync_complete(
+        struct pcfetcher_session *session,
+        purc_variant_t request_id,
+        void *ud,
+        enum pcfetcher_resp_type type,
+        const char *data, size_t sz_data)
 {
+    UNUSED_PARAM(session);
     UNUSED_PARAM(request_id);
     UNUSED_PARAM(ud);
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
 
-    pcintr_stack_frame_t frame;
-    frame = (pcintr_stack_frame_t)ud;
+    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
 
-    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
-
-    ctxt->ret_code = resp_header->ret_code;
-    ctxt->resp = resp;
-
-    if (ctxt->co->stack.exited) {
-        return;
+    switch (type) {
+    case PCFETCHER_RESP_TYPE_HEADER:
+    {
+        struct pcfetcher_resp_header *resp_header =
+            (struct pcfetcher_resp_header *)data;
+        ctxt->ret_code = resp_header->ret_code;
+        PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+        PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+        PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+        break;
     }
 
-    pcintr_coroutine_post_event(ctxt->co->cid,
-        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
-        PURC_VARIANT_INVALID, ctxt->sync_id);
+    case PCFETCHER_RESP_TYPE_DATA:
+    {
+        if (ctxt->resp == NULL) {
+            ctxt->resp = purc_rwstream_new_buffer(sz_data, 0);
+        }
+        purc_rwstream_write(ctxt->resp, data, sz_data);
+        break;
+    }
+
+    case PCFETCHER_RESP_TYPE_ERROR:
+    {
+        struct pcfetcher_resp_header *resp_header =
+            (struct pcfetcher_resp_header *)data;
+        ctxt->ret_code = resp_header->ret_code;
+
+        if (ctxt->co->stack.exited) {
+            return;
+        }
+
+        if (ctxt->resp) {
+            purc_rwstream_seek(ctxt->resp, 0, SEEK_SET);
+        }
+        pcintr_coroutine_post_event(ctxt->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+            PURC_VARIANT_INVALID, ctxt->sync_id);
+        break;
+    }
+
+    case PCFETCHER_RESP_TYPE_FINISH:
+    {
+        if (ctxt->co->stack.exited) {
+            return;
+        }
+        if (ctxt->resp) {
+            purc_rwstream_seek(ctxt->resp, 0, SEEK_SET);
+        }
+
+        pcintr_coroutine_post_event(ctxt->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+            PURC_VARIANT_INVALID, ctxt->sync_id);
+        break;
+    }
+    }
 }
 
 static bool
@@ -448,7 +491,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 
     int r;
 
-    enum pcfetcher_request_method method;
+    enum pcfetcher_method method;
     r = method_by_method(s_method, &method);
     if (r)
         return;

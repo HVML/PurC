@@ -901,27 +901,27 @@ out:
     return val;
 }
 
-enum pcfetcher_request_method
+enum pcfetcher_method
 pcintr_method_from_via(enum VIA via)
 {
-    enum pcfetcher_request_method method;
+    enum pcfetcher_method method;
     switch (via) {
         case VIA_GET:
-            method = PCFETCHER_REQUEST_METHOD_GET;
+            method = PCFETCHER_METHOD_GET;
             break;
         case VIA_POST:
-            method = PCFETCHER_REQUEST_METHOD_POST;
+            method = PCFETCHER_METHOD_POST;
             break;
         case VIA_DELETE:
-            method = PCFETCHER_REQUEST_METHOD_DELETE;
+            method = PCFETCHER_METHOD_DELETE;
             break;
         case VIA_UNDEFINED:
-            method = PCFETCHER_REQUEST_METHOD_GET;
+            method = PCFETCHER_METHOD_GET;
             break;
         default:
             // TODO VW: raise exception for no required value
             // PC_ASSERT(0);
-            method = PCFETCHER_REQUEST_METHOD_GET;
+            method = PCFETCHER_METHOD_GET;
             break;
     }
 

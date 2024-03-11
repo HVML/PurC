@@ -176,9 +176,10 @@ const char* pcfetcher_cookie_loccal_remove(struct pcfetcher* fetcher,
 }
 
 purc_variant_t pcfetcher_local_request_async(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -199,9 +200,10 @@ purc_variant_t pcfetcher_local_request_async(
     }
 
     struct pcfetcher_callback_info *info = pcfetcher_create_callback_info();
-    info->rws = pcfetcher_local_request_sync(fetcher, url, method,
+    info->rws = pcfetcher_local_request_sync(session, fetcher, url, method,
             params, timeout, &info->header);
     info->handler = handler;
+    info->session = session;
     info->ctxt = ctxt;
     info->tracker = tracker;
     info->tracker_ctxt = tracker_ctxt;
@@ -219,7 +221,7 @@ purc_variant_t pcfetcher_local_request_async(
         double tm = 0.1;
         runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
-                info->tracker(info->req_id, info->tracker_ctxt,
+                info->tracker(info->session, info->req_id, info->tracker_ctxt,
                         PCFETCHER_INITIAL_PROGRESS);
             }
         );
@@ -232,11 +234,30 @@ purc_variant_t pcfetcher_local_request_async(
     runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
                 if (info->tracker) {
-                    info->tracker(info->req_id, info->tracker_ctxt, 1.0);
+                    info->tracker(info->session, info->req_id,
+                            info->tracker_ctxt, 1.0);
                 }
                 if (!info->cancelled) {
-                    info->handler(info->req_id, info->ctxt, &info->header,
-                            info->rws);
+                    info->handler(info->session, info->req_id, info->ctxt,
+                            PCFETCHER_RESP_TYPE_HEADER,
+                            (const char *)&info->header, 0);
+
+                    purc_rwstream_t stream = purc_rwstream_new_buffer(1024, 0);
+                    purc_rwstream_dump_to_another(info->rws, stream, -1);
+                    size_t sz_content = 0;
+                    char *content = (char *)purc_rwstream_get_mem_buffer(stream,
+                            &sz_content);
+
+                    info->handler(info->session, info->req_id, info->ctxt,
+                            PCFETCHER_RESP_TYPE_DATA,
+                            content, sz_content);
+
+                    info->handler(info->session, info->req_id, info->ctxt,
+                            PCFETCHER_RESP_TYPE_FINISH,
+                            NULL, 0);
+
+                    purc_rwstream_destroy(stream);
+                    purc_rwstream_destroy(info->rws);
                     info->rws = NULL;
                 }
                 pcfetcher_destroy_callback_info(info);
@@ -255,9 +276,10 @@ off_t filesize(const char* filename)
 String pcfetcher_build_uri(const char *base_url,  const char *url);
 
 purc_rwstream_t pcfetcher_local_request_sync(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
@@ -316,7 +338,9 @@ void pcfetcher_local_cancel_async(struct pcfetcher* fetcher,
         purc_variant_native_get_entity(request);
     info->cancelled = true;
     info->header.ret_code = RESP_CODE_USER_CANCEL;
-    info->handler(info->req_id, info->ctxt, &info->header, NULL);
+    info->handler(info->session, info->req_id, info->ctxt,
+            PCFETCHER_RESP_TYPE_ERROR,
+            (const char *)&info->header, 0);
 #endif
 }
 

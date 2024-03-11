@@ -30,6 +30,7 @@ set(PurC_FRAMEWORK_HEADERS
     "${PURC_DIR}/include/purc-runloop.h"
     "${PURC_DIR}/include/purc-executor.h"
     "${PURC_DIR}/include/purc-document.h"
+    "${PURC_DIR}/include/purc-fetcher.h"
     "${PURC_DIR}/include/purc.h"
 )
 

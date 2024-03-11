@@ -294,9 +294,10 @@ void PcFetcherProcess::removeRequest(PcFetcherRequest *request)
 }
 
 purc_variant_t PcFetcherProcess::requestAsync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -304,26 +305,27 @@ purc_variant_t PcFetcherProcess::requestAsync(
         pcfetcher_progress_tracker tracker,
         void* tracker_ctxt)
 {
-    PcFetcherRequest* session = createRequest();
-    if (!session) {
+    PcFetcherRequest* req = createRequest();
+    if (!req) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    return session->requestAsync(base_uri, url, method,
+    return req->requestAsync(session, base_uri, url, method,
             params, timeout, handler, ctxt, tracker, tracker_ctxt);
 }
 
 purc_rwstream_t PcFetcherProcess::requestSync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
-    PcFetcherRequest* session = createRequest();
-    return session->requestSync(base_uri, url, method,
+    PcFetcherRequest* req = createRequest();
+    return req->requestSync(session, base_uri, url, method,
             params, timeout, resp_header);
 }
 

@@ -2175,8 +2175,9 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     struct pcfetcher_resp_header resp_header = {0};
     uint32_t timeout = stack->co->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
+            NULL,
             uri,
-            PCFETCHER_REQUEST_METHOD_GET,
+            PCFETCHER_METHOD_GET,
             NULL,
             timeout,
             &resp_header);
@@ -2233,19 +2234,26 @@ destroy_load_async_data(struct load_async_data *data)
 
 static void
 on_load_async_done(
+        struct pcfetcher_session *session,
         purc_variant_t request_id, void* ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
+        enum pcfetcher_resp_type type,
+        const char *data, size_t sz_data)
 {
-    struct load_async_data *data;
-    data = (struct load_async_data*)ctxt;
-    data->handler(request_id, data->ctxt, resp_header, resp);
-    destroy_load_async_data(data);
+    struct load_async_data *load;
+    load = (struct load_async_data*)ctxt;
+    load->handler(session, request_id, load->ctxt, type, data, sz_data);
+    if (type == PCFETCHER_RESP_TYPE_ERROR ||
+            type == PCFETCHER_RESP_TYPE_FINISH) {
+        destroy_load_async_data(load);
+    }
 }
 
-void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
+void pcintr_fetcher_progress_tracker(
+        struct pcfetcher_session *session,
+        purc_variant_t request_id,
         void* ctxt, double progress)
 {
+    UNUSED_PARAM(session);
     UNUSED_PARAM(request_id);
     struct load_async_data *data = (struct load_async_data*)ctxt;
     if (data->progress_event_dest) {
@@ -2274,7 +2282,7 @@ void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
-        enum pcfetcher_request_method method, purc_variant_t params,
+        enum pcfetcher_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt,
         purc_variant_t progress_event_dest)
 {
@@ -2308,6 +2316,7 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
 
     uint32_t timeout = stack->co->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
+            NULL,
             uri,
             method,
             params,
@@ -2365,8 +2374,9 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
+            NULL,
             uri,
-            PCFETCHER_REQUEST_METHOD_GET,
+            PCFETCHER_METHOD_GET,
             NULL,
             timeout,
             &resp_header);

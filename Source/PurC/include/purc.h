@@ -45,6 +45,7 @@
 #include "purc-dvobjs.h"
 #include "purc-executor.h"
 #include "purc-runloop.h"
+#include "purc-fetcher.h"
 
 /**
  * purc_instance_extra_info:

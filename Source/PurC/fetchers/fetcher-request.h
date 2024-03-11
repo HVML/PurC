@@ -64,9 +64,10 @@ public:
     void close();
 
     purc_variant_t requestAsync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -75,9 +76,10 @@ public:
         void* tracker_ctxt);
 
     purc_rwstream_t requestSync(
+        struct pcfetcher_session *session,
         const char* base_uri,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
@@ -129,6 +131,7 @@ private:
     Lock m_callbackLock;
     struct pcfetcher_callback_info *m_callback;
 
+    struct pcfetcher_session *m_session;
     PcFetcherProcess *m_fetcherProcess;
 
     long long m_estimatedLength {0};

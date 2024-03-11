@@ -69,7 +69,7 @@ TEST(local_fetcher, sync)
     struct pcfetcher_resp_header resp_header;
     purc_rwstream_t resp = pcfetcher_request_sync(
         url,
-        PCFETCHER_REQUEST_METHOD_GET,
+        PCFETCHER_METHOD_GET,
         NULL,
         10,
         &resp_header);
@@ -159,7 +159,7 @@ TEST(local_fetcher, async)
     pcfetcher_set_base_url(base_uri);
     pcfetcher_request_async(
                 url,
-                PCFETCHER_REQUEST_METHOD_GET,
+                PCFETCHER_METHOD_GET,
                 NULL,
                 0,
                 async_response_handler,

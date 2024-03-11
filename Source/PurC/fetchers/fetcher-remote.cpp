@@ -141,9 +141,10 @@ const char* pcfetcher_cookie_remote_remove(struct pcfetcher* fetcher,
 
 
 purc_variant_t pcfetcher_remote_request_async(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -153,21 +154,24 @@ purc_variant_t pcfetcher_remote_request_async(
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestAsync(
+            session,
             remote->base_uri,
             url, method, params, timeout, handler, ctxt, tracker, tracker_ctxt);
 }
 
 
 purc_rwstream_t pcfetcher_remote_request_sync(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestSync(
+            session,
             remote->base_uri,
             url, method, params, timeout, resp_header);
 }

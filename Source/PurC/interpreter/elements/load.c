@@ -271,38 +271,79 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 
-static void on_fetch_sync_complete(purc_variant_t request_id, void *ud,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
+static void on_sync_complete(
+        struct pcfetcher_session *session,
+        purc_variant_t request_id,
+        void *ud,
+        enum pcfetcher_resp_type type,
+        const char *data, size_t sz_data)
 {
+    UNUSED_PARAM(session);
     UNUSED_PARAM(request_id);
     UNUSED_PARAM(ud);
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
 
     pcintr_stack_frame_t frame;
     frame = (pcintr_stack_frame_t)ud;
     struct ctxt_for_load *ctxt;
     ctxt = (struct ctxt_for_load *)frame->ctxt;
 
-    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
-
-    ctxt->ret_code = resp_header->ret_code;
-    ctxt->resp = resp;
-    if (resp_header->mime_type) {
-        ctxt->mime_type = strdup(resp_header->mime_type);
+    switch (type) {
+    case PCFETCHER_RESP_TYPE_HEADER:
+    {
+        struct pcfetcher_resp_header *resp_header =
+            (struct pcfetcher_resp_header *)data;
+        ctxt->ret_code = resp_header->ret_code;
+        PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+        PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+        PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+        break;
     }
 
-    if (ctxt->co->stack.exited) {
-        return;
+    case PCFETCHER_RESP_TYPE_DATA:
+    {
+        if (ctxt->resp == NULL) {
+            ctxt->resp = purc_rwstream_new_buffer(sz_data, 0);
+        }
+        purc_rwstream_write(ctxt->resp, data, sz_data);
+        break;
     }
 
-    pcintr_coroutine_post_event(ctxt->co->cid,
-        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
-        PURC_VARIANT_INVALID, ctxt->sync_id);
+    case PCFETCHER_RESP_TYPE_ERROR:
+    {
+        struct pcfetcher_resp_header *resp_header =
+            (struct pcfetcher_resp_header *)data;
+        ctxt->ret_code = resp_header->ret_code;
+
+        if (ctxt->co->stack.exited) {
+            return;
+        }
+
+        if (ctxt->resp) {
+            purc_rwstream_seek(ctxt->resp, 0, SEEK_SET);
+        }
+        pcintr_coroutine_post_event(ctxt->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+            PURC_VARIANT_INVALID, ctxt->sync_id);
+        break;
+    }
+
+    case PCFETCHER_RESP_TYPE_FINISH:
+    {
+        if (ctxt->co->stack.exited) {
+            return;
+        }
+        if (ctxt->resp) {
+            purc_rwstream_seek(ctxt->resp, 0, SEEK_SET);
+        }
+
+        pcintr_coroutine_post_event(ctxt->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+            PURC_VARIANT_INVALID, ctxt->sync_id);
+        break;
+    }
+    }
 }
 
 static bool
@@ -407,14 +448,14 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     struct ctxt_for_load *ctxt;
     ctxt = (struct ctxt_for_load*)frame->ctxt;
 
-    enum pcfetcher_request_method method;
+    enum pcfetcher_method method;
     method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params = PURC_VARIANT_INVALID;
 
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            method, params, on_fetch_sync_complete, frame, PURC_VARIANT_INVALID);
+            method, params, on_sync_complete, frame, PURC_VARIANT_INVALID);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -618,7 +659,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
         data->at = purc_variant_ref(ctxt->at);
     }
 
-    enum pcfetcher_request_method method;
+    enum pcfetcher_method method;
     method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params = PURC_VARIANT_INVALID;

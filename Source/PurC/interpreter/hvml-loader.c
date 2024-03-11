@@ -297,8 +297,9 @@ purc_load_hvml_from_url(const char* url)
     if (vdom == NULL) {
         struct pcfetcher_resp_header resp_header = {0};
         purc_rwstream_t resp = pcfetcher_request_sync(
+                NULL,
                 url,
-                PCFETCHER_REQUEST_METHOD_GET,
+                PCFETCHER_METHOD_GET,
                 NULL,
                 10,
                 &resp_header);

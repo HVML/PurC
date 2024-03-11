@@ -55,9 +55,10 @@ typedef const char* (*pcfetcher_cookie_remove_fn)(struct pcfetcher* fetcher,
         const char* domain, const char* path, const char* name);
 
 typedef purc_variant_t (*pcfetcher_request_async_fn)(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -66,9 +67,10 @@ typedef purc_variant_t (*pcfetcher_request_async_fn)(
         void* tracker_ctxt);
 
 typedef purc_rwstream_t (*pcfetcher_request_sync_fn)(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
@@ -96,6 +98,7 @@ struct pcfetcher {
 };
 
 struct pcfetcher_callback_info {
+    struct pcfetcher_session *session;
     struct pcfetcher_resp_header header;
     purc_rwstream_t rws;
     purc_variant_t req_id;
@@ -128,9 +131,10 @@ const char* pcfetcher_cookie_loccal_remove(struct pcfetcher* fetcher,
         const char* domain, const char* path, const char* name);
 
 purc_variant_t pcfetcher_local_request_async(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -139,9 +143,10 @@ purc_variant_t pcfetcher_local_request_async(
         void* tracker_ctxt);
 
 purc_rwstream_t pcfetcher_local_request_sync(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
@@ -174,9 +179,10 @@ const char* pcfetcher_cookie_remote_remove(struct pcfetcher* fetcher,
 
 
 purc_variant_t pcfetcher_remote_request_async(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
@@ -185,11 +191,12 @@ purc_variant_t pcfetcher_remote_request_async(
         void* tracker_ctxt);
 
 purc_rwstream_t pcfetcher_remote_request_sync(
+        struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
         const char* url,
-        enum pcfetcher_request_method method,
+        enum pcfetcher_method method,
         purc_variant_t params,
-        uint32_t timeout,
+        unsigned int timeout,
         struct pcfetcher_resp_header *resp_header);
 
 void pcfetcher_remote_cancel_async(struct pcfetcher* fetcher,

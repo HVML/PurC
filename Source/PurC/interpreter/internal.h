@@ -194,7 +194,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
-        enum pcfetcher_request_method method, purc_variant_t params,
+        enum pcfetcher_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt,
         purc_variant_t progress_event_dest);
 
@@ -495,7 +495,7 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
 purc_variant_t
 pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently);
 
-enum pcfetcher_request_method
+enum pcfetcher_method
 pcintr_method_from_via(enum VIA via);
 
 bool
