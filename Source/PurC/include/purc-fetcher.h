@@ -1,5 +1,5 @@
 /**
- * @file purc-fetchers.h
+ * @file purc-fetcher.h
  * @author Xue Shuming
  * @date 2024/03/11
  * @brief The API for fetcher.
