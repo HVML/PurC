@@ -153,7 +153,7 @@ const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session);
  *
  * Since: 0.9.19
  */
-void pcfetcher_cookie_set(struct pcfetcher_session *session,
+int pcfetcher_cookie_set(struct pcfetcher_session *session,
         const char *domain, const char *path, const char *name,
         const char *content, time_t expire_time, bool secure);
 
@@ -191,7 +191,7 @@ const char *pcfetcher_cookie_get(struct pcfetcher_session *session,
  *
  * Since: 0.9.19
  */
-bool pcfetcher_cookie_remove(struct pcfetcher_session *session,
+int pcfetcher_cookie_remove(struct pcfetcher_session *session,
         const char *domain, const char *path, const char *name);
 
 enum pcfetcher_resp_type {
@@ -211,7 +211,7 @@ typedef void (*pcfetcher_response_handler)(
 typedef void (*pcfetcher_progress_tracker)(
         struct pcfetcher_session *session,
         purc_variant_t request_id,
-        void* ctxt, double progress);
+        void *ctxt, double progress);
 
 /**
  * pcfetcher_request_async:
