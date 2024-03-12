@@ -216,7 +216,7 @@ const char *pcfetcher_cookie_get(struct pcfetcher_session *session,
  * @path: The path of the cookie.
  * @name: The name of cookie to remove.
  *
- * Remove the cooike.
+ * Remove the cookie.
  *
  * Returns: True on succes, or false on failure.
  *

@@ -89,9 +89,6 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->cache_quota = cache_quota;
     fetcher->init = pcfetcher_local_init;
     fetcher->term = pcfetcher_local_term;
-    fetcher->cookie_set = pcfetcher_cookie_local_set;
-    fetcher->cookie_get = pcfetcher_cookie_local_get;
-    fetcher->cookie_remove = pcfetcher_cookie_loccal_remove;
     fetcher->request_async = pcfetcher_local_request_async;
     fetcher->request_sync = pcfetcher_local_request_sync;
     fetcher->cancel_async = pcfetcher_local_cancel_async;
@@ -109,42 +106,6 @@ int pcfetcher_local_term(struct pcfetcher* fetcher)
     struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
     free(local);
     return 0;
-}
-
-void pcfetcher_cookie_local_set(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name,
-        const char* content, time_t expire_time, bool secure)
-{
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(domain);
-    UNUSED_PARAM(path);
-    UNUSED_PARAM(name);
-    UNUSED_PARAM(content);
-    UNUSED_PARAM(expire_time);
-    UNUSED_PARAM(secure);
-}
-
-const char* pcfetcher_cookie_local_get(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name,
-        time_t *expire, bool *secure)
-{
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(domain);
-    UNUSED_PARAM(path);
-    UNUSED_PARAM(name);
-    UNUSED_PARAM(expire);
-    UNUSED_PARAM(secure);
-    return NULL;
-}
-
-const char* pcfetcher_cookie_loccal_remove(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name)
-{
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(domain);
-    UNUSED_PARAM(path);
-    UNUSED_PARAM(name);
-    return NULL;
 }
 
 purc_variant_t pcfetcher_local_request_async(

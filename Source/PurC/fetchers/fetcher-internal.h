@@ -43,17 +43,6 @@ typedef int (*pcfetcher_term_fn)(struct pcfetcher* fetcher);
 typedef const char* (*pcfetcher_set_base_url_fn)(struct pcfetcher* fetcher,
         const char* base_url);
 
-typedef void (*pcfetcher_cookie_set_fn)(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name,
-        const char* content, time_t expire_time, bool secure);
-
-typedef const char* (*pcfetcher_cookie_get_fn)(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name,
-        time_t *expire, bool *secure);
-
-typedef const char* (*pcfetcher_cookie_remove_fn)(struct pcfetcher* fetcher,
-        const char* domain, const char* path, const char* name);
-
 typedef purc_variant_t (*pcfetcher_request_async_fn)(
         struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
@@ -87,9 +76,6 @@ struct pcfetcher {
 
     pcfetcher_init_fn init;
     pcfetcher_term_fn term;
-    pcfetcher_cookie_set_fn cookie_set;
-    pcfetcher_cookie_get_fn cookie_get;
-    pcfetcher_cookie_remove_fn cookie_remove;
     pcfetcher_request_async_fn request_async;
     pcfetcher_request_sync_fn request_sync;
     pcfetcher_cancel_async_fn cancel_async;

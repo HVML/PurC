@@ -33,13 +33,27 @@
 
 #include <time.h>
 
+#include "private/list.h"
+
 #define FETCHER_PARAM_RAW_HEADER    "__fetcher_param_raw_header"
 #define FETCHER_PARAM_DATA          "__fetcher_param_data"
 
 #define RESP_CODE_USER_STOP         -1
 #define RESP_CODE_USER_CANCEL       -2
 
+struct pcfetcher_cookie {
+    struct list_head    node;
+    char *domain;
+    char *path;
+    char *name;
+
+    char *content;
+    time_t expire_time;
+    bool secure;
+};
+
 struct pcfetcher_session {
+    struct list_head    cookies;
     void *user_data;
     char *base_url;
 };

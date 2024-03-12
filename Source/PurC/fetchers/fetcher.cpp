@@ -48,11 +48,44 @@ bool pcfetcher_is_init(void)
     return s_remote_fetcher || s_local_fetcher;
 }
 
+static struct pcfetcher_cookie *cookie_create(
+        const char *domain, const char *path, const char *name,
+        const char *content, time_t expire_time, bool secure)
+{
+    struct pcfetcher_cookie *cookie =
+        (struct pcfetcher_cookie*) calloc(1, sizeof(*cookie));
+    cookie->domain = domain ? strdup(domain) : NULL;
+    cookie->path = path ? strdup(path) : NULL;
+    cookie->name = name ? strdup(name) : NULL;
+    cookie->content = content ? strdup(content) : NULL;
+    cookie->expire_time = expire_time;
+    cookie->secure = secure;
+    return cookie;
+}
+
+static void cookie_destroy(struct pcfetcher_cookie *cookie)
+{
+    if (cookie->domain) {
+        free(cookie->domain);
+    }
+    if (cookie->path) {
+        free(cookie->path);
+    }
+    if (cookie->name) {
+        free(cookie->name);
+    }
+    if (cookie->content) {
+        free(cookie->content);
+    }
+    free(cookie);
+}
+
 struct pcfetcher_session *pcfetcher_session_create(void *user_data)
 {
     struct pcfetcher_session *session =
         (struct pcfetcher_session*) calloc(1, sizeof (*session));
     session->user_data = user_data;
+    list_head_init(&session->cookies);
     return session;
 }
 
@@ -60,6 +93,13 @@ void pcfetcher_session_destroy(struct pcfetcher_session *session)
 {
     if (session->base_url) {
         free(session->base_url);
+    }
+
+    struct list_head *cookies = &session->cookies;
+    struct pcfetcher_cookie *p;
+    struct pcfetcher_cookie *n;
+    list_for_each_entry_safe(p, n, cookies, node) {
+        cookie_destroy(p);
     }
     free(session);
 }
@@ -113,33 +153,122 @@ const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session)
     return session ? session->base_url : NULL;
 }
 
-void pcfetcher_cookie_set(const char* domain,
-        const char* path, const char* name, const char* content,
-        time_t expire_time, bool secure)
+static bool cookie_match(struct pcfetcher_cookie *cookie,
+        const char *domain, const char *path, const char *name)
 {
-    struct pcfetcher* fetcher = get_fetcher();
-    if (fetcher) {
-        fetcher->cookie_set(fetcher, domain, path, name, content,
-                expire_time, secure);
+    if (!(cookie->domain && domain && strcmp(cookie->domain, domain) == 0)) {
+        return false;
     }
+
+    if (!(cookie->path && path && strcmp(cookie->path, path) == 0)) {
+        return false;
+    }
+
+    if (!(cookie->name && name && strcmp(cookie->name, name) == 0)) {
+        return false;
+    }
+    return true;
 }
 
-const char* pcfetcher_cookie_get(const char* domain,
-        const char* path, const char* name, time_t *expire, bool *secure)
+struct pcfetcher_cookie *find_cookie(struct pcfetcher_session *session,
+        const char *domain, const char *path, const char *name)
 {
-    struct pcfetcher* fetcher = get_fetcher();
-    return fetcher ? fetcher->cookie_get(fetcher, domain, path,
-            name, expire, secure) : NULL;
+    struct pcfetcher_cookie *result = NULL;
+    struct list_head *cookies = &session->cookies;
+    struct pcfetcher_cookie *p;
+    struct pcfetcher_cookie *n;
+    list_for_each_entry_safe(p, n, cookies, node) {
+        if (cookie_match(p, domain, path, name)) {
+            result = p;
+            break;
+        }
+    }
+    return result;
 }
 
-const char* pcfetcher_cookie_remove(const char* domain,
-        const char* path, const char* name)
+int pcfetcher_cookie_set(struct pcfetcher_session *session,
+        const char *domain, const char *path, const char *name,
+        const char *content, time_t expire_time, bool secure)
 {
-    struct pcfetcher* fetcher = get_fetcher();
-    if (fetcher) {
-        return fetcher->cookie_remove(fetcher, domain, path, name);
+    int ret = -1;
+    struct pcfetcher_cookie *cookie;
+
+    if (!domain || !path || !name || !content) {
+        goto out;
     }
-    return NULL;
+
+    cookie = find_cookie(session, domain, path, name);
+    if (cookie) {
+        if (strcmp(cookie->content, content) != 0) {
+            free(cookie->content);
+            cookie->content = strdup(content);
+        }
+        cookie->expire_time = expire_time;
+        cookie->secure = secure;
+    }
+    else {
+        cookie = cookie_create(domain, path, name, content, expire_time, secure);
+        if (!cookie) {
+            goto out;
+        }
+
+        list_add_tail(&cookie->node, &session->cookies);
+    }
+    ret = 0;
+
+out:
+    return ret;
+}
+
+const char *pcfetcher_cookie_get(struct pcfetcher_session *session,
+        const char *domain, const char *path, const char *name,
+        time_t *expire, bool *secure)
+{
+    struct pcfetcher_cookie *cookie = NULL;
+    const char *content = NULL;
+    if (!domain || !path || !name) {
+        goto out;
+    }
+    cookie = find_cookie(session, domain, path, name);
+    if (!cookie) {
+        goto out;
+    }
+
+    content = cookie->content;
+    if (expire) {
+        *expire = cookie->expire_time;
+    }
+
+    if (secure) {
+        *secure = cookie->secure;
+    }
+
+out:
+    return content;
+}
+
+int pcfetcher_cookie_remove(struct pcfetcher_session *session,
+        const char *domain, const char *path, const char *name)
+{
+    struct list_head *cookies = &session->cookies;
+    struct pcfetcher_cookie *p;
+    struct pcfetcher_cookie *n;
+    int ret = -1;
+    if (!domain || !path || !name) {
+        goto out;
+    }
+
+    list_for_each_entry_safe(p, n, cookies, node) {
+        if (cookie_match(p, domain, path, name)) {
+            list_del(&p->node);
+            cookie_destroy(p);
+            break;
+        }
+    }
+
+    ret = 0;
+out:
+    return ret;
 }
 
 purc_variant_t pcfetcher_request_async(
