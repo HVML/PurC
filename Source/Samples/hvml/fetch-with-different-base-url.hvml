@@ -1,0 +1,19 @@
+# RESULT: { "a": "1", "b": "2", "method": "GET" }
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
+    </head>
+
+    <body>
+
+        <load from 'hvml/fetch-with-param-0.hvml' onto "null:" >
+        </load>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+    </body>
+</hvml>
+

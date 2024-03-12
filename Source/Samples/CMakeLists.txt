@@ -65,6 +65,7 @@ set(sample_HVML_FILES
     "hvml/fetch-with-param-b.hvml"
     "hvml/fetch-with-raw-header.hvml"
     "hvml/fetch-with-raw-header-get.hvml"
+    "hvml/fetch-with-different-base-url.hvml"
     "hvml/foil-layouts.hvml"
     "hvml/request-rdr.hvml"
     "hvml/spider-news-0.hvml"

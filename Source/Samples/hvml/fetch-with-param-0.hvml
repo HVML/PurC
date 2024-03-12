@@ -3,10 +3,11 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <init as="btns" from="http://ws.fmsoft.cn/tools/echo.php" with={a:1, b:2} via="GET" async />
+        <base href=$CRTN.base(! "http://ws.fmsoft.cn" ) hvml:silently />
     </head>
 
     <body>
+        <init as="btns" from="/tools/echo.php" with={a:1, b:2} via="GET" async />
         <observe against="btns" for="change:progress">
             <inherit>
                 $STREAM.stdout.writelines($DATA.stringify($?.progress))
