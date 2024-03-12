@@ -644,11 +644,9 @@ static purc_variant_t
 load_doc(purc_rwstream_t rws)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
-    purc_rwstream_dump_to_another(rws, stream, -1);
 
     size_t sz_content = 0;
-    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+    char *content = purc_rwstream_get_mem_buffer(rws, &sz_content);
 
     if (content) {
         purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
@@ -658,7 +656,6 @@ load_doc(purc_rwstream_t rws)
         }
     }
 
-    purc_rwstream_destroy(stream);
     return ret;
 }
 
@@ -666,17 +663,14 @@ static purc_variant_t
 load_text(purc_rwstream_t rws)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
-    purc_rwstream_dump_to_another(rws, stream, -1);
 
     size_t sz_content = 0;
-    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+    char *content = purc_rwstream_get_mem_buffer(rws, &sz_content);
 
     if (content) {
         ret = purc_variant_make_string_ex(content, sz_content, true);
     }
 
-    purc_rwstream_destroy(stream);
     return ret;
 }
 
@@ -684,17 +678,14 @@ static purc_variant_t
 load_byte_sequence(purc_rwstream_t rws)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
-    purc_rwstream_dump_to_another(rws, stream, -1);
 
     size_t nr_bytes = 0;
-    void *bytes = purc_rwstream_get_mem_buffer(stream, &nr_bytes);
+    void *bytes = purc_rwstream_get_mem_buffer(rws, &nr_bytes);
 
     if (bytes) {
         ret = purc_variant_make_byte_sequence(bytes, nr_bytes);
     }
 
-    purc_rwstream_destroy(stream);
     return ret;
 }
 

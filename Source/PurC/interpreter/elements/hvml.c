@@ -268,11 +268,8 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto out;
     }
 
-    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
-    purc_rwstream_dump_to_another(ctxt->resp, stream, -1);
-
     size_t sz_content = 0;
-    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+    char *content = purc_rwstream_get_mem_buffer(ctxt->resp, &sz_content);
     purc_document_t doc = pcdoc_document_new(PCDOC_K_TYPE_HTML,
             content, sz_content);
     if (!doc) {
@@ -293,8 +290,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     pcintr_unbind_coroutine_variable(cor, PURC_PREDEF_VARNAME_DOC);
     pcintr_bind_coroutine_variable(cor, PURC_PREDEF_VARNAME_DOC, n_doc);
     purc_variant_unref(n_doc);
-
-    purc_rwstream_destroy(stream);
 
     r = post_process(cor, frame);
     if (r) {
