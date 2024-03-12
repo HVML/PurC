@@ -90,13 +90,15 @@ int pcfetcher_get_conn_fd(void);
 /**
  * pcfetcher_session_create:
  *
+ * @user_data: The user data attach on the session.
+ *
  * Create a fetcher session.
  *
  * Returns: A fetcher session, or NULL on failure.
  *
  * Since: 0.9.19
  */
-struct pcfetcher_session *pcfetcher_session_create(void);
+struct pcfetcher_session *pcfetcher_session_create(void *user_data);
 
 /**
  * pcfetcher_session_destroy:
@@ -108,6 +110,34 @@ struct pcfetcher_session *pcfetcher_session_create(void);
  * Since: 0.9.19
  */
 void pcfetcher_session_destroy(struct pcfetcher_session *session);
+
+/**
+ * pcfetcher_session_set_user_data:
+ *
+ * @session: The fetcher session.
+ * @user_data: The user data to set.
+ *
+ * Set the user data of the session.
+ *
+ * Returns: 0 for success, otherwise failure.
+ *
+ * Since: 0.9.19
+ */
+int pcfetcher_session_set_user_data(struct pcfetcher_session *session,
+        void *user_data);
+
+/**
+ * pcfetcher_session_get_user_data:
+ *
+ * @session: The fetcher session.
+ *
+ * Get the user data of the session.
+ *
+ * Returns: The pointer to the user data , or NULL if not set.
+ *
+ * Since: 0.9.19
+ */
+void *pcfetcher_session_get_user_data(struct pcfetcher_session *session);
 
 /**
  * pcfetcher_session_set_base_url:
@@ -137,7 +167,6 @@ int pcfetcher_session_set_base_url(struct pcfetcher_session *session,
  */
 const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session);
 
-
 /**
  * pcfetcher_cookie_set:
  *
@@ -150,6 +179,8 @@ const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session);
  * @secure: Secure or not.
  *
  * Set cookie of the session.
+ *
+ * Returns: 0 for success, otherwise failure.
  *
  * Since: 0.9.19
  */

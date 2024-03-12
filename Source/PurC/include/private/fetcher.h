@@ -40,6 +40,8 @@
 #define RESP_CODE_USER_CANCEL       -2
 
 struct pcfetcher_session {
+    void *user_data;
+    char *base_url;
 };
 
 #ifdef __cplusplus
@@ -47,8 +49,6 @@ extern "C" {
 #endif  /* __cplusplus */
 
 bool pcfetcher_is_init(void);
-
-const char* pcfetcher_set_base_url(const char* base_url);
 
 void pcfetcher_cancel_async(purc_variant_t request);
 

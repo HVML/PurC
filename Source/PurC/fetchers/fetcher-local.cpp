@@ -37,7 +37,6 @@
 
 struct pcfetcher_local {
     struct pcfetcher base;
-    char* base_uri;
 };
 
 struct mime_type {
@@ -90,7 +89,6 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->cache_quota = cache_quota;
     fetcher->init = pcfetcher_local_init;
     fetcher->term = pcfetcher_local_term;
-    fetcher->set_base_url = pcfetcher_local_set_base_url;
     fetcher->cookie_set = pcfetcher_cookie_local_set;
     fetcher->cookie_get = pcfetcher_cookie_local_get;
     fetcher->cookie_remove = pcfetcher_cookie_loccal_remove;
@@ -98,8 +96,6 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->request_sync = pcfetcher_local_request_sync;
     fetcher->cancel_async = pcfetcher_local_cancel_async;
     fetcher->check_response = pcfetcher_local_check_response;
-
-    local->base_uri = NULL;
 
     return fetcher;
 }
@@ -111,32 +107,8 @@ int pcfetcher_local_term(struct pcfetcher* fetcher)
     }
 
     struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
-    if (local->base_uri) {
-        free(local->base_uri);
-    }
     free(local);
     return 0;
-}
-
-const char* pcfetcher_local_set_base_url(struct pcfetcher* fetcher,
-        const char* base_url)
-{
-    if (!fetcher) {
-        return NULL;
-    }
-
-    struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
-    if (local->base_uri) {
-        free(local->base_uri);
-    }
-
-    if (base_url == NULL) {
-        local->base_uri = NULL;
-        return NULL;
-    }
-
-    local->base_uri = strdup(base_url);
-    return local->base_uri;
 }
 
 void pcfetcher_cookie_local_set(struct pcfetcher* fetcher,
@@ -294,10 +266,10 @@ purc_rwstream_t pcfetcher_local_request_sync(
     if (!fetcher || !url) {
         return NULL;
     }
-    struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
+
     String uri;
-    if (local->base_uri) {
-        uri = pcfetcher_build_uri(local->base_uri, url);
+    if (session->base_url) {
+        uri = pcfetcher_build_uri(session->base_url, url);
     }
     else {
         uri.append(url);

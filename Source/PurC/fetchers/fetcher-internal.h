@@ -87,7 +87,6 @@ struct pcfetcher {
 
     pcfetcher_init_fn init;
     pcfetcher_term_fn term;
-    pcfetcher_set_base_url_fn set_base_url;
     pcfetcher_cookie_set_fn cookie_set;
     pcfetcher_cookie_get_fn cookie_get;
     pcfetcher_cookie_remove_fn cookie_remove;
@@ -115,9 +114,6 @@ struct pcfetcher_callback_info {
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota);
 
 int pcfetcher_local_term(struct pcfetcher* fetcher);
-
-const char* pcfetcher_local_set_base_url(struct pcfetcher* fetcher,
-        const char* base_url);
 
 void pcfetcher_cookie_local_set(struct pcfetcher* fetcher,
         const char* domain, const char* path, const char* name,

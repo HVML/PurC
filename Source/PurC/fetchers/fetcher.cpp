@@ -48,10 +48,69 @@ bool pcfetcher_is_init(void)
     return s_remote_fetcher || s_local_fetcher;
 }
 
-const char* pcfetcher_set_base_url(const char* base_url)
+struct pcfetcher_session *pcfetcher_session_create(void *user_data)
 {
-    struct pcfetcher* fetcher = get_fetcher();
-    return fetcher ? fetcher->set_base_url(fetcher, base_url) : NULL;
+    struct pcfetcher_session *session =
+        (struct pcfetcher_session*) calloc(1, sizeof (*session));
+    session->user_data = user_data;
+    return session;
+}
+
+void pcfetcher_session_destroy(struct pcfetcher_session *session)
+{
+    if (session->base_url) {
+        free(session->base_url);
+    }
+    free(session);
+}
+
+int pcfetcher_session_set_user_data(struct pcfetcher_session *session,
+    void *user_data)
+{
+    if (session) {
+        session->user_data = user_data;
+        return 0;
+    }
+    return -1;
+}
+
+void *pcfetcher_session_get_user_data(struct pcfetcher_session *session)
+{
+    return session ? session->user_data : NULL;
+}
+
+int pcfetcher_session_set_base_url(struct pcfetcher_session *session,
+    const char *base_url)
+{
+    if (!session) {
+        return -1;
+    }
+
+    if (!base_url) {
+        if (session->base_url) {
+            free(session->base_url);
+            session->base_url = NULL;
+        }
+        goto out;
+    }
+
+    if (session->base_url) {
+        if (strcmp(base_url, session->base_url) != 0) {
+            free(session->base_url);
+            session->base_url = strdup(base_url);
+        }
+    }
+    else {
+        session->base_url = strdup(base_url);
+    }
+
+out:
+    return 0;
+}
+
+const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session)
+{
+    return session ? session->base_url : NULL;
 }
 
 void pcfetcher_cookie_set(const char* domain,

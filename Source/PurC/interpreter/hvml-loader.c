@@ -296,8 +296,9 @@ purc_load_hvml_from_url(const char* url)
     vdom = find_vdom_in_cache(md5);
     if (vdom == NULL) {
         struct pcfetcher_resp_header resp_header = {0};
+        struct pcfetcher_session *session = pcfetcher_session_create(NULL);
         purc_rwstream_t resp = pcfetcher_request_sync(
-                NULL,
+                session,
                 url,
                 PCFETCHER_METHOD_GET,
                 NULL,
@@ -316,6 +317,7 @@ purc_load_hvml_from_url(const char* url)
         if (resp_header.mime_type) {
             free(resp_header.mime_type);
         }
+        pcfetcher_session_destroy(session);
     }
 
     return vdom;

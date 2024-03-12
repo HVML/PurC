@@ -374,6 +374,10 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->fetcher_session) {
+            pcfetcher_session_destroy(co->fetcher_session);
+        }
+
         if (co->target_workspace) {
             free(co->target_workspace);
         }
@@ -1801,6 +1805,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_clr_mq;
     }
 
+    co->fetcher_session = pcfetcher_session_create(co);
+    if (!co->fetcher_session) {
+        goto fail_clr_variables;
+    }
+
     stack = &co->stack;
     stack->co = co;
     co->owner = heap;
@@ -1816,7 +1825,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         stack->inherit = 1;
     }
     else if (doc_init(stack)) {
-        goto fail_clr_variables;
+        goto fail_clr_fetcher_session;
     }
 
     if (parent) {
@@ -1836,6 +1845,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     co->avl.key = co;
     co->sending_document_by_url = 1;    // 0.9.18
     return co;
+
+fail_clr_fetcher_session:
+    pcfetcher_session_destroy(co->fetcher_session);
 
 fail_clr_variables:
     pcvarmgr_destroy(co->variables);
@@ -2169,13 +2181,14 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     }
 
     if (stack->co->base_url_string) {
-        pcfetcher_set_base_url(stack->co->base_url_string);
+        pcfetcher_session_set_base_url(stack->co->fetcher_session,
+                stack->co->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     uint32_t timeout = stack->co->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
-            NULL,
+            stack->co->fetcher_session,
             uri,
             PCFETCHER_METHOD_GET,
             NULL,
@@ -2311,12 +2324,13 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     }
 
     if (stack->co->base_url_string) {
-        pcfetcher_set_base_url(stack->co->base_url_string);
+        pcfetcher_session_set_base_url(stack->co->fetcher_session,
+                stack->co->base_url_string);
     }
 
     uint32_t timeout = stack->co->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
-            NULL,
+            stack->co->fetcher_session,
             uri,
             method,
             params,
@@ -2368,13 +2382,14 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
     }
 
     if (stack->co->base_url_string) {
-        pcfetcher_set_base_url(stack->co->base_url_string);
+        pcfetcher_session_set_base_url(stack->co->fetcher_session,
+                stack->co->base_url_string);
     }
     uint32_t timeout = stack->co->timeout.tv_sec;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
-            NULL,
+            stack->co->fetcher_session,
             uri,
             PCFETCHER_METHOD_GET,
             NULL,
