@@ -63,6 +63,9 @@ public:
 
     void close();
 
+    void setCookie(struct pcfetcher_session *session,
+            const char *domain, const char *path);
+
     purc_variant_t requestAsync(
         struct pcfetcher_session *session,
         const char* base_uri,

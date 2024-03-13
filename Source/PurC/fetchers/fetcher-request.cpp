@@ -367,6 +367,31 @@ out:
     return ret;
 }
 
+void PcFetcherRequest::setCookie(struct pcfetcher_session *session,
+        const char *domain, const char *path)
+{
+    (void) path;
+    struct list_head *cookies = &session->cookies;
+    struct pcfetcher_cookie *p;
+    struct pcfetcher_cookie *n;
+    list_for_each_entry_safe(p, n, cookies, node) {
+        /* purc-fetcher: soup do the actual matching operation */
+        if (strcmp(p->domain, domain) == 0) {
+            PurCFetcher::Cookie cookie;
+            cookie.name = p->name;
+            cookie.value = p->content;
+            cookie.domain = p->domain;
+            cookie.path = p->path;
+            cookie.secure = p->secure;
+            if (p->expire_time > 0) {
+                cookie.expires = p->expire_time;
+            }
+            m_connection->send(
+                    Messages::NetworkConnectionToWebProcess::SetRawCookie(cookie), 0);
+        }
+    }
+}
+
 purc_variant_t PcFetcherRequest::requestAsync(
         struct pcfetcher_session *session,
         const char* base_uri,
@@ -405,15 +430,8 @@ purc_variant_t PcFetcherRequest::requestAsync(
         return NULL;
     }
 
-#if 0
-    PurCFetcher::Cookie cookie;
-    cookie.name = "test";
-    cookie.value = "testValue";
-    cookie.domain = "127.0.0.1";
-    cookie.path = "/tools/";
-    m_connection->send(
-            Messages::NetworkConnectionToWebProcess::SetRawCookie(cookie), 0);
-#endif
+    setCookie(session, wurl->host().toString().utf8().data(),
+            wurl->path().toString().utf8().data());
 
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
@@ -464,6 +482,9 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     if (fill_request_param(wurl, method, &request, params)) {
         return NULL;
     }
+
+    setCookie(session, wurl->host().toString().utf8().data(),
+            wurl->path().toString().utf8().data());
 
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));

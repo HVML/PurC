@@ -2328,6 +2328,12 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
                 stack->co->base_url_string);
     }
 
+#if 0
+    pcfetcher_cookie_set(stack->co->fetcher_session,
+        "127.0.0.1", "/tools/", "test",
+        "testCookieValue", 0, false);
+#endif
+
     uint32_t timeout = stack->co->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             stack->co->fetcher_session,
