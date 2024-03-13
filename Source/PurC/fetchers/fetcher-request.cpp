@@ -33,6 +33,7 @@
 #include "NetworkResourceLoadParameters.h"
 #include "ResourceError.h"
 #include "ResourceResponse.h"
+#include "Cookie.h"
 
 #include "private/url.h"
 
@@ -403,6 +404,16 @@ purc_variant_t PcFetcherRequest::requestAsync(
     if (fill_request_param(wurl, method, &request, params)) {
         return NULL;
     }
+
+#if 0
+    PurCFetcher::Cookie cookie;
+    cookie.name = "test";
+    cookie.value = "testValue";
+    cookie.domain = "127.0.0.1";
+    cookie.path = "/tools/";
+    m_connection->send(
+            Messages::NetworkConnectionToWebProcess::SetRawCookie(cookie), 0);
+#endif
 
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));

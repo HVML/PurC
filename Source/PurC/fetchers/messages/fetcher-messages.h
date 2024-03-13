@@ -55,6 +55,7 @@ class NetworkLoadMetrics;
 class ResourceError;
 class ResourceRequest;
 class ResourceResponse;
+struct Cookie;
 
 }
 
@@ -76,6 +77,48 @@ public:
 
     explicit ScheduleResourceLoad(const PurCFetcher::NetworkResourceLoadParameters& resourceLoadParameters)
         : m_arguments(resourceLoadParameters)
+    {
+    }
+
+    const Arguments& arguments() const
+    {
+        return m_arguments;
+    }
+
+private:
+    Arguments m_arguments;
+};
+
+class SetRawCookie {
+public:
+    using Arguments = std::tuple<const PurCFetcher::Cookie&>;
+
+    static IPC::MessageName name() { return IPC::MessageName::NetworkConnectionToWebProcess_SetRawCookie; }
+    static constexpr bool isSync = false;
+
+    explicit SetRawCookie(const PurCFetcher::Cookie& cookie)
+        : m_arguments(cookie)
+    {
+    }
+
+    const Arguments& arguments() const
+    {
+        return m_arguments;
+    }
+
+private:
+    Arguments m_arguments;
+};
+
+class DeleteCookie {
+public:
+    using Arguments = std::tuple<const URL&, const String&>;
+
+    static IPC::MessageName name() { return IPC::MessageName::NetworkConnectionToWebProcess_DeleteCookie; }
+    static constexpr bool isSync = false;
+
+    DeleteCookie(const URL& url, const String& cookieName)
+        : m_arguments(url, cookieName)
     {
     }
 
