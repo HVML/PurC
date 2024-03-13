@@ -108,6 +108,9 @@ int pcfetcher_local_term(struct pcfetcher* fetcher)
     return 0;
 }
 
+#define ASYNC_DELAY         0.05
+#define ASYNC_BUF_SIZE      4096
+
 purc_variant_t pcfetcher_local_request_async(
         struct pcfetcher_session *session,
         struct pcfetcher* fetcher,
@@ -146,55 +149,58 @@ purc_variant_t pcfetcher_local_request_async(
         info->header.ret_code = 404;
     }
 
-    RunLoop *runloop = &RunLoop::current();
-    if (info->tracker) {
-#ifdef NDEBUG
-        runloop->dispatch([info] {
-#else
-        double tm = 0.1;
-        runloop->dispatchAfter(Seconds(tm), [info] {
-#endif
-                info->tracker(info->session, info->req_id, info->tracker_ctxt,
-                        PCFETCHER_INITIAL_PROGRESS);
-            }
-        );
-    }
+    purc_rwstream_seek(info->rws, 0, SEEK_END);
+    size_t nr_bytes = purc_rwstream_tell(info->rws);
+    purc_rwstream_seek(info->rws, 0, SEEK_SET);
 
-#ifdef NDEBUG
-    runloop->dispatch([info] {
-#else
-    double tm = 0.2;
-    runloop->dispatchAfter(Seconds(tm), [info] {
-#endif
+    RunLoop *runloop = &RunLoop::current();
+
+    size_t nr_buf = ASYNC_BUF_SIZE;
+    double progress = 0.0;
+    double delay = 0.0;
+    size_t nr_send = 0;
+    ssize_t read_size = 0;
+
+    runloop->dispatchAfter(Seconds(ASYNC_DELAY), [info] {
+        info->handler(info->session, info->req_id, info->ctxt,
+                PCFETCHER_RESP_TYPE_HEADER,
+                (const char *)&info->header, 0);
+    });
+    while (true) {
+        char *buf = (char *)malloc(nr_buf + 1);
+        if ((read_size = purc_rwstream_read(info->rws, buf, nr_buf)) <= 0) {
+            free(buf);
+            break;
+        }
+        buf[read_size] = 0;
+        delay += ASYNC_DELAY;
+        nr_send += read_size;
+        progress = (double)nr_send / nr_bytes;
+
+        runloop->dispatchAfter(Seconds(delay), [content=buf, sz_content=read_size,
+                progress, info] {
+                if (info->cancelled) {
+                    return;
+                }
                 if (info->tracker) {
                     info->tracker(info->session, info->req_id,
-                            info->tracker_ctxt, 1.0);
+                            info->tracker_ctxt, progress);
                 }
-                if (!info->cancelled) {
-                    info->handler(info->session, info->req_id, info->ctxt,
-                            PCFETCHER_RESP_TYPE_HEADER,
-                            (const char *)&info->header, 0);
+                info->handler(info->session, info->req_id, info->ctxt,
+                        PCFETCHER_RESP_TYPE_DATA,
+                        content, sz_content);
+                free(content);
 
-                    purc_rwstream_t stream = purc_rwstream_new_buffer(1024, 0);
-                    purc_rwstream_dump_to_another(info->rws, stream, -1);
-                    size_t sz_content = 0;
-                    char *content = (char *)purc_rwstream_get_mem_buffer(stream,
-                            &sz_content);
-
-                    info->handler(info->session, info->req_id, info->ctxt,
-                            PCFETCHER_RESP_TYPE_DATA,
-                            content, sz_content);
-
+                if (progress == 1.0) {
                     info->handler(info->session, info->req_id, info->ctxt,
                             PCFETCHER_RESP_TYPE_FINISH,
                             NULL, 0);
-
-                    purc_rwstream_destroy(stream);
-                    purc_rwstream_destroy(info->rws);
-                    info->rws = NULL;
+                    pcfetcher_destroy_callback_info(info);
                 }
-                pcfetcher_destroy_callback_info(info);
-            });
+        });
+
+
+    }
 
     return info->req_id;
 }
