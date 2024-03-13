@@ -321,6 +321,8 @@ static int fill_normal_params(
         }
     }
 
+    purc_variant_unref(encode_val);
+
     ret = 0;
 out:
     return ret;
