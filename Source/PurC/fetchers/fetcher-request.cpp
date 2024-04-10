@@ -734,7 +734,8 @@ void PcFetcherRequest::didReceiveSharedBuffer(
     if (m_is_async) {
         struct pcfetcher_callback_info *info = m_callback;
         size_t nr_bytes = data.size();
-        char *buf = strndup(data.data(), nr_bytes);
+        char *buf = (char *)malloc(nr_bytes);
+        memcpy(buf, data.data(), nr_bytes);
         m_runloop->dispatch([info, progress=m_progressValue, buf, nr_bytes] {
                 info->handler(info->session, info->req_id, info->ctxt,
                         PCFETCHER_RESP_TYPE_DATA,
