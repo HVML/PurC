@@ -135,6 +135,17 @@ attr_found_val(struct pcintr_stack_frame *frame,
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
             return 0;
         }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SRC)) == name) {
+            if (strcasecmp(element->tag_name, "img") == 0) {
+                pcintr_coroutine_t co = pcintr_get_coroutine();
+                if (co->base_url_string) {
+                    pcintr_util_set_attribute(frame->owner->doc,
+                            frame->edom_element, PCDOC_OP_DISPLACE, "data-base-url", co->base_url_string, 0,
+                            !stack->inherit, false);
+                }
+            }
+            return 0;
+        }
         PC_DEBUGX("name: %s", purc_atom_to_string(name));
         return 0;
     }
