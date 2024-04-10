@@ -472,12 +472,12 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     m_is_async = false;
 
     String uri;
-    URL tmp(URL(), url);
-    if (base_uri && !tmp.isValid() &&
-            strncmp(url, base_uri, strlen(base_uri)) != 0) {
-        uri.append(base_uri);
+    if (base_uri) {
+        uri = pcfetcher_build_uri(base_uri, url);
     }
-    uri.append(url);
+    else {
+        uri.append(url);
+    }
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
