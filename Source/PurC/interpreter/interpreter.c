@@ -612,8 +612,6 @@ static int _init_instance(struct pcinst* inst,
 
 static int _init_once(void)
 {
-    purc_runloop_t runloop = purc_runloop_get_current();
-    PC_ASSERT(runloop);
     init_ops();
 
     return pcintr_init_loader_once();

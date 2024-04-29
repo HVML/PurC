@@ -253,6 +253,7 @@ static void my_sa_free(void *sortv, void *data)
 
 static RefPtr<Thread> _main_thread;
 static pthread_once_t _main_once_control = PTHREAD_ONCE_INIT;
+static purc_runloop_t _main_runloop;
 
 static void _runloop_init_main(void)
 {
@@ -261,10 +262,8 @@ static void _runloop_init_main(void)
     PC_ASSERT(rid_main);
 
     _main_thread = Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
-            PC_ASSERT(RunLoop::isMainInitizlized() == false);
-            RunLoop::initializeMain();
-            RunLoop& runloop = RunLoop::main();
-            PC_ASSERT(&runloop == &RunLoop::current());
+            RunLoop& runloop = RunLoop::current();
+            _main_runloop = &runloop;
 
             struct instmgr_info info = { rid_main, 0, NULL };
 
@@ -311,16 +310,14 @@ static void _runloop_init_main(void)
 static void _runloop_stop_main(void)
 {
     if (_main_thread) {
-        RunLoop& runloop = RunLoop::main();
-        runloop.dispatch([&] {
-                RunLoop::stopMain();
-                });
+        ((RunLoop*)_main_runloop)->stop();
         _main_thread->waitForCompletion();
     }
 }
 
 static int _init_once(void)
 {
+    RunLoop::initializeMain();
     atexit(_runloop_stop_main);
     return 0;
 }
