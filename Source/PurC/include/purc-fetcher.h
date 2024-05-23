@@ -61,7 +61,7 @@ struct pcfetcher_session;
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_init(size_t max_conns, size_t cache_quota);
 
@@ -72,7 +72,7 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota);
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_term(void);
 
@@ -83,7 +83,7 @@ int pcfetcher_term(void);
  *
  * Returns: The fd fo current connection, or -1 on failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_get_conn_fd(void);
 
@@ -96,7 +96,7 @@ int pcfetcher_get_conn_fd(void);
  *
  * Returns: A fetcher session, or NULL on failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 struct pcfetcher_session *pcfetcher_session_create(void *user_data);
 
@@ -107,7 +107,7 @@ struct pcfetcher_session *pcfetcher_session_create(void *user_data);
  *
  * destroy the fetcher session.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 void pcfetcher_session_destroy(struct pcfetcher_session *session);
 
@@ -121,7 +121,7 @@ void pcfetcher_session_destroy(struct pcfetcher_session *session);
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_session_set_user_data(struct pcfetcher_session *session,
         void *user_data);
@@ -135,7 +135,7 @@ int pcfetcher_session_set_user_data(struct pcfetcher_session *session,
  *
  * Returns: The pointer to the user data , or NULL if not set.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 void *pcfetcher_session_get_user_data(struct pcfetcher_session *session);
 
@@ -149,7 +149,7 @@ void *pcfetcher_session_get_user_data(struct pcfetcher_session *session);
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_session_set_base_url(struct pcfetcher_session *session,
     const char *base_url);
@@ -163,7 +163,7 @@ int pcfetcher_session_set_base_url(struct pcfetcher_session *session,
  *
  * Returns: The base url, or NULL if not set.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session);
 
@@ -182,7 +182,7 @@ const char *pcfetcher_session_get_base_url(struct pcfetcher_session *session);
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_cookie_set(struct pcfetcher_session *session,
         const char *domain, const char *path, const char *name,
@@ -202,7 +202,7 @@ int pcfetcher_cookie_set(struct pcfetcher_session *session,
  *
  * Returns: the cookie content, or NULL if not set.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 const char *pcfetcher_cookie_get(struct pcfetcher_session *session,
         const char *domain, const char *path, const char *name,
@@ -220,7 +220,7 @@ const char *pcfetcher_cookie_get(struct pcfetcher_session *session,
  *
  * Returns: True on succes, or false on failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_cookie_remove(struct pcfetcher_session *session,
         const char *domain, const char *path, const char *name);
@@ -259,7 +259,7 @@ typedef void (*pcfetcher_progress_tracker)(
  *
  * Returns: The request id of the request, or PURC_VARIANT_INVALID on failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 purc_variant_t pcfetcher_request_async(
         struct pcfetcher_session *session,
@@ -285,7 +285,7 @@ purc_variant_t pcfetcher_request_async(
  *
  * Returns: The rwstream of the response on success, or NULL on failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 purc_rwstream_t pcfetcher_request_sync(
         struct pcfetcher_session *session,
@@ -304,7 +304,7 @@ purc_rwstream_t pcfetcher_request_sync(
  *
  * Returns: 0 for success, otherwise failure.
  *
- * Since: 0.9.19
+ * Since: 0.9.20
  */
 int pcfetcher_check_response(void);
 
