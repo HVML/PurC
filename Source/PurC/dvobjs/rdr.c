@@ -129,7 +129,7 @@ state_getter(purc_variant_t root,
     vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
     vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
 
-    struct renderer_capabilities *rdr_caps = inst->rdr_caps;
+    struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     if (rdr_caps) {
         char buf[21];
         snprintf(buf, 20, "%ld", rdr_caps->prot_version);
@@ -300,10 +300,6 @@ connect_getter(purc_variant_t root,
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
         rdr = NULL;
-        if (inst->rdr_caps) {
-            pcrdr_release_renderer_capabilities(inst->rdr_caps);
-            inst->rdr_caps = NULL;
-        }
     }
 
     if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
@@ -338,10 +334,10 @@ connect_getter(purc_variant_t root,
     }
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
-        inst->rdr_caps =
+        inst->conn_to_rdr->caps =
             pcrdr_parse_renderer_capabilities(
                     purc_variant_get_string_const(msg->data));
-        if (inst->rdr_caps == NULL) {
+        if (inst->conn_to_rdr->caps == NULL) {
             goto out;
         }
     }
@@ -368,11 +364,6 @@ disconnect_getter(purc_variant_t root,
     if (rdr) {
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
-
-        if (inst->rdr_caps) {
-            pcrdr_release_renderer_capabilities(inst->rdr_caps);
-            inst->rdr_caps = NULL;
-        }
     }
 
     return purc_variant_make_boolean(ret);

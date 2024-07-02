@@ -352,10 +352,10 @@ static int connect_to_renderer(struct pcinst *inst,
     }
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
-        inst->rdr_caps =
+        inst->conn_to_rdr->caps =
             pcrdr_parse_renderer_capabilities(
                     purc_variant_get_string_const(msg->data));
-        if (inst->rdr_caps == NULL) {
+        if (inst->conn_to_rdr->caps == NULL) {
             goto failed;
         }
     }
@@ -388,13 +388,13 @@ static int connect_to_renderer(struct pcinst *inst,
     }
 
     if (set_session_args(inst, session_data, inst->conn_to_rdr,
-                inst->rdr_caps)) {
+                inst->conn_to_rdr->caps)) {
         goto failed;
     }
 
     /* Since v160, if the renderer needs authentication */
-    if (inst->rdr_caps->challenge_code) {
-        if (append_authenticate_args(inst, session_data, inst->rdr_caps)) {
+    if (inst->conn_to_rdr->caps->challenge_code) {
+        if (append_authenticate_args(inst, session_data, inst->conn_to_rdr->caps)) {
             goto failed;
         }
     }
@@ -404,7 +404,7 @@ static int connect_to_renderer(struct pcinst *inst,
 
     int ret;
     if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr, msg,
-            inst->rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
+            inst->conn_to_rdr->caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
             PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
         goto failed;
     }
@@ -413,7 +413,10 @@ static int connect_to_renderer(struct pcinst *inst,
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        inst->rdr_caps->session_handle = response_msg->resultValue;
+        inst->conn_to_rdr->caps->session_handle = response_msg->resultValue;
+        if (response_msg->data) {
+            /* TODO : save rdr name and generate rdr unique id */
+        }
     }
 
     pcrdr_release_message(response_msg);
@@ -424,9 +427,9 @@ static int connect_to_renderer(struct pcinst *inst,
         goto failed;
     }
 
-    bool set_page_groups = (inst->rdr_caps->workspace == 0);
+    bool set_page_groups = (inst->conn_to_rdr->caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
-            inst->rdr_caps->workspace != 0) {
+            inst->conn_to_rdr->caps->workspace != 0) {
         /* send `createWorkspace` */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
                 PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
@@ -467,7 +470,7 @@ static int connect_to_renderer(struct pcinst *inst,
 
         if (response_msg->retCode == PCRDR_SC_OK ||
                 response_msg->retCode == PCRDR_SC_CONFLICT) {
-            inst->rdr_caps->workspace_handle = response_msg->resultValue;
+            inst->conn_to_rdr->caps->workspace_handle = response_msg->resultValue;
             if (response_msg->retCode == PCRDR_SC_OK)
                 set_page_groups = true;
         }
@@ -479,13 +482,13 @@ static int connect_to_renderer(struct pcinst *inst,
         response_msg = NULL;
     }
     else {
-        inst->rdr_caps->workspace_handle = 0;   /* default workspace */
+        inst->conn_to_rdr->caps->workspace_handle = 0;   /* default workspace */
     }
 
     if (set_page_groups && extra_info && extra_info->workspace_layout) {
         /* send `setPageGroups` request */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_WORKSPACE,
-                inst->rdr_caps->workspace_handle,
+                inst->conn_to_rdr->caps->workspace_handle,
                 PCRDR_OPERATION_SETPAGEGROUPS, NULL, NULL,
                 PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
@@ -675,15 +678,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
 
     /* end origin session */
-    if (inst->rdr_caps) {
-        pcrdr_release_renderer_capabilities(inst->rdr_caps);
-    }
 
     pcrdr_conn_set_event_handler(inst->conn_to_rdr, NULL);
     inst->conn_to_rdr_origin = inst->conn_to_rdr;
 
     inst->conn_to_rdr = n_conn_to_rdr;
-    inst->rdr_caps = n_rdr_caps;
+    inst->conn_to_rdr->caps = n_rdr_caps;
 
     pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
             NULL, NULL);
@@ -833,11 +833,6 @@ static int _init_instance(struct pcinst *inst,
 
 static void _cleanup_instance(struct pcinst *inst)
 {
-    if (inst->rdr_caps) {
-        pcrdr_release_renderer_capabilities(inst->rdr_caps);
-        inst->rdr_caps = NULL;
-    }
-
     if (inst->conn_to_rdr) {
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;

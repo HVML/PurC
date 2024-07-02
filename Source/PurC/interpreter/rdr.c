@@ -839,7 +839,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
             page_type == PCRDR_PAGE_TYPE_WIDGET);
 
     struct pcinst *inst = pcinst_current();
-    assert(inst && inst->rdr_caps);
+    assert(inst && inst->conn_to_rdr->caps);
 
     struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
     if (conn_to_rdr == NULL) {
@@ -848,7 +848,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         goto failed;
     }
 
-    struct renderer_capabilities *rdr_caps = inst->rdr_caps;
+    struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     uint64_t session_handle = rdr_caps->session_handle;
     uint64_t workspace = 0;
     if (rdr_caps->workspace != 0 && target_workspace) {

@@ -103,7 +103,6 @@ struct pcinst {
     pcutils_array_t        *dvobjs;
 
     struct pcrdr_conn      *conn_to_rdr;
-    struct renderer_capabilities *rdr_caps;
     struct pcrdr_conn      *conn_to_rdr_origin;
 
     struct pcexecutor_heap *executor_heap;

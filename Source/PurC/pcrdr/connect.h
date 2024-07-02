@@ -60,10 +60,16 @@ struct pcrdr_page_handle {
 struct pcrdr_prot_data;
 
 struct pcrdr_conn {
+    struct list_head              ln;
+
     int prot;
     int type;
     int fd;
     int timeout_ms;
+
+    char* name;
+    char* id;
+    struct renderer_capabilities *caps;
 
     char* srv_host_name;
     char* own_host_name;

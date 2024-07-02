@@ -171,12 +171,25 @@ int pcrdr_free_connection(pcrdr_conn* conn)
 {
     assert(conn);
 
-    if (conn->srv_host_name)
+    if (conn->name) {
+        free(conn->name);
+    }
+
+    if (conn->id) {
+        free(conn->id);
+    }
+
+    if (conn->srv_host_name) {
         free(conn->srv_host_name);
+    }
     free(conn->own_host_name);
 
     if (conn->uri) {
         free(conn->uri);
+    }
+
+    if (conn->caps) {
+        pcrdr_release_renderer_capabilities(conn->caps);
     }
 
     struct pending_request *pr, *n;
