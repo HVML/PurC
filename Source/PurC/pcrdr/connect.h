@@ -67,8 +67,9 @@ struct pcrdr_conn {
     int fd;
     int timeout_ms;
 
+    purc_atom_t                  id;
     char* name;
-    char* id;
+    char* uid;
     struct renderer_capabilities *caps;
 
     char* srv_host_name;

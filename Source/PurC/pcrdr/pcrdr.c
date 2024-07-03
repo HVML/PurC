@@ -302,6 +302,32 @@ failed:
     return -1;
 }
 
+#if HAVE(STDATOMIC_H)
+
+#include <stdatomic.h>
+
+static char* generate_unique_rid(const char* name)
+{
+    static atomic_ullong atomic_accumulator;
+    char *buf = malloc(strlen(name) + 5); // name-xxx
+
+    unsigned long long accumulator =atomic_fetch_add(&atomic_accumulator, 1);
+    sprintf(buf, "%s-%03lld", name, accumulator);
+    return buf;
+}
+
+#else /* HAVE(STDATOMIC_H) */
+
+static char* generate_unique_rid(const char* name)
+{
+    static atomic_ullong atomic_accumulator;
+    char *buf = malloc(strlen(name) + 5); // name-xxx
+    sprintf(buf, "%s-%03lld", name, accumulator);
+    accumulator++;
+    return buf;
+}
+
+#endif
 static int connect_to_renderer(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
@@ -414,8 +440,25 @@ static int connect_to_renderer(struct pcinst *inst,
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
         inst->conn_to_rdr->caps->session_handle = response_msg->resultValue;
-        if (response_msg->data) {
-            /* TODO : save rdr name and generate rdr unique id */
+        if (response_msg->data && purc_variant_is_object(response_msg->data)) {
+            purc_variant_t name = purc_variant_object_get_by_ckey(
+                    response_msg->data, "name");
+            if (name && purc_variant_is_string(name)) {
+                inst->conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
+                purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                        inst->conn_to_rdr->name);
+                char *uid;
+                if (atom) {
+                    uid = generate_unique_rid(inst->conn_to_rdr->name);
+                }
+                else {
+                    uid = strdup(inst->conn_to_rdr->name);
+                }
+
+                atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+                inst->conn_to_rdr->uid = uid;
+                inst->conn_to_rdr->id = atom;
+            }
         }
     }
 

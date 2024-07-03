@@ -139,7 +139,10 @@ app_label_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     purc_variant_t v;
-    const char *locale = inst->conn_to_rdr->caps ? inst->conn_to_rdr->caps->locale : NULL;
+    const char *locale = NULL;
+    if (inst->conn_to_rdr && inst->conn_to_rdr->caps) {
+        locale = inst->conn_to_rdr->caps->locale;
+    }
     v = purc_get_app_label(locale);
     return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
@@ -168,7 +171,10 @@ runner_label_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     purc_variant_t v;
-    const char *locale = inst->conn_to_rdr->caps ? inst->conn_to_rdr->caps->locale : NULL;
+    const char *locale = NULL;
+    if (inst->conn_to_rdr && inst->conn_to_rdr->caps) {
+        locale = inst->conn_to_rdr->caps->locale;
+    }
     v = pcinst_get_runner_label(inst->runner_name, locale);
     return v ? purc_variant_ref(v) : purc_variant_make_null();
 }

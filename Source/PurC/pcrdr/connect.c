@@ -176,7 +176,8 @@ int pcrdr_free_connection(pcrdr_conn* conn)
     }
 
     if (conn->id) {
-        free(conn->id);
+        purc_atom_remove_string_ex(ATOM_BUCKET_RDRID, conn->uid);
+        free(conn->uid);
     }
 
     if (conn->srv_host_name) {
