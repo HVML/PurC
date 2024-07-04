@@ -1889,6 +1889,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
     struct pcintr_heap* intr = inst->intr_heap;
     PC_ASSERT(intr);
 
+    struct pcrdr_conn  *conn = inst->conn_to_rdr;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
+    struct pcintr_coroutine_rdr_conn *parent_rdr_conn = NULL;
+
     pcintr_coroutine_t parent = NULL;
     if (curator) {
         parent = pcintr_coroutine_get_by_id(curator);
@@ -1906,6 +1910,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     co->stage = CO_STAGE_SCHEDULED;
     co->page_type = page_type;
+    rdr_conn = pcintr_coroutine_create_or_get_rdr_conn(co, conn);
+    parent_rdr_conn = pcintr_coroutine_get_rdr_conn(parent, conn);
 
     if (extra_info) {
         if (extra_info->klass) {
@@ -1936,8 +1942,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
         if (page_type == PCRDR_PAGE_TYPE_SELF) {
             if (parent) {
                 co->target_page_type = parent->target_page_type;
-                co->target_workspace_handle = parent->target_workspace_handle;
-                co->target_page_handle = parent->target_page_handle;
+                rdr_conn->workspace_handle = parent_rdr_conn->workspace_handle;
+                rdr_conn->page_handle = parent_rdr_conn->page_handle;
                 if (parent->target_workspace) {
                     co->target_workspace = strdup(parent->target_workspace);
                 }
@@ -1965,8 +1971,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
         else if (page_type == PCRDR_PAGE_TYPE_NULL) {
             co->target_page_type = page_type;
-            co->target_workspace_handle = 0;
-            co->target_page_handle = 0;
+            rdr_conn->workspace_handle = 0;
+            rdr_conn->page_handle = 0;
         }
         else {
             if (target_workspace) {
@@ -1992,9 +1998,9 @@ purc_schedule_vdom(purc_vdom_t vdom,
         PC_ASSERT(parent);
 
         co->target_page_type = parent->target_page_type;
-        co->target_workspace_handle = parent->target_workspace_handle;
-        co->target_page_handle = parent->target_page_handle;
-        co->target_dom_handle = parent->target_dom_handle;
+        rdr_conn->workspace_handle = parent_rdr_conn->workspace_handle;
+        rdr_conn->page_handle = parent_rdr_conn->page_handle;
+        rdr_conn->dom_handle = parent_rdr_conn->dom_handle;
         if (parent->target_workspace) {
             co->target_workspace = strdup(parent->target_workspace);
         }
@@ -3422,7 +3428,8 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
     pcutils_str_clean(str);
 
     // TODO: append/prepend textContent?
-    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && text_node && stack &&
+            pcintr_coroutine_is_rdr_attached(stack->co)) {
         /* Reference element
          * `append`: the last child element of the target element before this op.
          */
@@ -3543,7 +3550,8 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
         // TODO: append/prepend textContent?
         pcintr_stack_t stack = pcintr_get_stack();
-        if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+        if (sync_to_rdr && text_node && stack &&
+                pcintr_coroutine_is_rdr_attached(stack->co)) {
             /* Reference element
              * `append`: the last child element of the target element before this op.
              */
@@ -3581,8 +3589,8 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && node.type != PCDOC_NODE_VOID &&
-            stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && node.type != PCDOC_NODE_VOID && stack &&
+            pcintr_coroutine_is_rdr_attached(stack->co)) {
 
         unsigned opt = 0;
         purc_rwstream_t out = NULL;
@@ -3646,7 +3654,7 @@ pcintr_util_set_attribute(purc_document_t doc,
         return -1;
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && stack && pcintr_coroutine_is_rdr_attached(stack->co)) {
         char property[strlen(name) + 8];
         strcpy(property, "attr.");
         strcat(property, name);
@@ -3868,12 +3876,27 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
-int
-pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
+static int
+pcintr_coroutine_switch_renderer(struct pcinst *inst,
+        struct pcrdr_conn *old_conn, pcintr_coroutine_t cor)
 {
     int ret = 0;
 
     assert(inst->allow_switching_rdr);
+    struct pcrdr_conn *conn = inst->conn_to_rdr;
+
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
+    struct pcintr_coroutine_rdr_conn *parent_rdr_conn = NULL;
+
+    /* clear origin conn */
+    rdr_conn = pcintr_coroutine_get_rdr_conn(cor, old_conn);
+    if (rdr_conn) {
+        rdr_conn->workspace_handle = 0;
+        rdr_conn->page_handle = 0;
+        rdr_conn->dom_handle = 0;
+        list_del(&rdr_conn->ln);
+        free(rdr_conn);
+    }
 
     /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
     if (cor->target_page_type == PCRDR_PAGE_TYPE_NULL) {
@@ -3888,10 +3911,16 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
 
         /* FIXME: ensure parent had switch */
         if (parent) {
+            parent_rdr_conn = pcintr_coroutine_get_rdr_conn(parent, conn);
+            assert(parent_rdr_conn);
+
+            rdr_conn = pcintr_coroutine_create_or_get_rdr_conn(cor, conn);
+            assert(rdr_conn);
+
             cor->target_page_type = parent->target_page_type;
-            cor->target_workspace_handle = parent->target_workspace_handle;
-            cor->target_page_handle = parent->target_page_handle;
-            cor->target_dom_handle = parent->target_dom_handle;
+            rdr_conn->workspace_handle = parent_rdr_conn->workspace_handle;
+            rdr_conn->page_handle = parent_rdr_conn->page_handle;
+            rdr_conn->dom_handle = parent_rdr_conn->dom_handle;
             goto out;
         }
     }
@@ -3935,7 +3964,7 @@ out:
 }
 
 int
-pcintr_switch_new_renderer(struct pcinst *inst)
+pcintr_switch_new_renderer(struct pcinst *inst, struct pcrdr_conn *old_conn)
 {
     PC_INFO("switch new render, tickcount is %ld\n", pcintr_tick_count());
     int ret = 0;
@@ -3943,7 +3972,7 @@ pcintr_switch_new_renderer(struct pcinst *inst)
     struct list_head *crtns = &heap->crtns;
     pcintr_coroutine_t p, q;
     list_for_each_entry_safe(p, q, crtns, ln) {
-        ret = pcintr_coroutine_switch_renderer(inst, p);
+        ret = pcintr_coroutine_switch_renderer(inst, old_conn, p);
         if (ret != 0) {
             goto out;
         }
@@ -3951,7 +3980,7 @@ pcintr_switch_new_renderer(struct pcinst *inst)
 
     crtns = &heap->stopped_crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
-        ret = pcintr_coroutine_switch_renderer(inst, p);
+        ret = pcintr_coroutine_switch_renderer(inst, old_conn, p);
         if (ret != 0) {
             goto out;
         }

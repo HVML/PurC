@@ -827,7 +827,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
     PC_TIMESTAMP("connect to new renderer, app: %s runner: %s\n", inst->app_name, inst->runner_name);
 
-    pcintr_switch_new_renderer(inst);
+    pcintr_switch_new_renderer(inst, inst->conn_to_rdr_origin);
 
     /* broadcase event */
     broadcast_new_renderer_event(inst);

@@ -420,7 +420,7 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
     for (size_t i = 0; i < count; i++) {
         pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
                 heap->loaded_crtn_handles, i, NULL);
-        if (handle == co->target_page_handle) {
+        if (pcintr_coroutine_is_match_page_handle(co, handle)) {
             if (pstack) {
                 *pstack = &(co->stack);
             }
@@ -459,13 +459,14 @@ again:
 }
 
 static void
-on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
     const char *event = purc_variant_get_string_const(msg->eventName);
@@ -475,9 +476,14 @@ on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
     }
 
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+        if (rdr_conn) {
+            rdr_conn->workspace_handle = 0;
+            rdr_conn->page_handle = 0;
+            rdr_conn->dom_handle = 0;
+            list_del(&rdr_conn->ln);
+            free(rdr_conn);
+        }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
@@ -488,13 +494,14 @@ on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
 }
 
 static void
-on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_widget_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
 
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
@@ -506,9 +513,14 @@ on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
     }
 
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+        if (rdr_conn) {
+            rdr_conn->workspace_handle = 0;
+            rdr_conn->page_handle = 0;
+            rdr_conn->dom_handle = 0;
+            list_del(&rdr_conn->ln);
+            free(rdr_conn);
+        }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
@@ -519,10 +531,11 @@ on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
 }
 
 static void
-on_dom_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_dom_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    UNUSED_PARAM(conn);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
 
@@ -560,7 +573,7 @@ on_dom_event(struct pcinst *inst, const pcrdr_msg *msg,
     for (size_t i = 0; i < count; i++) {
         pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
                 heap->loaded_crtn_handles, i, NULL);
-        if ((handle != co->target_dom_handle) ||
+        if (!pcintr_coroutine_is_match_dom_handle(co, handle) ||
                 !is_crtn_observe_event(inst, co, msg, source,
                     type, sub_type)) {
             continue;
@@ -623,10 +636,11 @@ broadcast_rdr_idle_event(struct pcinst *inst, purc_variant_t data)
 }
 
 static void
-on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    UNUSED_PARAM(conn);
     UNUSED_PARAM(sub_type);
     if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
         purc_variant_t data = msg->data;
@@ -694,7 +708,7 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
-        on_session_event(inst, msg, type, sub_type);
+        on_session_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
@@ -703,15 +717,15 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
-        on_plainwindow_event(inst, msg, type, sub_type);
+        on_plainwindow_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WIDGET:
-        on_widget_event(inst, msg, type, sub_type);
+        on_widget_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_DOM:
-        on_dom_event(inst,  msg, type, sub_type);
+        on_dom_event(inst,  conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_USER:

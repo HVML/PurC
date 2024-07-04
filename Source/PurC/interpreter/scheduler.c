@@ -99,8 +99,9 @@ broadcast_idle_event(struct pcinst *inst)
 }
 
 static void
-handle_rdr_conn_lost(struct pcinst *inst)
+handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
 {
+    struct pcintr_coroutine_rdr_conn *rdr_conn;
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
     pcintr_coroutine_t p, q;
@@ -109,9 +110,14 @@ handle_rdr_conn_lost(struct pcinst *inst)
         pcintr_stack_t stack = &co->stack;
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
 
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
+        if (rdr_conn) {
+            rdr_conn->workspace_handle = 0;
+            rdr_conn->page_handle = 0;
+            rdr_conn->dom_handle = 0;
+            list_del(&rdr_conn->ln);
+            free(rdr_conn);
+        }
 
         // broadcast rdrState:connLost;
         pcintr_coroutine_post_event(stack->co->cid,
@@ -128,9 +134,14 @@ handle_rdr_conn_lost(struct pcinst *inst)
         pcintr_stack_t stack = &co->stack;
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
 
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
+        if (rdr_conn) {
+            rdr_conn->workspace_handle = 0;
+            rdr_conn->page_handle = 0;
+            rdr_conn->dom_handle = 0;
+            list_del(&rdr_conn->ln);
+            free(rdr_conn);
+        }
 
         // broadcast rdrState:connLost;
         pcintr_coroutine_post_event(stack->co->cid,
@@ -270,6 +281,10 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     bool one_run = false;
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
+    struct pcrdr_conn *conn = inst->conn_to_rdr;
+
+    rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
     frame = pcintr_stack_get_bottom_frame(stack);
 
     switch (co->state) {
@@ -327,7 +342,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* send doc to rdr */
-    if (stack->co->target_page_handle != 0 &&
+    if (rdr_conn->page_handle != 0 &&
              stack->co->stage == CO_STAGE_FIRST_RUN) {
         pcintr_register_crtn_to_doc(inst, stack->co);
         /* load with inherit FIRST RUN stack->doc->ldc > 1 and  stack->inherit */
@@ -482,7 +497,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* PURCMC-120 */
-    if (co->target_page_handle != 0) {
+    if (rdr_conn->page_handle != 0) {
         pcintr_revoke_crtn_from_doc(inst, co);
         pcintr_rdr_page_control_revoke(inst, &co->stack);
     }
@@ -591,7 +606,7 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
 
         int err = purc_get_last_error();
         if (err == PCRDR_ERROR_IO || err == PCRDR_ERROR_PEER_CLOSED) {
-            handle_rdr_conn_lost(inst);
+            handle_rdr_conn_lost(inst, conn);
         }
         purc_set_error(last_err);
     }

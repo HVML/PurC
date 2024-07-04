@@ -360,7 +360,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     pcrdr_msg *response_msg = NULL;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = co->target_workspace_handle;
+    uint64_t target_value = 0;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     const char *element = NULL;
     const char *property = NULL;
@@ -375,6 +375,15 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         : NULL;
     purc_variant_t data = PURC_VARIANT_INVALID;
     purc_variant_t arg = ctxt->with;
+
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
+    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
+    if (!rdr_conn) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Not found connection to renderer");
+        goto out;
+    }
+    target_value = rdr_conn->workspace_handle;
 
     if (!arg) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -518,7 +527,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 purc_clr_error();
                 element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
                 snprintf(element_buf, sizeof(element_buf),
-                        "%llx", (unsigned long long int)co->target_page_handle);
+                        "%llx", (unsigned long long int)rdr_conn->page_handle);
                 element = element_buf;
             }
             else {

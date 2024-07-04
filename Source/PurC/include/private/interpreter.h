@@ -303,7 +303,6 @@ struct pcintr_coroutine_rdr_conn {
     struct list_head              ln;
     struct pcrdr_conn             *conn;
 
-    pcrdr_page_type_k             page_type;
     uint64_t                      workspace_handle;
     uint64_t                      page_handle;
     uint64_t                      dom_handle;
@@ -324,9 +323,7 @@ struct pcintr_coroutine {
     pcrdr_page_type_k           page_type;
     /* actual page type. eg: inherit from parent */
     pcrdr_page_type_k           target_page_type;
-    uint64_t                    target_workspace_handle;
-    uint64_t                    target_page_handle;
-    uint64_t                    target_dom_handle;
+
     purc_variant_t              doc_contents;
     purc_variant_t              doc_wrotten_len;
 
@@ -901,6 +898,23 @@ pcintr_coroutine_get_token(pcintr_coroutine_t cor);
 int
 pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token);
 
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn);
+
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_create_or_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn);
+
+bool
+pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle);
+
+bool
+pcintr_coroutine_is_match_dom_handle(pcintr_coroutine_t cor, uint64_t handle);
+
+bool
+pcintr_coroutine_is_rdr_attached(pcintr_coroutine_t cor);
+
 pcintr_coroutine_t
 pcintr_get_first_crtn(struct pcinst *inst);
 
@@ -924,7 +938,7 @@ pcintr_get_named_variable(pcintr_stack_t stack,
         bool temporarily, bool runner_level_enable);
 
 int
-pcintr_switch_new_renderer(struct pcinst *inst);
+pcintr_switch_new_renderer(struct pcinst *inst, struct pcrdr_conn *old_conn);
 
 /* ms */
 time_t pcintr_tick_count();
