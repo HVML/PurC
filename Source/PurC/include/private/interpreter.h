@@ -299,6 +299,16 @@ struct pcintr_coroutine_child {
     purc_atom_t                 cid;
 };
 
+struct pcintr_coroutine_rdr_conn {
+    struct list_head              ln;
+    struct pcrdr_conn             *conn;
+
+    pcrdr_page_type_k             page_type;
+    uint64_t                      workspace_handle;
+    uint64_t                      page_handle;
+    uint64_t                      dom_handle;
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     purc_atom_t                 cid;
@@ -308,6 +318,9 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
+    /* pcintr_coroutine_rdr_conn */
+    struct list_head            conns;
+
     pcrdr_page_type_k           page_type;
     /* actual page type. eg: inherit from parent */
     pcrdr_page_type_k           target_page_type;

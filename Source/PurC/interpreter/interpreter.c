@@ -456,6 +456,13 @@ coroutine_release(pcintr_coroutine_t co)
             pcintr_timers_destroy(co->timers);
             co->timers = NULL;
         }
+
+        struct list_head *conns = &co->conns;
+        struct pcintr_coroutine_rdr_conn *pconn, *qconn;
+        list_for_each_entry_safe(pconn, qconn, conns, ln) {
+            list_del(&pconn->ln);
+            free(pconn);
+        }
     }
 }
 
@@ -1789,6 +1796,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
     pcintr_coroutine_set_state(co, CO_STATE_READY);
+    list_head_init(&co->conns);
     list_head_init(&co->ln_stopped);
     list_head_init(&co->registered_cancels);
     list_head_init(&co->tasks);
