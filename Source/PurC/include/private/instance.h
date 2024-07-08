@@ -102,6 +102,9 @@ struct pcinst {
     // for loaded dynamic variants
     pcutils_array_t        *dvobjs;
 
+    /* struct pcrdr_conn */
+    struct list_head        conns;
+
     struct pcrdr_conn      *conn_to_rdr;
     struct pcrdr_conn      *conn_to_rdr_origin;
 

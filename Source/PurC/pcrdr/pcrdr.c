@@ -897,11 +897,20 @@ pcrdr_connect(const struct purc_instance_extra_info *extra_info)
 static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
+    list_head_init(&inst->conns);
+
     return connect_to_renderer(inst, extra_info);
 }
 
 static void _cleanup_instance(struct pcinst *inst)
 {
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        pcrdr_disconnect(pconn);
+        free(pconn);
+    }
+
     if (inst->conn_to_rdr) {
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
