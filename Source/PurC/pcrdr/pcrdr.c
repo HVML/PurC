@@ -566,6 +566,9 @@ static int connect_to_renderer(struct pcinst *inst,
         response_msg = NULL;
     }
 
+    /* Add conns */
+    list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
+
     return PURC_ERROR_OK;
 
 failed:
@@ -748,9 +751,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
     pcrdr_conn_set_event_handler(inst->conn_to_rdr, NULL);
     inst->conn_to_rdr_origin = inst->conn_to_rdr;
+    list_del(&inst->conn_to_rdr_origin->ln);
 
     inst->conn_to_rdr = n_conn_to_rdr;
     inst->conn_to_rdr->caps = n_rdr_caps;
+
+    list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
 
     pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
             NULL, NULL);
@@ -908,7 +914,10 @@ static void _cleanup_instance(struct pcinst *inst)
     struct pcrdr_conn *pconn, *qconn;
     list_for_each_entry_safe(pconn, qconn, conns, ln) {
         pcrdr_disconnect(pconn);
-        free(pconn);
+
+        if (inst->conn_to_rdr == pconn) {
+            inst->conn_to_rdr = NULL;
+        }
     }
 
     if (inst->conn_to_rdr) {
