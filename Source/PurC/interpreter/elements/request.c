@@ -320,6 +320,7 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(selector);
 
     int ret = -1;
+    struct pcinst *inst = pcinst_current();
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *s_on = purc_variant_get_string_const(ctxt->on);
     const char *s_to = purc_variant_get_string_const(ctxt->to);
@@ -332,8 +333,8 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t v = pcintr_rdr_call_method(&co->stack, request_id,
-            s_on, s_to, ctxt->with);
+    purc_variant_t v = pcintr_rdr_call_method(inst, inst->conn_to_rdr,
+            &co->stack, request_id, s_on, s_to, ctxt->with);
 
     if (!v && ctxt->is_noreturn) {
         v = purc_variant_make_null();
@@ -558,6 +559,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
+    /* \$RDR operation : createPlainWindow, setPageGroups and so on  */
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, request_id, element_type, element,
             property, data_type, data, 0);

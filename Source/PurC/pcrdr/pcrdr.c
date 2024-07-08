@@ -429,6 +429,7 @@ static int connect_to_renderer(struct pcinst *inst,
     msg->data = session_data;
 
     int ret;
+    /* startSession */
     if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr, msg,
             inst->conn_to_rdr->caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
             PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
@@ -504,6 +505,7 @@ static int connect_to_renderer(struct pcinst *inst,
 
         msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
 
+        /* createWorkspace */
         if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
@@ -547,6 +549,7 @@ static int connect_to_renderer(struct pcinst *inst,
         }
         msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
+        /* setPageGroups */
         if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
@@ -699,6 +702,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     msg->data = session_data;
 
     int ret;
+    /* startSession */
     if ((ret = pcrdr_send_request_and_wait_response(n_conn_to_rdr, msg,
             n_rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
             PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
@@ -767,6 +771,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
         msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
 
+        /* createWorkspace */
         if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
@@ -810,6 +815,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         }
         msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
+        /* setPageGroups */
         if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;

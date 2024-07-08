@@ -578,7 +578,7 @@ pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
         co->stack.doc->ldc++;
 
          if (co_revoked == NULL || co_revoked->stack.doc != doc) {
-            pcintr_rdr_page_control_load(inst, &co->stack);
+            pcintr_rdr_page_control_load(inst, inst->conn_to_rdr, co);
 
             /* fire rdrState:pageReloaded event */
             pcintr_coroutine_t p;

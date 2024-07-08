@@ -823,7 +823,7 @@ int
 pcintr_init_loader_once(void);
 
 bool
-pcintr_attach_to_renderer(pcintr_coroutine_t cor,
+pcintr_attach_to_renderer(struct pcrdr_conn *conn, pcintr_coroutine_t cor,
         pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);

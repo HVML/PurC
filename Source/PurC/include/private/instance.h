@@ -105,6 +105,9 @@ struct pcinst {
     struct pcrdr_conn      *conn_to_rdr;
     struct pcrdr_conn      *conn_to_rdr_origin;
 
+    struct pcrdr_conn      *main_conn;
+    struct pcrdr_conn      *curr_conn;
+
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
     purc_runloop_t          running_loop;

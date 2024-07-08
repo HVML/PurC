@@ -241,100 +241,17 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         const char *element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len);
 
-/* retrieve handle of workspace according to the name */
-uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
-        uint64_t session, const char *workspace_name);
-
-uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
-        uint64_t session, const char *name, purc_variant_t data);
-
-bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
-        uint64_t session, uint64_t workspace);
-
-// property: title, class, style
-bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
-        uint64_t session, uint64_t workspace,
-        const char *property, const char *value);
-
-uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type_k page_type, const char *target_group,
-        const char *page_name, purc_variant_t data);
-
-bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type_k page_type, uint64_t page_handle);
+bool
+pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t cor);
 
 bool
-pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type_k page_type, uint64_t page_handle,
-        const char *property, purc_variant_t value);
-
-static inline uint64_t
-pcintr_rdr_create_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
-        const char *target_group, const char *page_name,
-        purc_variant_t data)
-{
-    return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_PLAINWIN, target_group, page_name, data);
-}
-
-static inline bool
-pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
-        uint64_t workspace, uint64_t plain_window)
-{
-    return pcintr_rdr_destroy_page(conn, workspace,
-        PCRDR_PAGE_TYPE_PLAINWIN, plain_window);
-}
-
-static inline bool
-pcintr_rdr_update_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
-        uint64_t plain_window, const char *property, purc_variant_t value)
-{
-    return pcintr_rdr_update_page(conn, workspace,
-        PCRDR_PAGE_TYPE_PLAINWIN, plain_window, property, value);
-}
-
-bool pcintr_rdr_set_page_groups(struct pcrdr_conn *conn,
-        uint64_t workspace, const char *data);
-
-bool pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
-        uint64_t workspace, const char* page_groups);
-
-bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
-        uint64_t workspace, const char* page_group_id);
-
-static inline uint64_t
-pcintr_rdr_create_widget(struct pcrdr_conn *conn, uint64_t workspace,
-        const char *target_group, const char *page_name,
-        purc_variant_t data)
-{
-    return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, data);
-}
-
-static inline bool
-pcintr_rdr_destroy_widget(struct pcrdr_conn *conn,
-        uint64_t workspace, uint64_t widget)
-{
-    return pcintr_rdr_destroy_page(conn, workspace,
-        PCRDR_PAGE_TYPE_WIDGET, widget);
-}
-
-static inline bool
-pcintr_rdr_update_widget(struct pcrdr_conn *conn, uint64_t workspace,
-        uint64_t widget, const char *property, purc_variant_t value)
-{
-    return pcintr_rdr_update_page(conn, workspace,
-        PCRDR_PAGE_TYPE_WIDGET, widget, property, value);
-}
+pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t cor);
 
 bool
-pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack);
-
-bool
-pcintr_rdr_page_control_register(struct pcinst *inst, pcintr_stack_t stack);
-
-bool
-pcintr_rdr_page_control_revoke(struct pcinst *inst, pcintr_stack_t stack);
+pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t cor);
 
 int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
@@ -355,26 +272,30 @@ Note that for different operation, the reference element:
 
 */
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
+pcintr_rdr_send_dom_req(struct pcinst *inst, struct pcrdr_conn *conn,
+        pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id,
+pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
+        pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
 bool
-pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        int op, const char *request_id,
+pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
+        struct pcrdr_conn *conn,
+        pcintr_stack_t stack, int op, const char *request_id,
         pcdoc_element_t element, pcdoc_element_t ref_elem,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len);
 
 purc_variant_t
-pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
+pcintr_rdr_call_method(struct pcinst *inst, struct pcrdr_conn *conn,
+        pcintr_stack_t stack, const char *request_id,
         const char *css_selector, const char *method, purc_variant_t arg);
 
 purc_variant_t
