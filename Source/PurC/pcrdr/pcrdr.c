@@ -568,6 +568,13 @@ static int connect_to_renderer(struct pcinst *inst,
 
     /* Add conns */
     list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
+    if (!inst->main_conn) {
+        inst->main_conn = inst->conn_to_rdr;
+    }
+
+    if (!inst->curr_conn) {
+        inst->curr_conn = inst->conn_to_rdr;
+    }
 
     return PURC_ERROR_OK;
 
@@ -757,6 +764,13 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     inst->conn_to_rdr->caps = n_rdr_caps;
 
     list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
+    if (inst->main_conn == inst->conn_to_rdr_origin) {
+        inst->main_conn = inst->conn_to_rdr;
+    }
+
+    if (inst->curr_conn == inst->conn_to_rdr_origin) {
+        inst->curr_conn = inst->conn_to_rdr;
+    }
 
     pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
             NULL, NULL);
@@ -913,6 +927,7 @@ static void _cleanup_instance(struct pcinst *inst)
     struct list_head *conns = &inst->conns;
     struct pcrdr_conn *pconn, *qconn;
     list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        list_del(&pconn->ln);
         pcrdr_disconnect(pconn);
 
         if (inst->conn_to_rdr == pconn) {
@@ -924,6 +939,8 @@ static void _cleanup_instance(struct pcinst *inst)
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
     }
+
+
 }
 
 struct pcmodule _module_renderer = {
