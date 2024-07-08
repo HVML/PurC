@@ -470,6 +470,25 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
     return retval;
 }
 
+#define IDLE_EVENT      "rdrState:idle"
+static inline void update_current_conn(pcrdr_conn *conn, const pcrdr_msg *msg)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst->curr_conn == conn) {
+        return;
+    }
+
+    if (msg->type != PCRDR_MSG_TYPE_EVENT || !msg->eventName
+            || !purc_variant_is_string(msg->eventName)) {
+        return;
+    }
+
+    const char *name = purc_variant_get_string_const(msg->eventName);
+    if (strcmp(name, "rdrState:idle") != 0) {
+        inst->curr_conn = conn;
+    }
+}
+
 int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
 {
     pcrdr_msg* msg;
@@ -479,6 +498,7 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
         return -1;
     }
 
+    update_current_conn(conn, msg);
     dispatch_message(conn, msg);
 
     /* check extra source again */

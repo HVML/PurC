@@ -311,7 +311,7 @@ static char* generate_unique_rid(const char* name)
     static atomic_ullong atomic_accumulator;
     char *buf = malloc(strlen(name) + 5); // name-xxx
 
-    unsigned long long accumulator =atomic_fetch_add(&atomic_accumulator, 1);
+    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
     sprintf(buf, "%s-%03lld", name, accumulator);
     return buf;
 }
