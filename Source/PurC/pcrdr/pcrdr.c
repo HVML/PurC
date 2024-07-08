@@ -714,6 +714,26 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
         n_rdr_caps->session_handle = response_msg->resultValue;
+        if (response_msg->data && purc_variant_is_object(response_msg->data)) {
+            purc_variant_t name = purc_variant_object_get_by_ckey(
+                    response_msg->data, "name");
+            if (name && purc_variant_is_string(name)) {
+                n_conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
+                purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                        n_conn_to_rdr->name);
+                char *uid;
+                if (atom) {
+                    uid = generate_unique_rid(n_conn_to_rdr->name);
+                }
+                else {
+                    uid = strdup(n_conn_to_rdr->name);
+                }
+
+                atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+                n_conn_to_rdr->uid = uid;
+                n_conn_to_rdr->id = atom;
+            }
+        }
     }
 
     pcrdr_release_message(response_msg);
