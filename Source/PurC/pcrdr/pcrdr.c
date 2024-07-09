@@ -905,6 +905,8 @@ failed:
 #define KEY_PROT_VERSION        "prot-version"
 #define KEY_PROT_VER_CODE       "prot-ver-code"
 #define KEY_URI                 "uri"
+#define KEY_NAME                "name"
+#define KEY_ID                  "id"
 
 static const char *
 rdr_comm(struct pcrdr_conn *rdr)
@@ -953,7 +955,7 @@ rdr_uri(struct pcrdr_conn *rdr)
 static purc_variant_t
 build_rdr_data(pcrdr_conn *conn)
 {
-    purc_variant_t vs[10] = { NULL };
+    purc_variant_t vs[14] = { NULL };
     struct pcinst* inst = pcinst_current();
     struct pcrdr_conn *rdr = conn;
     const char *comm = rdr_comm(rdr);
@@ -1002,11 +1004,17 @@ build_rdr_data(pcrdr_conn *conn)
     vs[8] = purc_variant_make_string_static(KEY_URI, false);
     vs[9] = purc_variant_make_string_static(uri, false);
 
-    if (!vs[9]) {
+    vs[10] = purc_variant_make_string_static(KEY_NAME, false);
+    vs[11] = purc_variant_make_string_static(rdr->name, false);
+
+    vs[12] = purc_variant_make_string_static(KEY_ID, false);
+    vs[13] = purc_variant_make_string_static(rdr->uid, false);
+
+    if (!vs[13]) {
         goto out_clear_vs;
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 7; i++) {
         if (vs[i * 2]) {
             purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
             purc_variant_unref(vs[i * 2]);
