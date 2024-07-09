@@ -952,8 +952,8 @@ rdr_uri(struct pcrdr_conn *rdr)
     return "";
 }
 
-static purc_variant_t
-build_rdr_data(pcrdr_conn *conn)
+purc_variant_t
+pcrdr_data(pcrdr_conn *conn)
 {
     purc_variant_t vs[14] = { NULL };
     struct pcinst* inst = pcinst_current();
@@ -1051,7 +1051,7 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
     pcintr_attach_renderer(inst, conn, NULL);
 
     /* broadcase event rdrState:newDuplicate */
-    purc_variant_t data = build_rdr_data(conn);
+    purc_variant_t data = pcrdr_data(conn);
     broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
             MSG_SUB_TYPE_NEW_DUPLICATE, data);
     if (data) {
@@ -1076,7 +1076,7 @@ purc_disconnect_from_renderer(const char *id)
             pcintr_detach_renderer(inst, pconn);
 
             /* broadcase event rdrState:lostDuplicate */
-            purc_variant_t data = build_rdr_data(pconn);
+            purc_variant_t data = pcrdr_data(pconn);
             broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
                     MSG_SUB_TYPE_LOST_DUPLICATE, PURC_VARIANT_INVALID);
             if (data) {

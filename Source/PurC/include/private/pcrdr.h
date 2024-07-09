@@ -117,6 +117,9 @@ pcrdr_check_operation(const char *op)
 int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         const char *uri);
 
+/* rdrState:newDuplicate,  rdrState:lostDuplicate, $RUNNER.duplicateRenderers */
+purc_variant_t pcrdr_data(pcrdr_conn *conn);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

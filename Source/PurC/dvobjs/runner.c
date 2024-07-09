@@ -336,6 +336,55 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+duplicate_renderers_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    purc_variant_t arr = purc_variant_make_array_0();
+    if (!arr) {
+        goto failed;
+    }
+
+    struct pcinst *inst = pcinst_current();
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        purc_variant_t v = pcrdr_data(pconn);
+        if (v) {
+            purc_variant_array_append(arr, v);
+            purc_variant_unref(v);
+        }
+    }
+
+    size_t nr_conn = purc_variant_array_get_size(arr);
+    purc_variant_t tup = purc_variant_make_tuple(nr_conn, NULL);
+    if (!tup) {
+        goto failed;
+    }
+
+    for (size_t i = 0; i < nr_conn; i++) {
+        purc_variant_tuple_set(tup, i, purc_variant_array_get(arr, i));
+    }
+
+    purc_variant_unref(arr);
+
+    return tup;
+failed:
+    if (arr) {
+        purc_variant_unref(arr);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 purc_dvobj_runner_new(void)
 {
@@ -354,6 +403,7 @@ purc_dvobj_runner_new(void)
         { "autoSwitchingRdr",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "chan",               chan_getter,            chan_setter },
+        { "duplicateRenderers", duplicate_renderers_getter, NULL },
 #if ENABLE(CHINESE_NAMES)
         { "用户",               user_getter,            user_setter },
         { "应用名",             app_getter,             NULL },
@@ -365,6 +415,7 @@ purc_dvobj_runner_new(void)
         { "自动切换渲染器",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "通道",               chan_getter,            chan_setter },
+        { "复制渲染器",         duplicate_renderers_getter, NULL },
 #endif
     };
 
