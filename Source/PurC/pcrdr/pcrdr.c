@@ -568,10 +568,6 @@ static int connect_to_renderer(struct pcinst *inst,
 
     /* Add conns */
     list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
-    if (!inst->main_conn) {
-        inst->main_conn = inst->conn_to_rdr;
-    }
-
     if (!inst->curr_conn) {
         inst->curr_conn = inst->conn_to_rdr;
     }
@@ -764,10 +760,6 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     inst->conn_to_rdr->caps = n_rdr_caps;
 
     list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
-    if (inst->main_conn == inst->conn_to_rdr_origin) {
-        inst->main_conn = inst->conn_to_rdr;
-    }
-
     if (inst->curr_conn == inst->conn_to_rdr_origin) {
         inst->curr_conn = inst->conn_to_rdr;
     }

@@ -298,9 +298,6 @@ connect_getter(purc_variant_t root,
 
     if (rdr) {
         list_del(&inst->conn_to_rdr->ln);
-        if (inst->main_conn == inst->conn_to_rdr) {
-            inst->main_conn = NULL;
-        }
         if (inst->curr_conn == inst->conn_to_rdr) {
             inst->curr_conn = NULL;
         }
@@ -352,10 +349,6 @@ connect_getter(purc_variant_t root,
     pcrdr_release_message(msg);
 
     list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
-    if (!inst->main_conn) {
-        inst->main_conn = inst->conn_to_rdr;
-    }
-
     if (!inst->curr_conn) {
         inst->curr_conn = inst->conn_to_rdr;
     }
@@ -380,9 +373,6 @@ disconnect_getter(purc_variant_t root,
 
     if (rdr) {
         list_del(&inst->conn_to_rdr->ln);
-        if (inst->main_conn == inst->conn_to_rdr) {
-            inst->main_conn = NULL;
-        }
         if (inst->curr_conn == inst->conn_to_rdr) {
             inst->curr_conn = NULL;
         }
