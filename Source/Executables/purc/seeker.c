@@ -43,6 +43,7 @@ static int init_renderer(pcmcth_renderer *rdr)
     seeker_set_renderer_callbacks(rdr);
 
     rdr->features = SEEKER_RDR_FEATURES;
+    rdr->name = SEEKER_RDR_NAME;
     rdr->len_features = sizeof(SEEKER_RDR_FEATURES) - 1;
     rdr->nr_endpoints = 0;
     rdr->master_rid = 0;

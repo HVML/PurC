@@ -218,6 +218,7 @@ struct pcmcth_rdr_data;
 
 struct pcmcth_renderer {
     const char     *features;
+    const char     *name;
     unsigned int    len_features;
     unsigned int    nr_endpoints;
     unsigned int    nr_timers;

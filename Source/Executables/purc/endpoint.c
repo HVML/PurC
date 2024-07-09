@@ -281,7 +281,14 @@ static int on_start_session(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     response.sourceURI = PURC_VARIANT_INVALID;
     response.retCode = retv;
     response.resultValue = (uint64_t)info;
-    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+    response.dataType = PCRDR_MSG_DATA_TYPE_JSON;
+    response.data = purc_variant_make_object_0();
+
+    if (rdr->name) {
+        purc_variant_t name = purc_variant_make_string_static(rdr->name, false);
+        purc_variant_object_set_by_ckey(response.data, "name", name);
+        purc_variant_unref(name);
+    }
 
     return send_simple_response(rdr, endpoint, &response);
 }
