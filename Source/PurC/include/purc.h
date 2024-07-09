@@ -1057,6 +1057,39 @@ typedef enum {
 PCA_EXPORT int
 purc_inst_emit_signal(purc_atom_t inst, purc_inst_signal_k signal);
 
+/**
+ * purc_connect_to_renderer:
+ *
+ * @extra_info : A pointer to #purc_instance_extra_info structure
+ *      which defines the information for the new renderer, e.g.,
+ *      the URI of the renderer.
+ *
+ * Connect to the renderer.
+ *
+ * Returns: The unique id for the renderer,
+ *      %NULL for error.
+ *
+ * Since 0.9.20
+ */
+PCA_EXPORT const char *
+purc_connect_to_renderer(purc_instance_extra_info *extra_info);
+
+/**
+ * purc_disconnect_from_renderer:
+ *
+ * @id : The unique id for the renderer.
+ *
+ * Disconnect the renderer with the specified id
+ *
+ * Returns: 0 for success, other for failure.
+ *
+ * Since 0.9.20
+ */
+PCA_EXPORT int
+purc_disconnect_from_renderer(const char *id);
+
+
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_H */

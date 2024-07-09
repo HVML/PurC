@@ -938,7 +938,11 @@ pcintr_get_named_variable(pcintr_stack_t stack,
         bool temporarily, bool runner_level_enable);
 
 int
-pcintr_switch_new_renderer(struct pcinst *inst, struct pcrdr_conn *old_conn);
+pcintr_attach_renderer(struct pcinst *inst, struct pcrdr_conn *new_conn,
+        struct pcrdr_conn *conn_to_close);
+
+int
+pcintr_detach_renderer(struct pcinst *inst, struct pcrdr_conn *conn);
 
 /* ms */
 time_t pcintr_tick_count();

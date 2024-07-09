@@ -328,7 +328,9 @@ static char* generate_unique_rid(const char* name)
 }
 
 #endif
-static int connect_to_renderer(struct pcinst *inst,
+
+static pcrdr_conn *
+connect_to_renderer(struct pcinst *inst,
         const purc_instance_extra_info *extra_info)
 {
     pcrdr_msg *msg = NULL, *response_msg = NULL;
@@ -361,7 +363,7 @@ static int connect_to_renderer(struct pcinst *inst,
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return PURC_ERROR_NOT_SUPPORTED;
+        return NULL;
     }
 
     if (msg == NULL) {
@@ -577,7 +579,7 @@ static int connect_to_renderer(struct pcinst *inst,
         inst->curr_conn = conn_to_rdr;
     }
 
-    return PURC_ERROR_OK;
+    return conn_to_rdr;
 
 failed:
     if (response_msg)
@@ -591,7 +593,7 @@ failed:
         conn_to_rdr = NULL;
     }
 
-    return purc_get_last_error();
+    return NULL;
 }
 
 purc_variant_t pcintr_crtn_observed_create(purc_atom_t cid);
@@ -870,7 +872,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
     PC_TIMESTAMP("connect to new renderer, app: %s runner: %s\n", inst->app_name, inst->runner_name);
 
-    pcintr_switch_new_renderer(inst, inst->conn_to_rdr_origin);
+    pcintr_attach_renderer(inst, inst->conn_to_rdr, inst->conn_to_rdr_origin);
 
     /* broadcase event */
     broadcast_new_renderer_event(inst);
@@ -895,6 +897,49 @@ failed:
     return purc_get_last_error();
 }
 
+const char *
+purc_connect_to_renderer(purc_instance_extra_info *extra_info)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return NULL;
+    }
+    pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
+
+    pcintr_attach_renderer(inst, conn, NULL);
+
+    return conn ? conn->uid : NULL;
+}
+
+int
+purc_disconnect_from_renderer(const char *id)
+{
+    if (!id) {
+        goto failed;
+    }
+
+    struct pcinst *inst = pcinst_current();
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        if (strcmp(pconn->uid, id) == 0) {
+            pcintr_detach_renderer(inst, pconn);
+
+            list_del(&pconn->ln);
+            pcrdr_disconnect(pconn);
+
+            if (inst->conn_to_rdr == pconn) {
+                inst->conn_to_rdr = NULL;
+            }
+            return 0;
+        }
+    }
+
+failed:
+    return -1;
+}
+
 pcrdr_conn *
 pcrdr_connect(const struct purc_instance_extra_info *extra_info)
 {
@@ -916,7 +961,8 @@ static int _init_instance(struct pcinst *inst,
 {
     list_head_init(&inst->conns);
 
-    return connect_to_renderer(inst, extra_info);
+    pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
+    return conn ? 0 :  purc_get_last_error();
 }
 
 static void _cleanup_instance(struct pcinst *inst)

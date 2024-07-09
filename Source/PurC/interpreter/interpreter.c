@@ -40,6 +40,7 @@
 #include "private/msg-queue.h"
 #include "private/runners.h"
 #include "private/channel.h"
+#include "pcrdr/connect.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -3890,19 +3891,15 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
 }
 
 static int
-pcintr_coroutine_switch_renderer(struct pcinst *inst,
-        struct pcrdr_conn *old_conn, pcintr_coroutine_t cor)
+pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
+        struct pcrdr_conn *new_conn, struct pcrdr_conn *conn_to_close)
 {
     int ret = 0;
-
-    assert(inst->allow_switching_rdr);
-    struct pcrdr_conn *conn = inst->conn_to_rdr;
 
     struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
     struct pcintr_coroutine_rdr_conn *parent_rdr_conn = NULL;
 
-    /* clear origin conn */
-    rdr_conn = pcintr_coroutine_get_rdr_conn(cor, old_conn);
+    rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn_to_close);
     if (rdr_conn) {
         rdr_conn->workspace_handle = 0;
         rdr_conn->page_handle = 0;
@@ -3924,10 +3921,10 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst,
 
         /* FIXME: ensure parent had switch */
         if (parent) {
-            parent_rdr_conn = pcintr_coroutine_get_rdr_conn(parent, conn);
+            parent_rdr_conn = pcintr_coroutine_get_rdr_conn(parent, new_conn);
             assert(parent_rdr_conn);
 
-            rdr_conn = pcintr_coroutine_create_or_get_rdr_conn(cor, conn);
+            rdr_conn = pcintr_coroutine_create_or_get_rdr_conn(cor, new_conn);
             assert(rdr_conn);
 
             cor->target_page_type = parent->target_page_type;
@@ -3949,7 +3946,7 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst,
         rdr_info.toolkit_style = purc_variant_ref(cor->toolkit_style);
     }
 
-    bool r = pcintr_attach_to_renderer(conn, cor,
+    bool r = pcintr_attach_to_renderer(new_conn, cor,
             cor->target_page_type, cor->target_workspace,
             cor->target_group, cor->page_name, &rdr_info);
 
@@ -3963,8 +3960,9 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst,
     }
 
     if (cor->stage == CO_STAGE_OBSERVING) {
-        r = pcintr_rdr_page_control_load(inst, inst->conn_to_rdr, cor);
-        PC_TIMESTAMP("new renderer page load: app:%s runner: %s ret: %d\n", inst->app_name, inst->runner_name, r);
+        r = pcintr_rdr_page_control_load(inst, new_conn, cor);
+        PC_TIMESTAMP("new renderer page load: app:%s runner: %s ret: %d\n",
+                inst->app_name, inst->runner_name, r);
         if (!r) {
             ret = -1;
             goto out;
@@ -3976,16 +3974,40 @@ out:
     return ret;
 }
 
-int
-pcintr_switch_new_renderer(struct pcinst *inst, struct pcrdr_conn *old_conn)
+static int
+pcintr_coroutine_detach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn_to_close)
 {
-    PC_INFO("switch new render, tickcount is %ld\n", pcintr_tick_count());
+    UNUSED_PARAM(inst);
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
+
+    rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn_to_close);
+    if (rdr_conn) {
+        rdr_conn->workspace_handle = 0;
+        rdr_conn->page_handle = 0;
+        rdr_conn->dom_handle = 0;
+        list_del(&rdr_conn->ln);
+        free(rdr_conn);
+    }
+
+    return 0;
+}
+
+int
+pcintr_attach_renderer(struct pcinst *inst, struct pcrdr_conn *new_conn,
+        struct pcrdr_conn *conn_to_close)
+{
+    PC_INFO("attach renderer, tickcount is %ld, new conn is %s,"
+            " conn to close is %s\n",
+            pcintr_tick_count(), new_conn->uid,
+            conn_to_close ? conn_to_close->uid : NULL);
+
     int ret = 0;
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
     pcintr_coroutine_t p, q;
     list_for_each_entry_safe(p, q, crtns, ln) {
-        ret = pcintr_coroutine_switch_renderer(inst, old_conn, p);
+        ret = pcintr_coroutine_attach_renderer(inst, p, new_conn, conn_to_close);
         if (ret != 0) {
             goto out;
         }
@@ -3993,7 +4015,37 @@ pcintr_switch_new_renderer(struct pcinst *inst, struct pcrdr_conn *old_conn)
 
     crtns = &heap->stopped_crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
-        ret = pcintr_coroutine_switch_renderer(inst, old_conn, p);
+        ret = pcintr_coroutine_attach_renderer(inst, p, new_conn,
+                conn_to_close);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
+int
+pcintr_detach_renderer(struct pcinst *inst, struct pcrdr_conn *conn)
+{
+    PC_INFO("detach renderer, tickcount is %ld, new conn is %s\n",
+            pcintr_tick_count(), conn->uid);
+
+    int ret = 0;
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_detach_renderer(inst, p, conn);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_detach_renderer(inst, p, conn);
         if (ret != 0) {
             goto out;
         }
