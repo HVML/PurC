@@ -84,6 +84,8 @@
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
 #define MSG_SUB_TYPE_NEW_RENDERER     "newRenderer"
+#define MSG_SUB_TYPE_NEW_DUPLICATE    "newDuplicate"
+#define MSG_SUB_TYPE_LOST_DUPLICATE   "lostDuplicate"
 
 #define CRTN_TOKEN_MAIN               "_main"
 #define CRTN_TOKEN_FIRST              "_first"

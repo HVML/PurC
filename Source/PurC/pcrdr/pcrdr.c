@@ -599,7 +599,8 @@ failed:
 purc_variant_t pcintr_crtn_observed_create(purc_atom_t cid);
 
 static void
-broadcast_new_renderer_event(struct pcinst *inst)
+broadcast_renderer_event(struct pcinst *inst, const char *event_type,
+        const char *event_sub_type, purc_variant_t data)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
@@ -610,8 +611,8 @@ broadcast_new_renderer_event(struct pcinst *inst)
         purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                hvml, event_type, event_sub_type,
+                data, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
 
@@ -622,12 +623,11 @@ broadcast_new_renderer_event(struct pcinst *inst)
         purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                hvml, event_type, event_sub_type,
+                data, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
 }
-
 
 int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         const char *uri)
@@ -874,8 +874,9 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
     pcintr_attach_renderer(inst, inst->conn_to_rdr, inst->conn_to_rdr_origin);
 
-    /* broadcase event */
-    broadcast_new_renderer_event(inst);
+    /* broadcase event rdrState:newRenderer */
+    broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+            MSG_SUB_TYPE_NEW_RENDERER, PURC_VARIANT_INVALID);
 
     PC_WARN("switch renderer comm=%s|uri=%s success!\n", comm, uri);
     return PURC_ERROR_OK;
@@ -897,6 +898,138 @@ failed:
     return purc_get_last_error();
 }
 
+#define COMM_NONE               "none"
+
+#define KEY_COMM                "comm"
+#define KEY_PROT                "prot"
+#define KEY_PROT_VERSION        "prot-version"
+#define KEY_PROT_VER_CODE       "prot-ver-code"
+#define KEY_URI                 "uri"
+
+static const char *
+rdr_comm(struct pcrdr_conn *rdr)
+{
+    const char *comm = COMM_NONE;
+    if (!rdr) {
+        goto out;
+    }
+
+    switch (rdr->prot) {
+    case PURC_RDRCOMM_HEADLESS:
+        comm = PURC_RDRCOMM_NAME_HEADLESS;
+        break;
+
+    case PURC_RDRCOMM_THREAD:
+        comm = PURC_RDRCOMM_NAME_THREAD;
+        break;
+
+    case PURC_RDRCOMM_SOCKET:
+        comm = PURC_RDRCOMM_NAME_SOCKET;
+        break;
+
+    case PURC_RDRCOMM_HBDBUS:
+        comm = PURC_RDRCOMM_NAME_HBDBUS;
+        break;
+
+    case PURC_RDRCOMM_WEBSOCKET:
+        comm = PURC_RDRCOMM_NAME_WEBSOCKET;
+        break;
+    }
+
+out:
+    return comm;
+}
+
+static const char *
+rdr_uri(struct pcrdr_conn *rdr)
+{
+    UNUSED_PARAM(rdr);
+    if (rdr && rdr->uri) {
+        return rdr->uri;
+    }
+    return "";
+}
+
+static purc_variant_t
+build_rdr_data(pcrdr_conn *conn)
+{
+    purc_variant_t vs[10] = { NULL };
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *rdr = conn;
+    const char *comm = rdr_comm(rdr);
+    const char *uri = rdr_uri(rdr);
+
+    purc_variant_t data = purc_variant_make_object(0, NULL, NULL);
+    if (data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_clear_data;
+    }
+
+    if (!rdr) {
+        vs[0] = purc_variant_make_string_static(KEY_COMM, false);
+        vs[1] = purc_variant_make_string_static(comm, false);
+        if (!vs[1]) {
+            goto out_clear_vs;
+        }
+        purc_variant_object_set(data, vs[0], vs[1]);
+        purc_variant_unref(vs[0]);
+        purc_variant_unref(vs[1]);
+        goto out;
+    }
+
+    vs[0] = purc_variant_make_string_static(KEY_PROT, false);
+    vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
+    vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
+
+    struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
+    if (rdr_caps) {
+        char buf[21];
+        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
+        vs[3] = purc_variant_make_string(buf, false);
+        vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);
+    }
+    else {
+        vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
+        vs[3] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_VERSION_STRING,
+                false);
+        vs[5] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    }
+
+    vs[6] = purc_variant_make_string_static(KEY_COMM, false);
+    vs[7] = purc_variant_make_string_static(comm, false);
+
+    vs[8] = purc_variant_make_string_static(KEY_URI, false);
+    vs[9] = purc_variant_make_string_static(uri, false);
+
+    if (!vs[9]) {
+        goto out_clear_vs;
+    }
+
+    for (int i = 0; i < 5; i++) {
+        if (vs[i * 2]) {
+            purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
+            purc_variant_unref(vs[i * 2]);
+            purc_variant_unref(vs[i * 2 + 1]);
+        }
+    }
+    goto out;
+
+out_clear_vs:
+    for (int i = 0; i < 10; i++) {
+        if (vs[i]) {
+            purc_variant_unref(vs[i]);
+        }
+    }
+
+out_clear_data:
+    purc_variant_unref(data);
+    data = PURC_VARIANT_INVALID;
+
+out:
+    return data;
+}
+
 const char *
 purc_connect_to_renderer(purc_instance_extra_info *extra_info)
 {
@@ -908,6 +1041,14 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
     pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
 
     pcintr_attach_renderer(inst, conn, NULL);
+
+    /* broadcase event rdrState:newDuplicate */
+    purc_variant_t data = build_rdr_data(conn);
+    broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+            MSG_SUB_TYPE_NEW_DUPLICATE, data);
+    if (data) {
+        purc_variant_unref(data);
+    }
 
     return conn ? conn->uid : NULL;
 }
@@ -926,6 +1067,14 @@ purc_disconnect_from_renderer(const char *id)
         if (strcmp(pconn->uid, id) == 0) {
             pcintr_detach_renderer(inst, pconn);
 
+            /* broadcase event rdrState:lostDuplicate */
+            purc_variant_t data = build_rdr_data(pconn);
+            broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+                    MSG_SUB_TYPE_LOST_DUPLICATE, PURC_VARIANT_INVALID);
+            if (data) {
+                purc_variant_unref(data);
+            }
+
             list_del(&pconn->ln);
             pcrdr_disconnect(pconn);
 
@@ -935,6 +1084,7 @@ purc_disconnect_from_renderer(const char *id)
             return 0;
         }
     }
+
 
 failed:
     return -1;
