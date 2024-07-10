@@ -94,6 +94,8 @@
 #define PCRDR_EVENT_NEW_RENDERER                "newRenderer"
 #define PCRDR_EVENT_FAILED_SWITCHING_RENDERER   "failedSwitchingRenderer"
 
+#define PCRDR_EVENT_DUP_RENDERER                "dupRenderer"
+
 /* operations from interpreter to render */
 typedef enum {
     PCRDR_K_OPERATION_FIRST = 0,
