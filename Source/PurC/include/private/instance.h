@@ -80,6 +80,9 @@ struct pcinst {
 
     char                   *app_name;
     char                   *runner_name;
+    char                   *workspace_name;
+    char                   *workspace_title;
+    char                   *workspace_layout;
     char                    endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t             endpoint_atom;
 

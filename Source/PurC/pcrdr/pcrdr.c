@@ -644,7 +644,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
 
     /* TODO: get workspace, group info from keep info */
-    purc_instance_extra_info* extra_info = NULL;
+    purc_instance_extra_info info = {0};
+    info.workspace_name = inst->workspace_name;
+    info.workspace_title = inst->workspace_title;
+    info.workspace_layout = inst->workspace_layout;
+
+    purc_instance_extra_info* extra_info = &info;
 
     if (strcasecmp(comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
@@ -1046,6 +1051,20 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
         purc_set_error(PURC_ERROR_NO_INSTANCE);
         return NULL;
     }
+
+    if (extra_info) {
+        if (!extra_info->workspace_name) {
+            extra_info->workspace_name = inst->workspace_name;
+        }
+        if (!extra_info->workspace_title) {
+            extra_info->workspace_title = inst->workspace_title;
+        }
+        if (!extra_info->workspace_layout) {
+            extra_info->workspace_layout = inst->workspace_layout;
+        }
+    }
+
+
     pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
 
     pcintr_attach_renderer(inst, conn, NULL);
@@ -1118,6 +1137,21 @@ static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
     list_head_init(&inst->conns);
+
+    /* keep workspace info */
+    if (extra_info) {
+        if (extra_info->workspace_name) {
+            inst->workspace_name = strdup(extra_info->workspace_name);
+        }
+
+        if (extra_info->workspace_title) {
+            inst->workspace_title = strdup(extra_info->workspace_title);
+        }
+
+        if (extra_info->workspace_layout) {
+            inst->workspace_layout = strdup(extra_info->workspace_layout);
+        }
+    }
 
     pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
     return conn ? 0 :  purc_get_last_error();
