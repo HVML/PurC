@@ -35,6 +35,7 @@
 #include "private/variant.h"
 #include "private/ports.h"
 #include "private/msg-queue.h"
+#include "pcrdr/connect.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -588,27 +589,33 @@ execute_one_step(struct pcinst *inst)
 }
 
 
+static void
+handle_event_from_conn(struct pcinst *inst, struct pcrdr_conn *conn)
+{
+    pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
+    if (!handle) {
+        pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
+    }
+
+    int last_err = purc_get_last_error();
+    purc_clr_error();
+
+    pcrdr_wait_and_dispatch_message(conn, 0);
+
+    int err = purc_get_last_error();
+    if (err == PCRDR_ERROR_IO || err == PCRDR_ERROR_PEER_CLOSED) {
+        handle_rdr_conn_lost(inst, conn);
+    }
+    purc_set_error(last_err);
+}
+
 void
 check_and_dispatch_event_from_conn(struct pcinst *inst)
 {
-    struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
-
-    if (conn) {
-        pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
-        if (!handle) {
-            pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
-        }
-
-        int last_err = purc_get_last_error();
-        purc_clr_error();
-
-        pcrdr_wait_and_dispatch_message(conn, 0);
-
-        int err = purc_get_last_error();
-        if (err == PCRDR_ERROR_IO || err == PCRDR_ERROR_PEER_CLOSED) {
-            handle_rdr_conn_lost(inst, conn);
-        }
-        purc_set_error(last_err);
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        handle_event_from_conn(inst, pconn);
     }
 }
 
