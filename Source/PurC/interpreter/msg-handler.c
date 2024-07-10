@@ -642,7 +642,8 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
     UNUSED_PARAM(inst);
     UNUSED_PARAM(conn);
     UNUSED_PARAM(sub_type);
-    if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
+
+    if (strcmp(type, MSG_TYPE_DUP_RENDERER) == 0) {
         purc_variant_t data = msg->data;
         purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
         if (!comm) {
@@ -660,7 +661,49 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
 
         const char *s_comm = purc_variant_get_string_const(comm);
         const char *s_uri = purc_variant_get_string_const(uri);
-        PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n", s_uri, inst->app_name, inst->runner_name);
+        PC_TIMESTAMP("receive dup renderer event url: %s app: %s runner: %s\n",
+                s_uri, inst->app_name, inst->runner_name);
+
+        purc_instance_extra_info extra_info = {0};
+        if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_SOCKET;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+        }
+        else {
+            PC_WARN("Invalid '%s' comm.", s_comm);
+            return;
+        }
+        extra_info.renderer_uri = s_uri;
+        purc_connect_to_renderer(&extra_info);
+    }
+    else if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
+        purc_variant_t data = msg->data;
+        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        if (!comm) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_COMM);
+            return;
+        }
+
+        purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
+        if (!uri) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_URI);
+            return;
+        }
+
+        const char *s_comm = purc_variant_get_string_const(comm);
+        const char *s_uri = purc_variant_get_string_const(uri);
+        PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n",
+                s_uri, inst->app_name, inst->runner_name);
         pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
     if (strcmp(type, MSG_TYPE_RDR_STATE) == 0

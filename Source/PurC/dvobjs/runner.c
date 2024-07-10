@@ -412,6 +412,9 @@ conn_renderer_getter(purc_variant_t root, size_t nr_args,
     else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
     }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+    }
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);

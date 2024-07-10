@@ -464,6 +464,11 @@ connect_to_renderer(struct pcinst *inst,
                 conn_to_rdr->id = atom;
             }
         }
+
+        if (conn_to_rdr->uri) {
+            conn_to_rdr->uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+                    conn_to_rdr->uri);
+        }
     }
 
     pcrdr_release_message(response_msg);
@@ -751,6 +756,11 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
                 n_conn_to_rdr->uid = uid;
                 n_conn_to_rdr->id = atom;
             }
+        }
+
+        if (n_conn_to_rdr->uri) {
+            n_conn_to_rdr->uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+                    n_conn_to_rdr->uri);
         }
     }
 
@@ -1052,6 +1062,18 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
         return NULL;
     }
 
+    purc_atom_t rdr_uri_atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+            extra_info->renderer_uri);
+    if (rdr_uri_atom) {
+        struct list_head *conns = &inst->conns;
+        struct pcrdr_conn *pconn, *qconn;
+        list_for_each_entry_safe(pconn, qconn, conns, ln) {
+            if (pconn->uri_atom == rdr_uri_atom) {
+                return pconn->uid;
+            }
+        }
+    }
+
     if (extra_info) {
         if (!extra_info->workspace_name) {
             extra_info->workspace_name = inst->workspace_name;
@@ -1066,6 +1088,9 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
 
 
     pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
+    if (!conn) {
+        goto out;
+    }
 
     pcintr_attach_renderer(inst, conn, NULL);
 
@@ -1077,6 +1102,7 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
         purc_variant_unref(data);
     }
 
+out:
     return conn ? conn->uid : NULL;
 }
 

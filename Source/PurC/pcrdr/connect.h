@@ -79,6 +79,7 @@ struct pcrdr_conn {
 
     struct pcrdr_conn_stats stats;
 
+    purc_atom_t                  uri_atom;
     char* uri;
 
     void *user_data;
