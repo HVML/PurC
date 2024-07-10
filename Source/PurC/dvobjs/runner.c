@@ -385,6 +385,84 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+conn_renderer_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_instance_extra_info extra_info = {0};
+    const char *id;
+    const char *s_comm;
+    const char *s_uri;
+
+    if (nr_args < 2 || !purc_variant_is_string(argv[0])
+            || !purc_variant_is_string(argv[1])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    s_comm = purc_variant_get_string_const(argv[0]);
+    if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
+    }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_SOCKET;
+    }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+    }
+    else {
+        // TODO: other protocol
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto failed;
+    }
+
+    s_uri = purc_variant_get_string_const(argv[1]);
+    extra_info.renderer_uri = s_uri;
+
+    id = purc_connect_to_renderer(&extra_info);
+    if (id) {
+        return purc_variant_make_string_static(id, false);
+    }
+    return purc_variant_make_undefined();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+disconn_renderer_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    bool ret = false;
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *id;
+    id = purc_variant_get_string_const(argv[0]);
+    if (id == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int r = purc_disconnect_from_renderer(id);
+    ret = (r == 0);
+
+failed:
+    return purc_variant_make_boolean(ret);
+}
+
 purc_variant_t
 purc_dvobj_runner_new(void)
 {
@@ -404,6 +482,8 @@ purc_dvobj_runner_new(void)
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "chan",               chan_getter,            chan_setter },
         { "duplicateRenderers", duplicate_renderers_getter, NULL },
+        { "connRenderer",       conn_renderer_getter,   NULL },
+        { "disconnRenderer",    disconn_renderer_getter, NULL },
 #if ENABLE(CHINESE_NAMES)
         { "用户",               user_getter,            user_setter },
         { "应用名",             app_getter,             NULL },
@@ -416,6 +496,8 @@ purc_dvobj_runner_new(void)
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "通道",               chan_getter,            chan_setter },
         { "复制渲染器",         duplicate_renderers_getter, NULL },
+        { "连接渲染器",         conn_renderer_getter,   NULL },
+        { "断开渲染器",         disconn_renderer_getter, NULL },
 #endif
     };
 
