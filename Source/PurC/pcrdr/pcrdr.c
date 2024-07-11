@@ -1089,6 +1089,8 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
 
     pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
     if (!conn) {
+        /* PCRDR_ERROR_SERVER_REFUSED */
+        purc_clr_error();
         goto out;
     }
 

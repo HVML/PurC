@@ -271,15 +271,16 @@ Note that for different operation, the reference element:
   - `clear`: the target element itself.
 
 */
+
 pcrdr_msg *
-pcintr_rdr_send_dom_req(struct pcinst *inst, struct pcrdr_conn *conn,
+pcintr_rdr_send_dom_req(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
+pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
@@ -287,15 +288,14 @@ pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
-        struct pcrdr_conn *conn,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcdoc_element_t element, pcdoc_element_t ref_elem,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len);
 
 purc_variant_t
-pcintr_rdr_call_method(struct pcinst *inst, struct pcrdr_conn *conn,
-        pcintr_stack_t stack, const char *request_id,
+pcintr_rdr_call_method(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
         const char *css_selector, const char *method, purc_variant_t arg);
 
 purc_variant_t

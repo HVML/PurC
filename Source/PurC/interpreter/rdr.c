@@ -1010,40 +1010,34 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(struct pcinst *inst, struct pcrdr_conn *conn,
+pcintr_rdr_send_dom_req(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
-    UNUSED_PARAM(inst);
-
-    if (!co) {
-        return NULL;
-    }
-
     struct pcintr_coroutine_rdr_conn *rdr_conn;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
+    struct pcrdr_conn *pconn, *qconn;
+    struct pcrdr_conn *curr_conn;
 
-    if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0 ||
-            co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
-        /* null page or suppressed */
+    pcrdr_msg *result_msg = NULL;
+    pcrdr_msg *response_msg;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
+    uint64_t target_value;
+    char elem[LEN_BUFF_LONGLONGINT];
+    int n;
+
+    if (!co || co->stack.doc->ldc == 0 ) {
         return NULL;
     }
 
+    struct list_head *conns = &inst->conns;
     const char *operation = rdr_ops[op];
     if (property && op == PCRDR_K_OPERATION_DISPLACE) {
         // VW: use 'update' operation when displace property
         operation = PCRDR_OPERATION_UPDATE;
     }
 
-    pcrdr_msg *response_msg = NULL;
-
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
-    uint64_t target_value = rdr_conn->dom_handle;
-
-    char elem[LEN_BUFF_LONGLONGINT];
-    int n;
     if (element_type == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         n = snprintf(elem, sizeof(elem),
                 "%llx", (unsigned long long int)(uint64_t)element);
@@ -1069,56 +1063,78 @@ pcintr_rdr_send_dom_req(struct pcinst *inst, struct pcrdr_conn *conn,
         goto failed;
     }
 
-    if (pcrdr_conn_type(conn) == CT_MOVE_BUFFER) {
-    /* XXX: Pass a reference entity instead of the original data
-       if the connection type was move buffer.
+    /* get current conn */
+    curr_conn = inst->curr_conn ? inst->curr_conn : inst->conn_to_rdr;
 
-Note that for different operation, the reference entity varies:
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        rdr_conn = pcintr_coroutine_get_rdr_conn(co, pconn);
+        bool is_current = (pconn == curr_conn);
+        const char *req_id = is_current ? request_id :
+            PCINTR_RDR_NORETURN_REQUEST_ID;
 
-  - `append`: the last child element of the target element before this op.
-  - `prepend`: the first child element of the tgarget elment before this op.
-  - `insertBefore`: the previous sibling of the target element before this op.
-  - `insertAfter`: the next sibling of the target element before this op.
-  - `displace`: the target element itself.
-  - `update`: the target element itself.
-  - `erase`: the target element itself.
-  - `clear`: the target element itself.
-
-TODO: Currently, we pass element itself.  */
-
-        purc_variant_t req_data = PURC_VARIANT_INVALID;
-        if (ref_elem) {
-            req_data = purc_variant_make_native(ref_elem, NULL);
+        if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0) {
+            continue;
         }
-        /* dom operation */
-        response_msg = pcintr_rdr_send_request_and_wait_response(
-                conn, target, target_value, operation,
-                request_id, element_type, elem, property,
-                PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
-        if (req_data) {
-            purc_variant_unref(req_data);
+
+        target_value = rdr_conn->dom_handle;
+        if (pcrdr_conn_type(pconn) == CT_MOVE_BUFFER) {
+        /* XXX: Pass a reference entity instead of the original data
+           if the connection type was move buffer.
+
+        Note that for different operation, the reference entity varies:
+
+      - `append`: the last child element of the target element before this op.
+      - `prepend`: the first child element of the tgarget elment before this op.
+      - `insertBefore`: the previous sibling of the target element before this op.
+      - `insertAfter`: the next sibling of the target element before this op.
+      - `displace`: the target element itself.
+      - `update`: the target element itself.
+      - `erase`: the target element itself.
+      - `clear`: the target element itself.
+
+        TODO: Currently, we pass element itself.  */
+
+            purc_variant_t req_data = PURC_VARIANT_INVALID;
+            if (ref_elem) {
+                req_data = purc_variant_make_native(ref_elem, NULL);
+            }
+            /* dom operation */
+            response_msg = pcintr_rdr_send_request_and_wait_response(
+                    pconn, target, target_value, operation,
+                    req_id, element_type, elem, property,
+                    PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
+            if (req_data) {
+                purc_variant_unref(req_data);
+            }
+        }
+        else {
+            /* dom operation */
+            response_msg = pcintr_rdr_send_request_and_wait_response(
+                    pconn, target, target_value, operation,
+                    req_id, element_type, elem, property,
+                    data_type, data, 0);
+        }
+
+        if (is_current) {
+            if (response_msg == NULL) {
+                goto failed;
+            }
+            int ret_code = response_msg->retCode;
+            if (ret_code != PCRDR_SC_OK) {
+                purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+                goto failed;
+            }
+
+            result_msg = response_msg;
+        }
+        else {
+            if (response_msg != NULL) {
+                pcrdr_release_message(response_msg);
+            }
         }
     }
-    else {
-        /* dom operation */
-        response_msg = pcintr_rdr_send_request_and_wait_response(
-                conn, target, target_value, operation,
-                request_id, element_type, elem, property,
-                data_type, data, 0);
-    }
 
-    if (response_msg == NULL) {
-        goto failed;
-    }
-
-    int ret_code = response_msg->retCode;
-    if (ret_code != PCRDR_SC_OK) {
-        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
-    }
-
-    return response_msg;
-
+    return result_msg;
 failed:
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -1127,7 +1143,7 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
+pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
@@ -1135,15 +1151,6 @@ pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
 {
     pcrdr_msg *ret = NULL;
     if (!co) {
-        goto out;
-    }
-
-    struct pcintr_coroutine_rdr_conn *rdr_conn;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
-
-    if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0 ||
-            co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
-        /* null page or suppressed */
         goto out;
     }
 
@@ -1163,7 +1170,7 @@ pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(inst, conn, co, op, request_id,
+    ret = pcintr_rdr_send_dom_req(inst, co, op, request_id,
             element_type, css_selector, element, ref_elem, property,
             data_type, req_data);
     purc_variant_unref(req_data);
@@ -1174,7 +1181,6 @@ out:
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
-        struct pcrdr_conn *conn,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcdoc_element_t element, pcdoc_element_t ref_elem,
         const char *property, pcrdr_msg_data_type data_type,
@@ -1188,7 +1194,7 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         data = " ";
         len = 1;
     }
-    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(inst, conn,
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(inst,
             co, op, request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, ref_elem, property, data_type, data, len);
 
@@ -1200,8 +1206,8 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
 }
 
 purc_variant_t
-pcintr_rdr_call_method(struct pcinst *inst, struct pcrdr_conn *conn,
-        pcintr_stack_t stack, const char *request_id,
+pcintr_rdr_call_method(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
         const char *css_selector, const char *method, purc_variant_t arg)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
@@ -1229,22 +1235,22 @@ pcintr_rdr_call_method(struct pcinst *inst, struct pcrdr_conn *conn,
 
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
             PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector + 1, NULL, NULL, NULL, data_type, data);
     }
     else if (css_selector[0] == '.' && purc_is_valid_css_identifier(css_selector + 1)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }
     else if (purc_is_valid_css_identifier(css_selector)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_TAG,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }
     else {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }

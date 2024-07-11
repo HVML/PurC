@@ -333,8 +333,8 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t v = pcintr_rdr_call_method(inst, inst->conn_to_rdr,
-            &co->stack, request_id, s_on, s_to, ctxt->with);
+    purc_variant_t v = pcintr_rdr_call_method(inst,
+            co, request_id, s_on, s_to, ctxt->with);
 
     if (!v && ctxt->is_noreturn) {
         v = purc_variant_make_null();
@@ -360,6 +360,10 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     int ret = 0;
 
     pcrdr_msg *response_msg = NULL;
+    struct pcintr_coroutine_rdr_conn *rdr_conn;
+    struct pcrdr_conn *pconn, *qconn;
+    struct pcrdr_conn *curr_conn;
+
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = 0;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
@@ -367,24 +371,17 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *property = NULL;
     pcrdr_msg_data_type data_type;
     char element_buf[LEN_BUFF_LONGLONGINT];
+    bool use_page_handle = false;
 
     struct pcinst* inst = pcinst_current();
-    struct pcrdr_conn *conn = inst->conn_to_rdr;
+    struct list_head *conns = &inst->conns;
+
     const char *operation = NULL;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
         : NULL;
     purc_variant_t data = PURC_VARIANT_INVALID;
     purc_variant_t arg = ctxt->with;
-
-    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
-    if (!rdr_conn) {
-        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "Not found connection to renderer");
-        goto out;
-    }
-    target_value = rdr_conn->workspace_handle;
 
     if (!arg) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -525,11 +522,8 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (!v) {
             /*  */
             if (co->target_page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
+                use_page_handle = true;
                 purc_clr_error();
-                element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
-                snprintf(element_buf, sizeof(element_buf),
-                        "%llx", (unsigned long long int)rdr_conn->page_handle);
-                element = element_buf;
             }
             else {
                 purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -559,6 +553,69 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
+    /* get current conn */
+    curr_conn = inst->curr_conn ? inst->curr_conn : inst->conn_to_rdr;
+
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        rdr_conn = pcintr_coroutine_get_rdr_conn(co, pconn);
+        bool is_current = (pconn == curr_conn);
+        target_value = rdr_conn->workspace_handle;
+        const char *req_id = is_current ? request_id :
+            PCINTR_RDR_NORETURN_REQUEST_ID;
+
+        if (use_page_handle) {
+            element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
+            snprintf(element_buf, sizeof(element_buf),
+                    "%llx", (unsigned long long int)rdr_conn->page_handle);
+            element = element_buf;
+        }
+
+        /* \$RDR operation : createPlainWindow, setPageGroups and so on  */
+        response_msg = pcintr_rdr_send_request_and_wait_response(pconn, target,
+                target_value, operation, req_id, element_type, element,
+                property, data_type, data, 0);
+
+        if (!is_current) {
+            if (response_msg != NULL) {
+                pcrdr_release_message(response_msg);
+            }
+            continue;
+        }
+
+        purc_variant_t v = PURC_VARIANT_INVALID;
+        if (ctxt->is_noreturn) {
+            v = purc_variant_make_null();
+            ret = 0;
+        }
+        else if (response_msg == NULL) {
+            goto out;
+        }
+        else {
+            int ret_code = response_msg->retCode;
+            PC_DEBUG("request $RDR ret_code=%d\n", ret_code);
+            if (ret_code == PCRDR_SC_OK) {
+                if (response_msg->data) {
+                    v = purc_variant_ref(response_msg->data);
+                }
+                else {
+                    v = purc_variant_make_null();
+                }
+                ret = 0;
+            }
+            else {
+                purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            }
+            pcrdr_release_message(response_msg);
+        }
+
+        if (v) {
+            pcintr_set_question_var(frame, v);
+            purc_variant_unref(v);
+        }
+    }
+
+
+#if 0
     /* \$RDR operation : createPlainWindow, setPageGroups and so on  */
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, request_id, element_type, element,
@@ -594,6 +651,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_set_question_var(frame, v);
         purc_variant_unref(v);
     }
+#endif
 
 out:
     return ret;
