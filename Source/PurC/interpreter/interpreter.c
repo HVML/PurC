@@ -3960,6 +3960,7 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
     }
 
     if (cor->stage == CO_STAGE_OBSERVING) {
+        /* only send page to the new conn */
         r = pcintr_rdr_page_control_load(inst, new_conn, cor);
         PC_TIMESTAMP("new renderer page load: app:%s runner: %s ret: %d\n",
                 inst->app_name, inst->runner_name, r);

@@ -349,7 +349,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         /* load with inherit FIRST RUN stack->doc->ldc > 1 and  stack->inherit */
         if (stack->doc->ldc == 1 || stack->inherit) {
             /* It's the first time to expose the document */
-            pcintr_rdr_page_control_load(inst, inst->conn_to_rdr, stack->co);
+            /* need send to all conn */
+            struct list_head *conns = &inst->conns;
+            struct pcrdr_conn *pconn, *qconn;
+            list_for_each_entry_safe(pconn, qconn, conns, ln) {
+                pcintr_rdr_page_control_load(inst, pconn, stack->co);
+            }
             purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,

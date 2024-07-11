@@ -923,7 +923,7 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         goto failed;
     }
     else if (ret_code == PCRDR_SC_OK && result != 0) {
-        pcintr_reload_crtn_doc(inst, cor, result);
+        pcintr_reload_crtn_doc(inst, conn, cor, result);
     }
 
     return true;

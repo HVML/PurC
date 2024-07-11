@@ -567,8 +567,8 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
 }
 
 bool
-pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
-        uint64_t ctrn_handle)
+pcintr_reload_crtn_doc(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t co_revoked, uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
@@ -578,7 +578,8 @@ pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
         co->stack.doc->ldc++;
 
          if (co_revoked == NULL || co_revoked->stack.doc != doc) {
-            pcintr_rdr_page_control_load(inst, inst->conn_to_rdr, co);
+            /* only send page to the conn */
+            pcintr_rdr_page_control_load(inst, conn, co);
 
             /* fire rdrState:pageReloaded event */
             pcintr_coroutine_t p;

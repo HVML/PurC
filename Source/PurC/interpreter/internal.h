@@ -524,8 +524,8 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
         uint64_t ctrn_handle);
 
 bool
-pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
-        uint64_t ctrn_handle);
+pcintr_reload_crtn_doc(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t co_revoked, uint64_t ctrn_handle);
 
 int
 pcintr_common_handle_attr_in(pcintr_coroutine_t co,

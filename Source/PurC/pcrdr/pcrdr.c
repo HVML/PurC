@@ -1094,6 +1094,13 @@ purc_connect_to_renderer(purc_instance_extra_info *extra_info)
         goto out;
     }
 
+#if 0
+    /* inst->conn_to_rdr do this */
+    pcrdr_conn_set_extra_message_source(conn, pcrun_extra_message_source,
+            NULL, NULL);
+#endif
+    pcrdr_conn_set_request_handler(conn, pcrun_request_handler);
+
     pcintr_attach_renderer(inst, conn, NULL);
 
     /* broadcase event rdrState:newDuplicate */
