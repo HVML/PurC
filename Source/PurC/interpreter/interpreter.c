@@ -3441,7 +3441,7 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
             ref_elem = last_child.elem;
         }
         pcintr_rdr_send_dom_req_simple_raw(inst, inst->conn_to_rdr,
-                stack, pcintr_doc_op_to_rdr_op(op),
+                stack->co, pcintr_doc_op_to_rdr_op(op),
                 NULL, elem, ref_elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
@@ -3496,7 +3496,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcrdr_msg_data_type type = doc->def_text_type;
         const char *request_id = NULL;
         pcintr_rdr_send_dom_req_simple_raw(inst, inst->conn_to_rdr,
-                stack, pcintr_doc_op_to_rdr_op(op),
+                stack->co, pcintr_doc_op_to_rdr_op(op),
                 request_id, elem, ref_elem, "content", type, p, sz_content);
         purc_rwstream_destroy(out);
     }
@@ -3570,7 +3570,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
             const char *request_id = no_return ?
                 PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
             pcintr_rdr_send_dom_req_simple_raw(inst, inst->conn_to_rdr,
-                    stack, pcintr_doc_op_to_rdr_op(op),
+                    stack->co, pcintr_doc_op_to_rdr_op(op),
                     request_id, elem, ref_elem, "textContent",
                     PCRDR_MSG_DATA_TYPE_PLAIN, txt, len);
         }
@@ -3635,7 +3635,7 @@ pcintr_util_new_content(purc_document_t doc,
 
         const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         pcintr_rdr_send_dom_req_simple_raw(inst, inst->conn_to_rdr,
-                stack, pcintr_doc_op_to_rdr_op(op),
+                stack->co, pcintr_doc_op_to_rdr_op(op),
                 request_id, elem, ref_elem, "content", type, p, sz_content);
         purc_rwstream_destroy(out);
     }
@@ -3675,7 +3675,7 @@ pcintr_util_set_attribute(purc_document_t doc,
         const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         /* (reference element) `update`: the target element itself. */
         pcintr_rdr_send_dom_req_simple_raw(inst, inst->conn_to_rdr,
-                stack, pcintr_doc_op_to_rdr_op(op),
+                stack->co, pcintr_doc_op_to_rdr_op(op),
                 request_id, elem, elem, property, PCRDR_MSG_DATA_TYPE_PLAIN,
                 val, len);
     }

@@ -1011,21 +1011,20 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
 
 pcrdr_msg *
 pcintr_rdr_send_dom_req(struct pcinst *inst, struct pcrdr_conn *conn,
-        pcintr_stack_t stack, int op, const char *request_id,
+        pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     UNUSED_PARAM(inst);
 
-    if (!stack) {
+    if (!co) {
         return NULL;
     }
 
     struct pcintr_coroutine_rdr_conn *rdr_conn;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
 
-    pcintr_coroutine_t co = stack->co;
     if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0 ||
             co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
         /* null page or suppressed */
@@ -1129,20 +1128,19 @@ failed:
 
 pcrdr_msg *
 pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
-        pcintr_stack_t stack, int op, const char *request_id,
+        pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
     pcrdr_msg *ret = NULL;
-    if (!stack) {
+    if (!co) {
         goto out;
     }
 
     struct pcintr_coroutine_rdr_conn *rdr_conn;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+    rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
 
-    pcintr_coroutine_t co = stack->co;
     if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0 ||
             co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
         /* null page or suppressed */
@@ -1165,7 +1163,7 @@ pcintr_rdr_send_dom_req_raw(struct pcinst *inst, struct pcrdr_conn *conn,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(inst, conn, stack, op, request_id,
+    ret = pcintr_rdr_send_dom_req(inst, conn, co, op, request_id,
             element_type, css_selector, element, ref_elem, property,
             data_type, req_data);
     purc_variant_unref(req_data);
@@ -1177,7 +1175,7 @@ out:
 bool
 pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         struct pcrdr_conn *conn,
-        pcintr_stack_t stack, int op, const char *request_id,
+        pcintr_coroutine_t co, int op, const char *request_id,
         pcdoc_element_t element, pcdoc_element_t ref_elem,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
@@ -1191,7 +1189,7 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         len = 1;
     }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(inst, conn,
-            stack, op, request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+            co, op, request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, ref_elem, property, data_type, data, len);
 
     if (response_msg != NULL) {
@@ -1231,22 +1229,22 @@ pcintr_rdr_call_method(struct pcinst *inst, struct pcrdr_conn *conn,
 
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack,
+        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
             PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector + 1, NULL, NULL, NULL, data_type, data);
     }
     else if (css_selector[0] == '.' && purc_is_valid_css_identifier(css_selector + 1)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack,
+        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }
     else if (purc_is_valid_css_identifier(css_selector)) {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack,
+        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_TAG,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }
     else {
-        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack,
+        response_msg = pcintr_rdr_send_dom_req(inst, conn, stack->co,
                 PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
                 css_selector, NULL, NULL, NULL, data_type, data);
     }
