@@ -364,7 +364,11 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
         else {
             assert(stack->inherit);
-            pcintr_rdr_page_control_register(inst, inst->conn_to_rdr, stack->co);
+            struct list_head *conns = &inst->conns;
+            struct pcrdr_conn *pconn, *qconn;
+            list_for_each_entry_safe(pconn, qconn, conns, ln) {
+                pcintr_rdr_page_control_register(inst, pconn, stack->co);
+            }
         }
 
         pcintr_inherit_udom_handle(inst, co);

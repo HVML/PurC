@@ -47,6 +47,8 @@ _COMPILE_TIME_ASSERT(msgs,
 
 #undef _COMPILE_TIME_ASSERT
 
+#define DEFAULT_RENDERER_NAME       "xGUI Pro"
+
 static struct err_msg_seg _pcrdr_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_PCRDR,
@@ -449,20 +451,23 @@ connect_to_renderer(struct pcinst *inst,
                     response_msg->data, "name");
             if (name && purc_variant_is_string(name)) {
                 conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
-                purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
-                        conn_to_rdr->name);
-                char *uid;
-                if (atom) {
-                    uid = generate_unique_rid(conn_to_rdr->name);
-                }
-                else {
-                    uid = strdup(conn_to_rdr->name);
-                }
-
-                atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
-                conn_to_rdr->uid = uid;
-                conn_to_rdr->id = atom;
             }
+            else {
+                conn_to_rdr->name = strdup(DEFAULT_RENDERER_NAME);
+            }
+            purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                    conn_to_rdr->name);
+            char *uid;
+            if (atom) {
+                uid = generate_unique_rid(conn_to_rdr->name);
+            }
+            else {
+                uid = strdup(conn_to_rdr->name);
+            }
+
+            atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+            conn_to_rdr->uid = uid;
+            conn_to_rdr->id = atom;
         }
 
         if (conn_to_rdr->uri) {
@@ -742,20 +747,23 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
                     response_msg->data, "name");
             if (name && purc_variant_is_string(name)) {
                 n_conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
-                purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
-                        n_conn_to_rdr->name);
-                char *uid;
-                if (atom) {
-                    uid = generate_unique_rid(n_conn_to_rdr->name);
-                }
-                else {
-                    uid = strdup(n_conn_to_rdr->name);
-                }
-
-                atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
-                n_conn_to_rdr->uid = uid;
-                n_conn_to_rdr->id = atom;
             }
+            else {
+                n_conn_to_rdr->name = strdup(DEFAULT_RENDERER_NAME);
+            }
+            purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                    n_conn_to_rdr->name);
+            char *uid;
+            if (atom) {
+                uid = generate_unique_rid(n_conn_to_rdr->name);
+            }
+            else {
+                uid = strdup(n_conn_to_rdr->name);
+            }
+
+            atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+            n_conn_to_rdr->uid = uid;
+            n_conn_to_rdr->id = atom;
         }
 
         if (n_conn_to_rdr->uri) {

@@ -271,6 +271,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+/* FIXME: main connection : inst->conn_to_rdr */
 static purc_variant_t
 connect_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
@@ -358,6 +359,7 @@ out:
     return purc_variant_make_boolean(ret);
 }
 
+/* FIXME: main connection : inst->conn_to_rdr */
 static purc_variant_t
 disconnect_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
