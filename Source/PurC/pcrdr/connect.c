@@ -186,6 +186,7 @@ int pcrdr_free_connection(pcrdr_conn* conn)
     free(conn->own_host_name);
 
     if (conn->uri) {
+        purc_atom_remove_string_ex(ATOM_BUCKET_RDRID, conn->uri);
         free(conn->uri);
     }
 
