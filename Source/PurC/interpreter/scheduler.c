@@ -153,10 +153,30 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
         purc_variant_unref(hvml);
     }
 
-    // FIXME:
-    // pcrdr_disconnect(inst->conn_to_rdr);
-    pcrdr_free_connection(inst->conn_to_rdr);
-    inst->conn_to_rdr = NULL;
+    list_del(&conn->ln);
+
+    /* It will send 'endSession' to the renderer, but the conn has been lost. */
+    //pcrdr_disconnect(conn);
+    pcrdr_free_connection(conn);
+    if (inst->conn_to_rdr == conn) {
+        inst->conn_to_rdr = NULL;
+    }
+
+    if (inst->curr_conn == conn) {
+        inst->curr_conn = NULL;
+    }
+
+    /* choose main conn */
+    if (inst->conn_to_rdr == NULL) {
+        if (inst->curr_conn) {
+            inst->conn_to_rdr = inst->curr_conn;
+        }
+        else {
+            struct list_head *conns = &inst->conns;
+            inst->conn_to_rdr = list_first_entry(conns, struct pcrdr_conn, ln);
+            inst->curr_conn = inst->conn_to_rdr;
+        }
+    }
 }
 
 static bool

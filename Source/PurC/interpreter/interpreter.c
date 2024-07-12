@@ -459,10 +459,10 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         struct list_head *conns = &co->conns;
-        struct pcintr_coroutine_rdr_conn *pconn, *qconn;
-        list_for_each_entry_safe(pconn, qconn, conns, ln) {
-            list_del(&pconn->ln);
-            free(pconn);
+        struct pcintr_coroutine_rdr_conn *prdr_conn, *qrdr_conn;
+        list_for_each_entry_safe(prdr_conn, qrdr_conn, conns, ln) {
+            list_del(&prdr_conn->ln);
+            free(prdr_conn);
         }
     }
 }
