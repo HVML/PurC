@@ -554,7 +554,11 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     /* PURCMC-120 */
     if (rdr_conn->page_handle != 0) {
         pcintr_revoke_crtn_from_doc(inst, co);
-        pcintr_rdr_page_control_revoke(inst, inst->conn_to_rdr, co);
+        struct list_head *conns = &inst->conns;
+        struct pcrdr_conn *pconn, *qconn;
+        list_for_each_entry_safe(pconn, qconn, conns, ln) {
+            pcintr_rdr_page_control_revoke(inst, pconn, co);
+        }
     }
 }
 
