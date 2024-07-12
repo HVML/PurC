@@ -1151,6 +1151,21 @@ purc_disconnect_from_renderer(const char *id)
             if (inst->conn_to_rdr == pconn) {
                 inst->conn_to_rdr = NULL;
             }
+            if (inst->curr_conn == pconn) {
+                inst->curr_conn = NULL;
+            }
+
+            /* choose main conn */
+            if (inst->conn_to_rdr == NULL) {
+                if (inst->curr_conn) {
+                    inst->conn_to_rdr = inst->curr_conn;
+                }
+                else {
+                    struct list_head *conns = &inst->conns;
+                    inst->conn_to_rdr = list_first_entry(conns, struct pcrdr_conn, ln);
+                    inst->curr_conn = inst->conn_to_rdr;
+                }
+            }
             return 0;
         }
     }
