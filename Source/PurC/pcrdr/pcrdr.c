@@ -1140,7 +1140,7 @@ purc_disconnect_from_renderer(const char *id)
             /* broadcase event rdrState:lostDuplicate */
             purc_variant_t data = pcrdr_data(pconn);
             broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
-                    MSG_SUB_TYPE_LOST_DUPLICATE, PURC_VARIANT_INVALID);
+                    MSG_SUB_TYPE_LOST_DUPLICATE, data);
             if (data) {
                 purc_variant_unref(data);
             }

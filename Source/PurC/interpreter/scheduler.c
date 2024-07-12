@@ -35,6 +35,7 @@
 #include "private/variant.h"
 #include "private/ports.h"
 #include "private/msg-queue.h"
+#include "private/pcrdr.h"
 #include "pcrdr/connect.h"
 
 #include <stdlib.h>
@@ -105,6 +106,8 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
     struct pcintr_coroutine_rdr_conn *rdr_conn;
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
+    purc_variant_t data = pcrdr_data(conn);
+
     pcintr_coroutine_t p, q;
     list_for_each_entry_safe(p, q, crtns, ln) {
         pcintr_coroutine_t co = p;
@@ -120,11 +123,20 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
             free(rdr_conn);
         }
 
-        // broadcast rdrState:connLost;
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (list_empty(&inst->conns)) {
+            // broadcast rdrState:connLost;
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                    data, PURC_VARIANT_INVALID);
+        }
+        else {
+            // broadcast rdrState:lostDuplicate;
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_LOST_DUPLICATE,
+                    data, PURC_VARIANT_INVALID);
+        }
 
         purc_variant_unref(hvml);
     }
@@ -144,11 +156,20 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
             free(rdr_conn);
         }
 
-        // broadcast rdrState:connLost;
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (list_empty(&inst->conns)) {
+            // broadcast rdrState:connLost;
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                    data, PURC_VARIANT_INVALID);
+        }
+        else {
+            // broadcast rdrState:lostDuplicate;
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_LOST_DUPLICATE,
+                    data, PURC_VARIANT_INVALID);
+        }
 
         purc_variant_unref(hvml);
     }
@@ -176,6 +197,10 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
             inst->conn_to_rdr = list_first_entry(conns, struct pcrdr_conn, ln);
             inst->curr_conn = inst->conn_to_rdr;
         }
+    }
+
+    if (data) {
+        purc_variant_unref(data);
     }
 }
 
