@@ -164,7 +164,6 @@ struct purc_document {
     unsigned refc;
     unsigned age;
     unsigned ldc;       /* loaded count; ldc > 0 if the document is loaded */
-    uint64_t udom;      /* the handle to the uDOM */
 
     /* owners of this document */
     struct list_head owner_list;

@@ -485,20 +485,21 @@ pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co)
 {
     (void)inst;
 
-    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
-    rdr_conn = pcintr_coroutine_get_rdr_conn(co, inst->conn_to_rdr);
+    pcintr_coroutine_t p;
+    struct pcintr_coroutine_rdr_conn *rdr_conn;
+    struct pcintr_coroutine_rdr_conn *prdr_conn, *qrdr_conn;
 
-    if (rdr_conn->dom_handle) {
-        co->stack.doc->udom = rdr_conn->dom_handle;
-    }
-
-    /* inherit the udom handle to others sharing the document */
-    if (co->stack.doc->udom) {
-        pcintr_coroutine_t p;
-        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
-            rdr_conn = pcintr_coroutine_get_rdr_conn(p, inst->conn_to_rdr);
-            rdr_conn->dom_handle = co->stack.doc->udom;
+    struct list_head *rdr_conns = &co->conns;
+    list_for_each_entry_safe(prdr_conn, qrdr_conn, rdr_conns, ln) {
+        if (!prdr_conn->dom_handle) {
+            continue;
         }
+
+        /* inherit the udom handle to others sharing the document */
+        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+            rdr_conn = pcintr_coroutine_get_rdr_conn(p, prdr_conn->conn);
+            rdr_conn->dom_handle = prdr_conn->dom_handle;
+        };
     }
 }
 
@@ -511,7 +512,6 @@ pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
         co->stack.doc->ldc--;
 
         if (co->stack.doc->ldc == 0) {
-            co->stack.doc->udom = 0;
             pcintr_coroutine_t p;
             list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
                 struct list_head *conns = &p->conns;
