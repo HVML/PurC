@@ -1875,6 +1875,10 @@ set_body_entry(pcintr_stack_t stack, const char *body_id)
     stack->body_id = strdup(body_id);
 }
 
+static int
+pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
+        struct pcrdr_conn *new_conn, struct pcrdr_conn *conn_to_close);
+
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
@@ -2029,6 +2033,16 @@ purc_schedule_vdom(purc_vdom_t vdom,
     }
 
     init_frame_for_co(co);
+
+    /* attach to other renderer if exist */
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        if (pconn != conn) {
+            pcintr_coroutine_attach_renderer(inst, co, pconn, NULL);
+        }
+    }
+
     return co;
 
 failed:
@@ -3890,7 +3904,7 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
-static int
+int
 pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
         struct pcrdr_conn *new_conn, struct pcrdr_conn *conn_to_close)
 {
