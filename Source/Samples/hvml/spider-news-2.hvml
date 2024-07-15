@@ -3,6 +3,7 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
+        <meta charset="utf-8" />
         <init as="news" from="https://news.sina.com.cn/" via="GET" async />
     </head>
 
