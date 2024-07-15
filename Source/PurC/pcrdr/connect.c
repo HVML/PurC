@@ -622,6 +622,7 @@ pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
                     dispatch_message(conn, msg);
                 }
             }
+            retval = 0;
         }
         else {
             /* do noting */
