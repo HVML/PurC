@@ -475,6 +475,15 @@ connect_to_renderer(struct pcinst *inst,
                     conn_to_rdr->uri);
         }
     }
+    else if (ret_code == PCRDR_SC_CONFLICT) {
+        /* unix domain socket vs localhost websocket */
+        if (!inst->conflict_uri) {
+            inst->conflict_uri = conn_to_rdr->uri;
+            inst->conflict_uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+                    conn_to_rdr->uri);
+            conn_to_rdr->uri = NULL;
+        }
+    }
 
     pcrdr_release_message(response_msg);
     response_msg = NULL;

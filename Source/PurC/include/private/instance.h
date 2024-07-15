@@ -113,6 +113,9 @@ struct pcinst {
     struct pcrdr_conn      *conn_to_rdr_origin;
 
     struct pcrdr_conn      *curr_conn;
+    /* unix domain socket vs localhost websocket */
+    char                   *conflict_uri;
+    purc_atom_t            conflict_uri_atom;
 
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;

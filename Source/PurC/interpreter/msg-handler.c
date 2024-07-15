@@ -645,13 +645,6 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
 
     if (strcmp(type, MSG_TYPE_DUP_RENDERER) == 0) {
         purc_variant_t data = msg->data;
-        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
-        if (!comm) {
-            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
-                    KEY_COMM);
-            return;
-        }
-
         purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
         if (!uri) {
             PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
@@ -659,8 +652,21 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
             return;
         }
 
-        const char *s_comm = purc_variant_get_string_const(comm);
         const char *s_uri = purc_variant_get_string_const(uri);
+        purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID, s_uri);
+        if (atom) {
+            PC_WARN("Conflict uri '%s' , do nothing.", s_uri);
+            return;
+        }
+
+        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        if (!comm) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_COMM);
+            return;
+        }
+
+        const char *s_comm = purc_variant_get_string_const(comm);
         PC_TIMESTAMP("receive dup renderer event url: %s app: %s runner: %s\n",
                 s_uri, inst->app_name, inst->runner_name);
 
@@ -706,7 +712,7 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
                 s_uri, inst->app_name, inst->runner_name);
         pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
-    if (strcmp(type, MSG_TYPE_RDR_STATE) == 0
+    else if (strcmp(type, MSG_TYPE_RDR_STATE) == 0
             && sub_type && strcmp(type, MSG_TYPE_IDLE)) {
         broadcast_rdr_idle_event(inst, msg->data);
     } else {
