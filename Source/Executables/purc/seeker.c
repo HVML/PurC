@@ -233,7 +233,7 @@ static void* seeker_thread_entry(void* arg)
             my_arg->app_name, my_arg->run_name, NULL);
     if (ret == PURC_ERROR_OK) {
         rid = my_arg->rid = purc_inst_create_move_buffer(
-                PCINST_MOVE_BUFFER_FLAG_NONE, 16);
+                PCINST_MOVE_BUFFER_FLAG_NONE, 64);
     }
 
     purc_enable_log(true, false);
