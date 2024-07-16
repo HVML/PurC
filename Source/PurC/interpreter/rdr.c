@@ -1093,18 +1093,25 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
       - `clear`: the target element itself.
 
         TODO: Currently, we pass element itself.  */
-
-            purc_variant_t req_data = PURC_VARIANT_INVALID;
-            if (ref_elem) {
-                req_data = purc_variant_make_native(ref_elem, NULL);
+            if (strcmp(PCRDR_OPERATION_CALLMETHOD, operation) == 0) {
+                response_msg = pcintr_rdr_send_request_and_wait_response(
+                        pconn, target, target_value, operation,
+                        req_id, element_type, elem, property,
+                        data_type, data, 0);
             }
-            /* dom operation */
-            response_msg = pcintr_rdr_send_request_and_wait_response(
-                    pconn, target, target_value, operation,
-                    req_id, element_type, elem, property,
-                    PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
-            if (req_data) {
-                purc_variant_unref(req_data);
+            else {
+                purc_variant_t req_data = PURC_VARIANT_INVALID;
+                if (ref_elem) {
+                    req_data = purc_variant_make_native(ref_elem, NULL);
+                }
+                /* dom operation */
+                response_msg = pcintr_rdr_send_request_and_wait_response(
+                        pconn, target, target_value, operation,
+                        req_id, element_type, elem, property,
+                        PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
+                if (req_data) {
+                    purc_variant_unref(req_data);
+                }
             }
         }
         else {

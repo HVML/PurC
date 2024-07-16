@@ -1367,17 +1367,8 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
             goto failed;
         }
 
-        uint64_t element_handle = 0;
-        if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE ||
-                element_value == NULL) {
-            retv = PCRDR_SC_BAD_REQUEST;
-            goto failed;
-        }
-
-        element_handle = strtoull(element_value, NULL, 16);
         result = rdr->cbs.call_method_in_udom(endpoint->session,
-                dom, element_handle, method, arg, &retv);
-
+                dom, msg->elementType, element_value, method, arg, &retv);
     }
     else if (msg->target < PCRDR_MSG_TARGET_DOM) {
         if (rdr->cbs.call_method_in_session == NULL) {

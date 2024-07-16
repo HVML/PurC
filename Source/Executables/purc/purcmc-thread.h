@@ -189,8 +189,8 @@ typedef struct pcmcth_rdr_cbs {
             const char *property, const char *method, purc_variant_t arg,
             int* retv);
     /* nullable */
-    purc_variant_t (*call_method_in_udom)(pcmcth_session *,
-            pcmcth_udom *, uint64_t element_handle,
+    purc_variant_t (*call_method_in_udom)(pcmcth_session *, pcmcth_udom *,
+            pcrdr_msg_element_type element_type, const char *element_value,
             const char *method, purc_variant_t arg, int* retv);
 
     /* nullable */
