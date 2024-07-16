@@ -361,6 +361,24 @@ pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
     free(rdr_conn);
 }
 
+int
+pcintr_coroutine_save_rdr_request(pcintr_coroutine_t cor,
+        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn)
+{
+    if (!cor || !op) {
+        return 0;
+    }
+    struct pcinstr_rdr_req *req = (struct pcinstr_rdr_req *)calloc(1,
+            sizeof(*req));
+    if (arg) {
+        req->arg = purc_variant_ref(arg);
+    }
+    req->op = purc_variant_ref(op);
+    req->is_noreturn = is_noreturn;
+    list_add_tail(&req->ln, &cor->rdr_reqs);
+    return 0;
+}
+
 bool
 pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle)
 {

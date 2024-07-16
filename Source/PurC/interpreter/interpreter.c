@@ -3983,6 +3983,18 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
         goto out;
     }
 
+    struct list_head *reqs = &cor->rdr_reqs;
+    struct pcinstr_rdr_req *p;
+    struct pcinstr_rdr_req *q;
+    list_for_each_entry_safe(p, q, reqs, ln) {
+        purc_variant_t value = pcintr_rdr_send_rdr_request(inst,
+                cor, new_conn, p->arg, p->op, 1);
+        if (value) {
+            purc_variant_unref(value);
+        }
+    }
+
+
     if (cor->stage == CO_STAGE_OBSERVING) {
         /* only send page to the new conn */
         r = pcintr_rdr_page_control_load(inst, new_conn, cor);

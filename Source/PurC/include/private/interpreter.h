@@ -925,6 +925,11 @@ void
 pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
         struct pcintr_coroutine_rdr_conn *rdr_conn);
 
+int
+pcintr_coroutine_save_rdr_request(pcintr_coroutine_t cor,
+        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn);
+
+
 bool
 pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle);
 
