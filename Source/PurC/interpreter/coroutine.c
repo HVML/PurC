@@ -344,6 +344,23 @@ out:
     return ret;
 }
 
+void
+pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
+        struct pcintr_coroutine_rdr_conn *rdr_conn)
+{
+    UNUSED_PARAM(cor);
+    if (!rdr_conn) {
+        return;
+    }
+
+    rdr_conn->workspace_handle = 0;
+    rdr_conn->page_handle = 0;
+    rdr_conn->dom_handle = 0;
+
+    list_del(&rdr_conn->ln);
+    free(rdr_conn);
+}
+
 bool
 pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle)
 {

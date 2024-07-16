@@ -116,11 +116,7 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
 
         rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
         if (rdr_conn) {
-            rdr_conn->workspace_handle = 0;
-            rdr_conn->page_handle = 0;
-            rdr_conn->dom_handle = 0;
-            list_del(&rdr_conn->ln);
-            free(rdr_conn);
+             pcintr_coroutine_destroy_rdr_conn(co, rdr_conn);
         }
 
         if (list_empty(&inst->conns)) {
@@ -149,11 +145,7 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
 
         rdr_conn = pcintr_coroutine_get_rdr_conn(co, conn);
         if (rdr_conn) {
-            rdr_conn->workspace_handle = 0;
-            rdr_conn->page_handle = 0;
-            rdr_conn->dom_handle = 0;
-            list_del(&rdr_conn->ln);
-            free(rdr_conn);
+            pcintr_coroutine_destroy_rdr_conn(co, rdr_conn);
         }
 
         if (list_empty(&inst->conns)) {

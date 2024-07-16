@@ -478,11 +478,7 @@ on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
         rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
         if (rdr_conn) {
-            rdr_conn->workspace_handle = 0;
-            rdr_conn->page_handle = 0;
-            rdr_conn->dom_handle = 0;
-            list_del(&rdr_conn->ln);
-            free(rdr_conn);
+            pcintr_coroutine_destroy_rdr_conn(stack->co, rdr_conn);
         }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
@@ -515,11 +511,7 @@ on_widget_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
         rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
         if (rdr_conn) {
-            rdr_conn->workspace_handle = 0;
-            rdr_conn->page_handle = 0;
-            rdr_conn->dom_handle = 0;
-            list_del(&rdr_conn->ln);
-            free(rdr_conn);
+            pcintr_coroutine_destroy_rdr_conn(stack->co, rdr_conn);
         }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,

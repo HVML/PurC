@@ -461,8 +461,21 @@ coroutine_release(pcintr_coroutine_t co)
         struct list_head *conns = &co->conns;
         struct pcintr_coroutine_rdr_conn *prdr_conn, *qrdr_conn;
         list_for_each_entry_safe(prdr_conn, qrdr_conn, conns, ln) {
-            list_del(&prdr_conn->ln);
-            free(prdr_conn);
+            pcintr_coroutine_destroy_rdr_conn(co, prdr_conn);
+        }
+
+        struct list_head *reqs = &co->rdr_reqs;
+        struct pcinstr_rdr_req *p;
+        struct pcinstr_rdr_req *q;
+        list_for_each_entry_safe(p, q, reqs, ln) {
+            if (p->arg) {
+                purc_variant_unref(p->arg);
+            }
+            if (p->op) {
+                purc_variant_unref(p->op);
+            }
+            list_del(&p->ln);
+            free(p);
         }
     }
 }
@@ -1798,6 +1811,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     co->vdom = vdom;
     pcintr_coroutine_set_state(co, CO_STATE_READY);
     list_head_init(&co->conns);
+    list_head_init(&co->rdr_reqs);
     list_head_init(&co->ln_stopped);
     list_head_init(&co->registered_cancels);
     list_head_init(&co->tasks);
@@ -3915,11 +3929,7 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
 
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn_to_close);
     if (rdr_conn) {
-        rdr_conn->workspace_handle = 0;
-        rdr_conn->page_handle = 0;
-        rdr_conn->dom_handle = 0;
-        list_del(&rdr_conn->ln);
-        free(rdr_conn);
+        pcintr_coroutine_destroy_rdr_conn(cor, rdr_conn);
     }
 
     /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
@@ -3998,11 +4008,7 @@ pcintr_coroutine_detach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
 
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn_to_close);
     if (rdr_conn) {
-        rdr_conn->workspace_handle = 0;
-        rdr_conn->page_handle = 0;
-        rdr_conn->dom_handle = 0;
-        list_del(&rdr_conn->ln);
-        free(rdr_conn);
+        pcintr_coroutine_destroy_rdr_conn(cor, rdr_conn);
     }
 
     return 0;

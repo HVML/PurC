@@ -302,6 +302,14 @@ struct pcintr_coroutine_child {
     purc_atom_t                 cid;
 };
 
+struct pcinstr_rdr_req {
+    struct list_head              ln;
+
+    purc_variant_t arg;
+    purc_variant_t op;
+    unsigned int is_noreturn;
+};
+
 struct pcintr_coroutine_rdr_conn {
     struct list_head              ln;
     struct pcrdr_conn             *conn;
@@ -322,6 +330,10 @@ struct pcintr_coroutine {
     /* fields for renderer */
     /* pcintr_coroutine_rdr_conn */
     struct list_head            conns;
+
+    /* struct pcinstr_rdr_req */
+    struct list_head            rdr_reqs;
+
 
     pcrdr_page_type_k           page_type;
     /* actual page type. eg: inherit from parent */
@@ -908,6 +920,10 @@ pcintr_coroutine_get_rdr_conn(pcintr_coroutine_t cor,
 struct pcintr_coroutine_rdr_conn *
 pcintr_coroutine_create_or_get_rdr_conn(pcintr_coroutine_t cor,
         struct pcrdr_conn *conn);
+
+void
+pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
+        struct pcintr_coroutine_rdr_conn *rdr_conn);
 
 bool
 pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle);
