@@ -598,6 +598,20 @@ connect_to_renderer(struct pcinst *inst,
         inst->curr_conn = conn_to_rdr;
     }
 
+#if 0
+    /* update main conn to socket/websocket */
+    if ((inst->conn_to_rdr != conn_to_rdr) &&
+            (inst->conn_to_rdr->prot < PURC_RDRCOMM_SOCKET) &&
+            (conn_to_rdr->prot >= PURC_RDRCOMM_SOCKET)) {
+        inst->conn_to_rdr = conn_to_rdr;
+
+        if ((inst->curr_conn != conn_to_rdr) &&
+                (inst->curr_conn->prot < PURC_RDRCOMM_SOCKET)) {
+            inst->curr_conn = conn_to_rdr;
+        }
+    }
+#endif
+
     return conn_to_rdr;
 
 failed:
