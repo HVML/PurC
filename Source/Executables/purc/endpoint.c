@@ -510,7 +510,8 @@ static int on_set_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_HTML ||
+    if (((msg->dataType != PCRDR_MSG_DATA_TYPE_HTML) &&
+                (msg->dataType != PCRDR_MSG_DATA_TYPE_PLAIN)) ||
             msg->data == PURC_VARIANT_INVALID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
@@ -559,7 +560,8 @@ static int on_add_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_HTML ||
+    if (((msg->dataType != PCRDR_MSG_DATA_TYPE_HTML) &&
+                (msg->dataType != PCRDR_MSG_DATA_TYPE_PLAIN)) ||
             msg->data == PURC_VARIANT_INVALID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
