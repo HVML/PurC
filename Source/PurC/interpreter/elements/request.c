@@ -408,7 +408,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             goto out;
         }
         purc_variant_t value = pcintr_rdr_send_rdr_request(pcinst_current(),
-                co, ctxt->with, ctxt->to, ctxt->is_noreturn);
+                co, NULL, ctxt->with, ctxt->to, ctxt->is_noreturn);
         if (value) {
             pcintr_set_question_var(frame, value);
             purc_variant_unref(value);

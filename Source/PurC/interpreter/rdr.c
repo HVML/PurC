@@ -1287,9 +1287,10 @@ out:
 
 purc_variant_t
 pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
-        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn)
+        pcrdr_conn *dst_conn, purc_variant_t arg, purc_variant_t op,
+        unsigned int is_noreturn)
 {
-    UNUSED_PARAM(co);
+    UNUSED_PARAM(dst_conn);
     purc_variant_t result = PURC_VARIANT_INVALID;
 
     pcrdr_msg *response_msg = NULL;
@@ -1479,9 +1480,18 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
     }
 
     /* get current conn */
-    curr_conn = inst->curr_conn ? inst->curr_conn : inst->conn_to_rdr;
+    if (dst_conn) {
+        curr_conn = dst_conn;
+    }
+    else {
+        curr_conn = inst->curr_conn ? inst->curr_conn : inst->conn_to_rdr;
+    }
 
     list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        if (dst_conn && pconn != dst_conn) {
+            continue;
+        }
+
         rdr_conn = pcintr_coroutine_get_rdr_conn(co, pconn);
         bool is_current = (pconn == curr_conn);
         target_value = rdr_conn->workspace_handle;

@@ -300,7 +300,8 @@ pcintr_rdr_call_method(struct pcinst *inst,
 
 purc_variant_t
 pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
-        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn);
+        pcrdr_conn *dst_conn, purc_variant_t arg, purc_variant_t op,
+        unsigned int is_noreturn);
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom);
