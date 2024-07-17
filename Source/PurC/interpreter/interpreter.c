@@ -3988,15 +3988,10 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
     struct pcinstr_rdr_req *q;
     list_for_each_entry_safe(p, q, reqs, ln) {
         purc_variant_t value = pcintr_rdr_send_rdr_request(inst,
-                cor, new_conn, p->arg, p->op, 1);
+                cor, new_conn, p->arg, p->op, 0);
         if (value) {
             purc_variant_unref(value);
         }
-        /*
-         * FIXME: The renderer will timeout when
-         * receiving a large number of messages
-         */
-        pcutils_usleep(200 * 1000);
     }
 
     if (cor->stage == CO_STAGE_OBSERVING) {
