@@ -380,7 +380,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* send doc to rdr */
-    if (rdr_conn->page_handle != 0 &&
+    if (rdr_conn && rdr_conn->page_handle != 0 &&
              stack->co->stage == CO_STAGE_FIRST_RUN) {
         pcintr_register_crtn_to_doc(inst, stack->co);
         /* load with inherit FIRST RUN stack->doc->ldc > 1 and  stack->inherit */
@@ -544,7 +544,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* PURCMC-120 */
-    if (rdr_conn->page_handle != 0) {
+    if (rdr_conn && rdr_conn->page_handle != 0) {
         pcintr_revoke_crtn_from_doc(inst, co);
         struct list_head *conns = &inst->conns;
         struct pcrdr_conn *pconn, *qconn;

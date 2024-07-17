@@ -192,7 +192,7 @@ static int set_session_args(struct pcinst *inst,
         struct renderer_capabilities *rdr_caps)
 {
     (void) rdr_caps;
-    purc_variant_t vs[22] = { NULL };
+    purc_variant_t vs[24] = { NULL };
     purc_variant_t tmp;
     int n = 0;
 
@@ -226,6 +226,9 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("runnerLabel", false);
     vs[n++] = purc_variant_ref(pcinst_get_runner_label(inst->runner_name,
                 rdr_caps->locale));
+
+    vs[n++] = purc_variant_make_string_static("duplicate", false);
+    vs[n++] = purc_variant_make_boolean(inst->conn_to_rdr);
 
     if (vs[n - 1] == NULL) {
         goto failed;
