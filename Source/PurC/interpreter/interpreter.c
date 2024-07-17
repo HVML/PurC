@@ -3992,8 +3992,12 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
         if (value) {
             purc_variant_unref(value);
         }
+        /*
+         * FIXME: The renderer will timeout when
+         * receiving a large number of messages
+         */
+        pcutils_usleep(200 * 1000);
     }
-
 
     if (cor->stage == CO_STAGE_OBSERVING) {
         /* only send page to the new conn */
