@@ -436,11 +436,15 @@ connect_to_renderer(struct pcinst *inst,
     msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
+    /* avoid send same request */
+    purc_atom_t uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+            conn_to_rdr->uri);
+
     int ret;
     /* startSession */
+    int seconds_expected = PCRDR_TIME_AUTH_EXPECTED + 2;
     if ((ret = pcrdr_send_request_and_wait_response(conn_to_rdr, msg,
-            conn_to_rdr->caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
-            PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
+            seconds_expected, &response_msg)) < 0) {
         goto failed;
     }
     pcrdr_release_message(msg);
@@ -473,17 +477,13 @@ connect_to_renderer(struct pcinst *inst,
             conn_to_rdr->id = atom;
         }
 
-        if (conn_to_rdr->uri) {
-            conn_to_rdr->uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
-                    conn_to_rdr->uri);
-        }
+        conn_to_rdr->uri_atom = uri_atom;
     }
     else if (ret_code == PCRDR_SC_CONFLICT) {
         /* unix domain socket vs localhost websocket */
         if (!inst->conflict_uri) {
             inst->conflict_uri = conn_to_rdr->uri;
-            inst->conflict_uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
-                    conn_to_rdr->uri);
+            inst->conflict_uri_atom = uri_atom;
             conn_to_rdr->uri = NULL;
         }
     }
