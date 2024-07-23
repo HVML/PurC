@@ -1122,10 +1122,7 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
                     data_type, data, 0);
         }
 
-        if (is_current) {
-            if (response_msg == NULL) {
-                goto failed;
-            }
+        if (is_current && response_msg) {
             int ret_code = response_msg->retCode;
             if (ret_code != PCRDR_SC_OK) {
                 purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
@@ -1520,10 +1517,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         if (is_noreturn) {
             result = purc_variant_make_null();
         }
-        else if (response_msg == NULL) {
-            goto out;
-        }
-        else {
+        else if (response_msg) {
             int ret_code = response_msg->retCode;
             PC_DEBUG("request $RDR ret_code=%d\n", ret_code);
             if (ret_code == PCRDR_SC_OK) {
