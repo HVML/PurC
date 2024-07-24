@@ -108,6 +108,12 @@ struct pcinst {
     /* struct pcrdr_conn */
     struct list_head        conns;
 
+    /* struct pcrdr_conn * conns wait response for 'startSession' */
+    struct list_head        pending_conns;
+
+    /* struct pcrdr_conn * conns wait for disconnect */
+    struct list_head        ready_to_close_conns;
+
     /* main conn */
     struct pcrdr_conn      *conn_to_rdr;
     struct pcrdr_conn      *conn_to_rdr_origin;

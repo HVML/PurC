@@ -627,6 +627,9 @@ broadcast_rdr_idle_event(struct pcinst *inst, purc_variant_t data)
     }
 }
 
+int
+purc_connect_to_renderer_async(purc_instance_extra_info *extra_info);
+
 static void
 on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
@@ -680,7 +683,8 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
             return;
         }
         extra_info.renderer_uri = s_uri;
-        purc_connect_to_renderer(&extra_info);
+//        purc_connect_to_renderer(&extra_info);
+        purc_connect_to_renderer_async(&extra_info);
     }
     else if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
         purc_variant_t data = msg->data;

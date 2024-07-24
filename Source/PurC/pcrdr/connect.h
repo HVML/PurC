@@ -66,6 +66,7 @@ struct pcrdr_conn {
     int type;
     int fd;
     int timeout_ms;
+    time_t  async_close_expected;
 
     purc_atom_t                  id;
     char* name;

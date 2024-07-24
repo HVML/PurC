@@ -212,7 +212,7 @@ static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
     char *p = (char *)buf + nr_result;
     ssize_t nr_read = 0;
     size_t nr_len = length - nr_result;
-    while ((nr_read = ws_read(conn->fd, p, nr_len)) != -1) {
+    while ((nr_read = ws_read(conn->fd, p, nr_len)) != 0) {
         nr_result += nr_read;
         if ((size_t)nr_read == nr_len) {
             break;

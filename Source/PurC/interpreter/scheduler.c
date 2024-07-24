@@ -662,8 +662,13 @@ handle_event_from_conn(struct pcinst *inst, struct pcrdr_conn *conn)
 void
 check_and_dispatch_event_from_conn(struct pcinst *inst)
 {
-    struct list_head *conns = &inst->conns;
     struct pcrdr_conn *pconn, *qconn;
+    struct list_head *conns = &inst->pending_conns;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        handle_event_from_conn(inst, pconn);
+    }
+
+    conns = &inst->conns;
     list_for_each_entry_safe(pconn, qconn, conns, ln) {
         handle_event_from_conn(inst, pconn);
     }
@@ -861,6 +866,17 @@ again:
     if (inst->conn_to_rdr_origin) {
         pcrdr_disconnect(inst->conn_to_rdr_origin);
         inst->conn_to_rdr_origin = NULL;
+    }
+
+    time_t now_s = purc_get_monotoic_time();
+    struct list_head *conns = &inst->ready_to_close_conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        if (pconn->async_close_expected < now_s) {
+            continue;
+        }
+        list_del(&pconn->ln);
+        pcrdr_disconnect(pconn);
     }
 
     // 1. exec one step for all ready coroutines and
