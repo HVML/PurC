@@ -32,6 +32,7 @@
 
 #define PCRDR_TIME_DEF_EXPECTED         5
 #define PCRDR_TIME_AUTH_EXPECTED        10
+#define PCRDR_TIME_DUP_AUTH_EXPECTED    60
 
 enum {
 #define PCRDR_SELECTOR_ID       "id"

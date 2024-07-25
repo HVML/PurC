@@ -199,10 +199,10 @@ failed:
 
 static int set_session_args(struct pcinst *inst,
         purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr,
-        struct renderer_capabilities *rdr_caps)
+        struct renderer_capabilities *rdr_caps, uint64_t timeout_seconds)
 {
     (void) rdr_caps;
-    purc_variant_t vs[24] = { NULL };
+    purc_variant_t vs[26] = { NULL };
     purc_variant_t tmp;
     int n = 0;
 
@@ -240,6 +240,9 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("duplicate", false);
     vs[n++] = purc_variant_make_boolean(inst->conn_to_rdr);
 
+    vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
+    vs[n++] = purc_variant_make_ulongint(timeout_seconds);
+
     if (vs[n - 1] == NULL) {
         goto failed;
     }
@@ -271,7 +274,7 @@ failed:
 static int append_authenticate_args(struct pcinst *inst,
         purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[6] = { NULL };
+    purc_variant_t vs[4] = { NULL };
     int n = 0;
 
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
@@ -286,8 +289,6 @@ static int append_authenticate_args(struct pcinst *inst,
     vs[n++] = make_signature(inst, rdr_caps);
     vs[n++] = purc_variant_make_string_static("encodedIn", false);
     vs[n++] = purc_variant_make_string_static("base64", false);
-    vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
-    vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
 
     if (vs[n - 1] == NULL) {
         goto failed;
@@ -432,7 +433,7 @@ connect_to_renderer(struct pcinst *inst,
     }
 
     if (set_session_args(inst, session_data, conn_to_rdr,
-                conn_to_rdr->caps)) {
+                conn_to_rdr->caps, PCRDR_TIME_AUTH_EXPECTED)) {
         goto failed;
     }
 
@@ -751,7 +752,8 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         goto failed;
     }
 
-    if (set_session_args(inst, session_data, n_conn_to_rdr, n_rdr_caps)) {
+    if (set_session_args(inst, session_data, n_conn_to_rdr, n_rdr_caps,
+                PCRDR_TIME_AUTH_EXPECTED)) {
         goto failed;
     }
 
@@ -1186,7 +1188,7 @@ connect_to_renderer_async(struct pcinst *inst,
     }
 
     if (set_session_args(inst, session_data, conn_to_rdr,
-                conn_to_rdr->caps)) {
+                conn_to_rdr->caps, PCRDR_TIME_DUP_AUTH_EXPECTED)) {
         goto failed;
     }
 
@@ -1205,7 +1207,7 @@ connect_to_renderer_async(struct pcinst *inst,
             conn_to_rdr->uri);
 
     /* startSession */
-    int seconds_expected = PCRDR_TIME_AUTH_EXPECTED + 2;
+    int seconds_expected = PCRDR_TIME_DUP_AUTH_EXPECTED + 2;
     int ret = pcrdr_send_request(conn_to_rdr, msg, seconds_expected, context,
             response_handler);
     pcrdr_release_message(msg);
