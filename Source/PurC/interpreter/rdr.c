@@ -1072,7 +1072,7 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
         const char *req_id = is_current ? request_id :
             PCINTR_RDR_NORETURN_REQUEST_ID;
 
-        if (rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0) {
+        if (!rdr_conn || rdr_conn->page_handle == 0 || rdr_conn->dom_handle == 0) {
             continue;
         }
 
