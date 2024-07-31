@@ -685,7 +685,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         size_t sz_content = 0;
         size_t sz_buff = 0;
         char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
-                &sz_buff, true);
+                &sz_buff, false);
 
         char path[PATH_MAX + 1];
         sprintf(path, "/tmp/%s_%s.html", inst->app_name, inst->runner_name);
