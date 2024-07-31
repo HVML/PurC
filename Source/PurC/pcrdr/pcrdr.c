@@ -1085,7 +1085,7 @@ pcrdr_data(pcrdr_conn *conn)
     goto out;
 
 out_clear_vs:
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 14; i++) {
         if (vs[i]) {
             purc_variant_unref(vs[i]);
         }

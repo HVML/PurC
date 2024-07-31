@@ -529,6 +529,9 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
         goto done;
     }
 
+    pcrdr_release_message(response_msg);
+    response_msg = NULL;
+
 writting:
     len_to_write = 0;
     if (len_wrotten + DEF_LEN_ONE_WRITE > len_content) {
@@ -586,6 +589,9 @@ writting:
         if (len_wrotten == len_content) {
             goto done;
         }
+
+        pcrdr_release_message(response_msg);
+        response_msg = NULL;
         goto writting;
     }
 
