@@ -1134,11 +1134,14 @@ connect_to_renderer_async(struct pcinst *inst,
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        assert(0);
         goto failed;
     }
 
     if (msg == NULL) {
         conn_to_rdr = NULL;
+        /* clear error for create connection */
+        purc_clr_error();
         goto failed;
     }
 
