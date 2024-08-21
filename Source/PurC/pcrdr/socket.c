@@ -169,7 +169,7 @@ static inline int conn_write (int fd, const void *data, ssize_t sz)
 static ssize_t ws_write(int fd, const void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return send(fd, buf, length, 0);
+    return send(fd, buf, length, MSG_NOSIGNAL);
 }
 
 static ssize_t ws_read(int fd, void *buf, size_t length)
