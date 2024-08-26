@@ -168,9 +168,7 @@ handle_rdr_conn_lost(struct pcinst *inst, struct pcrdr_conn *conn)
 
     list_del(&conn->ln);
 
-    /* It will send 'endSession' to the renderer, but the conn has been lost. */
-    //pcrdr_disconnect(conn);
-    pcrdr_free_connection(conn);
+    pcrdr_disconnect(conn);
     if (inst->conn_to_rdr == conn) {
         inst->conn_to_rdr = NULL;
     }
