@@ -347,3 +347,5 @@ _foil_color_secondary:CSS_PROP_FOIL_COLOR_SECONDARY IDENT:( INHERIT: IDENT:) COL
 #_foil_candidate_marks:CSS_PROP_FOIL_CANDIDATE_MARKS IDENT:( INHERIT: AUTO:0,FOIL_CANDIDATE_MARKS_AUTO IDENT:) STRING:FOIL_CANDIDATE_MARKS_SET
 _foil_candidate_marks:CSS_PROP_FOIL_CANDIDATE_MARKS WRAP:css__parse__foil_candidate_marks_impl
 
+background_size:CSS_PROP_BACKGROUND_SIZE WRAP:css__parse_background_size_impl
+

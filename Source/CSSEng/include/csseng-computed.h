@@ -672,6 +672,11 @@ uint8_t css_computed_foil_color_secondary(
 uint8_t css_computed_foil_candidate_marks(
         const css_computed_style *style, lwc_string **marks);
 
+uint8_t css_computed_background_size(
+        const css_computed_style *style,
+        css_fixed *hlength, css_unit *hunit,
+        css_fixed *vlength, css_unit *vunit);
+
 #ifdef __cplusplus
 }
 #endif

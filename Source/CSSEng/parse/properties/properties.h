@@ -664,4 +664,12 @@ css_error css__parse__foil_candidate_marks(css_language *c,
 css_error css__parse__foil_candidate_marks_impl(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result, int np);
+
+css_error css__parse_background_size(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+
+css_error css__parse_background_size_impl(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result, int np);
 #endif
