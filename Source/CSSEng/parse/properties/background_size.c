@@ -182,7 +182,8 @@ css_error css__parse_background_size_impl(css_language *c,
                 value[0] = BACKGROUND_SIZE_HORZ_AUTO;
                 value[1] = BACKGROUND_SIZE_VERT_AUTO;
             }
-            else {
+            else if (value[0] == BACKGROUND_SIZE_VERT_SET) {
+                value[0] = BACKGROUND_SIZE_HORZ_SET;
             }
         }
     }

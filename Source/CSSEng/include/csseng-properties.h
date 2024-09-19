@@ -1314,7 +1314,9 @@ enum css_background_size_e {
     CSS_BACKGROUND_SIZE_CONTAIN     = 0x1,
     CSS_BACKGROUND_SIZE_COVER       = 0x2,
     CSS_BACKGROUND_SIZE_AUTO        = 0x3,
-    CSS_BACKGROUND_SIZE_SIZE        = 0x4,
+    CSS_BACKGROUND_SIZE_SET_WIDTH   = 0x4,
+    CSS_BACKGROUND_SIZE_SET_HEIGHT  = 0x5,
+    CSS_BACKGROUND_SIZE_SET_SIZE    = 0x6,
 };
 
 #ifdef __cplusplus

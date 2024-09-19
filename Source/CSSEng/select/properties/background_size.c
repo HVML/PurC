@@ -28,7 +28,7 @@ css_error css__cascade_background_size(uint32_t opv, css_style *style,
     if (isInherit(opv) == false) {
         switch (getValue(opv) & 0xf0) {
         case BACKGROUND_SIZE_HORZ_SET:
-            hvalue = CSS_BACKGROUND_SIZE_SIZE;
+            hvalue = CSS_BACKGROUND_SIZE_SET_WIDTH;
             hlength = *((css_fixed *) style->bytecode);
             advance_bytecode(style, sizeof(hlength));
             hunit = *((uint32_t *) style->bytecode);
@@ -50,7 +50,7 @@ css_error css__cascade_background_size(uint32_t opv, css_style *style,
 
         switch (getValue(opv) & 0x0f) {
         case BACKGROUND_SIZE_VERT_SET:
-            vvalue = CSS_BACKGROUND_SIZE_SIZE;
+            vvalue = CSS_BACKGROUND_SIZE_SET_HEIGHT;
             vlength = *((css_fixed *) style->bytecode);
             advance_bytecode(style, sizeof(vlength));
             vunit = *((uint32_t *) style->bytecode);
@@ -71,12 +71,15 @@ css_error css__cascade_background_size(uint32_t opv, css_style *style,
         }
     }
 
-    if (hvalue == vvalue) {
+    if (hvalue == CSS_BACKGROUND_SIZE_SET_WIDTH &&
+            vvalue == CSS_BACKGROUND_SIZE_SET_HEIGHT) {
+        value = CSS_BACKGROUND_SIZE_SET_SIZE;
+    }
+    else if (hvalue == CSS_BACKGROUND_SIZE_SET_WIDTH) {
         value = hvalue;
     }
-    else if (hvalue == CSS_BACKGROUND_SIZE_SIZE
-            || vvalue == CSS_BACKGROUND_SIZE_SIZE) {
-        value = CSS_BACKGROUND_SIZE_SIZE;
+    else if (vvalue == CSS_BACKGROUND_SIZE_SET_HEIGHT) {
+        value = vvalue;
     }
     else {
         value = hvalue;
