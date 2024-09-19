@@ -42,8 +42,6 @@ css_error css__parse_background_size_impl(css_language *c,
     uint32_t unit[2] = { 0 };
     bool match;
 
-    /* [length | percentage | IDENT(left, right, top, bottom, center)]{1,2}
-     * | IDENT(inherit) */
     token = parserutils_vector_peek(vector, *ctx);
     if (token == NULL) {
         *ctx = orig_ctx;
@@ -69,17 +67,32 @@ css_error css__parse_background_size_impl(css_language *c,
                         token->idata, c->strings[CONTAIN],
                         &match) == lwc_error_ok &&
                         match)) {
-                    value[i] = BACKGROUND_SIZE_HORZ_CONTAIN;
+                    if ( i == 0) {
+                        value[i] = BACKGROUND_SIZE_HORZ_CONTAIN;
+                    }
+                    else {
+                        value[i] = BACKGROUND_SIZE_VERT_CONTAIN;
+                    }
                 } else if ((lwc_string_caseless_isequal(
                         token->idata, c->strings[COVER],
                         &match) == lwc_error_ok &&
                         match)) {
-                    value[i] = BACKGROUND_SIZE_HORZ_COVER;
+                    if ( i == 0) {
+                        value[i] = BACKGROUND_SIZE_HORZ_COVER;
+                    }
+                    else {
+                        value[i] = BACKGROUND_SIZE_VERT_COVER;
+                    }
                 } else if ((lwc_string_caseless_isequal(
                         token->idata, c->strings[AUTO],
                         &match) == lwc_error_ok &&
                         match)) {
-                    value[i] = BACKGROUND_SIZE_VERT_AUTO;
+                    if ( i == 0) {
+                        value[i] = BACKGROUND_SIZE_HORZ_AUTO;
+                    }
+                    else {
+                        value[i] = BACKGROUND_SIZE_VERT_AUTO;
+                    }
                 } else if (i == 1) {
                     /* Second pass, so ignore this one */
                     break;
@@ -130,11 +143,13 @@ css_error css__parse_background_size_impl(css_language *c,
             assert(BACKGROUND_SIZE_VERT_AUTO ==
                     BACKGROUND_SIZE_HORZ_AUTO);
 
-            /* Only one value, so the other is center */
+            /* Only one value, so the other is auto */
             switch (value[0]) {
             case BACKGROUND_SIZE_HORZ_CONTAIN:
             case BACKGROUND_SIZE_HORZ_COVER:
-            case BACKGROUND_SIZE_VERT_AUTO:
+            case BACKGROUND_SIZE_HORZ_AUTO:
+            case BACKGROUND_SIZE_VERT_CONTAIN:
+            case BACKGROUND_SIZE_VERT_COVER:
                 break;
             case BACKGROUND_SIZE_VERT_SET:
                 value[0] = BACKGROUND_SIZE_HORZ_SET;
@@ -144,24 +159,30 @@ css_error css__parse_background_size_impl(css_language *c,
             value[1] = BACKGROUND_SIZE_VERT_AUTO;
         } else if (value[0] != BACKGROUND_SIZE_VERT_SET &&
                 value[1] != BACKGROUND_SIZE_VERT_SET) {
-            /* Two keywords. Verify the axes differ */
-            if (((value[0] & 0xf) != 0 && (value[1] & 0xf) != 0) ||
-                    ((value[0] & 0xf0) != 0 &&
-                        (value[1] & 0xf0) != 0)) {
-                *ctx = orig_ctx;
-                return CSS_INVALID;
+            if (value[0] == BACKGROUND_SIZE_HORZ_CONTAIN &&
+                    value[1] != BACKGROUND_SIZE_VERT_CONTAIN) {
+                value[0] = BACKGROUND_SIZE_HORZ_AUTO;
+                value[1] = BACKGROUND_SIZE_VERT_AUTO;
+            }
+            else if (value[0] == BACKGROUND_SIZE_HORZ_COVER &&
+                    value[1] != BACKGROUND_SIZE_VERT_COVER) {
+                value[0] = BACKGROUND_SIZE_HORZ_AUTO;
+                value[1] = BACKGROUND_SIZE_VERT_AUTO;
+            }
+            else if (value[0] == BACKGROUND_SIZE_HORZ_AUTO &&
+                    value[1] != BACKGROUND_SIZE_VERT_AUTO) {
+                value[0] = BACKGROUND_SIZE_HORZ_AUTO;
+                value[1] = BACKGROUND_SIZE_VERT_AUTO;
             }
         } else {
-            /* One or two non-keywords. First is horizontal */
-            if (value[0] == BACKGROUND_SIZE_VERT_SET)
-                value[0] = BACKGROUND_SIZE_HORZ_SET;
-
-            /* Verify the axes differ */
-            if (((value[0] & 0xf) != 0 && (value[1] & 0xf) != 0) ||
-                    ((value[0] & 0xf0) != 0 &&
-                        (value[1] & 0xf0) != 0)) {
-                *ctx = orig_ctx;
-                return CSS_INVALID;
+            if (value[0] == BACKGROUND_SIZE_HORZ_COVER ||
+                    value[0] == BACKGROUND_SIZE_HORZ_CONTAIN ||
+                    value[1] == BACKGROUND_SIZE_VERT_COVER ||
+                    value[1] == BACKGROUND_SIZE_VERT_CONTAIN) {
+                value[0] = BACKGROUND_SIZE_HORZ_AUTO;
+                value[1] = BACKGROUND_SIZE_VERT_AUTO;
+            }
+            else {
             }
         }
     }

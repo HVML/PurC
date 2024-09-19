@@ -18,6 +18,8 @@ css_error css__cascade_background_size(uint32_t opv, css_style *style,
         css_select_state *state)
 {
     uint16_t value = CSS_BACKGROUND_SIZE_INHERIT;
+    uint16_t hvalue = CSS_BACKGROUND_SIZE_INHERIT;
+    uint16_t vvalue = CSS_BACKGROUND_SIZE_INHERIT;
     css_fixed hlength = 0;
     css_fixed vlength = 0;
     uint32_t hunit = UNIT_PX;
@@ -26,41 +28,58 @@ css_error css__cascade_background_size(uint32_t opv, css_style *style,
     if (isInherit(opv) == false) {
         switch (getValue(opv) & 0xf0) {
         case BACKGROUND_SIZE_HORZ_SET:
-            value = CSS_BACKGROUND_SIZE_SIZE;
+            hvalue = CSS_BACKGROUND_SIZE_SIZE;
             hlength = *((css_fixed *) style->bytecode);
             advance_bytecode(style, sizeof(hlength));
             hunit = *((uint32_t *) style->bytecode);
             advance_bytecode(style, sizeof(hunit));
             break;
+
         case BACKGROUND_SIZE_HORZ_CONTAIN:
-            value = CSS_BACKGROUND_SIZE_CONTAIN;
+            hvalue = CSS_BACKGROUND_SIZE_CONTAIN;
             break;
+
         case BACKGROUND_SIZE_HORZ_COVER:
-            value = CSS_BACKGROUND_SIZE_COVER;
+            hvalue = CSS_BACKGROUND_SIZE_COVER;
             break;
+
         case BACKGROUND_SIZE_HORZ_AUTO:
-            value = CSS_BACKGROUND_SIZE_AUTO;
+            hvalue = CSS_BACKGROUND_SIZE_AUTO;
             break;
         }
 
         switch (getValue(opv) & 0x0f) {
         case BACKGROUND_SIZE_VERT_SET:
-            value = CSS_BACKGROUND_SIZE_SIZE;
+            vvalue = CSS_BACKGROUND_SIZE_SIZE;
             vlength = *((css_fixed *) style->bytecode);
             advance_bytecode(style, sizeof(vlength));
             vunit = *((uint32_t *) style->bytecode);
             advance_bytecode(style, sizeof(vunit));
             break;
+
         case BACKGROUND_SIZE_VERT_CONTAIN:
-            value = CSS_BACKGROUND_SIZE_CONTAIN;
+            vvalue = CSS_BACKGROUND_SIZE_CONTAIN;
             break;
+
         case BACKGROUND_SIZE_VERT_COVER:
-            value = CSS_BACKGROUND_SIZE_COVER;
+            vvalue = CSS_BACKGROUND_SIZE_COVER;
             break;
+
         case BACKGROUND_SIZE_VERT_AUTO:
-            value = CSS_BACKGROUND_SIZE_AUTO;
+            vvalue = CSS_BACKGROUND_SIZE_AUTO;
             break;
         }
+    }
+
+    if (hvalue == vvalue) {
+        value = hvalue;
+    }
+    else if (hvalue == CSS_BACKGROUND_SIZE_SIZE
+            || vvalue == CSS_BACKGROUND_SIZE_SIZE) {
+        value = CSS_BACKGROUND_SIZE_SIZE;
+    }
+    else {
+        value = hvalue;
     }
 
     hunit = css__to_css_unit(hunit);
