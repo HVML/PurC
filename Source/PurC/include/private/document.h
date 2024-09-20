@@ -36,6 +36,7 @@
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/map.h"
+#include "private/sorted-array.h"
 
 struct pcdoc_travel_info {
     pcdoc_node_type_k type;
@@ -47,6 +48,11 @@ struct pcdoc_travel_info {
 struct pcdoc_travel_attrs_info {
     size_t nr;
     void *ctxt;
+};
+
+struct pcdoc_css_selection_ctxt {
+    purc_document_t doc;
+    struct sorted_array *node_datas;
 };
 
 typedef int (*pcdoc_node_cb)(purc_document_t doc, void *node, void *ctxt);
