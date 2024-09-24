@@ -2,8 +2,8 @@
 
 pkgbase=purc
 pkgname=purc
-pkgver=0.9.14
-pkgrel=1
+pkgver=0.9.19
+pkgrel=3
 pkgdesc="The prime HVML interpreter for C/C++ Language."
 arch=(x86_64
     aarch64
@@ -12,7 +12,7 @@ arch=(x86_64
     powerpc
     powerpc64le)
 url="https://github.com/HVML/PurC"
-license=('LGPL-3.0')
+license=('LGPL-3.0-only')
 groups=(hvml
     hybridos2)
 provides=(${pkgname}
@@ -30,19 +30,22 @@ conflicts=(${pkgname})
 replaces=(domruler
     purc-fetcher)
 depends=(glib2
-    glibc
-    python)
-makedepends=(bison
+    glibc)
+makedepends=(
+    #     avahi
+    #     nss-mdns
+    bison
     cmake
-    cython
+    #     cython
     flex
     git
     ninja
     ccache
     curl
-#     gcc
+    #     gcc
     clang
     llvm
+    gcc-libs
     gperf
     lua-lgi
     ncurses
@@ -56,13 +59,16 @@ makedepends=(bison
     libpsl
     libxml2
     libxslt
-    libsoup
+    libsoup3
+    linux-api-headers
     icu
-    mariadb
+    #     libmariadbclient
     openssl
     sqlite
     systemd
     pkgconf
+    python
+    xorgproto
     zlib)
 checkdepends=(check
     gtest
@@ -71,29 +77,34 @@ optdepends=('python-numpy: Scientific tools for Python'
     'webkit2gtk-hvml: Web content engine for GTK (HVML)'
     'webkit2gtk: Web content engine for GTK'
     'xguipro: xGUI (the X Graphics User Interface) Pro is a modern, cross-platform, and advanced HVML renderer which is based on tailored WebKit.')
-source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/ver-${pkgver//./-}.tar.gz")
-sha256sums=('060408fbb86db0f61aa5db693036f044fb95b3c14a3e4a9c07bbf339efc7fc0d'
-            'e9591222067b91a414d0d434669e2490de0d46e91be61d680f413b0e442c140a')
-options=('!strip')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/ver-${pkgver}.tar.gz")
+sha256sums=('2a7a9cf8e7161f4da1ee453b59f110b276eb01082b84fa5fb0031ced668de13b')
+options=()
 
 build() {
-    cd "${srcdir}/PurC-ver-${pkgver//./-}/"
+    export LDFLAGS="-L/lib64"
+    if test -n "$LD_LIBRARY_PATH"; then
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib64"
+    else
+        export LD_LIBRARY_PATH=/lib64
+    fi
+    cd "${srcdir}/PurC-ver-${pkgver}/"
 
-    sed -i  's|0 9 13|0 9 14|g' CMakeLists.txt
+    #     sed -i  's|0 9 13|0 9 14|g' CMakeLists.txt
 
-# see：https://wiki.archlinux.org/title/CMake_package_guidelines
-# gcc build
-#     cmake -DCMAKE_BUILD_TYPE=Release \
-#     cmake -DCMAKE_BUILD_TYPE=None \
-#         -DPORT=Linux \
-#         -DENABLE_CHINESE_NAMES=ON \
-#         -DCMAKE_INSTALL_PREFIX=/usr \
-#         -DCMAKE_INSTALL_LIBDIR=lib \
-#         -DCMAKE_INSTALL_LIBEXECDIR=lib \
-#         -B build \
-#         -G Ninja
+    # see：https://wiki.archlinux.org/title/CMake_package_guidelines
+    # gcc build
+    #     cmake -DCMAKE_BUILD_TYPE=Release \
+    #     cmake -DCMAKE_BUILD_TYPE=None \
+    #         -DPORT=Linux \
+    #         -DENABLE_CHINESE_NAMES=ON \
+    #         -DCMAKE_INSTALL_PREFIX=/usr \
+    #         -DCMAKE_INSTALL_LIBDIR=lib \
+    #         -DCMAKE_INSTALL_LIBEXECDIR=lib \
+    #         -B build \
+    #         -G Ninja
 
-# clang build
+    # clang build
     cmake -DCMAKE_BUILD_TYPE=None \
         -DPORT=Linux \
         -DENABLE_CHINESE_NAMES=ON \
@@ -109,5 +120,5 @@ build() {
 }
 
 package() {
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}"/PurC-ver-${pkgver//./-}/build install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}"/PurC-ver-${pkgver}/build install
 }
