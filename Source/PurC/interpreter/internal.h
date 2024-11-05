@@ -299,6 +299,16 @@ pcintr_rdr_call_method(struct pcinst *inst,
         const char *css_selector, const char *method, purc_variant_t arg);
 
 purc_variant_t
+pcintr_rdr_set_property(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
+        const char *css_selector, const char *property, purc_variant_t value);
+
+purc_variant_t
+pcintr_rdr_get_property(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
+        const char *css_selector, const char *property);
+
+purc_variant_t
 pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         pcrdr_conn *dst_conn, purc_variant_t arg, purc_variant_t op,
         unsigned int is_noreturn);

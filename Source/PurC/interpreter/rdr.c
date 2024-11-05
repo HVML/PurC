@@ -1282,6 +1282,88 @@ out:
     return ret;
 }
 
+purc_variant_t
+pcintr_rdr_set_property(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
+        const char *css_selector, const char *property, purc_variant_t value)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+    purc_variant_t data = value;
+
+    pcrdr_msg *response_msg;
+    if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+            PCRDR_K_OPERATION_SETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
+            css_selector + 1, NULL, NULL, property, data_type, data);
+    }
+    else if (css_selector[0] == '.' && purc_is_valid_css_identifier(css_selector + 1)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_SETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+    else if (purc_is_valid_css_identifier(css_selector)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_SETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_TAG,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+    else {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_SETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+
+    if (response_msg != NULL) {
+        if ((response_msg->retCode == PCRDR_SC_OK) && response_msg->data) {
+            ret = purc_variant_ref(response_msg->data);
+        }
+        pcrdr_release_message(response_msg);
+    }
+
+    return ret;
+}
+
+purc_variant_t
+pcintr_rdr_get_property(struct pcinst *inst,
+        pcintr_coroutine_t co, const char *request_id,
+        const char *css_selector, const char *property)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+
+    pcrdr_msg *response_msg;
+    if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+            PCRDR_K_OPERATION_GETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
+            css_selector + 1, NULL, NULL, property, data_type, data);
+    }
+    else if (css_selector[0] == '.' && purc_is_valid_css_identifier(css_selector + 1)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_GETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+    else if (purc_is_valid_css_identifier(css_selector)) {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_GETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_TAG,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+    else {
+        response_msg = pcintr_rdr_send_dom_req(inst, co,
+                PCRDR_K_OPERATION_GETPROPERTY, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
+                css_selector, NULL, NULL, property, data_type, data);
+    }
+
+    if (response_msg != NULL) {
+        if ((response_msg->retCode == PCRDR_SC_OK) && response_msg->data) {
+            ret = purc_variant_ref(response_msg->data);
+        }
+        pcrdr_release_message(response_msg);
+    }
+
+    return ret;
+}
+
 #define ARG_KEY_DATA_TYPE       "dataType"
 #define ARG_KEY_DATA            "data"
 #define ARG_KEY_PROPERTY        "property"

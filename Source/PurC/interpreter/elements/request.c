@@ -322,10 +322,6 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcinst *inst = pcinst_current();
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    const char *s_on = purc_variant_get_string_const(ctxt->on);
-    const char *s_to = purc_variant_get_string_const(ctxt->to);
-    const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
-        : NULL;
 
     if (!ctxt->synchronously) {
         purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -333,8 +329,51 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t v = pcintr_rdr_call_method(inst,
-            co, request_id, s_on, s_to, ctxt->with);
+    const char *s_on = purc_variant_get_string_const(ctxt->on);
+    const char *s_to = purc_variant_get_string_const(ctxt->to);
+    const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
+        : NULL;
+    const char *separator = strchr(s_to, MSG_EVENT_SEPARATOR);
+    char *type = NULL;
+
+    if (!separator) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid param 'to = %s'", s_to);
+        goto out;
+    }
+
+    const char *content = separator + 1;
+    if (!content) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid param 'to = %s'", s_to);
+        goto out;
+    }
+
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    size_t nr_type = separator - s_to;
+    type = strndup(s_to, nr_type);
+    if (!type) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    /* call Method */
+    if (strcmp(type, "call") == 0) {
+        v = pcintr_rdr_call_method(inst, co, request_id, s_on, s_to, ctxt->with);
+    }
+    /* set Property */
+    else if (strcmp(type, "set") == 0) {
+        v = pcintr_rdr_set_property(inst, co, request_id, s_on, content, ctxt->with);
+    }
+    /* get Property */
+    else if (strcmp(type, "get") == 0) {
+        v = pcintr_rdr_get_property(inst, co, request_id, s_on, content);
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid param 'to = %s'", s_to);
+        goto out;
+    }
 
     if (!v && ctxt->is_noreturn) {
         v = purc_variant_make_null();
@@ -347,6 +386,10 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     ret = 0;
 out:
+    if (type) {
+        free(type);
+    }
+
     return ret;
 }
 
