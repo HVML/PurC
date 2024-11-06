@@ -19,7 +19,8 @@
         <observe on $TIMERS for "expired:clock">
             <request on="#idCall" to="call:ELEMENT.textContent=ARG; return true" with "$DATETIME.time_prt()" />
             <request on="#idSet" to="set:value" with "$DATETIME.time_prt()" />
-            <request on="#idSet" to="get:value" >
+            <request on="#idSet" to="set:style.backgroundColor" with "red" />
+            <request on="#idSet" to="get:style.backgroundColor" >
                 <update on="#idGet" at="textContent" with="$?" />
             </request>
         </observe>
