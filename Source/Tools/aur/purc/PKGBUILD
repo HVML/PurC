@@ -2,7 +2,7 @@
 
 pkgbase=purc
 pkgname=purc
-pkgver=0.9.19
+pkgver=0.9.20
 pkgrel=3
 pkgdesc="The prime HVML interpreter for C/C++ Language."
 arch=(x86_64
