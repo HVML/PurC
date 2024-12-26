@@ -142,4 +142,5 @@ msg fetcherState
 msg requestChan
 msg newRenderer
 msg dupRenderer
+msg user
 
