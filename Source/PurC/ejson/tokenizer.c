@@ -966,6 +966,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         }
     }
     if (character == ':') {
+        if (top == NULL) {
+            tkz_stack_push(ETT_UNQUOTED_S);
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+        }
         if (top->type == ETT_OBJECT) {
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
