@@ -2538,6 +2538,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INFINITY)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
         }
+        if (is_whitespace(character) &&
+                (top == NULL || top->type == ETT_VALUE)) {
+            tkz_stack_push(ETT_UNQUOTED_S);
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
     }
