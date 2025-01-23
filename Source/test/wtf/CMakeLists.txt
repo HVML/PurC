@@ -24,9 +24,10 @@ set(test_wtf_SOURCES
 )
 
 set(test_wtf_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
+    ${GLIB_GIO_LIBRARIES}
     pthread
 )
 

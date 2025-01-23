@@ -23,9 +23,9 @@ macro(GEN_TEST _name)
     )
 
     set(test_exe${_name}_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 
@@ -72,9 +72,9 @@ set(test_executors_SOURCES
 )
 
 set(test_executors_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

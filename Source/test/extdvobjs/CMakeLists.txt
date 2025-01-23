@@ -25,9 +25,9 @@ if (ENABLE_EXTDVOBJ_MATH)
     )
 
     set(test_extdvobjs_math_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 
@@ -58,9 +58,9 @@ if (ENABLE_EXTDVOBJ_FS)
     )
 
     set(test_extdvobjs_fs_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 
@@ -88,9 +88,9 @@ if (ENABLE_EXTDVOBJ_FS)
     )
 
     set(test_extdvobjs_file_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 
@@ -121,9 +121,9 @@ if (ENABLE_EXTDVOBJ_PY)
     )
 
     set(test_extdvobjs_py_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 
@@ -154,9 +154,9 @@ if (ENABLE_EXTDVOBJ_SQLITE)
     )
 
     set(test_extdvobjs_sqlite_LIBRARIES
-        PurC::PurC
         gtest_main
         gtest
+        PurC::PurC
         pthread
     )
 

@@ -19,9 +19,9 @@ set(test_tree_SOURCES
 )
 
 set(test_tree_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

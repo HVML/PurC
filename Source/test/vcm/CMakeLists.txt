@@ -21,9 +21,9 @@ set(test_vcm_SOURCES
 )
 
 set(test_vcm_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -49,9 +49,9 @@ set(test_eval_SOURCES
 )
 
 set(test_eval_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

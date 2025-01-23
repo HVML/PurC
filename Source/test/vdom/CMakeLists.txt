@@ -22,9 +22,9 @@ set(test_vdom_SOURCES
 )
 
 set(test_vdom_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -52,9 +52,9 @@ set(test_vdom_gen_SOURCES
 )
 
 set(test_vdom_gen_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

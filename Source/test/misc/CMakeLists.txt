@@ -21,9 +21,9 @@ set(test_messages_SOURCES
 )
 
 set(test_messages_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

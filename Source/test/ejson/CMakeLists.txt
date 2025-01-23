@@ -21,9 +21,9 @@ set(test_stack_SOURCES
 )
 
 set(test_stack_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -47,9 +47,9 @@ set(test_ejson_SOURCES
 )
 
 set(test_ejson_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -73,9 +73,9 @@ set(test_ejson_vcm_SOURCES
 )
 
 set(test_ejson_vcm_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -99,9 +99,9 @@ set(test_ref_SOURCES
 )
 
 set(test_ref_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -125,9 +125,9 @@ set(test_jsonee_SOURCES
 )
 
 set(test_jsonee_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

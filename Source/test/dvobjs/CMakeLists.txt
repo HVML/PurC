@@ -22,9 +22,9 @@ set(test_dvobjs_system_SOURCES
 )
 
 set(test_dvobjs_system_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -50,9 +50,9 @@ set(test_dvobjs_datetime_SOURCES
 )
 
 set(test_dvobjs_datetime_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -80,9 +80,9 @@ set(test_dvobjs_ejson_SOURCES
 )
 
 set(test_dvobjs_ejson_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -110,9 +110,9 @@ set(test_dvobjs_ejson_more_SOURCES
 )
 
 set(test_dvobjs_ejson_more_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -139,9 +139,9 @@ set(test_dvobjs_coroutine_SOURCES
 )
 
 set(test_dvobjs_coroutine_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -168,9 +168,9 @@ set(test_dvobjs_text_SOURCES
 )
 
 set(test_dvobjs_text_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -196,9 +196,9 @@ set(test_dvobjs_logical_SOURCES
 )
 
 set(test_dvobjs_logical_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -225,9 +225,9 @@ set(test_dvobjs_string_SOURCES
 )
 
 set(test_dvobjs_string_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -254,9 +254,9 @@ set(test_dvobjs_overall_SOURCES
 )
 
 set(test_dvobjs_overall_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -283,9 +283,9 @@ set(test_dvobjs_stream_SOURCES
 )
 
 set(test_dvobjs_stream_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -310,9 +310,9 @@ set(test_stream_observe_readable_SOURCES
 )
 
 set(test_stream_observe_readable_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -337,9 +337,9 @@ set(test_stream_observe_writable_SOURCES
 )
 
 set(test_stream_observe_writable_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -366,9 +366,9 @@ set(test_dvobjs_runner_SOURCES
 )
 
 set(test_dvobjs_runner_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -395,9 +395,9 @@ set(test_string_substitution_SOURCES
 )
 
 set(test_string_substitution_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -424,9 +424,9 @@ set(test_dvobjs_rdr_SOURCES
 )
 
 set(test_dvobjs_rdr_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

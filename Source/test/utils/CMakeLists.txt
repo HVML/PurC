@@ -24,10 +24,10 @@ set(test_utils_SOURCES
 )
 
 set(test_utils_LIBRARIES
-    ${GLIB_LIBRARIES}
-    PurC::PurC
     gtest_main
     gtest
+    ${GLIB_LIBRARIES}
+    PurC::PurC
     pthread
 )
 
@@ -51,9 +51,9 @@ set(test_regex_SOURCES
 )
 
 set(test_regex_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -78,9 +78,9 @@ set(test_runloop_SOURCES
 )
 
 set(test_runloop_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -105,9 +105,9 @@ set(test_helpers_SOURCES
 )
 
 set(test_helpers_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

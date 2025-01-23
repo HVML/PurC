@@ -22,9 +22,9 @@ set(test_hvml_SOURCES
 )
 
 set(test_hvml_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -52,9 +52,9 @@ set(test_sbst_SOURCES
 )
 
 set(test_sbst_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
@@ -81,9 +81,9 @@ set(test_tokenizer_SOURCES
 )
 
 set(test_tokenizer_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 

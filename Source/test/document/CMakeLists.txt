@@ -18,9 +18,9 @@ set(test_document_SOURCES
 )
 
 set(test_document_LIBRARIES
-    PurC::PurC
     gtest_main
     gtest
+    PurC::PurC
     pthread
 )
 
