@@ -15,6 +15,7 @@ list(APPEND test_wtf_PRIVATE_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}"
     "${GIO_UNIX_INCLUDE_DIRS}"
     "${GLIB_INCLUDE_DIRS}"
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_wtf)
@@ -25,8 +26,7 @@ set(test_wtf_SOURCES
 
 set(test_wtf_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

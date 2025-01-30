@@ -13,6 +13,7 @@ list(APPEND test_vdom_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    ${GTEST_INCLUDE_DIRS}
 )
 
 PURC_EXECUTABLE(test_vdom)
@@ -23,8 +24,7 @@ set(test_vdom_SOURCES
 
 set(test_vdom_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    ${GTEST_LIBRARIES}
     pthread
 )
 
@@ -43,6 +43,7 @@ list(APPEND test_vdom_gen_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
     #ugly: for hvml_token and hvml_parser
     ${PURC_DIR}/hvml
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_vdom_gen)
@@ -53,8 +54,7 @@ set(test_vdom_gen_SOURCES
 
 set(test_vdom_gen_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

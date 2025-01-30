@@ -12,6 +12,7 @@ list(APPEND test_vcm_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_vcm)
@@ -22,8 +23,7 @@ set(test_vcm_SOURCES
 
 set(test_vcm_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -40,6 +40,7 @@ list(APPEND test_eval_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_eval)
@@ -50,8 +51,7 @@ set(test_eval_SOURCES
 
 set(test_eval_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

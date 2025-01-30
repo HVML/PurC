@@ -13,6 +13,7 @@ list(APPEND test_hvml_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_hvml)
@@ -23,8 +24,7 @@ set(test_hvml_SOURCES
 
 set(test_hvml_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -43,6 +43,7 @@ list(APPEND test_sbst_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_sbst)
@@ -53,8 +54,7 @@ set(test_sbst_SOURCES
 
 set(test_sbst_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -72,6 +72,7 @@ list(APPEND test_tokenizer_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_tokenizer)
@@ -82,8 +83,7 @@ set(test_tokenizer_SOURCES
 
 set(test_tokenizer_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

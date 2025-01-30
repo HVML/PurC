@@ -12,6 +12,7 @@ list(APPEND test_rwstream_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_rwstream)
@@ -22,8 +23,7 @@ set(test_rwstream_SOURCES
 
 set(test_rwstream_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

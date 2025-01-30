@@ -10,6 +10,7 @@ PURC_EXECUTABLE_DECLARE(test_tree)
 list(APPEND test_tree_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR} ${PURC_DIR}/include
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_tree)
@@ -20,8 +21,7 @@ set(test_tree_SOURCES
 
 set(test_tree_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

@@ -15,6 +15,7 @@ list(APPEND test_local_fetcher_PRIVATE_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}"
     "${GIO_UNIX_INCLUDE_DIRS}"
     "${GLIB_INCLUDE_DIRS}"
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_local_fetcher)
@@ -25,8 +26,7 @@ set(test_local_fetcher_SOURCES
 
 set(test_local_fetcher_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -45,6 +45,7 @@ list(APPEND test_fetcher_PRIVATE_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}"
     "${GIO_UNIX_INCLUDE_DIRS}"
     "${GLIB_INCLUDE_DIRS}"
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_fetcher)
@@ -55,8 +56,7 @@ set(test_fetcher_SOURCES
 
 set(test_fetcher_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

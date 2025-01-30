@@ -14,6 +14,7 @@ macro(GEN_TEST _name)
         ${CMAKE_BINARY_DIR}/Source/PurC/executors/parsers
         ${WTF_DIR}
         ${PURC_DIR}/executors
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     PURC_EXECUTABLE(test_exe${_name})
@@ -24,8 +25,7 @@ macro(GEN_TEST _name)
 
     set(test_exe${_name}_LIBRARIES
         PurC::PurC
-        gtest_main
-        gtest
+        "${GTEST_LIBRARIES}"
         pthread
     )
 
@@ -63,6 +63,7 @@ list(APPEND test_executors_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_executors)
@@ -73,8 +74,7 @@ set(test_executors_SOURCES
 
 set(test_executors_LIBRARIES
     PurC::PurC
-    gtest_main
-    gtest
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
