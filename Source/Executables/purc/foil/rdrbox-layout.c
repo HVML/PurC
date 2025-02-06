@@ -1630,9 +1630,17 @@ static uint8_t normalize_border_style(uint8_t v)
         v = FOIL_RDRBOX_BORDER_STYLE_DOUBLE;
         break;
     case CSS_BORDER_STYLE_GROOVE:
+        v = FOIL_RDRBOX_BORDER_STYLE_GROOVE;
+        break;
     case CSS_BORDER_STYLE_RIDGE:
+        v = FOIL_RDRBOX_BORDER_STYLE_RIDGE;
+        break;
     case CSS_BORDER_STYLE_INSET:
+        v = FOIL_RDRBOX_BORDER_STYLE_INSET;
+        break;
     case CSS_BORDER_STYLE_OUTSET:
+        v = FOIL_RDRBOX_BORDER_STYLE_OUTSET;
+        break;
     default:
         v = FOIL_RDRBOX_BORDER_STYLE_SOLID;
         break;
