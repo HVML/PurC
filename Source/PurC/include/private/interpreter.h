@@ -65,6 +65,7 @@
 #define MSG_TYPE_FETCHER_STATE        "fetcherState"
 #define MSG_TYPE_REQUEST_CHAN         "requestChan"
 #define MSG_TYPE_NEW_RENDERER         "newRenderer"
+#define MSG_TYPE_DUP_RENDERER         "dupRenderer"
 
 
 #define MSG_SUB_TYPE_ASTERISK         "*"
@@ -84,6 +85,8 @@
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
 #define MSG_SUB_TYPE_NEW_RENDERER     "newRenderer"
+#define MSG_SUB_TYPE_NEW_DUPLICATE    "newDuplicate"
+#define MSG_SUB_TYPE_LOST_DUPLICATE   "lostDuplicate"
 
 #define CRTN_TOKEN_MAIN               "_main"
 #define CRTN_TOKEN_FIRST              "_first"
@@ -299,6 +302,23 @@ struct pcintr_coroutine_child {
     purc_atom_t                 cid;
 };
 
+struct pcinstr_rdr_req {
+    struct list_head              ln;
+
+    purc_variant_t arg;
+    purc_variant_t op;
+    unsigned int is_noreturn;
+};
+
+struct pcintr_coroutine_rdr_conn {
+    struct list_head              ln;
+    struct pcrdr_conn             *conn;
+
+    uint64_t                      workspace_handle;
+    uint64_t                      page_handle;
+    uint64_t                      dom_handle;
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     purc_atom_t                 cid;
@@ -308,12 +328,17 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
+    /* pcintr_coroutine_rdr_conn */
+    struct list_head            conns;
+
+    /* struct pcinstr_rdr_req */
+    struct list_head            rdr_reqs;
+
+
     pcrdr_page_type_k           page_type;
     /* actual page type. eg: inherit from parent */
     pcrdr_page_type_k           target_page_type;
-    uint64_t                    target_workspace_handle;
-    uint64_t                    target_page_handle;
-    uint64_t                    target_dom_handle;
+
     purc_variant_t              doc_contents;
     purc_variant_t              doc_wrotten_len;
 
@@ -813,7 +838,7 @@ int
 pcintr_init_loader_once(void);
 
 bool
-pcintr_attach_to_renderer(pcintr_coroutine_t cor,
+pcintr_attach_to_renderer(struct pcrdr_conn *conn, pcintr_coroutine_t cor,
         pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
@@ -888,6 +913,32 @@ pcintr_coroutine_get_token(pcintr_coroutine_t cor);
 int
 pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token);
 
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn);
+
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_create_or_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn);
+
+void
+pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
+        struct pcintr_coroutine_rdr_conn *rdr_conn);
+
+int
+pcintr_coroutine_save_rdr_request(pcintr_coroutine_t cor,
+        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn);
+
+
+bool
+pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle);
+
+bool
+pcintr_coroutine_is_match_dom_handle(pcintr_coroutine_t cor, uint64_t handle);
+
+bool
+pcintr_coroutine_is_rdr_attached(pcintr_coroutine_t cor);
+
 pcintr_coroutine_t
 pcintr_get_first_crtn(struct pcinst *inst);
 
@@ -911,7 +962,11 @@ pcintr_get_named_variable(pcintr_stack_t stack,
         bool temporarily, bool runner_level_enable);
 
 int
-pcintr_switch_new_renderer(struct pcinst *inst);
+pcintr_attach_renderer(struct pcinst *inst, struct pcrdr_conn *new_conn,
+        struct pcrdr_conn *conn_to_close);
+
+int
+pcintr_detach_renderer(struct pcinst *inst, struct pcrdr_conn *conn);
 
 /* ms */
 time_t pcintr_tick_count();

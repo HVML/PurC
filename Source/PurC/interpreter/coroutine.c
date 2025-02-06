@@ -303,6 +303,124 @@ out:
     return ret;
 }
 
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn)
+{
+    struct pcintr_coroutine_rdr_conn *ret = NULL;
+    if (!cor) {
+        goto out;
+    }
+
+    struct list_head *conns = &cor->conns;
+    struct pcintr_coroutine_rdr_conn *p;
+    struct pcintr_coroutine_rdr_conn *q;
+    list_for_each_entry_safe(p, q, conns, ln) {
+        if (p->conn == conn) {
+            ret = p;
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
+struct pcintr_coroutine_rdr_conn *
+pcintr_coroutine_create_or_get_rdr_conn(pcintr_coroutine_t cor,
+        struct pcrdr_conn *conn)
+{
+    struct pcintr_coroutine_rdr_conn *ret = NULL;
+    ret = pcintr_coroutine_get_rdr_conn(cor, conn);
+    if (ret) {
+        goto out;
+    }
+
+    ret = (struct pcintr_coroutine_rdr_conn *)calloc(1, sizeof(*ret));
+    ret->conn = conn;
+    list_add_tail(&ret->ln, &cor->conns);
+
+out:
+    return ret;
+}
+
+void
+pcintr_coroutine_destroy_rdr_conn(pcintr_coroutine_t cor,
+        struct pcintr_coroutine_rdr_conn *rdr_conn)
+{
+    UNUSED_PARAM(cor);
+    if (!rdr_conn) {
+        return;
+    }
+
+    rdr_conn->workspace_handle = 0;
+    rdr_conn->page_handle = 0;
+    rdr_conn->dom_handle = 0;
+
+    list_del(&rdr_conn->ln);
+    free(rdr_conn);
+}
+
+int
+pcintr_coroutine_save_rdr_request(pcintr_coroutine_t cor,
+        purc_variant_t arg, purc_variant_t op, unsigned int is_noreturn)
+{
+    if (!cor || !op) {
+        return 0;
+    }
+    struct pcinstr_rdr_req *req = (struct pcinstr_rdr_req *)calloc(1,
+            sizeof(*req));
+    if (arg) {
+        req->arg = purc_variant_ref(arg);
+    }
+    req->op = purc_variant_ref(op);
+    req->is_noreturn = is_noreturn;
+    list_add_tail(&req->ln, &cor->rdr_reqs);
+    return 0;
+}
+
+bool
+pcintr_coroutine_is_match_page_handle(pcintr_coroutine_t cor, uint64_t handle)
+{
+    struct list_head *conns = &cor->conns;
+    struct pcintr_coroutine_rdr_conn *p;
+    struct pcintr_coroutine_rdr_conn *q;
+    list_for_each_entry_safe(p, q, conns, ln) {
+        if (handle == p->page_handle) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+pcintr_coroutine_is_match_dom_handle(pcintr_coroutine_t cor, uint64_t handle)
+{
+    struct list_head *conns = &cor->conns;
+    struct pcintr_coroutine_rdr_conn *p;
+    struct pcintr_coroutine_rdr_conn *q;
+    list_for_each_entry_safe(p, q, conns, ln) {
+        if (handle == p->dom_handle) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+pcintr_coroutine_is_rdr_attached(pcintr_coroutine_t cor)
+{
+    struct list_head *conns = &cor->conns;
+    struct pcintr_coroutine_rdr_conn *p;
+    struct pcintr_coroutine_rdr_conn *q;
+    list_for_each_entry_safe(p, q, conns, ln) {
+        if (p->page_handle) {
+            return true;
+        }
+    }
+    return false;
+}
+
 pcintr_coroutine_t
 pcintr_get_first_crtn(struct pcinst *inst)
 {
@@ -402,16 +520,21 @@ pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co)
 {
     (void)inst;
 
-    if (co->target_dom_handle) {
-        co->stack.doc->udom = co->target_dom_handle;
-    }
+    pcintr_coroutine_t p;
+    struct pcintr_coroutine_rdr_conn *rdr_conn;
+    struct pcintr_coroutine_rdr_conn *prdr_conn, *qrdr_conn;
 
-    /* inherit the udom handle to others sharing the document */
-    if (co->stack.doc->udom) {
-        pcintr_coroutine_t p;
-        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
-            p->target_dom_handle = co->stack.doc->udom;
+    struct list_head *rdr_conns = &co->conns;
+    list_for_each_entry_safe(prdr_conn, qrdr_conn, rdr_conns, ln) {
+        if (!prdr_conn->dom_handle) {
+            continue;
         }
+
+        /* inherit the udom handle to others sharing the document */
+        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+            rdr_conn = pcintr_coroutine_get_rdr_conn(p, prdr_conn->conn);
+            rdr_conn->dom_handle = prdr_conn->dom_handle;
+        };
     }
 }
 
@@ -424,10 +547,14 @@ pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
         co->stack.doc->ldc--;
 
         if (co->stack.doc->ldc == 0) {
-            co->stack.doc->udom = 0;
             pcintr_coroutine_t p;
             list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
-                p->target_dom_handle = 0;
+                struct list_head *conns = &p->conns;
+                struct pcintr_coroutine_rdr_conn *p;
+                struct pcintr_coroutine_rdr_conn *q;
+                list_for_each_entry_safe(p, q, conns, ln) {
+                    p->dom_handle = 0;
+                }
             }
         }
     }
@@ -475,8 +602,8 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
 }
 
 bool
-pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
-        uint64_t ctrn_handle)
+pcintr_reload_crtn_doc(struct pcinst *inst, pcrdr_conn *conn,
+        pcintr_coroutine_t co_revoked, uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
@@ -486,7 +613,8 @@ pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
         co->stack.doc->ldc++;
 
          if (co_revoked == NULL || co_revoked->stack.doc != doc) {
-            pcintr_rdr_page_control_load(inst, &co->stack);
+            /* only send page to the conn */
+            pcintr_rdr_page_control_load(inst, conn, co);
 
             /* fire rdrState:pageReloaded event */
             pcintr_coroutine_t p;

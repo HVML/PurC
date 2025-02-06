@@ -281,7 +281,14 @@ static int on_start_session(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     response.sourceURI = PURC_VARIANT_INVALID;
     response.retCode = retv;
     response.resultValue = (uint64_t)info;
-    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+    response.dataType = PCRDR_MSG_DATA_TYPE_JSON;
+    response.data = purc_variant_make_object_0();
+
+    if (rdr->name) {
+        purc_variant_t name = purc_variant_make_string_static(rdr->name, false);
+        purc_variant_object_set_by_ckey(response.data, "name", name);
+        purc_variant_unref(name);
+    }
 
     return send_simple_response(rdr, endpoint, &response);
 }
@@ -503,7 +510,8 @@ static int on_set_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_HTML ||
+    if (((msg->dataType != PCRDR_MSG_DATA_TYPE_HTML) &&
+                (msg->dataType != PCRDR_MSG_DATA_TYPE_PLAIN)) ||
             msg->data == PURC_VARIANT_INVALID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
@@ -552,7 +560,8 @@ static int on_add_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_HTML ||
+    if (((msg->dataType != PCRDR_MSG_DATA_TYPE_HTML) &&
+                (msg->dataType != PCRDR_MSG_DATA_TYPE_PLAIN)) ||
             msg->data == PURC_VARIANT_INVALID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
@@ -1360,17 +1369,8 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
             goto failed;
         }
 
-        uint64_t element_handle = 0;
-        if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE ||
-                element_value == NULL) {
-            retv = PCRDR_SC_BAD_REQUEST;
-            goto failed;
-        }
-
-        element_handle = strtoull(element_value, NULL, 16);
         result = rdr->cbs.call_method_in_udom(endpoint->session,
-                dom, element_handle, method, arg, &retv);
-
+                dom, msg->elementType, element_value, method, arg, &retv);
     }
     else if (msg->target < PCRDR_MSG_TARGET_DOM) {
         if (rdr->cbs.call_method_in_session == NULL) {

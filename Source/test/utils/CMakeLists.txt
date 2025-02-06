@@ -11,6 +11,7 @@ list(APPEND test_utils_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 list(APPEND test_utils_SYSTEM_INCLUDE_DIRECTORIES
@@ -24,10 +25,9 @@ set(test_utils_SOURCES
 )
 
 set(test_utils_LIBRARIES
-    gtest_main
-    gtest
     ${GLIB_LIBRARIES}
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -42,6 +42,7 @@ list(APPEND test_regex_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_regex)
@@ -51,9 +52,8 @@ set(test_regex_SOURCES
 )
 
 set(test_regex_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -69,6 +69,7 @@ list(APPEND test_runloop_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${GLIB_INCLUDE_DIRS}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_runloop)
@@ -78,9 +79,8 @@ set(test_runloop_SOURCES
 )
 
 set(test_runloop_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -96,6 +96,7 @@ list(APPEND test_helpers_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${GLIB_INCLUDE_DIRS}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_helpers)
@@ -105,9 +106,8 @@ set(test_helpers_SOURCES
 )
 
 set(test_helpers_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

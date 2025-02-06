@@ -47,6 +47,18 @@ _COMPILE_TIME_ASSERT(msgs,
 
 #undef _COMPILE_TIME_ASSERT
 
+#define DEFAULT_RENDERER_NAME       "xGUI Pro"
+
+struct pcrdr_conn_extra_info {
+    char            *workspace_name;
+    char            *workspace_title;
+    char            *workspace_layout;
+    struct pcinst   *inst;
+
+    unsigned int    allow_switching_rdr:1;
+    unsigned int    allow_scaling_by_density:1;
+};
+
 static struct err_msg_seg _pcrdr_err_msgs_seg = {
     { NULL, NULL },
     PURC_ERROR_FIRST_PCRDR,
@@ -187,10 +199,10 @@ failed:
 
 static int set_session_args(struct pcinst *inst,
         purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr,
-        struct renderer_capabilities *rdr_caps)
+        struct renderer_capabilities *rdr_caps, uint64_t timeout_seconds)
 {
     (void) rdr_caps;
-    purc_variant_t vs[22] = { NULL };
+    purc_variant_t vs[26] = { NULL };
     purc_variant_t tmp;
     int n = 0;
 
@@ -225,6 +237,12 @@ static int set_session_args(struct pcinst *inst,
     vs[n++] = purc_variant_ref(pcinst_get_runner_label(inst->runner_name,
                 rdr_caps->locale));
 
+    vs[n++] = purc_variant_make_string_static("duplicate", false);
+    vs[n++] = purc_variant_make_boolean(inst->conn_to_rdr);
+
+    vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
+    vs[n++] = purc_variant_make_ulongint(timeout_seconds);
+
     if (vs[n - 1] == NULL) {
         goto failed;
     }
@@ -256,7 +274,7 @@ failed:
 static int append_authenticate_args(struct pcinst *inst,
         purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
 {
-    purc_variant_t vs[6] = { NULL };
+    purc_variant_t vs[4] = { NULL };
     int n = 0;
 
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
@@ -271,8 +289,6 @@ static int append_authenticate_args(struct pcinst *inst,
     vs[n++] = make_signature(inst, rdr_caps);
     vs[n++] = purc_variant_make_string_static("encodedIn", false);
     vs[n++] = purc_variant_make_string_static("base64", false);
-    vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
-    vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
 
     if (vs[n - 1] == NULL) {
         goto failed;
@@ -302,11 +318,40 @@ failed:
     return -1;
 }
 
-static int connect_to_renderer(struct pcinst *inst,
-        const purc_instance_extra_info* extra_info)
+#if HAVE(STDATOMIC_H)
+
+#include <stdatomic.h>
+
+static char* generate_unique_rid(const char* name)
+{
+    static atomic_ullong atomic_accumulator;
+    char *buf = malloc(strlen(name) + 5); // name-xxx
+
+    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
+    sprintf(buf, "%s-%03lld", name, accumulator);
+    return buf;
+}
+
+#else /* HAVE(STDATOMIC_H) */
+
+static char* generate_unique_rid(const char* name)
+{
+    static atomic_ullong atomic_accumulator;
+    char *buf = malloc(strlen(name) + 5); // name-xxx
+    sprintf(buf, "%s-%03lld", name, accumulator);
+    accumulator++;
+    return buf;
+}
+
+#endif
+
+static pcrdr_conn *
+connect_to_renderer(struct pcinst *inst,
+        const purc_instance_extra_info *extra_info)
 {
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
+    struct pcrdr_conn *conn_to_rdr = NULL;
     // purc_rdrcomm_k rdr_comm;
 
     if (extra_info == NULL ||
@@ -314,48 +359,48 @@ static int connect_to_renderer(struct pcinst *inst,
         // rdr_comm = PURC_RDRCOMM_HEADLESS;
         msg = pcrdr_headless_connect(
             extra_info ? extra_info->renderer_uri : NULL,
-            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+            inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
         msg = pcrdr_socket_connect(extra_info->renderer_uri,
-            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+            inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
         // rdr_comm = PURC_RDRCOMM_THREAD;
         msg = pcrdr_thread_connect(extra_info->renderer_uri,
-            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+            inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
-            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+            inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return PURC_ERROR_NOT_SUPPORTED;
-    }
-
-    if (msg == NULL) {
-        inst->conn_to_rdr = NULL;
         goto failed;
     }
 
-    inst->conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+    if (msg == NULL) {
+        conn_to_rdr = NULL;
+        goto failed;
+    }
+
+    conn_to_rdr->stats.start_time = purc_get_monotoic_time();
 
     if (extra_info && extra_info->renderer_uri) {
-        inst->conn_to_rdr->uri = strdup(extra_info->renderer_uri);
+        conn_to_rdr->uri = strdup(extra_info->renderer_uri);
     }
     else {
-        inst->conn_to_rdr->uri = NULL;
+        conn_to_rdr->uri = NULL;
     }
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
-        inst->rdr_caps =
+        conn_to_rdr->caps =
             pcrdr_parse_renderer_capabilities(
                     purc_variant_get_string_const(msg->data));
-        if (inst->rdr_caps == NULL) {
+        if (conn_to_rdr->caps == NULL) {
             goto failed;
         }
     }
@@ -371,7 +416,7 @@ static int connect_to_renderer(struct pcinst *inst,
         inst->allow_scaling_by_density = 0;
     }
 
-    inst->conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+    conn_to_rdr->stats.start_time = purc_get_monotoic_time();
     /* send startSession request and wait for the response */
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
             PCRDR_OPERATION_STARTSESSION, NULL, NULL,
@@ -387,14 +432,14 @@ static int connect_to_renderer(struct pcinst *inst,
         goto failed;
     }
 
-    if (set_session_args(inst, session_data, inst->conn_to_rdr,
-                inst->rdr_caps)) {
+    if (set_session_args(inst, session_data, conn_to_rdr,
+                conn_to_rdr->caps, PCRDR_TIME_AUTH_EXPECTED)) {
         goto failed;
     }
 
     /* Since v160, if the renderer needs authentication */
-    if (inst->rdr_caps->challenge_code) {
-        if (append_authenticate_args(inst, session_data, inst->rdr_caps)) {
+    if (conn_to_rdr->caps->challenge_code) {
+        if (append_authenticate_args(inst, session_data, conn_to_rdr->caps)) {
             goto failed;
         }
     }
@@ -402,10 +447,15 @@ static int connect_to_renderer(struct pcinst *inst,
     msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
+    /* avoid send same request */
+    purc_atom_t uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+            conn_to_rdr->uri);
+
     int ret;
-    if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr, msg,
-            inst->rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
-            PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
+    /* startSession */
+    int seconds_expected = PCRDR_TIME_AUTH_EXPECTED + 2;
+    if ((ret = pcrdr_send_request_and_wait_response(conn_to_rdr, msg,
+            seconds_expected, &response_msg)) < 0) {
         goto failed;
     }
     pcrdr_release_message(msg);
@@ -413,7 +463,40 @@ static int connect_to_renderer(struct pcinst *inst,
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        inst->rdr_caps->session_handle = response_msg->resultValue;
+        conn_to_rdr->caps->session_handle = response_msg->resultValue;
+        if (response_msg->data && purc_variant_is_object(response_msg->data)) {
+            purc_variant_t name = purc_variant_object_get_by_ckey(
+                    response_msg->data, "name");
+            if (name && purc_variant_is_string(name)) {
+                conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
+            }
+            else {
+                conn_to_rdr->name = strdup(DEFAULT_RENDERER_NAME);
+            }
+            purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                    conn_to_rdr->name);
+            char *uid;
+            if (atom) {
+                uid = generate_unique_rid(conn_to_rdr->name);
+            }
+            else {
+                uid = strdup(conn_to_rdr->name);
+            }
+
+            atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+            conn_to_rdr->uid = uid;
+            conn_to_rdr->id = atom;
+        }
+
+        conn_to_rdr->uri_atom = uri_atom;
+    }
+    else if (ret_code == PCRDR_SC_CONFLICT) {
+        /* unix domain socket vs localhost websocket */
+        if (!inst->conflict_uri) {
+            inst->conflict_uri = conn_to_rdr->uri;
+            inst->conflict_uri_atom = uri_atom;
+            conn_to_rdr->uri = NULL;
+        }
     }
 
     pcrdr_release_message(response_msg);
@@ -424,9 +507,9 @@ static int connect_to_renderer(struct pcinst *inst,
         goto failed;
     }
 
-    bool set_page_groups = (inst->rdr_caps->workspace == 0);
+    bool set_page_groups = (conn_to_rdr->caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
-            inst->rdr_caps->workspace != 0) {
+            conn_to_rdr->caps->workspace != 0) {
         /* send `createWorkspace` */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
                 PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
@@ -458,7 +541,8 @@ static int connect_to_renderer(struct pcinst *inst,
 
         msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
 
-        if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+        /* createWorkspace */
+        if (pcrdr_send_request_and_wait_response(conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
         }
@@ -467,7 +551,7 @@ static int connect_to_renderer(struct pcinst *inst,
 
         if (response_msg->retCode == PCRDR_SC_OK ||
                 response_msg->retCode == PCRDR_SC_CONFLICT) {
-            inst->rdr_caps->workspace_handle = response_msg->resultValue;
+            conn_to_rdr->caps->workspace_handle = response_msg->resultValue;
             if (response_msg->retCode == PCRDR_SC_OK)
                 set_page_groups = true;
         }
@@ -479,13 +563,13 @@ static int connect_to_renderer(struct pcinst *inst,
         response_msg = NULL;
     }
     else {
-        inst->rdr_caps->workspace_handle = 0;   /* default workspace */
+        conn_to_rdr->caps->workspace_handle = 0;   /* default workspace */
     }
 
     if (set_page_groups && extra_info && extra_info->workspace_layout) {
         /* send `setPageGroups` request */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_WORKSPACE,
-                inst->rdr_caps->workspace_handle,
+                conn_to_rdr->caps->workspace_handle,
                 PCRDR_OPERATION_SETPAGEGROUPS, NULL, NULL,
                 PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
@@ -501,7 +585,8 @@ static int connect_to_renderer(struct pcinst *inst,
         }
         msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
-        if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+        /* setPageGroups */
+        if (pcrdr_send_request_and_wait_response(conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
         }
@@ -517,7 +602,31 @@ static int connect_to_renderer(struct pcinst *inst,
         response_msg = NULL;
     }
 
-    return PURC_ERROR_OK;
+    /* Add conns */
+    list_add_tail(&conn_to_rdr->ln, &inst->conns);
+    if (!inst->conn_to_rdr) {
+        inst->conn_to_rdr = conn_to_rdr;
+    }
+
+    if (!inst->curr_conn) {
+        inst->curr_conn = conn_to_rdr;
+    }
+
+#if 0
+    /* update main conn to socket/websocket */
+    if ((inst->conn_to_rdr != conn_to_rdr) &&
+            (inst->conn_to_rdr->prot < PURC_RDRCOMM_SOCKET) &&
+            (conn_to_rdr->prot >= PURC_RDRCOMM_SOCKET)) {
+        inst->conn_to_rdr = conn_to_rdr;
+
+        if ((inst->curr_conn != conn_to_rdr) &&
+                (inst->curr_conn->prot < PURC_RDRCOMM_SOCKET)) {
+            inst->curr_conn = conn_to_rdr;
+        }
+    }
+#endif
+
+    return conn_to_rdr;
 
 failed:
     if (response_msg)
@@ -526,18 +635,19 @@ failed:
     if (msg)
         pcrdr_release_message(msg);
 
-    if (inst->conn_to_rdr) {
-        pcrdr_disconnect(inst->conn_to_rdr);
-        inst->conn_to_rdr = NULL;
+    if (conn_to_rdr) {
+        pcrdr_disconnect(conn_to_rdr);
+        conn_to_rdr = NULL;
     }
 
-    return purc_get_last_error();
+    return NULL;
 }
 
 purc_variant_t pcintr_crtn_observed_create(purc_atom_t cid);
 
 static void
-broadcast_new_renderer_event(struct pcinst *inst)
+broadcast_renderer_event(struct pcinst *inst, const char *event_type,
+        const char *event_sub_type, purc_variant_t data)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
@@ -548,8 +658,8 @@ broadcast_new_renderer_event(struct pcinst *inst)
         purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                hvml, event_type, event_sub_type,
+                data, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
 
@@ -560,12 +670,11 @@ broadcast_new_renderer_event(struct pcinst *inst)
         purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                hvml, event_type, event_sub_type,
+                data, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
 }
-
 
 int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         const char *uri)
@@ -582,7 +691,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
 
     /* TODO: get workspace, group info from keep info */
-    purc_instance_extra_info* extra_info = NULL;
+    purc_instance_extra_info info = {0};
+    info.workspace_name = inst->workspace_name;
+    info.workspace_title = inst->workspace_title;
+    info.workspace_layout = inst->workspace_layout;
+
+    purc_instance_extra_info* extra_info = &info;
 
     if (strcasecmp(comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
@@ -638,7 +752,8 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         goto failed;
     }
 
-    if (set_session_args(inst, session_data, n_conn_to_rdr, n_rdr_caps)) {
+    if (set_session_args(inst, session_data, n_conn_to_rdr, n_rdr_caps,
+                PCRDR_TIME_AUTH_EXPECTED)) {
         goto failed;
     }
 
@@ -653,6 +768,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     msg->data = session_data;
 
     int ret;
+    /* startSession */
     if ((ret = pcrdr_send_request_and_wait_response(n_conn_to_rdr, msg,
             n_rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
             PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
@@ -664,6 +780,34 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
         n_rdr_caps->session_handle = response_msg->resultValue;
+        if (response_msg->data && purc_variant_is_object(response_msg->data)) {
+            purc_variant_t name = purc_variant_object_get_by_ckey(
+                    response_msg->data, "name");
+            if (name && purc_variant_is_string(name)) {
+                n_conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
+            }
+            else {
+                n_conn_to_rdr->name = strdup(DEFAULT_RENDERER_NAME);
+            }
+            purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                    n_conn_to_rdr->name);
+            char *uid;
+            if (atom) {
+                uid = generate_unique_rid(n_conn_to_rdr->name);
+            }
+            else {
+                uid = strdup(n_conn_to_rdr->name);
+            }
+
+            atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+            n_conn_to_rdr->uid = uid;
+            n_conn_to_rdr->id = atom;
+        }
+
+        if (n_conn_to_rdr->uri) {
+            n_conn_to_rdr->uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+                    n_conn_to_rdr->uri);
+        }
     }
 
     pcrdr_release_message(response_msg);
@@ -675,15 +819,18 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
 
     /* end origin session */
-    if (inst->rdr_caps) {
-        pcrdr_release_renderer_capabilities(inst->rdr_caps);
-    }
 
     pcrdr_conn_set_event_handler(inst->conn_to_rdr, NULL);
     inst->conn_to_rdr_origin = inst->conn_to_rdr;
+    list_del(&inst->conn_to_rdr_origin->ln);
 
     inst->conn_to_rdr = n_conn_to_rdr;
-    inst->rdr_caps = n_rdr_caps;
+    inst->conn_to_rdr->caps = n_rdr_caps;
+
+    list_add_tail(&inst->conn_to_rdr->ln, &inst->conns);
+    if (inst->curr_conn == inst->conn_to_rdr_origin) {
+        inst->curr_conn = inst->conn_to_rdr;
+    }
 
     pcrdr_conn_set_extra_message_source(inst->conn_to_rdr, pcrun_extra_message_source,
             NULL, NULL);
@@ -724,6 +871,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
         msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
 
+        /* createWorkspace */
         if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
@@ -767,6 +915,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         }
         msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
+        /* setPageGroups */
         if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
@@ -784,10 +933,11 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
     PC_TIMESTAMP("connect to new renderer, app: %s runner: %s\n", inst->app_name, inst->runner_name);
 
-    pcintr_switch_new_renderer(inst);
+    pcintr_attach_renderer(inst, inst->conn_to_rdr, inst->conn_to_rdr_origin);
 
-    /* broadcase event */
-    broadcast_new_renderer_event(inst);
+    /* broadcase event rdrState:newRenderer */
+    broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+            MSG_SUB_TYPE_NEW_RENDERER, PURC_VARIANT_INVALID);
 
     PC_WARN("switch renderer comm=%s|uri=%s success!\n", comm, uri);
     return PURC_ERROR_OK;
@@ -809,6 +959,686 @@ failed:
     return purc_get_last_error();
 }
 
+#define COMM_NONE               "none"
+
+#define KEY_COMM                "comm"
+#define KEY_PROT                "prot"
+#define KEY_PROT_VERSION        "prot-version"
+#define KEY_PROT_VER_CODE       "prot-ver-code"
+#define KEY_URI                 "uri"
+#define KEY_NAME                "name"
+#define KEY_ID                  "id"
+
+static const char *
+rdr_comm(struct pcrdr_conn *rdr)
+{
+    const char *comm = COMM_NONE;
+    if (!rdr) {
+        goto out;
+    }
+
+    switch (rdr->prot) {
+    case PURC_RDRCOMM_HEADLESS:
+        comm = PURC_RDRCOMM_NAME_HEADLESS;
+        break;
+
+    case PURC_RDRCOMM_THREAD:
+        comm = PURC_RDRCOMM_NAME_THREAD;
+        break;
+
+    case PURC_RDRCOMM_SOCKET:
+        comm = PURC_RDRCOMM_NAME_SOCKET;
+        break;
+
+    case PURC_RDRCOMM_HBDBUS:
+        comm = PURC_RDRCOMM_NAME_HBDBUS;
+        break;
+
+    case PURC_RDRCOMM_WEBSOCKET:
+        comm = PURC_RDRCOMM_NAME_WEBSOCKET;
+        break;
+    }
+
+out:
+    return comm;
+}
+
+static const char *
+rdr_uri(struct pcrdr_conn *rdr)
+{
+    UNUSED_PARAM(rdr);
+    if (rdr && rdr->uri) {
+        return rdr->uri;
+    }
+    return "";
+}
+
+purc_variant_t
+pcrdr_data(pcrdr_conn *conn)
+{
+    purc_variant_t vs[14] = { NULL };
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *rdr = conn;
+    const char *comm = rdr_comm(rdr);
+    const char *uri = rdr_uri(rdr);
+
+    purc_variant_t data = purc_variant_make_object(0, NULL, NULL);
+    if (data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_clear_data;
+    }
+
+    if (!rdr) {
+        vs[0] = purc_variant_make_string_static(KEY_COMM, false);
+        vs[1] = purc_variant_make_string_static(comm, false);
+        if (!vs[1]) {
+            goto out_clear_vs;
+        }
+        purc_variant_object_set(data, vs[0], vs[1]);
+        purc_variant_unref(vs[0]);
+        purc_variant_unref(vs[1]);
+        goto out;
+    }
+
+    vs[0] = purc_variant_make_string_static(KEY_PROT, false);
+    vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
+    vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
+
+    struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
+    if (rdr_caps) {
+        char buf[21];
+        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
+        vs[3] = purc_variant_make_string(buf, false);
+        vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);
+    }
+    else {
+        vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
+        vs[3] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_VERSION_STRING,
+                false);
+        vs[5] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    }
+
+    vs[6] = purc_variant_make_string_static(KEY_COMM, false);
+    vs[7] = purc_variant_make_string_static(comm, false);
+
+    vs[8] = purc_variant_make_string_static(KEY_URI, false);
+    vs[9] = purc_variant_make_string_static(uri, false);
+
+    vs[10] = purc_variant_make_string_static(KEY_NAME, false);
+    vs[11] = purc_variant_make_string_static(rdr->name, false);
+
+    vs[12] = purc_variant_make_string_static(KEY_ID, false);
+    vs[13] = purc_variant_make_string_static(rdr->uid, false);
+
+    if (!vs[13]) {
+        goto out_clear_vs;
+    }
+
+    for (int i = 0; i < 7; i++) {
+        if (vs[i * 2]) {
+            purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
+            purc_variant_unref(vs[i * 2]);
+            purc_variant_unref(vs[i * 2 + 1]);
+        }
+    }
+    goto out;
+
+out_clear_vs:
+    for (int i = 0; i < 14; i++) {
+        if (vs[i]) {
+            purc_variant_unref(vs[i]);
+        }
+    }
+
+out_clear_data:
+    purc_variant_unref(data);
+    data = PURC_VARIANT_INVALID;
+
+out:
+    return data;
+}
+
+int
+connect_to_renderer_async(struct pcinst *inst,
+        const purc_instance_extra_info *extra_info,
+        void *context, pcrdr_response_handler response_handler)
+{
+    pcrdr_msg *msg = NULL, *response_msg = NULL;
+    purc_variant_t session_data;
+    struct pcrdr_conn *conn_to_rdr = NULL;
+    // purc_rdrcomm_k rdr_comm;
+
+    if (extra_info == NULL ||
+            extra_info->renderer_comm == PURC_RDRCOMM_HEADLESS) {
+        // rdr_comm = PURC_RDRCOMM_HEADLESS;
+        msg = pcrdr_headless_connect(
+            extra_info ? extra_info->renderer_uri : NULL,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
+        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        msg = pcrdr_socket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
+        // rdr_comm = PURC_RDRCOMM_THREAD;
+        msg = pcrdr_thread_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
+        // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
+        msg = pcrdr_websocket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+    else {
+        // TODO: other protocol
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        assert(0);
+        goto failed;
+    }
+
+    if (msg == NULL) {
+        conn_to_rdr = NULL;
+        /* clear error for create connection */
+        purc_clr_error();
+        goto failed;
+    }
+
+    conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+
+    if (extra_info && extra_info->renderer_uri) {
+        conn_to_rdr->uri = strdup(extra_info->renderer_uri);
+    }
+    else {
+        conn_to_rdr->uri = NULL;
+    }
+
+    if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
+        conn_to_rdr->caps =
+            pcrdr_parse_renderer_capabilities(
+                    purc_variant_get_string_const(msg->data));
+        if (conn_to_rdr->caps == NULL) {
+            goto failed;
+        }
+    }
+    pcrdr_release_message(msg);
+
+    /* Since 0.9.18 */
+    if (extra_info) {
+        inst->allow_switching_rdr = extra_info->allow_switching_rdr;
+        inst->allow_scaling_by_density = extra_info->allow_scaling_by_density;
+    }
+    else {
+        inst->allow_switching_rdr = 1;
+        inst->allow_scaling_by_density = 0;
+    }
+
+    conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+    /* send startSession request and wait for the response */
+    msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+            PCRDR_OPERATION_STARTSESSION, NULL, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    session_data = purc_variant_make_object(0, NULL, NULL);
+    if (session_data == NULL) {
+        goto failed;
+    }
+
+    if (set_session_args(inst, session_data, conn_to_rdr,
+                conn_to_rdr->caps, PCRDR_TIME_DUP_AUTH_EXPECTED)) {
+        goto failed;
+    }
+
+    /* Since v160, if the renderer needs authentication */
+    if (conn_to_rdr->caps->challenge_code) {
+        if (append_authenticate_args(inst, session_data, conn_to_rdr->caps)) {
+            goto failed;
+        }
+    }
+
+    msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+    msg->data = session_data;
+
+    /* avoid send same request */
+    conn_to_rdr->uri_atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID,
+            conn_to_rdr->uri);
+
+    /* startSession */
+    int seconds_expected = PCRDR_TIME_DUP_AUTH_EXPECTED + 2;
+    int ret = pcrdr_send_request(conn_to_rdr, msg, seconds_expected, context,
+            response_handler);
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    if (ret != 0) {
+        goto failed;
+    }
+
+    /* Add conns */
+    list_add_tail(&conn_to_rdr->ln, &inst->pending_conns);
+
+    return ret;
+
+failed:
+    if (response_msg) {
+        pcrdr_release_message(response_msg);
+    }
+
+    if (msg) {
+        pcrdr_release_message(msg);
+    }
+
+    if (conn_to_rdr) {
+        pcrdr_disconnect(conn_to_rdr);
+        conn_to_rdr = NULL;
+    }
+
+    return -1;
+}
+
+int connect_to_renderer_response_handler(pcrdr_conn *conn_to_rdr,
+        const char *request_id, int state,
+        void *context, const pcrdr_msg *response_msg)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(state);
+
+    int ret = -1;
+    pcrdr_msg *msg = NULL;
+    pcrdr_msg *res_msg = NULL;
+
+    struct pcrdr_conn_extra_info *extra_info;
+    extra_info = (struct pcrdr_conn_extra_info *) context;
+
+    struct pcinst *inst = extra_info->inst;
+
+    if (state == PCRDR_RESPONSE_CANCELLED) {
+        goto failed;
+    }
+
+    if (state != PCRDR_RESPONSE_RESULT) {
+        list_del(&conn_to_rdr->ln);
+        list_add_tail(&conn_to_rdr->ln, &inst->ready_to_close_conns);
+        conn_to_rdr->async_close_expected = purc_get_monotoic_time() + PCRDR_TIME_DEF_EXPECTED;
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK) {
+        conn_to_rdr->caps->session_handle = response_msg->resultValue;
+        if (response_msg->data && purc_variant_is_object(response_msg->data)) {
+            purc_variant_t name = purc_variant_object_get_by_ckey(
+                    response_msg->data, "name");
+            if (name && purc_variant_is_string(name)) {
+                conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
+            }
+            else {
+                conn_to_rdr->name = strdup(DEFAULT_RENDERER_NAME);
+            }
+            purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+                    conn_to_rdr->name);
+            char *uid;
+            if (atom) {
+                uid = generate_unique_rid(conn_to_rdr->name);
+            }
+            else {
+                uid = strdup(conn_to_rdr->name);
+            }
+
+            atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
+            conn_to_rdr->uid = uid;
+            conn_to_rdr->id = atom;
+        }
+    }
+    else if (ret_code == PCRDR_SC_CONFLICT) {
+        /* unix domain socket vs localhost websocket */
+        if (!inst->conflict_uri) {
+            inst->conflict_uri = conn_to_rdr->uri;
+            inst->conflict_uri_atom = conn_to_rdr->uri_atom;
+            conn_to_rdr->uri = NULL;
+        }
+        list_del(&conn_to_rdr->ln);
+        list_add_tail(&conn_to_rdr->ln, &inst->ready_to_close_conns);
+        conn_to_rdr->async_close_expected = purc_get_monotoic_time() + PCRDR_TIME_DEF_EXPECTED;
+    }
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    bool set_page_groups = (conn_to_rdr->caps->workspace == 0);
+    if (extra_info && extra_info->workspace_name &&
+            conn_to_rdr->caps->workspace != 0) {
+        /* send `createWorkspace` */
+        msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+                PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+        if (msg == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+
+        msg->data = purc_variant_make_object_0();
+        purc_variant_t value = purc_variant_make_string_static(
+                extra_info->workspace_name, true);
+        if (value == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+        purc_variant_object_set_by_static_ckey(msg->data, "name", value);
+        purc_variant_unref(value);
+
+        if (extra_info->workspace_title) {
+            value = purc_variant_make_string_static(
+                    extra_info->workspace_title, true);
+            if (value == PURC_VARIANT_INVALID) {
+                goto failed;
+            }
+            purc_variant_object_set_by_static_ckey(msg->data, "title", value);
+            purc_variant_unref(value);
+        }
+
+        msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+
+        /* createWorkspace */
+        if (pcrdr_send_request_and_wait_response(conn_to_rdr,
+                msg, PCRDR_TIME_DEF_EXPECTED, &res_msg) < 0) {
+            goto failed;
+        }
+        pcrdr_release_message(msg);
+        msg = NULL;
+
+        if (res_msg->retCode == PCRDR_SC_OK ||
+                res_msg->retCode == PCRDR_SC_CONFLICT) {
+            conn_to_rdr->caps->workspace_handle = res_msg->resultValue;
+            if (res_msg->retCode == PCRDR_SC_OK) {
+                set_page_groups = true;
+            }
+        }
+        else {
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            goto failed;
+        }
+        pcrdr_release_message(res_msg);
+        res_msg = NULL;
+    }
+    else {
+        conn_to_rdr->caps->workspace_handle = 0;   /* default workspace */
+    }
+
+    if (set_page_groups && extra_info && extra_info->workspace_layout) {
+        /* send `setPageGroups` request */
+        msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_WORKSPACE,
+                conn_to_rdr->caps->workspace_handle,
+                PCRDR_OPERATION_SETPAGEGROUPS, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+        if (msg == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+
+        msg->data = purc_variant_make_string_static(
+                extra_info->workspace_layout, true);
+        if (msg->data == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+        msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
+
+        /* setPageGroups */
+        if (pcrdr_send_request_and_wait_response(conn_to_rdr,
+                msg, PCRDR_TIME_DEF_EXPECTED, &res_msg) < 0) {
+            goto failed;
+        }
+        pcrdr_release_message(msg);
+        msg = NULL;
+
+        if (res_msg->retCode != PCRDR_SC_OK &&
+                res_msg->retCode != PCRDR_SC_CONFLICT) {
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            goto failed;
+        }
+        pcrdr_release_message(res_msg);
+        res_msg = NULL;
+    }
+
+    /* del from pending conns */
+    list_del(&conn_to_rdr->ln);
+
+    /* Add conns */
+    list_add_tail(&conn_to_rdr->ln, &inst->conns);
+    if (!inst->conn_to_rdr) {
+        inst->conn_to_rdr = conn_to_rdr;
+    }
+
+    if (!inst->curr_conn) {
+        inst->curr_conn = conn_to_rdr;
+    }
+
+    pcrdr_conn_set_request_handler(conn_to_rdr, pcrun_request_handler);
+
+    pcintr_attach_renderer(inst, conn_to_rdr, NULL);
+
+    /* broadcase event rdrState:newDuplicate */
+    purc_variant_t data = pcrdr_data(conn_to_rdr);
+    broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+            MSG_SUB_TYPE_NEW_DUPLICATE, data);
+    if (data) {
+        purc_variant_unref(data);
+    }
+
+    ret = 0;
+
+failed:
+    if (extra_info->workspace_name) {
+        free(extra_info->workspace_name);
+        extra_info->workspace_name = NULL;
+    }
+
+    if (extra_info->workspace_title) {
+        free(extra_info->workspace_title);
+        extra_info->workspace_title = NULL;
+    }
+
+    if (extra_info->workspace_layout) {
+        free(extra_info->workspace_layout);
+        extra_info->workspace_layout = NULL;
+    }
+
+    free(extra_info);
+
+    if (res_msg) {
+        pcrdr_release_message(res_msg);
+    }
+
+    if (msg) {
+        pcrdr_release_message(msg);
+    }
+
+    return ret;
+}
+
+const char *
+purc_connect_to_renderer(purc_instance_extra_info *extra_info)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return NULL;
+    }
+
+    purc_atom_t rdr_uri_atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+            extra_info->renderer_uri);
+    if (rdr_uri_atom) {
+        struct list_head *conns = &inst->conns;
+        struct pcrdr_conn *pconn, *qconn;
+        list_for_each_entry_safe(pconn, qconn, conns, ln) {
+            if (pconn->uri_atom == rdr_uri_atom) {
+                return pconn->uid;
+            }
+        }
+    }
+
+    if (extra_info) {
+        if (!extra_info->workspace_name) {
+            extra_info->workspace_name = inst->workspace_name;
+        }
+        if (!extra_info->workspace_title) {
+            extra_info->workspace_title = inst->workspace_title;
+        }
+        if (!extra_info->workspace_layout) {
+            extra_info->workspace_layout = inst->workspace_layout;
+        }
+    }
+
+
+    pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
+    if (!conn) {
+        /* PCRDR_ERROR_SERVER_REFUSED */
+        purc_clr_error();
+        goto out;
+    }
+
+#if 0
+    /* inst->conn_to_rdr do this */
+    pcrdr_conn_set_extra_message_source(conn, pcrun_extra_message_source,
+            NULL, NULL);
+#endif
+    pcrdr_conn_set_request_handler(conn, pcrun_request_handler);
+
+    pcintr_attach_renderer(inst, conn, NULL);
+
+    /* broadcase event rdrState:newDuplicate */
+    purc_variant_t data = pcrdr_data(conn);
+    broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+            MSG_SUB_TYPE_NEW_DUPLICATE, data);
+    if (data) {
+        purc_variant_unref(data);
+    }
+
+out:
+    return conn ? conn->uid : NULL;
+}
+
+int
+purc_connect_to_renderer_async(purc_instance_extra_info *extra_info)
+{
+    int ret = -1;
+    struct pcrdr_conn_extra_info *conn_extra_info = NULL;
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        goto out;
+    }
+
+    purc_atom_t rdr_uri_atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID,
+            extra_info->renderer_uri);
+    if (rdr_uri_atom) {
+        struct list_head *conns = &inst->conns;
+        struct pcrdr_conn *pconn, *qconn;
+        list_for_each_entry_safe(pconn, qconn, conns, ln) {
+            if (pconn->uri_atom == rdr_uri_atom) {
+                ret = 0;
+                goto out;
+            }
+        }
+    }
+
+    if (extra_info) {
+        if (!extra_info->workspace_name) {
+            extra_info->workspace_name = inst->workspace_name;
+        }
+        if (!extra_info->workspace_title) {
+            extra_info->workspace_title = inst->workspace_title;
+        }
+        if (!extra_info->workspace_layout) {
+            extra_info->workspace_layout = inst->workspace_layout;
+        }
+    }
+
+    conn_extra_info = (struct pcrdr_conn_extra_info *)calloc(1,
+            sizeof(*conn_extra_info));
+
+    if (extra_info->workspace_name) {
+        conn_extra_info->workspace_name = strdup(extra_info->workspace_name);
+    }
+
+    if (extra_info->workspace_title) {
+        conn_extra_info->workspace_title = strdup(extra_info->workspace_title);
+    }
+
+    if (extra_info->workspace_layout) {
+        conn_extra_info->workspace_layout = strdup(extra_info->workspace_layout);
+    }
+
+    conn_extra_info->inst = inst;
+
+    ret = connect_to_renderer_async(inst, extra_info, conn_extra_info,
+            connect_to_renderer_response_handler);
+
+out:
+    return ret;
+}
+
+int
+purc_disconnect_from_renderer(const char *id)
+{
+    if (!id) {
+        goto failed;
+    }
+
+    struct pcinst *inst = pcinst_current();
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        if (strcmp(pconn->uid, id) == 0) {
+            pcintr_detach_renderer(inst, pconn);
+
+            /* broadcase event rdrState:lostDuplicate */
+            purc_variant_t data = pcrdr_data(pconn);
+            broadcast_renderer_event(inst, MSG_TYPE_RDR_STATE,
+                    MSG_SUB_TYPE_LOST_DUPLICATE, data);
+            if (data) {
+                purc_variant_unref(data);
+            }
+
+            list_del(&pconn->ln);
+            pcrdr_disconnect(pconn);
+
+            if (inst->conn_to_rdr == pconn) {
+                inst->conn_to_rdr = NULL;
+            }
+            if (inst->curr_conn == pconn) {
+                inst->curr_conn = NULL;
+            }
+
+            /* choose main conn */
+            if (inst->conn_to_rdr == NULL) {
+                if (inst->curr_conn) {
+                    inst->conn_to_rdr = inst->curr_conn;
+                }
+                else {
+                    struct list_head *conns = &inst->conns;
+                    inst->conn_to_rdr = list_first_entry(conns, struct pcrdr_conn, ln);
+                    inst->curr_conn = inst->conn_to_rdr;
+                }
+            }
+            return 0;
+        }
+    }
+
+
+failed:
+    return -1;
+}
+
 pcrdr_conn *
 pcrdr_connect(const struct purc_instance_extra_info *extra_info)
 {
@@ -828,20 +1658,59 @@ pcrdr_connect(const struct purc_instance_extra_info *extra_info)
 static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
-    return connect_to_renderer(inst, extra_info);
+    list_head_init(&inst->conns);
+    list_head_init(&inst->pending_conns);
+    list_head_init(&inst->ready_to_close_conns);
+
+    /* keep workspace info */
+    if (extra_info) {
+        if (extra_info->workspace_name) {
+            inst->workspace_name = strdup(extra_info->workspace_name);
+        }
+
+        if (extra_info->workspace_title) {
+            inst->workspace_title = strdup(extra_info->workspace_title);
+        }
+
+        if (extra_info->workspace_layout) {
+            inst->workspace_layout = strdup(extra_info->workspace_layout);
+        }
+    }
+
+    pcrdr_conn *conn = connect_to_renderer(inst, extra_info);
+    return conn ? 0 :  purc_get_last_error();
 }
 
 static void _cleanup_instance(struct pcinst *inst)
 {
-    if (inst->rdr_caps) {
-        pcrdr_release_renderer_capabilities(inst->rdr_caps);
-        inst->rdr_caps = NULL;
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        list_del(&pconn->ln);
+        pcrdr_disconnect(pconn);
+
+        if (inst->conn_to_rdr == pconn) {
+            inst->conn_to_rdr = NULL;
+        }
+    }
+
+    conns = &inst->pending_conns;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        list_del(&pconn->ln);
+        pcrdr_disconnect(pconn);
+    }
+
+    conns = &inst->ready_to_close_conns;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        list_del(&pconn->ln);
+        pcrdr_disconnect(pconn);
     }
 
     if (inst->conn_to_rdr) {
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
     }
+
 }
 
 struct pcmodule _module_renderer = {

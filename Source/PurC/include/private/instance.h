@@ -80,6 +80,9 @@ struct pcinst {
 
     char                   *app_name;
     char                   *runner_name;
+    char                   *workspace_name;
+    char                   *workspace_title;
+    char                   *workspace_layout;
     char                    endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t             endpoint_atom;
 
@@ -102,9 +105,23 @@ struct pcinst {
     // for loaded dynamic variants
     pcutils_array_t        *dvobjs;
 
+    /* struct pcrdr_conn */
+    struct list_head        conns;
+
+    /* struct pcrdr_conn * conns wait response for 'startSession' */
+    struct list_head        pending_conns;
+
+    /* struct pcrdr_conn * conns wait for disconnect */
+    struct list_head        ready_to_close_conns;
+
+    /* main conn */
     struct pcrdr_conn      *conn_to_rdr;
-    struct renderer_capabilities *rdr_caps;
     struct pcrdr_conn      *conn_to_rdr_origin;
+
+    struct pcrdr_conn      *curr_conn;
+    /* unix domain socket vs localhost websocket */
+    char                   *conflict_uri;
+    purc_atom_t            conflict_uri_atom;
 
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;

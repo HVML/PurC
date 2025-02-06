@@ -2119,3 +2119,10 @@ uint8_t css_computed_foil_candidate_marks(
     return get__foil_candidate_marks(style, marks);
 }
 
+uint8_t css_computed_background_size(const css_computed_style *style,
+        css_fixed *hlength, css_unit *hunit,
+        css_fixed *vlength, css_unit *vunit)
+{
+    return get_background_size(style, hlength, hunit, vlength, vunit);
+}
+

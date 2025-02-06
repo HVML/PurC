@@ -2,7 +2,7 @@
 # Licensed under the MIT License,
 # http://www.opensource.org/licenses/mit-license.php
 # Copyright 2017 Lucas Neves <lcneves@gmail.com>
-# Copyright (C) 2021 ~ 2023 Beijing FMSoft Technologies Co., Ltd.
+# Copyright (C) 2021 ~ 2024 Beijing FMSoft Technologies Co., Ltd.
 
 # Configuration of CSS values.
 # The tuples in this set will be unpacked as arguments to the CSSValue
@@ -68,6 +68,7 @@ style = {
     ('background_image', 1, 'string'),
     ('background_position', 1, (('length',), ('length',)),
         'CSS_BACKGROUND_POSITION_SET'),
+    ('background_size', 3, (('length',), ('length',))),
     ('border_top_color', 2, 'color'),
     ('border_right_color', 2, 'color'),
     ('border_bottom_color', 2, 'color'),

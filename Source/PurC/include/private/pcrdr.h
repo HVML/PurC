@@ -32,6 +32,7 @@
 
 #define PCRDR_TIME_DEF_EXPECTED         5
 #define PCRDR_TIME_AUTH_EXPECTED        10
+#define PCRDR_TIME_DUP_AUTH_EXPECTED    60
 
 enum {
 #define PCRDR_SELECTOR_ID       "id"
@@ -116,6 +117,9 @@ pcrdr_check_operation(const char *op)
 
 int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         const char *uri);
+
+/* rdrState:newDuplicate,  rdrState:lostDuplicate, $RUNNER.duplicateRenderers */
+purc_variant_t pcrdr_data(pcrdr_conn *conn);
 
 #ifdef __cplusplus
 }

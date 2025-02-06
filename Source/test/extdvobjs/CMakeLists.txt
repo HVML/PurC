@@ -13,6 +13,7 @@ if (ENABLE_EXTDVOBJ_MATH)
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     target_compile_definitions(test_extdvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
@@ -25,9 +26,8 @@ if (ENABLE_EXTDVOBJ_MATH)
     )
 
     set(test_extdvobjs_math_LIBRARIES
-        gtest_main
-        gtest
         PurC::PurC
+        ${GTEST_LIBRARIES}
         pthread
     )
 
@@ -45,6 +45,7 @@ if (ENABLE_EXTDVOBJ_FS)
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     PURC_EXECUTABLE(test_extdvobjs_fs)
@@ -58,9 +59,8 @@ if (ENABLE_EXTDVOBJ_FS)
     )
 
     set(test_extdvobjs_fs_LIBRARIES
-        gtest_main
-        gtest
         PurC::PurC
+        ${GTEST_LIBRARIES}
         pthread
     )
 
@@ -76,6 +76,7 @@ if (ENABLE_EXTDVOBJ_FS)
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     PURC_EXECUTABLE(test_extdvobjs_file)
@@ -88,9 +89,8 @@ if (ENABLE_EXTDVOBJ_FS)
     )
 
     set(test_extdvobjs_file_LIBRARIES
-        gtest_main
-        gtest
         PurC::PurC
+        ${GTEST_LIBRARIES}
         pthread
     )
 
@@ -108,6 +108,7 @@ if (ENABLE_EXTDVOBJ_PY)
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     PURC_EXECUTABLE(test_extdvobjs_py)
@@ -121,9 +122,8 @@ if (ENABLE_EXTDVOBJ_PY)
     )
 
     set(test_extdvobjs_py_LIBRARIES
-        gtest_main
-        gtest
         PurC::PurC
+        ${GTEST_LIBRARIES}
         pthread
     )
 
@@ -141,6 +141,7 @@ if (ENABLE_EXTDVOBJ_SQLITE)
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
     )
 
     PURC_EXECUTABLE(test_extdvobjs_sqlite)
@@ -154,9 +155,8 @@ if (ENABLE_EXTDVOBJ_SQLITE)
     )
 
     set(test_extdvobjs_sqlite_LIBRARIES
-        gtest_main
-        gtest
         PurC::PurC
+        ${GTEST_LIBRARIES}
         pthread
     )
 

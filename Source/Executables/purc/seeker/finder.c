@@ -64,7 +64,7 @@ static void notify_endpoint_about_new_renderer(pcmcth_renderer *rdr,
         msg->target = PCRDR_MSG_TARGET_SESSION;
         msg->targetValue = 0;
         msg->eventName =
-            purc_variant_make_string_static(PCRDR_EVENT_NEW_RENDERER, false);
+            purc_variant_make_string_static(PCRDR_EVENT_DUP_RENDERER, false);
 
         /* TODO: use real URI for the sourceURI */
         msg->sourceURI =

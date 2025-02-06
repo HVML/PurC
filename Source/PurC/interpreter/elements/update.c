@@ -1514,7 +1514,8 @@ static bool
 is_no_return()
 {
     struct pcinst* inst = pcinst_current();
-    struct pcrdr_conn *conn = inst->conn_to_rdr;
+    struct pcrdr_conn *conn = inst->curr_conn ? inst->curr_conn :
+        inst->conn_to_rdr;
     return conn && (conn->prot != PURC_RDRCOMM_THREAD);
 }
 

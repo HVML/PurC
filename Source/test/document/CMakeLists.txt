@@ -9,6 +9,7 @@ PURC_EXECUTABLE_DECLARE(test_document)
 
 list(APPEND test_document_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_document)
@@ -18,9 +19,8 @@ set(test_document_SOURCES
 )
 
 set(test_document_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

@@ -44,6 +44,7 @@ static int init_renderer(pcmcth_renderer *rdr)
     foil_set_renderer_callbacks(rdr);
 
     rdr->features = FOIL_RDR_FEATURES;
+    rdr->name = FOIL_RDR_NAME;
     rdr->len_features = sizeof(FOIL_RDR_FEATURES) - 1;
     rdr->master_rid = 0;
     rdr->nr_endpoints = 0;

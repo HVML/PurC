@@ -731,5 +731,9 @@ struct prop_table prop_dispatch[CSS_N_PROPERTIES] = {
         PROPERTY_FUNCS(_foil_candidate_marks),
         0,
     },
+    {
+        PROPERTY_FUNCS(background_size),
+        0,
+    },
 
 };

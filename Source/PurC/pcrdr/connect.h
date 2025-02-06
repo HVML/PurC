@@ -60,10 +60,18 @@ struct pcrdr_page_handle {
 struct pcrdr_prot_data;
 
 struct pcrdr_conn {
+    struct list_head              ln;
+
     int prot;
     int type;
     int fd;
     int timeout_ms;
+    time_t  async_close_expected;
+
+    purc_atom_t                  id;
+    char* name;
+    char* uid;
+    struct renderer_capabilities *caps;
 
     char* srv_host_name;
     char* own_host_name;
@@ -72,6 +80,7 @@ struct pcrdr_conn {
 
     struct pcrdr_conn_stats stats;
 
+    purc_atom_t                  uri_atom;
     char* uri;
 
     void *user_data;

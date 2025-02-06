@@ -1,0 +1,33 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>Test set/get Property</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <h1>Test set/get Property</h1>
+        <p>callMethod: <span id="idCall">$DATETIME.time_prt()</span></p>
+        <p>setProperty: <input id="idSet" value="$DATETIME.time_prt()"/></p>
+        <p>getProperty: <span id="idGet"></span></p>
+
+        <observe on $TIMERS for "expired:clock">
+            <request on="#idCall" to="call:ELEMENT.textContent=ARG; return true" with "$DATETIME.time_prt()" />
+            <request on="#idSet" to="set:value" with "$DATETIME.time_prt()" />
+            <request on="#idSet" to="set:style.backgroundColor" with "red" />
+            <request on="#idSet" to="get:style.backgroundColor" >
+                <update on="#idGet" at="textContent" with="$?" />
+            </request>
+        </observe>
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
+    </body>
+</hvml>

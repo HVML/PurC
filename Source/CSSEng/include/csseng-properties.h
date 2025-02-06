@@ -3,7 +3,7 @@
  * Licensed under the MIT License,
  *                http://www.opensource.org/licenses/mit-license.php
  * Copyright 2009 John-Mark Bell <jmb@netsurf-browser.org>
- * Copyright (C) 2021 Beijing FMSoft Technologies Co., Ltd.
+ * Copyright (C) 2021, 2024 Beijing FMSoft Technologies Co., Ltd.
  */
 
 #ifndef libcss_properties_h_
@@ -193,6 +193,7 @@ enum css_properties_e {
 	CSS_PROP_FOIL_COLOR_PRIMARY = 0xaf,
 	CSS_PROP_FOIL_COLOR_SECONDARY = 0xb0,
 	CSS_PROP_FOIL_CANDIDATE_MARKS = 0xb1,
+	CSS_PROP_BACKGROUND_SIZE = 0xb2,
 
 	CSS_N_PROPERTIES
 };
@@ -1306,6 +1307,16 @@ enum css_foil_candidate_marks_e {
     CSS_FOIL_CANDIDATE_MARKS_INHERIT = 0x0,
     CSS_FOIL_CANDIDATE_MARKS_AUTO,
     CSS_FOIL_CANDIDATE_MARKS_SET,
+};
+
+enum css_background_size_e {
+    CSS_BACKGROUND_SIZE_INHERIT     = 0x0,
+    CSS_BACKGROUND_SIZE_CONTAIN     = 0x1,
+    CSS_BACKGROUND_SIZE_COVER       = 0x2,
+    CSS_BACKGROUND_SIZE_AUTO        = 0x3,
+    CSS_BACKGROUND_SIZE_SET_WIDTH   = 0x4,
+    CSS_BACKGROUND_SIZE_SET_HEIGHT  = 0x5,
+    CSS_BACKGROUND_SIZE_SET_SIZE    = 0x6,
 };
 
 #ifdef __cplusplus

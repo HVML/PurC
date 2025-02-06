@@ -420,7 +420,7 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
     for (size_t i = 0; i < count; i++) {
         pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
                 heap->loaded_crtn_handles, i, NULL);
-        if (handle == co->target_page_handle) {
+        if (pcintr_coroutine_is_match_page_handle(co, handle)) {
             if (pstack) {
                 *pstack = &(co->stack);
             }
@@ -459,13 +459,14 @@ again:
 }
 
 static void
-on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
     const char *event = purc_variant_get_string_const(msg->eventName);
@@ -475,9 +476,10 @@ on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
     }
 
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+        if (rdr_conn) {
+            pcintr_coroutine_destroy_rdr_conn(stack->co, rdr_conn);
+        }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
@@ -488,13 +490,14 @@ on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
 }
 
 static void
-on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_widget_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
+    struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
 
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
@@ -506,9 +509,10 @@ on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
     }
 
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
-        stack->co->target_workspace_handle = 0;
-        stack->co->target_page_handle = 0;
-        stack->co->target_dom_handle = 0;
+        rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
+        if (rdr_conn) {
+            pcintr_coroutine_destroy_rdr_conn(stack->co, rdr_conn);
+        }
         purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
@@ -519,10 +523,11 @@ on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
 }
 
 static void
-on_dom_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_dom_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    UNUSED_PARAM(conn);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
 
@@ -560,7 +565,7 @@ on_dom_event(struct pcinst *inst, const pcrdr_msg *msg,
     for (size_t i = 0; i < count; i++) {
         pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
                 heap->loaded_crtn_handles, i, NULL);
-        if ((handle != co->target_dom_handle) ||
+        if (!pcintr_coroutine_is_match_dom_handle(co, handle) ||
                 !is_crtn_observe_event(inst, co, msg, source,
                     type, sub_type)) {
             continue;
@@ -622,13 +627,66 @@ broadcast_rdr_idle_event(struct pcinst *inst, purc_variant_t data)
     }
 }
 
+int
+purc_connect_to_renderer_async(purc_instance_extra_info *extra_info);
+
 static void
-on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
+on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    UNUSED_PARAM(conn);
     UNUSED_PARAM(sub_type);
-    if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
+
+    if (strcmp(type, MSG_TYPE_DUP_RENDERER) == 0) {
+        purc_variant_t data = msg->data;
+        purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
+        if (!uri) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_URI);
+            return;
+        }
+
+        const char *s_uri = purc_variant_get_string_const(uri);
+        purc_atom_t atom = purc_atom_try_string_ex(ATOM_BUCKET_RDRID, s_uri);
+        if (atom) {
+            PC_WARN("Conflict uri '%s' , do nothing.", s_uri);
+            return;
+        }
+
+        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        if (!comm) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_COMM);
+            return;
+        }
+
+        const char *s_comm = purc_variant_get_string_const(comm);
+        PC_TIMESTAMP("receive dup renderer event url: %s app: %s runner: %s\n",
+                s_uri, inst->app_name, inst->runner_name);
+
+        purc_instance_extra_info extra_info = {0};
+        if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_SOCKET;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+        }
+        else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
+            extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+        }
+        else {
+            PC_WARN("Invalid '%s' comm.", s_comm);
+            return;
+        }
+        extra_info.renderer_uri = s_uri;
+//        purc_connect_to_renderer(&extra_info);
+        purc_connect_to_renderer_async(&extra_info);
+    }
+    else if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
         purc_variant_t data = msg->data;
         purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
         if (!comm) {
@@ -646,10 +704,11 @@ on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
 
         const char *s_comm = purc_variant_get_string_const(comm);
         const char *s_uri = purc_variant_get_string_const(uri);
-        PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n", s_uri, inst->app_name, inst->runner_name);
+        PC_TIMESTAMP("receive switch new renderer event url: %s app: %s runner: %s\n",
+                s_uri, inst->app_name, inst->runner_name);
         pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
-    if (strcmp(type, MSG_TYPE_RDR_STATE) == 0
+    else if (strcmp(type, MSG_TYPE_RDR_STATE) == 0
             && sub_type && strcmp(type, MSG_TYPE_IDLE)) {
         broadcast_rdr_idle_event(inst, msg->data);
     } else {
@@ -694,7 +753,7 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
-        on_session_event(inst, msg, type, sub_type);
+        on_session_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
@@ -703,15 +762,15 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
-        on_plainwindow_event(inst, msg, type, sub_type);
+        on_plainwindow_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WIDGET:
-        on_widget_event(inst, msg, type, sub_type);
+        on_widget_event(inst, conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_DOM:
-        on_dom_event(inst,  msg, type, sub_type);
+        on_dom_event(inst,  conn, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_USER:

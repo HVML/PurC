@@ -323,6 +323,9 @@ static void on_sync_complete(
         struct pcfetcher_resp_header *resp_header =
             (struct pcfetcher_resp_header *)data;
         ctxt->ret_code = resp_header->ret_code;
+        if (resp_header->mime_type) {
+            ctxt->mime_type = strdup(resp_header->mime_type);
+        }
         PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
         PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
         PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);

@@ -12,6 +12,7 @@ list(APPEND test_variant_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant)
@@ -21,9 +22,8 @@ set(test_variant_SOURCES
 )
 
 set(test_variant_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -39,6 +39,7 @@ list(APPEND test_serializer_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_serializer)
@@ -48,9 +49,8 @@ set(test_serializer_SOURCES
 )
 
 set(test_serializer_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -66,6 +66,7 @@ list(APPEND test_variant_array_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_array)
@@ -75,9 +76,8 @@ set(test_variant_array_SOURCES
 )
 
 set(test_variant_array_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -93,6 +93,7 @@ list(APPEND test_variant_object_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_object)
@@ -102,9 +103,8 @@ set(test_variant_object_SOURCES
 )
 
 set(test_variant_object_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -120,6 +120,7 @@ list(APPEND test_variant_set_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_set)
@@ -129,9 +130,8 @@ set(test_variant_set_SOURCES
 )
 
 set(test_variant_set_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_INCLUDE_DIRS}"
     pthread
 )
 
@@ -147,6 +147,7 @@ list(APPEND test_random_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_random)
@@ -156,9 +157,8 @@ set(test_random_SOURCES
 )
 
 set(test_random_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -174,6 +174,7 @@ list(APPEND test_load_from_json_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_load_from_json)
@@ -183,9 +184,8 @@ set(test_load_from_json_SOURCES
 )
 
 set(test_load_from_json_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -201,6 +201,7 @@ list(APPEND test_numerify_booleanize_stringify_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_numerify_booleanize_stringify)
@@ -210,9 +211,8 @@ set(test_numerify_booleanize_stringify_SOURCES
 )
 
 set(test_numerify_booleanize_stringify_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -230,6 +230,7 @@ list(APPEND test_container_PRIVATE_INCLUDE_DIRECTORIES
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
     ${PURC_DIR}/hvml
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_container)
@@ -239,9 +240,8 @@ set(test_container_SOURCES
 )
 
 set(test_container_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -257,6 +257,7 @@ list(APPEND test_set_find_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_set_find)
@@ -266,9 +267,8 @@ set(test_set_find_SOURCES
 )
 
 set(test_set_find_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -284,6 +284,7 @@ list(APPEND test_constraint_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_constraint)
@@ -293,9 +294,8 @@ set(test_constraint_SOURCES
 )
 
 set(test_constraint_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -311,6 +311,7 @@ list(APPEND test_variant_map_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_map)
@@ -320,9 +321,8 @@ set(test_variant_map_SOURCES
 )
 
 set(test_variant_map_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -338,6 +338,7 @@ list(APPEND test_bugs_json_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_bugs_json)
@@ -347,9 +348,8 @@ set(test_bugs_json_SOURCES
 )
 
 set(test_bugs_json_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -367,6 +367,7 @@ list(APPEND test_variant_tuple_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_tuple)
@@ -376,9 +377,8 @@ set(test_variant_tuple_SOURCES
 )
 
 set(test_variant_tuple_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -396,6 +396,7 @@ list(APPEND test_variant_sorted_array_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_variant_sorted_array)
@@ -405,9 +406,8 @@ set(test_variant_sorted_array_SOURCES
 )
 
 set(test_variant_sorted_array_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

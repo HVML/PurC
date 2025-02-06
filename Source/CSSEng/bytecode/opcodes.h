@@ -1165,4 +1165,16 @@ enum op_foil_candidate_marks {
     FOIL_CANDIDATE_MARKS_SET  = 0x0080,
 };
 
+enum op_background_size {
+    BACKGROUND_SIZE_HORZ_SET        = 0x0080,
+    BACKGROUND_SIZE_HORZ_AUTO       = 0x0000,
+    BACKGROUND_SIZE_HORZ_CONTAIN    = 0x0010,
+    BACKGROUND_SIZE_HORZ_COVER      = 0x0020,
+
+    BACKGROUND_SIZE_VERT_SET        = 0x0008,
+    BACKGROUND_SIZE_VERT_AUTO       = 0x0000,
+    BACKGROUND_SIZE_VERT_CONTAIN    = 0x0001,
+    BACKGROUND_SIZE_VERT_COVER      = 0x0002
+};
+
 #endif

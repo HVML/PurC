@@ -12,6 +12,7 @@ list(APPEND test_stack_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_stack)
@@ -21,9 +22,8 @@ set(test_stack_SOURCES
 )
 
 set(test_stack_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -38,7 +38,9 @@ list(APPEND test_ejson_PRIVATE_INCLUDE_DIRECTORIES
         ${FORWARDING_HEADERS_DIR}
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
-        ${WTF_DIR})
+        ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
+)
 
 PURC_EXECUTABLE(test_ejson)
 
@@ -47,9 +49,8 @@ set(test_ejson_SOURCES
 )
 
 set(test_ejson_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -64,7 +65,9 @@ list(APPEND test_ejson_vcm_PRIVATE_INCLUDE_DIRECTORIES
         ${FORWARDING_HEADERS_DIR}
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
-        ${WTF_DIR})
+        ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
+        )
 
 PURC_EXECUTABLE(test_ejson_vcm)
 
@@ -73,9 +76,8 @@ set(test_ejson_vcm_SOURCES
 )
 
 set(test_ejson_vcm_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -90,7 +92,9 @@ list(APPEND test_ref_PRIVATE_INCLUDE_DIRECTORIES
         ${FORWARDING_HEADERS_DIR}
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
-        ${WTF_DIR})
+        ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
+        )
 
 PURC_EXECUTABLE(test_ref)
 
@@ -99,9 +103,8 @@ set(test_ref_SOURCES
 )
 
 set(test_ref_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -116,7 +119,9 @@ list(APPEND test_jsonee_PRIVATE_INCLUDE_DIRECTORIES
         ${FORWARDING_HEADERS_DIR}
         ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
-        ${WTF_DIR})
+        ${WTF_DIR}
+        "${GTEST_INCLUDE_DIRS}"
+        )
 
 PURC_EXECUTABLE(test_jsonee)
 
@@ -125,9 +130,8 @@ set(test_jsonee_SOURCES
 )
 
 set(test_jsonee_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

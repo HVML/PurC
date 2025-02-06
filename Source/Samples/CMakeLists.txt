@@ -94,6 +94,7 @@ set(sample_HVML_FILES
     "hvml/tpl.html"
     "hvml/templ.hvml"
     "hvml/sqlite.hvml"
+    "hvml/set-get-property.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

@@ -169,7 +169,7 @@ static inline int conn_write (int fd, const void *data, ssize_t sz)
 static ssize_t ws_write(int fd, const void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return send(fd, buf, length, 0);
+    return send(fd, buf, length, MSG_NOSIGNAL);
 }
 
 static ssize_t ws_read(int fd, void *buf, size_t length)
@@ -212,7 +212,7 @@ static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
     char *p = (char *)buf + nr_result;
     ssize_t nr_read = 0;
     size_t nr_len = length - nr_result;
-    while ((nr_read = ws_read(conn->fd, p, nr_len)) != -1) {
+    while ((nr_read = ws_read(conn->fd, p, nr_len)) != 0) {
         nr_result += nr_read;
         if ((size_t)nr_read == nr_len) {
             break;
@@ -633,12 +633,12 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
 
     unlink (unix_addr.sun_path);        /* in case it already exists */
     if (bind (fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG ("Failed to call `bind` in %s: %s\n", __func__,
+        PC_WARN ("Failed to call `bind` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
     if (chmod (unix_addr.sun_path, CLI_PERM) < 0) {
-        PC_DEBUG ("Failed to call `chmod` in %s: %s\n", __func__,
+        PC_WARN ("Failed to call `chmod` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
@@ -650,7 +650,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path) + 1;
 
     if (connect (fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG ("Failed to call `connect` in %s: %s\n", __func__,
+        PC_WARN ("Failed to call `connect` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
@@ -963,6 +963,7 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
     char s_port[11];
     sprintf(s_port, "%d", port);
     if ((fd = ws_open_connection(host_name, s_port)) < 0) {
+        PC_WARN("ws_open_connection failed %s:%s\n", host_name, s_port);
         goto error;
     }
 
@@ -972,6 +973,7 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
 
     if (ws_handshake(*conn, host_name, s_port, app_name,
                 runner_name) != 0) {
+        PC_WARN("ws_handshake failed %s:%s\n", host_name, s_port);
         goto error;
     }
 

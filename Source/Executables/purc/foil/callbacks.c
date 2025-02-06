@@ -626,8 +626,8 @@ failed:
 }
 
 static purc_variant_t
-foil_call_method_in_udom(pcmcth_session *sess,
-        pcmcth_udom *udom, uint64_t element_handle,
+foil_call_method_in_udom(pcmcth_session *sess, pcmcth_udom *udom,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *method, purc_variant_t arg, int* retv)
 {
     udom = validate_udom(sess, udom, retv);
@@ -640,6 +640,15 @@ foil_call_method_in_udom(pcmcth_session *sess,
         *retv = PCRDR_SC_BAD_REQUEST;
         return PURC_VARIANT_INVALID;
     }
+
+    uint64_t element_handle = 0;
+    if (element_type != PCRDR_MSG_ELEMENT_TYPE_HANDLE ||
+            element_value == NULL) {
+        *retv = PCRDR_SC_BAD_REQUEST;
+        return PURC_VARIANT_INVALID;
+    }
+
+    element_handle = strtoull(element_value, NULL, 16);
 
     foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {

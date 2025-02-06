@@ -959,8 +959,8 @@ failed:
 }
 
 static purc_variant_t
-call_method_in_udom(pcmcth_session *sess,
-        pcmcth_udom *udom, uint64_t element_handle,
+call_method_in_udom(pcmcth_session *sess, pcmcth_udom *udom,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *method, purc_variant_t arg, int* retv)
 {
     udom = validate_udom(sess, udom, retv);
@@ -969,12 +969,16 @@ call_method_in_udom(pcmcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
+#if 0
+    /* call:ELEMENT.textContent=ARG; return true */
     if (!purc_is_valid_token(method, PURC_LEN_PROPERTY_NAME)) {
         *retv = PCRDR_SC_BAD_REQUEST;
         return PURC_VARIANT_INVALID;
     }
+#endif
 
-    (void)element_handle;
+    (void)element_type;
+    (void)element_value;
     (void)method;
     (void)arg;
 

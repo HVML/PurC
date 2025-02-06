@@ -12,6 +12,7 @@ list(APPEND test_def_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_def)
@@ -21,9 +22,8 @@ set(test_def_SOURCES
 )
 
 set(test_def_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -39,6 +39,7 @@ list(APPEND test_syslog_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_syslog)
@@ -48,9 +49,8 @@ set(test_syslog_SOURCES
 )
 
 set(test_syslog_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -66,6 +66,7 @@ list(APPEND test_mylog_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_mylog)
@@ -75,9 +76,8 @@ set(test_mylog_SOURCES
 )
 
 set(test_mylog_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -93,6 +93,7 @@ list(APPEND test_threads_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_threads)
@@ -102,9 +103,8 @@ set(test_threads_SOURCES
 )
 
 set(test_threads_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -120,6 +120,7 @@ list(APPEND test_responser_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_responser)
@@ -129,9 +130,8 @@ set(test_responser_SOURCES
 )
 
 set(test_responser_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -147,6 +147,7 @@ list(APPEND test_requester_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_requester)
@@ -156,9 +157,8 @@ set(test_requester_SOURCES
 )
 
 set(test_requester_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -174,6 +174,7 @@ list(APPEND test_init_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_init)
@@ -183,9 +184,8 @@ set(test_init_SOURCES
 )
 
 set(test_init_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -201,6 +201,7 @@ list(APPEND test_pcrdr_init_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_pcrdr_init)
@@ -210,9 +211,8 @@ set(test_pcrdr_init_SOURCES
 )
 
 set(test_pcrdr_init_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

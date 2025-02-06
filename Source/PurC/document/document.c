@@ -843,8 +843,22 @@ travel_find_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
     struct travel_find_elem *args = (struct travel_find_elem*)ctxt;
     bool match = false;
 
+    struct pcdoc_css_selection_ctxt sel_ctxt = { doc, NULL };
+    sel_ctxt.node_datas = pcutils_sorted_array_create(SAFLAG_DEFAULT, 10, NULL, NULL);
+
     css_element_selector_match(args->selector->selector, element,
-            &purc_document_css_select_handler, doc, &match);
+            &purc_document_css_select_handler, &sel_ctxt, &match);
+
+    size_t count = pcutils_sorted_array_count(sel_ctxt.node_datas);
+    for (size_t i = 0; i < count; i++) {
+        void *data = NULL;
+        const void *node = pcutils_sorted_array_get(sel_ctxt.node_datas, i, &data);
+        if (data) {
+            css_node_data_handler(&purc_document_css_select_handler, CSS_NODE_DELETED,
+                    &sel_ctxt, (void *)node, NULL, data);
+        }
+    }
+    pcutils_sorted_array_destroy(sel_ctxt.node_datas);
 
     if (match) {
         args->elem = element;
@@ -946,8 +960,22 @@ travel_select_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
     pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)ctxt;
     bool match = false;
 
+    struct pcdoc_css_selection_ctxt sel_ctxt = { doc, NULL };
+    sel_ctxt.node_datas = pcutils_sorted_array_create(SAFLAG_DEFAULT, 10, NULL, NULL);
+
     css_element_selector_match(coll->selector->selector, element,
-            &purc_document_css_select_handler, doc, &match);
+            &purc_document_css_select_handler, &sel_ctxt, &match);
+
+    size_t count = pcutils_sorted_array_count(sel_ctxt.node_datas);
+    for (size_t i = 0; i < count; i++) {
+        void *data = NULL;
+        const void *node = pcutils_sorted_array_get(sel_ctxt.node_datas, i, &data);
+        if (data) {
+            css_node_data_handler(&purc_document_css_select_handler, CSS_NODE_DELETED,
+                    &sel_ctxt, (void *)node, NULL, data);
+        }
+    }
+    pcutils_sorted_array_destroy(sel_ctxt.node_datas);
 
     if (match) {
         pcutils_arrlist_append(coll->elems, element);

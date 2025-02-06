@@ -12,6 +12,7 @@ list(APPEND test_dvobjs_system_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_system)
@@ -22,9 +23,8 @@ set(test_dvobjs_system_SOURCES
 )
 
 set(test_dvobjs_system_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -40,6 +40,7 @@ list(APPEND test_dvobjs_datetime_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_datetime)
@@ -50,9 +51,8 @@ set(test_dvobjs_datetime_SOURCES
 )
 
 set(test_dvobjs_datetime_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -70,6 +70,7 @@ list(APPEND test_dvobjs_ejson_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
     ${GLIB_INCLUDE_DIR}
     ${GLIBCONFIG_INCLUDE_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_ejson)
@@ -80,9 +81,8 @@ set(test_dvobjs_ejson_SOURCES
 )
 
 set(test_dvobjs_ejson_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -100,6 +100,7 @@ list(APPEND test_dvobjs_ejson_more_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
     ${GLIB_INCLUDE_DIR}
     ${GLIBCONFIG_INCLUDE_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_ejson_more)
@@ -110,9 +111,8 @@ set(test_dvobjs_ejson_more_SOURCES
 )
 
 set(test_dvobjs_ejson_more_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -129,6 +129,7 @@ list(APPEND test_dvobjs_coroutine_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_coroutine)
@@ -139,9 +140,8 @@ set(test_dvobjs_coroutine_SOURCES
 )
 
 set(test_dvobjs_coroutine_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -158,6 +158,7 @@ list(APPEND test_dvobjs_text_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_text)
@@ -168,9 +169,8 @@ set(test_dvobjs_text_SOURCES
 )
 
 set(test_dvobjs_text_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -186,6 +186,7 @@ list(APPEND test_dvobjs_logical_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_logical)
@@ -196,9 +197,8 @@ set(test_dvobjs_logical_SOURCES
 )
 
 set(test_dvobjs_logical_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -215,6 +215,7 @@ list(APPEND test_dvobjs_string_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_string)
@@ -225,9 +226,8 @@ set(test_dvobjs_string_SOURCES
 )
 
 set(test_dvobjs_string_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -243,6 +243,7 @@ list(APPEND test_dvobjs_overall_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_overall)
@@ -254,9 +255,8 @@ set(test_dvobjs_overall_SOURCES
 )
 
 set(test_dvobjs_overall_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -272,6 +272,7 @@ list(APPEND test_dvobjs_stream_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_stream)
@@ -283,9 +284,8 @@ set(test_dvobjs_stream_SOURCES
 )
 
 set(test_dvobjs_stream_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -301,6 +301,7 @@ list(APPEND test_stream_observe_readable_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_stream_observe_readable)
@@ -310,9 +311,8 @@ set(test_stream_observe_readable_SOURCES
 )
 
 set(test_stream_observe_readable_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -328,6 +328,7 @@ list(APPEND test_stream_observe_writable_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_stream_observe_writable)
@@ -337,9 +338,8 @@ set(test_stream_observe_writable_SOURCES
 )
 
 set(test_stream_observe_writable_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -355,6 +355,7 @@ list(APPEND test_dvobjs_runner_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_runner)
@@ -366,9 +367,8 @@ set(test_dvobjs_runner_SOURCES
 )
 
 set(test_dvobjs_runner_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -384,6 +384,7 @@ list(APPEND test_string_substitution_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_string_substitution)
@@ -395,9 +396,8 @@ set(test_string_substitution_SOURCES
 )
 
 set(test_string_substitution_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -413,6 +413,7 @@ list(APPEND test_dvobjs_rdr_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dvobjs_rdr)
@@ -424,9 +425,8 @@ set(test_dvobjs_rdr_SOURCES
 )
 
 set(test_dvobjs_rdr_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

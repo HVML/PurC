@@ -281,6 +281,7 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "-foil-color-primary", SLEN("-foil-color-primary") },
 	{ "-foil-color-secondary", SLEN("-foil-color-secondary") },
 	{ "-foil-candidate-marks", SLEN("-foil-candidate-marks") },
+	{ "background-size", SLEN("background-size") },
 
 	{ "inherit", SLEN("inherit") },
 	{ "important", SLEN("important") },
@@ -564,6 +565,8 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "loose", SLEN("loose") },
 	{ "strict", SLEN("strict") },
 	{ "anywhere", SLEN("anywhere") },
+	{ "contain", SLEN("contain") },
+	{ "cover", SLEN("cover") },
 
     /* keywords for appearance */
 	{ "menulist", SLEN("menulist") },

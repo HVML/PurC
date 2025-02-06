@@ -305,7 +305,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             pcintr_suppress_crtn_doc(inst, NULL, msg->targetValue);
         }
         else if (strcmp(op, PCRDR_OP2INTR_RELOADPAGE) == 0) {
-            pcintr_reload_crtn_doc(inst, NULL, msg->targetValue);
+            pcintr_reload_crtn_doc(inst, conn, NULL, msg->targetValue);
         }
         else if (strcmp(op, PCRDR_OPERATION_CALLMETHOD) == 0) {
             purc_log_warn("Not implemented operation: %s\n", op);

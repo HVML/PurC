@@ -55,7 +55,7 @@ char *purc_get_local_hostname(char *hostname)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_CANONNAME;
 
-    if ((ret = getaddrinfo(hostname, "http", &hints, &info)) != 0) {
+    if ((ret = getaddrinfo(hostname, NULL, &hints, &info)) != 0) {
         hostname[0] = 0;
         return NULL;
     }

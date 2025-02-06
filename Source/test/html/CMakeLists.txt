@@ -13,6 +13,7 @@ list(APPEND test_html_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_html)
@@ -22,9 +23,8 @@ set(test_html_SOURCES
 )
 
 set(test_html_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -41,6 +41,7 @@ list(APPEND test_html_parser_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_html_parser)
@@ -50,9 +51,8 @@ set(test_html_parser_SOURCES
 )
 
 set(test_html_parser_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -69,6 +69,7 @@ list(APPEND test_html_edom_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_html_edom)
@@ -79,9 +80,8 @@ set(test_html_edom_SOURCES
 )
 
 set(test_html_edom_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 
@@ -98,6 +98,7 @@ list(APPEND test_dom_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
     ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
 )
 
 PURC_EXECUTABLE(test_dom)
@@ -108,9 +109,8 @@ set(test_dom_SOURCES
 )
 
 set(test_dom_LIBRARIES
-    gtest_main
-    gtest
     PurC::PurC
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

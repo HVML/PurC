@@ -440,6 +440,21 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->runner_name = NULL;
     }
 
+    if (curr_inst->workspace_name) {
+        free(curr_inst->workspace_name);
+        curr_inst->workspace_name = NULL;
+    }
+
+    if (curr_inst->workspace_title) {
+        free(curr_inst->workspace_title);
+        curr_inst->workspace_title = NULL;
+    }
+
+    if (curr_inst->workspace_layout) {
+        free(curr_inst->workspace_layout);
+        curr_inst->workspace_layout = NULL;
+    }
+
     curr_inst->modules = 0;
     curr_inst->modules_inited = 0;
 }

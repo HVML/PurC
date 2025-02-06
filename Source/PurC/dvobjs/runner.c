@@ -29,6 +29,7 @@
 #include "private/url.h"
 #include "private/channel.h"
 #include "private/pcrdr.h"
+#include "pcrdr/connect.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -138,7 +139,15 @@ app_label_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     purc_variant_t v;
-    const char *locale = inst->rdr_caps ? inst->rdr_caps->locale : NULL;
+    const char *locale = NULL;
+
+    struct pcrdr_conn *curr_conn = inst->curr_conn;
+    if (curr_conn && curr_conn->caps) {
+        locale = curr_conn->caps->locale;
+    }
+    else if (inst->conn_to_rdr && inst->conn_to_rdr->caps) {
+        locale = inst->conn_to_rdr->caps->locale;
+    }
     v = purc_get_app_label(locale);
     return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
@@ -167,7 +176,15 @@ runner_label_getter(purc_variant_t root,
 
     struct pcinst* inst = pcinst_current();
     purc_variant_t v;
-    const char *locale = inst->rdr_caps ? inst->rdr_caps->locale : NULL;
+    const char *locale = NULL;
+
+    struct pcrdr_conn *curr_conn = inst->curr_conn;
+    if (curr_conn && curr_conn->caps) {
+        locale = curr_conn->caps->locale;
+    }
+    else if (inst->conn_to_rdr && inst->conn_to_rdr->caps) {
+        locale = inst->conn_to_rdr->caps->locale;
+    }
     v = pcinst_get_runner_label(inst->runner_name, locale);
     return v ? purc_variant_ref(v) : purc_variant_make_null();
 }
@@ -329,6 +346,136 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+duplicate_renderers_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    purc_variant_t arr = purc_variant_make_array_0();
+    if (!arr) {
+        goto failed;
+    }
+
+    struct pcinst *inst = pcinst_current();
+    struct list_head *conns = &inst->conns;
+    struct pcrdr_conn *pconn, *qconn;
+    list_for_each_entry_safe(pconn, qconn, conns, ln) {
+        purc_variant_t v = pcrdr_data(pconn);
+        if (v) {
+            purc_variant_array_append(arr, v);
+            purc_variant_unref(v);
+        }
+    }
+
+    size_t nr_conn = purc_variant_array_get_size(arr);
+    purc_variant_t tup = purc_variant_make_tuple(nr_conn, NULL);
+    if (!tup) {
+        goto failed;
+    }
+
+    for (size_t i = 0; i < nr_conn; i++) {
+        purc_variant_tuple_set(tup, i, purc_variant_array_get(arr, i));
+    }
+
+    purc_variant_unref(arr);
+
+    return tup;
+failed:
+    if (arr) {
+        purc_variant_unref(arr);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+conn_renderer_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_instance_extra_info extra_info = {0};
+    const char *id;
+    const char *s_comm;
+    const char *s_uri;
+
+    if (nr_args < 2 || !purc_variant_is_string(argv[0])
+            || !purc_variant_is_string(argv[1])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    s_comm = purc_variant_get_string_const(argv[0]);
+    if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
+    }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_SOCKET;
+    }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+    }
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+    }
+    else {
+        // TODO: other protocol
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto failed;
+    }
+
+    s_uri = purc_variant_get_string_const(argv[1]);
+    extra_info.renderer_uri = s_uri;
+
+    id = purc_connect_to_renderer(&extra_info);
+    if (id) {
+        return purc_variant_make_string_static(id, false);
+    }
+    return purc_variant_make_undefined();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+disconn_renderer_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    bool ret = false;
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *id;
+    id = purc_variant_get_string_const(argv[0]);
+    if (id == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int r = purc_disconnect_from_renderer(id);
+    ret = (r == 0);
+
+failed:
+    return purc_variant_make_boolean(ret);
+}
+
 purc_variant_t
 purc_dvobj_runner_new(void)
 {
@@ -347,6 +494,9 @@ purc_dvobj_runner_new(void)
         { "autoSwitchingRdr",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "chan",               chan_getter,            chan_setter },
+        { "duplicateRenderers", duplicate_renderers_getter, NULL },
+        { "connRenderer",       conn_renderer_getter,   NULL },
+        { "disconnRenderer",    disconn_renderer_getter, NULL },
 #if ENABLE(CHINESE_NAMES)
         { "用户",               user_getter,            user_setter },
         { "应用名",             app_getter,             NULL },
@@ -358,6 +508,9 @@ purc_dvobj_runner_new(void)
         { "自动切换渲染器",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "通道",               chan_getter,            chan_setter },
+        { "复制渲染器",         duplicate_renderers_getter, NULL },
+        { "连接渲染器",         conn_renderer_getter,   NULL },
+        { "断开渲染器",         disconn_renderer_getter, NULL },
 #endif
     };
 
