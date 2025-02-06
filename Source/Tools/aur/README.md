@@ -24,7 +24,7 @@ $ yay -U purc-*.tar.zst
 # Compile, package and install
 $ makepkg -sfi
 
-# Online installation via AUR: [purc](https://aur.archlinux.org/packages/purc)
+# Online installation via AUR: [purc](https://aur.archlinux.org/packages/purc) or [Self-built software source](https://github.com/taotieren/aur-repo)
 $ yay -S purc
 ```
 
@@ -49,6 +49,6 @@ $ yay -U purc-git-*.tar.zst
 # Compile, package and install
 $ makepkg -sfi
 
-# Online installation via AUR: [purc-git](https://aur.archlinux.org/packages/purc-git)
+# Online installation via AUR: [purc-git](https://aur.archlinux.org/packages/purc-git) or [Self-built software source](https://github.com/taotieren/aur-repo)
 $ yay -S purc-git
 ```
