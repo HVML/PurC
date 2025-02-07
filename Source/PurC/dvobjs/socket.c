@@ -47,6 +47,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netdb.h>
 
 #define SOCKET_EVENT_NAME               "event"
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
@@ -88,9 +89,7 @@ enum {
     K_KW_nonblock,
 #define _KW_cloexec                 "cloexec"
     K_KW_cloexec,
-#define _KW_override                 "override"
-    K_KW_override,
-#define _KW_global                 "global"
+#define _KW_global                  "global"
     K_KW_global,
 };
 
@@ -113,13 +112,11 @@ static struct keyword_to_atom {
     { _KW_default, 0},              // "default"
     { _KW_nonblock, 0},             // "nonblock"
     { _KW_cloexec, 0},              // "cloexec"
-    { _KW_override, 0},             // "override"
     { _KW_global, 0},               // "global"
 };
 
 /* We use the high 32-bit for customized flags */
-#define _O_OVERRIDE     (0x01L << 32)
-#define _O_GLOBAL       (0x02L << 32)
+#define _O_GLOBAL       (0x01L << 32)
 
 static
 int64_t parse_socket_option(purc_variant_t option)
@@ -167,10 +164,7 @@ int64_t parse_socket_option(purc_variant_t option)
                 atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
             }
 
-            if (atom == keywords2atoms[K_KW_override].atom) {
-                flags |= _O_OVERRIDE;
-            }
-            else if (atom == keywords2atoms[K_KW_global].atom) {
+            if (atom == keywords2atoms[K_KW_global].atom) {
                 flags |= _O_GLOBAL;
             }
             else if (atom == keywords2atoms[K_KW_cloexec].atom) {
@@ -186,7 +180,7 @@ int64_t parse_socket_option(purc_variant_t option)
         } while (part);
     }
     else {
-        flags = _O_OVERRIDE | O_CLOEXEC;
+        flags = O_CLOEXEC;
     }
 
     return flags;
@@ -589,6 +583,14 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     int    fd = -1, len;
     struct sockaddr_un unix_addr;
 
+    if (purc_check_unix_socket(url->path) == 0) {
+        purc_set_error(PURC_ERROR_CONFLICT);
+        goto error;
+    }
+
+    /* in case it already exists */
+    unlink(url->path);
+
     int64_t flags = parse_socket_option(option);
 
     /* create a Unix domain stream socket */
@@ -600,10 +602,6 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     if (flags & O_CLOEXEC)
         fcntl(fd, F_SETFD, FD_CLOEXEC);
-
-    /* TODO: in case it already exists */
-    if (flags & _O_OVERRIDE)
-        unlink(url->path);
 
     /* fill in socket address structure */
     memset(&unix_addr, 0, sizeof(unix_addr));
@@ -649,6 +647,96 @@ error:
     return NULL;
 }
 
+static struct pcdvobjs_socket *
+create_inet_stream_socket(enum stream_inet_socket_family isf,
+        struct purc_broken_down_url *url, purc_variant_t option, int backlog)
+{
+    int fd = -1;
+    struct addrinfo *ai = NULL;
+    struct addrinfo hints = { 0 };
+
+    switch (isf) {
+        case ISF_UNSPEC:
+            hints.ai_family = AF_UNSPEC;
+            break;
+        case ISF_INET4:
+            hints.ai_family = AF_INET;
+            break;
+        case ISF_INET6:
+            hints.ai_family = AF_INET6;
+            break;
+    }
+
+    char port[10] = {0};
+    if (url->port <= 0 || url->port > 65535) {
+        PC_DEBUG("Bad port value: (%d)\n", url->port);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+    sprintf(port, "%d", url->port);
+
+    /* get a socket and bind it */
+    hints.ai_socktype = SOCK_STREAM;
+    if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
+        PC_DEBUG("Error while getting address info (%s:%d)\n",
+                url->host, url->port);
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    if ((fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1) {
+        PC_DEBUG("Failed to create socket for %s:%d\n", url->host, url->port);
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    int64_t flags = parse_socket_option(option);
+    if (flags & O_CLOEXEC)
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
+
+    /* Options */
+    int ov = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ov, sizeof(ov)) == -1) {
+        PC_DEBUG("Unable to set setsockopt: %s.", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    /* Bind the socket to the address. */
+    if (bind(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
+        PC_DEBUG("Unable to set bind: %s.", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    freeaddrinfo(ai);
+
+    /* Tell the socket to accept connections. */
+    if (listen(fd, backlog) == -1) {
+        PC_DEBUG("Unable to listen: %s.", strerror (errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    struct pcdvobjs_socket* socket =
+        dvobjs_socket_new(SOCKET_TYPE_STREAM, url);
+    if (!socket) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    socket->fd = fd;
+    return socket;
+
+failed:
+    if (ai)
+        freeaddrinfo(ai);
+    if (fd >= 0)
+        close(fd);
+
+    return NULL;
+}
+
 static purc_variant_t
 socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -676,13 +764,15 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    int64_t backlog = DEF_BACKLOG;
-    purc_variant_t tmp = nr_args > 2 ? argv[2] : PURC_VARIANT_INVALID;
-    if (tmp != PURC_VARIANT_INVALID &&
-            !purc_variant_cast_to_longint(tmp, &backlog, false)) {
+    int64_t tmp_l = DEF_BACKLOG;
+    purc_variant_t tmp_v = nr_args > 2 ? argv[2] : PURC_VARIANT_INVALID;
+    if (tmp_v != PURC_VARIANT_INVALID &&
+            !purc_variant_cast_to_longint(tmp_v, &tmp_l, false)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
+
+    int backlog = (int)tmp_l;
 
     struct purc_broken_down_url *url = (struct purc_broken_down_url*)
         calloc(1, sizeof(struct purc_broken_down_url));
@@ -707,11 +797,20 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     struct pcdvobjs_socket *socket = NULL;
     if (atom == keywords2atoms[K_KW_unix].atom ||
             atom == keywords2atoms[K_KW_local].atom) {
-        socket = create_local_stream_socket(url, option, (int)backlog);
+        socket = create_local_stream_socket(url, option, backlog);
+    }
+    else if (atom == keywords2atoms[K_KW_inet].atom) {
+        socket = create_inet_stream_socket(ISF_UNSPEC, url, option, backlog);
     }
     else if (atom == keywords2atoms[K_KW_inet4].atom) {
+        socket = create_inet_stream_socket(ISF_INET4, url, option, backlog);
     }
     else if (atom == keywords2atoms[K_KW_inet6].atom) {
+        socket = create_inet_stream_socket(ISF_INET6, url, option, backlog);
+    }
+    else {
+        purc_set_error(PURC_ERROR_UNKNOWN);
+        goto error_free_url;
     }
 
     if (!socket) {

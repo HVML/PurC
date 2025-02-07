@@ -58,20 +58,20 @@ int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
 
     char s_port[10] = {0};
     if (port <= 0 || port > 65535) {
-        PC_DEBUG ("Bad port value: (%d)\n", port);
+        PC_DEBUG("Bad port value: (%d)\n", port);
         goto out;
     }
     sprintf(s_port, "%d", port);
 
     hints.ai_socktype = SOCK_STREAM;
     if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
-        PC_DEBUG ("Error while getting address info (%s:%d)\n",
+        PC_DEBUG("Error while getting address info (%s:%d)\n",
                 host, port);
         goto out;
     }
 
     for (p = addrinfo; p != NULL; p = p->ai_next) {
-        if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+        if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
             continue;
         }
 
@@ -99,8 +99,7 @@ int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
     freeaddrinfo(addrinfo);
 
     if (p == NULL) {
-        PC_DEBUG ("Failed to create socket for %s:%d\n",
-                host, port);
+        PC_DEBUG("Failed to create socket for %s:%d\n", host, port);
         goto out;
     }
 
