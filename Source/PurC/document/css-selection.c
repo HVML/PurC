@@ -1428,7 +1428,9 @@ static css_error
 get_node_data(void *pw, void *n, void **node_data)
 {
     struct pcdoc_css_selection_ctxt *ctxt = (struct pcdoc_css_selection_ctxt *)pw;
-    pcutils_sorted_array_find(ctxt->node_datas, n, node_data, NULL);
+    if (!pcutils_sorted_array_find(ctxt->node_datas, n, node_data, NULL)) {
+        *node_data = NULL;
+    }
     return CSS_OK;
 }
 
