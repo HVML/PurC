@@ -781,8 +781,8 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    purc_atom_t atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
-    if (atom == 0) {
+    purc_atom_t schema = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
+    if (schema == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
@@ -795,17 +795,17 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     };
 
     struct pcdvobjs_socket *socket = NULL;
-    if (atom == keywords2atoms[K_KW_unix].atom ||
-            atom == keywords2atoms[K_KW_local].atom) {
+    if (schema == keywords2atoms[K_KW_unix].atom ||
+            schema == keywords2atoms[K_KW_local].atom) {
         socket = create_local_stream_socket(url, option, backlog);
     }
-    else if (atom == keywords2atoms[K_KW_inet].atom) {
+    else if (schema == keywords2atoms[K_KW_inet].atom) {
         socket = create_inet_stream_socket(ISF_UNSPEC, url, option, backlog);
     }
-    else if (atom == keywords2atoms[K_KW_inet4].atom) {
+    else if (schema == keywords2atoms[K_KW_inet4].atom) {
         socket = create_inet_stream_socket(ISF_INET4, url, option, backlog);
     }
-    else if (atom == keywords2atoms[K_KW_inet6].atom) {
+    else if (schema == keywords2atoms[K_KW_inet6].atom) {
         socket = create_inet_stream_socket(ISF_INET6, url, option, backlog);
     }
     else {
