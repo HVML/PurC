@@ -1342,162 +1342,13 @@ static const struct purc_native_ops msg_entity_ops = {
     .on_release = on_release,
 };
 
-const struct purc_native_ops *
-dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
-{
-    (void)extra_opts;
-    struct stream_extended_data *ext = NULL;
-    struct stream_messaging_ops *msg_ops = NULL;
-
-    if (super_ops == NULL || stream->ext0.signature[0]) {
-        PC_ERROR("This stream has already extended by a Layer 0: %s\n",
-                stream->ext0.signature);
-        purc_set_error(PURC_ERROR_CONFLICT);
-        goto failed;
-    }
-
-    if (fcntl(stream->fd4r, F_SETFL,
-                fcntl(stream->fd4r, F_GETFL, 0) | O_NONBLOCK) == -1) {
-        PC_ERROR("Unable to set socket as non-blocking: %s.", strerror(errno));
-        purc_set_error(PURC_EXCEPT_IO_FAILURE);
-        goto failed;
-    }
-
-    ext = calloc(1, sizeof(*ext));
-    if (ext == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    list_head_init(&ext->pending);
-    ext->sz_header = sizeof(ext->header_buf);
-    memset(ext->header_buf, 0, ext->sz_header);
-
-    strcpy(stream->ext0.signature, STREAM_EXT_SIG_MSG);
-
-    msg_ops = calloc(1, sizeof(*msg_ops));
-
-    if (msg_ops) {
-        msg_ops->send_data = send_data;
-        msg_ops->on_error = on_error;
-        msg_ops->mark_closing = mark_closing;
-
-        msg_ops->on_message = on_message;
-        msg_ops->cleanup = cleanup_extension;
-
-        stream->ext0.data = ext;
-        stream->ext0.super_ops = super_ops;
-        stream->ext0.msg_ops = msg_ops;
-    }
-    else {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    stream->monitor4r = purc_runloop_add_fd_monitor(
-            purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
-            ws_handle_reads , stream);
-    if (stream->monitor4r) {
-        pcintr_coroutine_t co = pcintr_get_coroutine();
-        if (co) {
-            stream->cid = co->cid;
-        }
-    }
-    else {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    stream->monitor4w = purc_runloop_add_fd_monitor(
-            purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
-            ws_handle_writes, stream);
-    if (stream->monitor4w) {
-        pcintr_coroutine_t co = pcintr_get_coroutine();
-        if (co) {
-            stream->cid = co->cid;
-        }
-    }
-    else {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    /* destroy rwstreams */
-    if (stream->stm4r) {
-        purc_rwstream_destroy(stream->stm4r);
-    }
-
-    if (stream->stm4w && stream->stm4w != stream->stm4r) {
-        purc_rwstream_destroy(stream->stm4w);
-    }
-
-    stream->stm4w = NULL;
-    stream->stm4r = NULL;
-
-    PC_INFO("This socket is extended by Layer 0 protocol: message\n");
-    return &msg_entity_ops;
-
-failed:
-    if (stream->monitor4r) {
-        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                stream->monitor4r);
-        stream->monitor4r = 0;
-    }
-
-    if (msg_ops)
-        free(msg_ops);
-    if (ext)
-        free(ext);
-
-    return NULL;
-}
-
-static int ws_open_connection(const char *host, const char *port)
-{
-    int fd = -1;
-    struct addrinfo *addrinfo;
-    struct addrinfo *p;
-    struct addrinfo hints = { 0 };
-
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    if (0 != getaddrinfo(host, port, &hints, &addrinfo)) {
-        PC_DEBUG ("Error while getting address info (%s:%s)\n",
-                host, port);
-        goto out;
-    }
-
-    for (p = addrinfo; p != NULL; p = p->ai_next) {
-        if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            continue;
-        }
-
-        if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(fd);
-            continue;
-        }
-        break;
-    }
-    freeaddrinfo(addrinfo);
-
-    if (p == NULL) {
-        PC_DEBUG ("Connect to websocket server failed! (%s:%s)\n",
-                host, port);
-        goto out;
-    }
-
-out:
-    return fd;
-}
-
 static void ws_sha1_digest(const char *s, int len, unsigned char *digest)
 {
-  pcutils_sha1_ctxt sha;
+    pcutils_sha1_ctxt sha;
 
-  pcutils_sha1_begin(&sha);
-  pcutils_sha1_hash(&sha, (uint8_t *) s, len);
-  pcutils_sha1_end(&sha, digest);
+    pcutils_sha1_begin(&sha);
+    pcutils_sha1_hash(&sha, (uint8_t *) s, len);
+    pcutils_sha1_end(&sha, digest);
 }
 
 static int ws_verify_handshake(const char *ws_key, char *header)
@@ -1617,7 +1468,7 @@ out:
     return ret;
 }
 
-static int ws_handshake(int fd, const char *host_name, const char *port )
+static int ws_handshake(int fd, const char *host_name, int port)
 {
     int ret = -1;
 
@@ -1627,14 +1478,14 @@ static int ws_handshake(int fd, const char *host_name, const char *port )
     for (int i = 0; i < WS_KEY_LEN; i++) {
         key[i] = rand() & 0xff;
     }
-    char *ws_key =  pcutils_b64_encode_alloc ((unsigned char *) key, WS_KEY_LEN);
+    char *ws_key = pcutils_b64_encode_alloc((unsigned char *)key, WS_KEY_LEN);
     char req_headers[1024] = { 0 };
 
     snprintf(req_headers, 1024,
             "GET / HTTP/1.1\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
-            "Host: %s:%s\r\n"
+            "Host: %s:%d\r\n"
             "Sec-WebSocket-Key: %s\r\n"
             "Sec-WebSocket-Version: 13\r\n\r\n",
             host_name, port, ws_key);
@@ -1665,28 +1516,122 @@ out:
     return ret;
 }
 
-int dvobjs_extend_stream_websocket_connect(const char *host_name, int port)
+const struct purc_native_ops *
+dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
+        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
 {
-    int fd;
-    char s_port[10] = {0};
-    if (port <=0 || port > 65535) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+    (void)extra_opts;
+    struct stream_extended_data *ext = NULL;
+    struct stream_messaging_ops *msg_ops = NULL;
+
+    if (super_ops == NULL || stream->ext0.signature[0]) {
+        PC_ERROR("This stream has already extended by a Layer 0: %s\n",
+                stream->ext0.signature);
+        purc_set_error(PURC_ERROR_CONFLICT);
         goto failed;
     }
 
-    sprintf(s_port, "%d", port);
-
-    if ((fd = ws_open_connection(host_name, s_port)) < 0) {
+    /* do handshake first */
+    /* TODO: handle extra options: SSL, origin, and more */
+    if (ws_handshake(stream->fd4r, stream->url->host, stream->url->port) != 0) {
+        PC_ERROR("Failed websocket handshake\n");
+        purc_set_error(PURC_ERROR_CONFLICT);
         goto failed;
     }
 
-    if (ws_handshake(fd, host_name, s_port) != 0) {
+    if (fcntl(stream->fd4r, F_SETFL,
+                fcntl(stream->fd4r, F_GETFL, 0) | O_NONBLOCK) == -1) {
+        PC_ERROR("Unable to set socket as non-blocking: %s.", strerror(errno));
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
 
-    return fd;
+    ext = calloc(1, sizeof(*ext));
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    list_head_init(&ext->pending);
+    ext->sz_header = sizeof(ext->header_buf);
+    memset(ext->header_buf, 0, ext->sz_header);
+
+    strcpy(stream->ext0.signature, STREAM_EXT_SIG_MSG);
+
+    msg_ops = calloc(1, sizeof(*msg_ops));
+
+    if (msg_ops) {
+        msg_ops->send_data = send_data;
+        msg_ops->on_error = on_error;
+        msg_ops->mark_closing = mark_closing;
+
+        msg_ops->on_message = on_message;
+        msg_ops->cleanup = cleanup_extension;
+
+        stream->ext0.data = ext;
+        stream->ext0.super_ops = super_ops;
+        stream->ext0.msg_ops = msg_ops;
+    }
+    else {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    stream->monitor4r = purc_runloop_add_fd_monitor(
+            purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
+            ws_handle_reads , stream);
+    if (stream->monitor4r) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        if (co) {
+            stream->cid = co->cid;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    stream->monitor4w = purc_runloop_add_fd_monitor(
+            purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
+            ws_handle_writes, stream);
+    if (stream->monitor4w) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        if (co) {
+            stream->cid = co->cid;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    /* destroy rwstreams */
+    if (stream->stm4r) {
+        purc_rwstream_destroy(stream->stm4r);
+    }
+
+    if (stream->stm4w && stream->stm4w != stream->stm4r) {
+        purc_rwstream_destroy(stream->stm4w);
+    }
+
+    stream->stm4w = NULL;
+    stream->stm4r = NULL;
+
+    PC_INFO("This socket is extended by Layer 0 protocol: message\n");
+    return &msg_entity_ops;
 
 failed:
-    return -1;
+    if (stream->monitor4r) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4r);
+        stream->monitor4r = 0;
+    }
+
+    if (msg_ops)
+        free(msg_ops);
+    if (ext)
+        free(ext);
+
+    return NULL;
 }
 

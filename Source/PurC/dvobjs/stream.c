@@ -46,6 +46,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netdb.h>
 
 #define BUFFER_SIZE                 1024
 
@@ -72,6 +73,8 @@
 #define STREAM_ATOM_BUCKET          ATOM_BUCKET_DVOBJ
 
 enum {
+#define _KW_keep                    "keep"
+    K_KW_keep,
 #define _KW_default                 "default"
     K_KW_default,
 #define _KW_read                    "read"
@@ -86,6 +89,8 @@ enum {
     K_KW_truncate,
 #define _KW_nonblock                "nonblock"
     K_KW_nonblock,
+#define _KW_cloexec                 "cloexec"
+    K_KW_cloexec,
 #define _KW_set                     "set"
     K_KW_set,
 #define _KW_current                 "current"
@@ -100,10 +105,16 @@ enum {
     K_KW_fifo,
 #define _KW_unix                    "unix"
     K_KW_unix,
+#define _KW_local                   "local"
+    K_KW_local,
+#define _KW_inet                    "inet"
+    K_KW_inet,
+#define _KW_inet4                   "inet4"
+    K_KW_inet4,
+#define _KW_inet6                   "inet6"
+    K_KW_inet6,
 #define _KW_websocket               "websocket"
     K_KW_websocket,
-#define _KW_secure_websocket        "secure-websocket"
-    K_KW_secure_websocket,
 #define _KW_message                 "message"
     K_KW_message,
 #define _KW_hbdbus                  "hbdbus"
@@ -128,14 +139,17 @@ enum {
     K_KW_seek,
 #define _KW_close                   "close"
     K_KW_close,
-#define _KW_tcp                     "tcp"
-    K_KW_tcp,
+#define _KW_fd                      "fd"
+    K_KW_fd,
+#define _KW_peer_addr               "peer_addr"
+    K_KW_peer_addr,
 };
 
 static struct keyword_to_atom {
     const char *keyword;
     purc_atom_t atom;
 } keywords2atoms [] = {
+    { _KW_keep, 0 },                // "keep"
     { _KW_default, 0 },             // "default"
     { _KW_read, 0 },                // "read"
     { _KW_write, 0 },               // "write"
@@ -143,6 +157,7 @@ static struct keyword_to_atom {
     { _KW_create, 0 },              // "create"
     { _KW_truncate, 0 },            // "truncate"
     { _KW_nonblock, 0 },            // "nonblock"
+    { _KW_cloexec, 0 },             // "cloexec"
     { _KW_set, 0 },                 // "set"
     { _KW_current, 0 },             // "current"
     { _KW_end, 0 },                 // "end"
@@ -150,28 +165,31 @@ static struct keyword_to_atom {
     { _KW_pipe, 0 },                // "pipe"
     { _KW_fifo, 0 },                // "fifo"
     { _KW_unix, 0 },                // "unix"
+    { _KW_local, 0 },               // "local"
+    { _KW_inet, 0},                 // "inet"
+    { _KW_inet4, 0},                // "inet4"
+    { _KW_inet6, 0},                // "inet6"
     { _KW_websocket, 0 },           // "websocket"
-    { _KW_secure_websocket, 0 },    // "secure-websocket"
     { _KW_message, 0 },             // "message"
     { _KW_hbdbus, 0 },              // "hbdbus"
-    { _KW_readstruct, 0},           // readstruct
-    { _KW_writestruct, 0},          // writestruct
-    { _KW_readlines, 0},            // readlines
-    { _KW_writelines, 0},           // writelines
-    { _KW_readbytes, 0},            // readbytes
-    { _KW_writebytes, 0},           // writebytes
-    { _KW_writeeof, 0},             // writeeof
-    { _KW_status, 0},               // status
-    { _KW_seek, 0},                 // seek
-    { _KW_close, 0},                // close
-    { _KW_tcp, 0},                // tcp
+    { _KW_readstruct, 0},           // "readstruct"
+    { _KW_writestruct, 0},          // "writestruct"
+    { _KW_readlines, 0},            // "readlines"
+    { _KW_writelines, 0},           // "writelines"
+    { _KW_readbytes, 0},            // "readbytes"
+    { _KW_writebytes, 0},           // "writebytes"
+    { _KW_writeeof, 0},             // "writeeof"
+    { _KW_status, 0},               // "status"
+    { _KW_seek, 0},                 // "seek"
+    { _KW_close, 0},                // "close"
+    { _KW_fd, 0},                   // "fd"
+    { _KW_peer_addr, 0},            // "peer_addr"
 };
 
 static struct pcdvobjs_stream *
 dvobjs_stream_new(enum pcdvobjs_stream_type type,
-        struct purc_broken_down_url *url, purc_variant_t option)
+        struct purc_broken_down_url *url)
 {
-    (void)option;
     struct pcdvobjs_stream *stream;
 
     stream = calloc(1, sizeof(struct pcdvobjs_stream));
@@ -249,6 +267,10 @@ static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
 
     if (stream->url) {
         pcutils_broken_down_url_delete(stream->url);
+    }
+
+    if (stream->peer_addr) {
+        free(stream->peer_addr);
     }
 
     free(stream);
@@ -909,15 +931,53 @@ close_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return purc_variant_make_boolean(false);
-    }
+    assert(native_entity);
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     native_stream_close(stream);
 
     return purc_variant_make_boolean(true);
+}
+
+static purc_variant_t
+fd_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    assert(native_entity);
+
+    struct pcdvobjs_stream *stream = get_stream(native_entity);
+    int fd = -1;
+    if (stream->fd4r >= 0) {
+        fd = stream->fd4r;
+    }
+    else if (stream->fd4w >= 0) {
+        fd = stream->fd4w;
+    }
+
+    return purc_variant_make_longint(fd);
+}
+
+static purc_variant_t
+peer_addr_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    assert(native_entity);
+
+    struct pcdvobjs_stream *stream = get_stream(native_entity);
+    if (stream->peer_addr)
+        return purc_variant_make_string(stream->peer_addr, false);
+
+    return purc_variant_make_string_static("", false);
 }
 
 struct io_callback_data {
@@ -1088,6 +1148,12 @@ property_getter(void *entity, const char *name)
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
     }
+    else if (atom == keywords2atoms[K_KW_fd].atom) {
+        return fd_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_peer_addr].atom) {
+        return peer_addr_getter;
+    }
 
 failed:
     purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -1115,8 +1181,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_new(type,
-            NULL, PURC_VARIANT_INVALID);
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(type, NULL);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -1170,6 +1235,204 @@ bool file_exists_and_is_executable(const char* file)
 {
     struct stat filestat;
     return (0 == stat(file, &filestat) && (filestat.st_mode & S_IRWXU));
+}
+
+static
+int parse_from_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_keep].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_keep].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char tmp[parts_len + 1];
+        strncpy(tmp, parts, parts_len);
+        tmp[parts_len]= '\0';
+        atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
+    }
+
+    if (atom != keywords2atoms[K_KW_keep].atom) {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = 0;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_append].atom) {
+                flags |= O_APPEND;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+
+    return flags;
+
+out:
+    return -1;
+}
+
+static
+struct pcdvobjs_stream *create_stream_from_fd(int fd,
+        enum pcdvobjs_stream_type type, purc_variant_t option)
+{
+    if (option) {
+        int flags = parse_from_option(option);
+        if (flags == -1) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+
+        /* Exclude possible O_APPEND for fifo and socket. */
+        if (type != STREAM_TYPE_FILE)
+            flags &= ~O_APPEND;
+
+        /* O_CLOEXEC is a file descriptor flag. */
+        if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, O_CLOEXEC) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
+
+        /* Others are file descriptor status flags. */
+        flags &= ~O_CLOEXEC;
+        if (flags && fcntl(fd, F_SETFL, flags) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(type, NULL);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->stm4r = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->stm4r == NULL) {
+        goto out_free_stream;
+    }
+    stream->stm4w = stream->stm4r;
+    stream->fd4r = fd;
+    stream->fd4w = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_delete(stream);
+
+out:
+    return NULL;
+}
+
+static bool is_fd_inet_socket(int fd)
+{
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if (getsockname(fd, (struct sockaddr *)&addr, &len) == 0 && len > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static
+struct pcdvobjs_stream *
+create_inet_socket_stream_from_fd(int fd, char *peer_addr,
+        purc_variant_t option)
+{
+    if (option) {
+        int flags = parse_from_option(option);
+        if (flags == -1) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+
+        /* exclude possible O_APPEND for socket */
+        flags &= ~O_APPEND;
+        if (flags && fcntl(fd, F_SETFL, flags) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
+    }
+
+    if (peer_addr == NULL) {
+        struct sockaddr_in addr;
+        socklen_t len = sizeof(addr);
+        if (getpeername(fd, (struct sockaddr *)&addr, &len) == -1 || len == 0) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
+
+        char buf[NI_MAXHOST];
+        if (0 == getnameinfo((struct sockaddr *)&addr, len, buf, sizeof(buf),
+                       NULL, 0, NI_NUMERICHOST)) {
+            peer_addr = strdup(buf);
+        }
+        else {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_INET, NULL);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->stm4r = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->stm4r == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_free_stream;
+    }
+    stream->stm4w = stream->stm4r;
+    stream->fd4r = fd;
+    stream->fd4w = fd;
+    stream->peer_addr = peer_addr;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_delete(stream);
+
+out:
+    return NULL;
 }
 
 #define READ_FLAG       0x01
@@ -1233,6 +1496,9 @@ int parse_open_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
                 flags |= O_NONBLOCK;
             }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
             else if (atom == keywords2atoms[K_KW_append].atom) {
                 flags |= O_APPEND;
             }
@@ -1292,8 +1558,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_FILE,
-            url, option);
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_FILE, url);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -1453,8 +1718,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     }
 
     struct pcdvobjs_stream* stream;
-    stream = dvobjs_stream_new(STREAM_TYPE_PIPE,
-            url, option);
+    stream = dvobjs_stream_new(STREAM_TYPE_PIPE, url);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_close_fd;
@@ -1524,8 +1788,8 @@ struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_FIFO,
-            url, option);
+    struct pcdvobjs_stream* stream =
+        dvobjs_stream_new(STREAM_TYPE_FIFO, url);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_close_fd;
@@ -1555,7 +1819,7 @@ out_close_fd:
 
 static
 struct pcdvobjs_stream *
-create_unix_sock_stream(struct purc_broken_down_url *url,
+create_unix_socket_stream(struct purc_broken_down_url *url,
         purc_variant_t option, const char *prot)
 {
     UNUSED_PARAM(option);
@@ -1617,8 +1881,8 @@ create_unix_sock_stream(struct purc_broken_down_url *url,
         goto out_close_fd;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_UNIX,
-            url, option);
+    struct pcdvobjs_stream* stream =
+        dvobjs_stream_new(STREAM_TYPE_UNIX, url);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_close_fd;
@@ -1646,17 +1910,27 @@ out_close_fd:
 
 static
 struct pcdvobjs_stream *
-create_websock_stream(struct purc_broken_down_url *url,
-        purc_variant_t option, const char *prot)
+create_inet_socket_stream(purc_atom_t schema,
+        struct purc_broken_down_url *url, purc_variant_t option)
 {
-    (void) prot;
-    int fd = dvobjs_extend_stream_websocket_connect(url->host, url->port);
-    if (fd  < 0) {
+    UNUSED_PARAM(option);
+
+    enum stream_inet_socket_family isf = ISF_UNSPEC;
+    char *peer_addr = NULL;
+
+    if (schema == keywords2atoms[K_KW_inet4].atom) {
+        isf = ISF_INET4;
+    }
+    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+        isf = ISF_INET6;
+    }
+
+    int fd = dvobjs_inet_socket_connect(isf, url->host, url->port, &peer_addr);
+    if (fd < 0) {
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_UNIX,
-            url, option);
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_INET, url);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_close_fd;
@@ -1670,6 +1944,7 @@ create_websock_stream(struct purc_broken_down_url *url,
     stream->stm4w = stream->stm4r;
     stream->fd4r = fd;
     stream->fd4w = fd;
+    stream->peer_addr = peer_addr;
 
     return stream;
 
@@ -1677,9 +1952,155 @@ out_free_stream:
     dvobjs_stream_delete(stream);
 
 out_close_fd:
-    close (fd);
+    close(fd);
 
     return NULL;
+}
+
+static purc_variant_t
+stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    purc_variant_t tmp_v = nr_args > 0 ? argv[0] : PURC_VARIANT_INVALID;
+    int64_t tmp_l;
+    if (tmp_v == PURC_VARIANT_INVALID ||
+            !purc_variant_cast_to_longint(tmp_v, &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    int fd = (int)tmp_l;
+    purc_variant_t option = nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID;
+    if (option != PURC_VARIANT_INVALID &&
+            (!purc_variant_is_string(option))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    static const struct purc_native_ops basic_ops = {
+        .property_getter = property_getter,
+        .on_observe = on_observe,
+        .on_forget = on_forget,
+        .on_release = on_release,
+    };
+
+    const struct purc_native_ops *ops = &basic_ops;
+    struct pcdvobjs_stream *stream = NULL;
+    const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
+
+    struct stat stat;
+    if (fstat(fd, &stat)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (S_ISREG(stat.st_mode)) {
+        stream = create_stream_from_fd(fd, STREAM_TYPE_FILE, option);
+    }
+    else if (S_ISFIFO(stat.st_mode)) {
+        stream = create_stream_from_fd(fd, STREAM_TYPE_FIFO, option);
+    }
+    else if (S_ISSOCK(stat.st_mode) && !is_fd_inet_socket(fd)) {
+        const char *prot = "raw";
+        if (nr_args > 2) {
+            prot = purc_variant_get_string_const(argv[2]);
+        }
+
+        stream = create_stream_from_fd(fd, STREAM_TYPE_UNIX, option);
+
+        if (prot && stream) {
+            purc_atom_t atom;
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_message].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
+#endif
+                    ) {
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":message";
+                ops = dvobjs_extend_stream_by_message(stream, ops,
+                        nr_args > 3 ? argv[3] : NULL);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
+                    ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
+                            nr_args > 3 ? argv[3] : NULL);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
+    else if (S_ISSOCK(stat.st_mode) && is_fd_inet_socket(fd)) {
+
+        const char *prot = "raw";
+        if (nr_args > 2) {
+            prot = purc_variant_get_string_const(argv[2]);
+        }
+
+        stream = create_inet_socket_stream_from_fd(fd, NULL, option);
+
+        if (prot && stream) {
+            purc_atom_t atom;
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_websocket].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
+#endif
+                    ) {
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":websocket";
+                ops = dvobjs_extend_stream_by_websocket(stream, ops,
+                        nr_args > 3 ? argv[3] : NULL);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
+                    ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
+                            nr_args > 3 ? argv[3] : NULL);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    }
+
+    if (!stream) {
+        goto out;
+    }
+
+    // setup a callback for `on_release` to destroy the stream automatically
+    ret_var = purc_variant_make_native_entity(stream, ops, entity_name);
+    if (ret_var) {
+        stream->observed = ret_var;
+    }
+    return ret_var;
+
+out:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1748,7 +2169,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             prot = purc_variant_get_string_const(argv[2]);
         }
 
-        stream = create_unix_sock_stream(url, option, prot);
+        stream = create_unix_socket_stream(url, option, prot);
 
         if (prot && stream) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
@@ -1776,14 +2197,16 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
         }
     }
-    else if (atom == keywords2atoms[K_KW_tcp].atom) {
-        const char *prot = "websocket";
+    else if (atom == keywords2atoms[K_KW_inet].atom ||
+            atom == keywords2atoms[K_KW_inet4].atom ||
+            atom == keywords2atoms[K_KW_inet6].atom) {
+
+        const char *prot = "raw";
         if (nr_args > 2) {
             prot = purc_variant_get_string_const(argv[2]);
         }
-        /* TODO: raw socket */
 
-        stream = create_websock_stream(url, option, prot);
+        stream = create_inet_socket_stream(atom, url, option);
 
         if (prot && stream) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
@@ -1810,6 +2233,9 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 stream = NULL;
             }
         }
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
     if (!stream) {
@@ -1929,6 +2355,7 @@ purc_variant_t purc_dvobj_stream_new(void)
 {
     static struct purc_dvobj_method  stream[] = {
         { "open",   stream_open_getter,     NULL },
+        { "from",   stream_from_getter,     NULL },
         { "close",  stream_close_getter,    NULL },
     };
 
@@ -1954,4 +2381,110 @@ purc_variant_t purc_dvobj_stream_new(void)
     return PURC_VARIANT_INVALID;
 }
 
+purc_variant_t
+dvobjs_create_stream_by_accepted(purc_atom_t schema, char *peer_addr, int fd,
+        purc_variant_t prot_v, purc_variant_t prot_opts)
+{
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    static const struct purc_native_ops basic_ops = {
+        .property_getter = property_getter,
+        .on_observe = on_observe,
+        .on_forget = on_forget,
+        .on_release = on_release,
+    };
+
+    const struct purc_native_ops *ops = &basic_ops;
+    struct pcdvobjs_stream *stream = NULL;
+    const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
+
+    if (schema == keywords2atoms[K_KW_unix].atom ||
+            schema == keywords2atoms[K_KW_local].atom) {
+
+        const char *prot = "raw";
+        if (prot_v) {
+            prot = purc_variant_get_string_const(prot_v);
+        }
+
+        stream = create_stream_from_fd(fd, STREAM_TYPE_UNIX, NULL);
+
+        if (prot && stream) {
+            purc_atom_t atom;
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_message].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
+#endif
+                    ) {
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":message";
+                ops = dvobjs_extend_stream_by_message(stream, ops, prot_opts);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
+                    ops = dvobjs_extend_stream_by_hbdbus(stream,
+                            ops, prot_opts);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
+    else if (schema == keywords2atoms[K_KW_inet].atom ||
+            schema == keywords2atoms[K_KW_inet4].atom ||
+            schema == keywords2atoms[K_KW_inet6].atom) {
+
+        const char *prot = "raw";
+        if (prot_v) {
+            prot = purc_variant_get_string_const(prot_v);
+        }
+
+        stream = create_inet_socket_stream_from_fd(fd, peer_addr, NULL);
+
+        if (prot && stream) {
+            purc_atom_t atom;
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_websocket].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
+#endif
+                    ) {
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":websocket";
+                ops = dvobjs_extend_stream_by_websocket(stream,
+                        ops, prot_opts);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
+                    ops = dvobjs_extend_stream_by_hbdbus(stream,
+                            ops, prot_opts);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    }
+
+
+    if (stream) {
+        // setup a callback for `on_release` to destroy the stream automatically
+        ret_var = purc_variant_make_native_entity(stream, ops, entity_name);
+        if (ret_var) {
+            stream->observed = ret_var;
+        }
+    }
+
+    return ret_var;
+}
 

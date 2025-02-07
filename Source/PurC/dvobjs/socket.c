@@ -52,6 +52,9 @@
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
 #define SOCKET_SUB_EVENT_NEWMESSAGE     "newMessage"
 
+#define MAX_LEN_KEYWORD             64
+#define _KW_DELIMITERS              " \t\n\v\f\r"
+
 #define SOCKET_ATOM_BUCKET              ATOM_BUCKET_DVOBJ
 
 enum {
@@ -79,6 +82,16 @@ enum {
     K_KW_recvfrom,
 #define _KW_close                   "close"
     K_KW_close,
+#define _KW_default                 "default"
+    K_KW_default,
+#define _KW_nonblock                "nonblock"
+    K_KW_nonblock,
+#define _KW_cloexec                 "cloexec"
+    K_KW_cloexec,
+#define _KW_override                 "override"
+    K_KW_override,
+#define _KW_global                 "global"
+    K_KW_global,
 };
 
 static struct keyword_to_atom {
@@ -97,7 +110,90 @@ static struct keyword_to_atom {
     { _KW_sendto, 0},               // "sendto"
     { _KW_recvfrom, 0},             // "recvfrom"
     { _KW_close, 0},                // "close"
+    { _KW_default, 0},              // "default"
+    { _KW_nonblock, 0},             // "nonblock"
+    { _KW_cloexec, 0},              // "cloexec"
+    { _KW_override, 0},             // "override"
+    { _KW_global, 0},               // "global"
 };
+
+/* We use the high 32-bit for customized flags */
+#define _O_OVERRIDE     (0x01L << 32)
+#define _O_GLOBAL       (0x02L << 32)
+
+static
+int64_t parse_socket_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_default].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char tmp[parts_len + 1];
+        strncpy(tmp, parts, parts_len);
+        tmp[parts_len]= '\0';
+        atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
+    }
+
+    if (atom != keywords2atoms[K_KW_default].atom) {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = 0;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_override].atom) {
+                flags |= _O_OVERRIDE;
+            }
+            else if (atom == keywords2atoms[K_KW_global].atom) {
+                flags |= _O_GLOBAL;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+    else {
+        flags = _O_OVERRIDE | O_CLOEXEC;
+    }
+
+    return flags;
+
+out:
+    return -1;
+}
 
 static struct pcdvobjs_socket *
 dvobjs_socket_new(enum pcdvobjs_socket_type type,
@@ -169,6 +265,69 @@ inet_socket_accept_client(struct pcdvobjs_socket *socket,
     return -1;
 }
 
+static
+int parse_accept_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int flags = 0;
+
+    parts = purc_variant_get_string_const_ex(option, &parts_len);
+    if (parts == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    parts = pcutils_trim_spaces(parts, &parts_len);
+    if (parts_len == 0) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+
+    if (atom == 0) {
+        char tmp[parts_len + 1];
+        strncpy(tmp, parts, parts_len);
+        tmp[parts_len]= '\0';
+        atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
+    }
+
+    if (atom != keywords2atoms[K_KW_default].atom) {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = keywords2atoms[K_KW_default].atom;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+
+    return flags;
+
+failed:
+    return -1;
+}
+
 static purc_variant_t
 accept_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
@@ -176,10 +335,16 @@ accept_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(property_name);
 
     assert(native_entity);
-
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
-    if (socket->type == SOCKET_TYPE_STREAM) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+    assert(socket->type == SOCKET_TYPE_STREAM);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int flags = parse_accept_option(argv[0]);
+    if (flags == -1) {
         goto error;
     }
 
@@ -206,12 +371,18 @@ accept_getter(void *native_entity, const char *property_name,
     else if (schema == keywords2atoms[K_KW_inet6].atom) {
         fd = inet_socket_accept_client(socket, ISF_INET6, &peer_addr);
     }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    }
 
-    purc_variant_t stream =
-        dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
-                nr_args > 0 ? argv[0] : NULL,
-                nr_args > 1 ? argv[1] : NULL);
-    return stream;
+    if (fd >= 0) {
+        purc_variant_t stream =
+            dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
+                    nr_args > 0 ? argv[0] : NULL,
+                    nr_args > 1 ? argv[1] : NULL);
+        if (stream)
+            return stream;
+    }
 
 error:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -418,6 +589,8 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     int    fd = -1, len;
     struct sockaddr_un unix_addr;
 
+    int64_t flags = parse_socket_option(option);
+
     /* create a Unix domain stream socket */
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         PC_ERROR("Failed to call `socket`: %s\n", strerror(errno));
@@ -425,10 +598,12 @@ create_local_stream_socket(struct purc_broken_down_url *url,
         goto error;
     }
 
-    fcntl(fd, F_SETFD, FD_CLOEXEC);
+    if (flags & O_CLOEXEC)
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
 
-    /* in case it already exists */
-    unlink(url->path);
+    /* TODO: in case it already exists */
+    if (flags & _O_OVERRIDE)
+        unlink(url->path);
 
     /* fill in socket address structure */
     memset(&unix_addr, 0, sizeof(unix_addr));
@@ -443,10 +618,12 @@ create_local_stream_socket(struct purc_broken_down_url *url,
         goto error;
     }
 
-    if (chmod(url->path, 0666) < 0) {
-        PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
-        goto error;
+    if (flags & _O_GLOBAL) {
+        if (chmod(url->path, 0666) < 0) {
+            PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
+            purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+            goto error;
+        }
     }
 
     /* tell kernel we're a server */

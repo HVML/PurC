@@ -131,7 +131,7 @@ set(test_variant_set_SOURCES
 
 set(test_variant_set_LIBRARIES
     PurC::PurC
-    "${GTEST_INCLUDE_DIRS}"
+    "${GTEST_LIBRARIES}"
     pthread
 )
 

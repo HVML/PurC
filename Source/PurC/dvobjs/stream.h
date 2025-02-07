@@ -41,8 +41,7 @@ enum pcdvobjs_stream_type {
     STREAM_TYPE_PIPE,
     STREAM_TYPE_FIFO,
     STREAM_TYPE_UNIX,
-    STREAM_TYPE_TCP,
-    STREAM_TYPE_UDP,
+    STREAM_TYPE_INET,
 };
 
 struct pcdvobjs_stream;
@@ -55,6 +54,12 @@ enum stream_message_type {
     MT_PING,
     MT_PONG,
     MT_CLOSE
+};
+
+enum stream_inet_socket_family {
+    ISF_UNSPEC = 0,
+    ISF_INET4,
+    ISF_INET6,
 };
 
 struct stream_messaging_ops {
@@ -93,8 +98,10 @@ typedef struct pcdvobjs_stream {
     uintptr_t monitor4r, monitor4w;
     int fd4r, fd4w;
 
-    pid_t cpid;                 /* only for pipe, the pid of child */
+    pid_t cpid;             /* only for pipe, the pid of child */
     purc_atom_t cid;
+
+    char *peer_addr;        /* the address of the connection peer; 0.9.22 */
 
     struct stream_extended ext0;   /* for presentation layer */
     struct stream_extended ext1;   /* for application layer */
@@ -117,8 +124,13 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
+int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
+        const char *host_name, int port, char **peer_addr)
+    WTF_INTERNAL;
 
-int dvobjs_extend_stream_websocket_connect(const char *host_name, int port)
+purc_variant_t
+dvobjs_create_stream_by_accepted(purc_atom_t schema, char *peer_addr, int fd,
+        purc_variant_t prot, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
 PCA_EXTERN_C_END
