@@ -32,7 +32,7 @@ set(test_vcm_eval_SOURCES
 
 set(test_vcm_eval_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -61,7 +61,7 @@ set(test_interpreter_SOURCES
 
 set(test_interpreter_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -89,7 +89,7 @@ set(test_observe_SOURCES
 
 set(test_observe_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -118,7 +118,7 @@ if (0)
 
     set(test_observe_named_LIBRARIES
         PurC::PurC
-        "${GTEST_LIBRARIES}"
+        "${GTEST_MAIN_LIBRARIES}"
         pthread
     )
 
@@ -148,7 +148,7 @@ set(test_doc_var_SOURCES
 
 set(test_doc_var_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -176,7 +176,7 @@ set(test_test_SOURCES
 
 set(test_test_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -205,7 +205,7 @@ set(test_intr_samples_SOURCES
 
 set(test_intr_samples_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -233,7 +233,7 @@ set(test_attach_rdr_SOURCES
 
 set(test_attach_rdr_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -262,7 +262,7 @@ set(test_samples_SOURCES
 
 set(test_samples_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -293,7 +293,7 @@ set(test_hvml_tag_SOURCES
 
 set(test_hvml_tag_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -323,7 +323,7 @@ set(test_simple_runner_SOURCES
 
 set(test_simple_runner_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -351,7 +351,7 @@ set(test_runners_SOURCES
 
 set(test_runners_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -379,7 +379,7 @@ set(test_void_document_SOURCES
 
 set(test_void_document_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -407,7 +407,7 @@ set(test_comprehensive_programs_SOURCES
 
 set(test_comprehensive_programs_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -434,7 +434,7 @@ set(test_quit_main_runner_SOURCES
 
 set(test_quit_main_runner_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -463,7 +463,7 @@ set(test_inherit_document_SOURCES
 
 set(test_inherit_document_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

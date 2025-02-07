@@ -27,7 +27,7 @@ set(test_utils_SOURCES
 set(test_utils_LIBRARIES
     ${GLIB_LIBRARIES}
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -53,7 +53,7 @@ set(test_regex_SOURCES
 
 set(test_regex_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -80,7 +80,7 @@ set(test_runloop_SOURCES
 
 set(test_runloop_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -107,7 +107,7 @@ set(test_helpers_SOURCES
 
 set(test_helpers_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

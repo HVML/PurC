@@ -23,7 +23,7 @@ set(test_vcm_SOURCES
 
 set(test_vcm_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -51,7 +51,7 @@ set(test_eval_SOURCES
 
 set(test_eval_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

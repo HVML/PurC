@@ -23,7 +23,7 @@ set(test_variant_SOURCES
 
 set(test_variant_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -50,7 +50,7 @@ set(test_serializer_SOURCES
 
 set(test_serializer_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -77,7 +77,7 @@ set(test_variant_array_SOURCES
 
 set(test_variant_array_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -104,7 +104,7 @@ set(test_variant_object_SOURCES
 
 set(test_variant_object_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -131,7 +131,7 @@ set(test_variant_set_SOURCES
 
 set(test_variant_set_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -158,7 +158,7 @@ set(test_random_SOURCES
 
 set(test_random_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -185,7 +185,7 @@ set(test_load_from_json_SOURCES
 
 set(test_load_from_json_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -212,7 +212,7 @@ set(test_numerify_booleanize_stringify_SOURCES
 
 set(test_numerify_booleanize_stringify_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -241,7 +241,7 @@ set(test_container_SOURCES
 
 set(test_container_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -268,7 +268,7 @@ set(test_set_find_SOURCES
 
 set(test_set_find_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -295,7 +295,7 @@ set(test_constraint_SOURCES
 
 set(test_constraint_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -322,7 +322,7 @@ set(test_variant_map_SOURCES
 
 set(test_variant_map_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -349,7 +349,7 @@ set(test_bugs_json_SOURCES
 
 set(test_bugs_json_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -378,7 +378,7 @@ set(test_variant_tuple_SOURCES
 
 set(test_variant_tuple_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -407,7 +407,7 @@ set(test_variant_sorted_array_SOURCES
 
 set(test_variant_sorted_array_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

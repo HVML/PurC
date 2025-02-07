@@ -23,7 +23,7 @@ set(test_rwstream_SOURCES
 
 set(test_rwstream_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

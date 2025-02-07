@@ -23,7 +23,7 @@ set(test_messages_SOURCES
 
 set(test_messages_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

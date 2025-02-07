@@ -20,7 +20,7 @@ set(test_document_SOURCES
 
 set(test_document_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

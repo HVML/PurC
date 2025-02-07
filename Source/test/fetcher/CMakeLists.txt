@@ -26,7 +26,7 @@ set(test_local_fetcher_SOURCES
 
 set(test_local_fetcher_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -56,7 +56,7 @@ set(test_fetcher_SOURCES
 
 set(test_fetcher_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
