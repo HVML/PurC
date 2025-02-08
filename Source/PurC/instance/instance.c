@@ -417,10 +417,11 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
+    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG
+            && curr_inst->fp_log != stdout && curr_inst->fp_log != stderr) {
         fclose(curr_inst->fp_log);
-        curr_inst->fp_log = NULL;
     }
+    curr_inst->fp_log = NULL;
 
     if (curr_inst->bt) {
         pcdebug_backtrace_unref(curr_inst->bt);
