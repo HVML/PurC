@@ -669,7 +669,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* bind the name to the descriptor */
     if (bind(fd, (struct sockaddr *)&unix_addr, len) < 0) {
-        PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
+        PC_ERROR("Failed bind(%s): %s\n", url->path, strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -919,11 +919,47 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+socket_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if ((!purc_variant_is_native(argv[0]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    const char *entity_name = purc_variant_native_get_name(argv[0]);
+    if (entity_name == NULL ||
+            strncmp(entity_name, NATIVE_ENTITY_NAME_SOCKET,
+                sizeof(NATIVE_ENTITY_NAME_SOCKET) - 1) != 0) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    struct pcdvobjs_socket *socket = purc_variant_native_get_entity(argv[0]);
+    dvobjs_socket_close(socket);
+    return purc_variant_make_boolean(true);
+
+out:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_socket_new(void)
 {
     static struct purc_dvobj_method  socket[] = {
         { "stream", socket_stream_getter,   NULL },
         { "dgram",  socket_dgram_getter,    NULL },
+        { "close",  socket_close_getter,    NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
