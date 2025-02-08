@@ -19,11 +19,8 @@
 
 
 #include "purc/purc.h"
-#include "private/utils.h"
-#include "private/interpreter.h"
-#include "private/debug.h"
 
-#include "../helpers.h"
+#include "helpers.h"
 #include "tools.h"
 
 #include <glob.h>
@@ -95,7 +92,7 @@ intr_util_comp_docs(purc_document_t doc_l, purc_document_t doc_r, int *diff)
     if (pl && pr) {
         *diff = strcmp(pl, pr);
         if (*diff) {
-            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
+            purc_log_debug("diff:\n%s\n%s", pl, pr);
         }
         retp = pl;
     }
@@ -384,5 +381,18 @@ go_comp_test(const char *files)
     }
 
     // std::cerr << "env: " << env << "=" << path << std::endl;
+}
+
+void run_one_comp_test(const char *file)
+{
+    char path[PATH_MAX+1];
+    const char *env = "SOURCE_FILES";
+    const char *rel = file;
+    test_getpath_from_env_or_rel(path, sizeof(path),
+        env, rel);
+
+    int ret = comp_process_file(path);
+    if (ret == 0)
+        purc_run((purc_cond_handler)comp_cond_handler);
 }
 

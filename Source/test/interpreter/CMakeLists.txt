@@ -142,7 +142,7 @@ list(APPEND test_doc_var_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_doc_var)
 
 set(test_doc_var_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_doc_var.cpp
 )
 
@@ -199,7 +199,7 @@ list(APPEND test_intr_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_intr_samples)
 
 set(test_intr_samples_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_intr_samples.cpp
 )
 
@@ -256,7 +256,7 @@ list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_samples)
 
 set(test_samples_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_samples.cpp
 )
 
@@ -287,7 +287,7 @@ list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_hvml_tag)
 
 set(test_hvml_tag_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_hvml_tag.cpp
 )
 
@@ -401,7 +401,7 @@ list(APPEND test_comprehensive_programs_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_comprehensive_programs)
 
 set(test_comprehensive_programs_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_comprehensive_programs.cpp
 )
 
@@ -457,7 +457,7 @@ list(APPEND test_inherit_document_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_inherit_document)
 
 set(test_inherit_document_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_inherit_document.cpp
 )
 

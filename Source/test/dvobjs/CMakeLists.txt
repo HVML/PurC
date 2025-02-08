@@ -462,3 +462,31 @@ set(test_dvobjs_rdr_LIBRARIES
 PURC_COMPUTE_SOURCES(test_dvobjs_rdr)
 PURC_FRAMEWORK(test_dvobjs_rdr)
 GTEST_DISCOVER_TESTS(test_dvobjs_rdr DISCOVERY_TIMEOUT 10)
+
+# test_socket
+PURC_EXECUTABLE_DECLARE(test_socket)
+
+list(APPEND test_socket_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_socket)
+
+set(test_socket_SOURCES
+    test_socket.cpp
+    ../tools.cpp
+)
+
+set(test_socket_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_socket)
+PURC_FRAMEWORK(test_socket)
+GTEST_DISCOVER_TESTS(test_socket DISCOVERY_TIMEOUT 10)

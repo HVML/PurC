@@ -89,6 +89,9 @@ intr_util_comp_docs(purc_document_t doc_l, purc_document_t doc_r, int *diff);
 void
 go_comp_test(const char *files);
 
+void
+run_one_comp_test(const char *file);
+
 PCA_EXTERN_C_END
 
 #endif /* PURC_TEST_INTR_TOOLS_H */

@@ -28,7 +28,7 @@
 #include "purc/purc-variant.h"
 
 #include "../helpers.h"
-#include "tools.h"
+#include "../tools.h"
 
 #include <gtest/gtest.h>
 #include <limits.h>

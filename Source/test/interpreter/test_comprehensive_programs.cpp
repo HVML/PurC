@@ -30,42 +30,42 @@
 #include "private/interpreter.h"
 
 #include "../helpers.h"
-#include "tools.h"
+#include "../tools.h"
 
 #include <glob.h>
 #include <gtest/gtest.h>
 
 TEST(comp_hvml, basic)
 {
-    go_comp_test("comp/0*.hvml");
+    go_comp_test("interpreter/comp/0*.hvml");
 }
 
 TEST(comp_hvml, load)
 {
-    go_comp_test("comp/1*.hvml");
+    go_comp_test("interpreter/comp/1*.hvml");
 }
 
 TEST(comp_hvml, call)
 {
-    go_comp_test("comp/2*.hvml");
+    go_comp_test("interpreter/comp/2*.hvml");
 }
 
 TEST(comp_hvml, again)
 {
-    go_comp_test("comp/3*.hvml");
+    go_comp_test("interpreter/comp/3*.hvml");
 }
 
 TEST(comp_hvml, tag)
 {
-    go_comp_test("comp/4*.hvml");
+    go_comp_test("interpreter/comp/4*.hvml");
 }
 
 TEST(comp_hvml, var)
 {
-    go_comp_test("comp/5*.hvml");
+    go_comp_test("interpreter/comp/5*.hvml");
 }
 
 TEST(comp_hvml, purcmc)
 {
-    go_comp_test("comp/6*.hvml");
+    go_comp_test("interpreter/comp/6*.hvml");
 }
