@@ -1,0 +1,5 @@
+# test cases for socket local stream
+negative:
+    $SOCKET.stream('unix:///not/exist/path/foo')
+    EntityNotFound
+

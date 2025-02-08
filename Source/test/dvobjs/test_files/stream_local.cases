@@ -1,0 +1,9 @@
+# test cases for local/unix stream
+negative:
+    $STREAM.open('local://var/tmp/echo')
+    EntityNotFound
+
+negative:
+    $STREAM.open('local:///var/tmp/echo')
+    EntityNotFound
+

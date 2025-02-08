@@ -253,3 +253,19 @@ positive:
     {{ {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }} || "End Infos" }}
     11UL
 
+negative:
+    $STREAM.open()
+    ArgumentMissed
+
+negative:
+    $STREAM.open(null)
+    WrongDataType
+
+negative:
+    $STREAM.open('foo')
+    InvalidValue
+
+negative:
+    $STREAM.open('foo:///var/tmp/a')
+    InvalidValue
+

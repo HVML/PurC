@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+** Copyright (C) 2025 FMSoft <https://www.fmsoft.cn>
 **
 ** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
 **
@@ -27,27 +27,21 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-
-TEST(dvobjs, stream)
-{
-    TestDVObj tester;
-    tester.run_testcases_in_file("stream");
-}
-
 #if OS(UNIX)
-TEST(dvobjs, stream_pipe)
+TEST(dvobjs, socket)
 {
-    if (access("/usr/bin/bc", F_OK)) {
-        return;
-    }
     TestDVObj tester;
-    tester.run_testcases_in_file("stream_pipe");
+    tester.run_testcases_in_file("socket");
 }
 
-TEST(dvobjs, stream_local)
+TEST(dvobjs, socket_local_stream)
 {
     TestDVObj tester;
-    tester.run_testcases_in_file("stream_local");
+    tester.run_testcases_in_file("socket_local_stream");
+}
+#else
+TEST(dvobjs, foo)
+{
 }
 #endif
 

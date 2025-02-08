@@ -48,6 +48,7 @@
 #define PURC_PREDEF_VARNAME_STR         "STR"
 #define PURC_PREDEF_VARNAME_DATA        "DATA"
 #define PURC_PREDEF_VARNAME_STREAM      "STREAM"
+#define PURC_PREDEF_VARNAME_SOCKET      "SOCKET"
 #define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
 #define PURC_PREDEF_VARNAME_URL         "URL"
 #define PURC_PREDEF_VARNAME_RDR         "RDR"
@@ -58,6 +59,7 @@
 #define PURC_PREDEF_VARNAME_STR_ZH      "字符串"
 #define PURC_PREDEF_VARNAME_DATA_ZH     "数据"
 #define PURC_PREDEF_VARNAME_STREAM_ZH   "流"
+#define PURC_PREDEF_VARNAME_SOCKET_ZH   "套接字"
 #define PURC_PREDEF_VARNAME_DATETIME_ZH "时间"
 
 /* coroutine-level variables */
@@ -152,6 +154,10 @@ purc_dvobj_url_new(void);
 /** Make a dynamic variant object for built-in `$STREAM` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_stream_new(void);
+
+/** Make a dynamic variant object for built-in `$SOCKET` variable. */
+PCA_EXPORT purc_variant_t
+purc_dvobj_socket_new(void);
 
 /** Make a dynamic variant object for built-in `$RDR` variable. */
 PCA_EXPORT purc_variant_t

@@ -1,0 +1,13 @@
+# test cases for socket
+negative:
+    $SOCKET.stream()
+    ArgumentMissed
+
+negative:
+    $SOCKET.stream(null)
+    WrongDataType
+
+negative:
+    $SOCKET.stream('local')
+    InvalidValue
+

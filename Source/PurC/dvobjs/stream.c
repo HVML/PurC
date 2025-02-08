@@ -1825,13 +1825,14 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     UNUSED_PARAM(option);
 
     if (!file_exists(url->path)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        PC_DEBUG("Path does not exist: %s\n", url->path);
+        purc_set_error(PURC_ERROR_NOT_EXISTS);
         return NULL;
     }
 
     int fd = 0;
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        purc_set_error(PCRDR_ERROR_IO);
+        purc_set_error(purc_error_from_errno(errno));
         return NULL;
     }
 
@@ -1860,13 +1861,13 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     unlink(unix_addr.sun_path);        /* in case it already exists */
     if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
         PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_ACCESS_DENIED);
+        purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
 
     if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
         PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_ACCESS_DENIED);
+        purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
 
@@ -1877,7 +1878,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
         PC_ERROR("Failed to call `connect`: %s\n",strerror(errno));
-        purc_set_error(PURC_ERROR_CONNECTION_REFUSED);
+        purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
 
@@ -2163,7 +2164,8 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (atom == keywords2atoms[K_KW_fifo].atom) {
         stream = create_fifo_stream(url, option);
     }
-    else if (atom == keywords2atoms[K_KW_unix].atom) {
+    else if (atom == keywords2atoms[K_KW_local].atom ||
+            atom == keywords2atoms[K_KW_unix].atom) {
         const char *prot = "raw";
         if (nr_args > 2) {
             prot = purc_variant_get_string_const(argv[2]);
@@ -2233,9 +2235,6 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 stream = NULL;
             }
         }
-    }
-    else {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
     if (!stream) {

@@ -194,7 +194,7 @@ pcintr_bind_builtin_runner_variables(void)
     }
 #endif
 
-    /* $L, $STR, $URL, $DATA, $STREAM, $DATETIME
+    /* $L, $STR, $URL, $DATA, $STREAM, $SOCKET, $DATETIME
      * are all runner-level variables */
 
     // $L
@@ -231,6 +231,13 @@ pcintr_bind_builtin_runner_variables(void)
         goto out;
     }
     purc_variant_unref(stream);
+
+    // $SOCKET
+    purc_variant_t socket = purc_dvobj_socket_new();
+    if (!purc_bind_runner_variable(PURC_PREDEF_VARNAME_SOCKET, socket)) {
+        goto out;
+    }
+    purc_variant_unref(socket);
 
     // $DATETIME
     purc_variant_t dt = purc_dvobj_datetime_new();
