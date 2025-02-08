@@ -3,3 +3,35 @@ negative:
     $SOCKET.stream('unix:///not/exist/path/foo')
     EntityNotFound
 
+positive:
+    $DATA.type($SOCKET.stream('unix:///var/tmp/foo'))
+    'native'
+
+positive:
+    $RUNNER.user(! "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
+    true
+
+negative:
+    $SOCKET.stream('unix:///var/tmp/foo')
+    Conflict
+
+positive:
+    $RUNNER.myObj.localStreamSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'localStreamSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.localStreamSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'localStreamSocket', undefined )
+    true
+

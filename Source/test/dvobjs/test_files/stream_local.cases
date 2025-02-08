@@ -1,6 +1,6 @@
 # test cases for local/unix stream
 negative:
-    $STREAM.open('local://var/tmp/echo')
+    $STREAM.open('local://not/existed/echo')
     EntityNotFound
 
 negative:
