@@ -75,6 +75,8 @@ enum {
     K_KW_message,
 #define _KW_hbdbus                  "hbdbus"
     K_KW_hbdbus,
+#define _KW_fd                      "fd"
+    K_KW_fd,
 #define _KW_accept                  "accept"
     K_KW_accept,
 #define _KW_sendto                  "sendto"
@@ -105,6 +107,7 @@ static struct keyword_to_atom {
     { _KW_websocket, 0 },           // "websocket"
     { _KW_message, 0 },             // "message"
     { _KW_hbdbus, 0 },              // "hbdbus"
+    { _KW_fd, 0},                   // "fd"
     { _KW_accept, 0},               // "accept"
     { _KW_sendto, 0},               // "sendto"
     { _KW_recvfrom, 0},             // "recvfrom"
@@ -476,6 +479,21 @@ recvfrom_getter(void *native_entity, const char *property_name,
 }
 
 static purc_variant_t
+fd_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    assert(native_entity);
+
+    struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
+    return purc_variant_make_longint(socket->fd);
+}
+
+static purc_variant_t
 close_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
@@ -523,6 +541,9 @@ property_getter(void *entity, const char *name)
 
     if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_fd].atom) {
+        return fd_getter;
     }
 
 failed:
@@ -653,7 +674,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* create a Unix domain stream socket */
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        PC_ERROR("Failed to call `socket`: %s\n", strerror(errno));
+        PC_DEBUG("Failed to call `socket`: %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -669,14 +690,14 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* bind the name to the descriptor */
     if (bind(fd, (struct sockaddr *)&unix_addr, len) < 0) {
-        PC_ERROR("Failed bind(%s): %s\n", url->path, strerror(errno));
+        PC_DEBUG("Failed bind(%s): %s\n", url->path, strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if (flags & _O_GLOBAL) {
         if (chmod(url->path, 0666) < 0) {
-            PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
+            PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto error;
         }
@@ -684,7 +705,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* tell kernel we're a server */
     if (listen(fd, backlog) < 0) {
-        PC_ERROR("Failed to call `listen`: %s\n", strerror(errno));
+        PC_DEBUG("Failed to call `listen`: %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -755,14 +776,14 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     /* Options */
     int ov = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ov, sizeof(ov)) == -1) {
-        PC_DEBUG("Unable to set setsockopt: %s.", strerror(errno));
+        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 
     /* Bind the socket to the address. */
     if (bind(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
-        PC_DEBUG("Unable to set bind: %s.", strerror(errno));
+        PC_DEBUG("Failed bind(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -771,7 +792,7 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
 
     /* Tell the socket to accept connections. */
     if (listen(fd, backlog) == -1) {
-        PC_DEBUG("Unable to listen: %s.", strerror (errno));
+        PC_DEBUG("Failed listen(): %s.\n", strerror (errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }

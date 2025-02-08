@@ -1860,13 +1860,13 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
 
     unlink(unix_addr.sun_path);        /* in case it already exists */
     if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
+        PC_DEBUG("Failed to call `bind`: %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
 
     if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
-        PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
+        PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
@@ -1877,7 +1877,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     strcpy(unix_addr.sun_path, url->path);
     len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_ERROR("Failed to call `connect`: %s\n",strerror(errno));
+        PC_DEBUG("Failed to call `connect`: %s\n",strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }

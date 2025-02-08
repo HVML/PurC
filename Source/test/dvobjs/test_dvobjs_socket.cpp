@@ -39,7 +39,15 @@ TEST(dvobjs, socket_local_stream)
     TestDVObj tester;
     tester.run_testcases_in_file("socket_local_stream");
 }
+
+TEST(dvobjs, socket_inet_stream)
+{
+    TestDVObj tester;
+    tester.run_testcases_in_file("socket_inet_stream");
+}
+
 #else
+
 TEST(dvobjs, foo)
 {
 }

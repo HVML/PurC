@@ -16,6 +16,10 @@ negative:
     Conflict
 
 positive:
+    $L.ge($RUNNER.myObj.localStreamSocket.fd(), 3)
+    true
+
+positive:
     $RUNNER.myObj.localStreamSocket.close()
     true
 

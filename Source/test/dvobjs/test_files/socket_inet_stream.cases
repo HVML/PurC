@@ -1,0 +1,105 @@
+# test cases for socket inet stream
+negative:
+    $SOCKET.stream('inet://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet6://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet:///var/tmp/foo')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost:34567890')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost:80')
+    AccessDenied
+
+positive:
+    $DATA.type($SOCKET.stream('inet4://localhost:8080'))
+    'native'
+
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    true
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080')
+    Conflict
+
+positive:
+    $L.ge($RUNNER.myObj.inetStreamSocket.fd(), 3)
+    true
+
+positive:
+    $RUNNER.myObj.inetStreamSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.inetStreamSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
+negative:
+    $SOCKET.stream('inet6://localhost:34567890')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet6://localhost:80')
+    AccessDenied
+
+positive:
+    $DATA.type($SOCKET.stream('inet6://localhost:8080'))
+    'native'
+
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet6://localhost:8080') )
+    true
+
+negative:
+    $SOCKET.stream('inet6://localhost:8080')
+    Conflict
+
+positive:
+    $L.ge($RUNNER.myObj.inetStreamSocket.fd(), 3)
+    true
+
+positive:
+    $RUNNER.myObj.inetStreamSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet6://localhost:8080') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.inetStreamSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
