@@ -44,6 +44,7 @@
 #define LAYOUT_STYLE_KEY        "layoutStyle"
 #define TOOLKIT_STYLE_KEY       "toolkitStyle"
 #define TRANSITION_STYLE_KEY    "transitionStyle"
+#define KEEP_CONTENTS_KEY       "keepContents"
 
 #define BUFF_MIN                1024
 #define BUFF_MAX                1024 * 1024 * 4
@@ -420,6 +421,14 @@ pcintr_attach_to_renderer(struct pcrdr_conn *conn, pcintr_coroutine_t cor,
             if (extra_info->transition_style) {
                 if (!object_set(data, TRANSITION_STYLE_KEY,
                             extra_info->transition_style)) {
+                    errors++;
+                }
+            }
+
+            if (extra_info->keep_contents) {
+                if (!purc_variant_object_set_by_static_ckey(data,
+                            KEEP_CONTENTS_KEY,
+                            extra_info->keep_contents)) {
                     errors++;
                 }
             }
