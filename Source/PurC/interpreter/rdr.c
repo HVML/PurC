@@ -833,10 +833,11 @@ failed:
     return false;
 }
 
-bool
+int
 pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
+    int ret = PCRDR_ERROR_SERVER_REFUSED;
     pcrdr_msg_target target;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
@@ -910,21 +911,26 @@ pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
 
     pcrdr_release_message(response_msg);
 
-    if (ret_code != PCRDR_SC_OK) {
+    if (ret_code == PCRDR_SC_OK) {
+        ret = 0;
+    }
+    else if (ret_code == PCRDR_SC_NOT_IMPLEMENTED) {
+        ret = PCRDR_ERROR_NOT_IMPLEMENTED;
+    }
+    else {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        ret = PCRDR_ERROR_SERVER_REFUSED;
     }
 
-    return true;
-
 failed:
-    return false;
+    return ret;
 }
 
-bool
+int
 pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
+    int ret = PCRDR_ERROR_SERVER_REFUSED;
     pcrdr_msg_target target;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
@@ -964,18 +970,22 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
     uint64_t result = response_msg->resultValue;
     pcrdr_release_message(response_msg);
 
-    if (ret_code != PCRDR_SC_OK) {
+    if (ret_code == PCRDR_SC_OK) {
+        ret = 0;
+        if (result != 0) {
+            pcintr_reload_crtn_doc(inst, conn, cor, result);
+        }
+    }
+    else if (ret_code == PCRDR_SC_NOT_IMPLEMENTED) {
+        ret = PCRDR_ERROR_NOT_IMPLEMENTED;
+    }
+    else {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        ret = PCRDR_ERROR_SERVER_REFUSED;
     }
-    else if (ret_code == PCRDR_SC_OK && result != 0) {
-        pcintr_reload_crtn_doc(inst, conn, cor, result);
-    }
-
-    return true;
 
 failed:
-    return false;
+    return ret;
 }
 
 static const char *rdr_ops[] = {

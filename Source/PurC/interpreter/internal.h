@@ -245,11 +245,11 @@ bool
 pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
-bool
+int
 pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
-bool
+int
 pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
