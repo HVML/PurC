@@ -1324,7 +1324,7 @@ struct pcdvobjs_stream *create_stream_from_fd(int fd,
             flags &= ~O_APPEND;
 
         /* O_CLOEXEC is a file descriptor flag. */
-        if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, O_CLOEXEC) == -1) {
+        if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
             purc_set_error(purc_error_from_errno(errno));
             goto out;
         }
