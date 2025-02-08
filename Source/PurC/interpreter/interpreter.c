@@ -415,6 +415,10 @@ coroutine_release(pcintr_coroutine_t co)
             purc_variant_unref(co->toolkit_style);
         }
 
+        if (co->keep_contents) {
+            purc_variant_unref(co->keep_contents);
+        }
+
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
         if (url->schema) {
@@ -1950,6 +1954,9 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
         if (extra_info->toolkit_style) {
             co->toolkit_style = purc_variant_ref(extra_info->toolkit_style);
+        }
+        if (extra_info->keep_contents) {
+            co->keep_contents = purc_variant_ref(extra_info->keep_contents);
         }
     }
 
@@ -3970,12 +3977,20 @@ pcintr_coroutine_attach_renderer(struct pcinst *inst, pcintr_coroutine_t cor,
         rdr_info.toolkit_style = purc_variant_ref(cor->toolkit_style);
     }
 
+    if (cor->keep_contents) {
+        rdr_info.keep_contents = purc_variant_ref(cor->keep_contents);
+    }
+
     bool r = pcintr_attach_to_renderer(new_conn, cor,
             cor->target_page_type, cor->target_workspace,
             cor->target_group, cor->page_name, &rdr_info);
 
     if (rdr_info.toolkit_style) {
         purc_variant_ref(cor->toolkit_style);
+    }
+
+    if (rdr_info.keep_contents) {
+        purc_variant_ref(cor->keep_contents);
     }
 
     if (!r) {

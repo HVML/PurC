@@ -353,6 +353,7 @@ struct pcintr_coroutine {
     char                       *layout_style;
     char                       *transition_style;
     purc_variant_t              toolkit_style;
+    purc_variant_t              keep_contents;
 
     struct rb_node              node;     /* heap::coroutines */
     struct list_head            ln;       /* heap::crtns, stopped_crtns */
