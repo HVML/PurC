@@ -740,6 +740,12 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
+#ifdef EADDRINUSE
+    case EADDRINUSE:
+        return PURC_ERROR_CONFLICT;
+        break;
+#endif
+
 #ifdef EWOULDBLOCK
     case EWOULDBLOCK:
         return PCRWSTREAM_ERROR_IO;
