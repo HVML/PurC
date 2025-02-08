@@ -862,12 +862,43 @@ pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn);
     pcrdr_msg *response_msg;
 
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    if (cor->transition_style || cor->keep_contents) {
+        int errors = 0;
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
+        data = purc_variant_make_object_0();
+        if (cor->transition_style) {
+            if (!object_set(data, TRANSITION_STYLE_KEY,
+                        cor->transition_style)) {
+                errors++;
+            }
+        }
+
+        if (cor->keep_contents) {
+            if (!purc_variant_object_set_by_static_ckey(data,
+                        KEEP_CONTENTS_KEY,
+                        cor->keep_contents)) {
+                errors++;
+            }
+        }
+
+        if (errors > 0) {
+            purc_log_error("Failed to create data for page.\n");
+            if (data) {
+                purc_variant_unref(data);
+            }
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
     /* register */
     response_msg = pcintr_rdr_send_request_and_wait_response(
             conn, target, rdr_conn->page_handle,
             PCRDR_OPERATION_REGISTER, NULL,
             PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
-            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+            data_type, data, 0);
     if (response_msg == NULL) {
         goto failed;
     }
