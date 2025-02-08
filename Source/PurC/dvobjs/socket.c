@@ -242,21 +242,62 @@ struct pcdvobjs_socket *cast_to_socket(void *native_entity)
 static int
 local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
 {
-    UNUSED_PARAM(socket);
-    UNUSED_PARAM(peer_addr);
+    int                fd = -1;
+    struct sockaddr_un addr;
+    socklen_t          len;
 
-    return -1;
+    len = sizeof(addr);
+    if ((fd = accept(socket->fd, (struct sockaddr *)&addr, &len)) < 0) {
+        PC_DEBUG("Failed to accept(): %s", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    /* obtain the peer address */
+    len -= sizeof(addr.sun_family);
+    if (len <= 0) {
+        *peer_addr = strdup("<anonymous>");     /* FIXME */
+    }
+    else {
+        addr.sun_path[len] = 0;            /* null terminate */
+        *peer_addr = strdup(addr.sun_path);
+    }
+
+failed:
+    return fd;
 }
 
 static int
 inet_socket_accept_client(struct pcdvobjs_socket *socket,
         enum stream_inet_socket_family isf, char **peer_addr)
 {
-    UNUSED_PARAM(socket);
     UNUSED_PARAM(isf);
-    UNUSED_PARAM(peer_addr);
 
-    return -1;
+    int fd = -1;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+
+    if ((fd = accept(socket->fd, (struct sockaddr *)&addr, &len)) < 0) {
+        PC_DEBUG("Failed accept(): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    char host[NI_MAXHOST];
+    if (0 != getnameinfo((struct sockaddr *)&addr, len, host, sizeof(host),
+                NULL, 0, NI_NUMERICHOST)) {
+        PC_DEBUG("Failed getnameinfo(): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+
+        close(fd);
+        fd = -1;
+    }
+    else {
+        *peer_addr = strdup(host);
+    }
+
+failed:
+    return fd;
 }
 
 static
@@ -291,7 +332,7 @@ int parse_accept_option(purc_variant_t option)
                 _KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
-                atom = keywords2atoms[K_KW_default].atom;
+                atom = keywords2atoms[K_KW_cloexec].atom;
             }
             else {
                 char tmp[length + 1];
@@ -315,6 +356,9 @@ int parse_accept_option(purc_variant_t option)
                     _KW_DELIMITERS, &length);
         } while (part);
     }
+    else {
+        flags = O_CLOEXEC;
+    }
 
     return flags;
 
@@ -332,6 +376,7 @@ accept_getter(void *native_entity, const char *property_name,
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
     assert(socket->type == SOCKET_TYPE_STREAM);
 
+    int fd = -1;
     if (nr_args == 0) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto error;
@@ -349,7 +394,6 @@ accept_getter(void *native_entity, const char *property_name,
         goto error;
     }
 
-    int fd = -1;
     char *peer_addr = NULL;
 
     if (schema == keywords2atoms[K_KW_unix].atom ||
@@ -370,15 +414,29 @@ accept_getter(void *native_entity, const char *property_name,
     }
 
     if (fd >= 0) {
+        if (flags & O_CLOEXEC) {
+            fcntl(fd, F_SETFD, FD_CLOEXEC);
+        }
+
+        if (flags & O_NONBLOCK) {
+            fcntl(fd, F_SETFL, O_NONBLOCK);
+        }
+
         purc_variant_t stream =
             dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
                     nr_args > 0 ? argv[0] : NULL,
                     nr_args > 1 ? argv[1] : NULL);
-        if (stream)
-            return stream;
+        if (!stream) {
+            goto error;
+        }
+
+        return stream;
     }
 
 error:
+    if (fd >= 0)
+        close(fd);
+
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
@@ -596,7 +654,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     /* create a Unix domain stream socket */
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         PC_ERROR("Failed to call `socket`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
@@ -612,14 +670,14 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     /* bind the name to the descriptor */
     if (bind(fd, (struct sockaddr *)&unix_addr, len) < 0) {
         PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if (flags & _O_GLOBAL) {
         if (chmod(url->path, 0666) < 0) {
             PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
-            purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+            purc_set_error(purc_error_from_errno(errno));
             goto error;
         }
     }
@@ -627,7 +685,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     /* tell kernel we're a server */
     if (listen(fd, backlog) < 0) {
         PC_ERROR("Failed to call `listen`: %s\n", strerror(errno));
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
