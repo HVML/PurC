@@ -2274,9 +2274,19 @@ stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
+    const char *entity_name = purc_variant_native_get_name(argv[0]);
+    if (entity_name == NULL ||
+            strncmp(entity_name, NATIVE_ENTITY_NAME_STREAM,
+                sizeof(NATIVE_ENTITY_NAME_STREAM) - 1) != 0) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
     struct pcdvobjs_stream *stream = purc_variant_native_get_entity(argv[0]);
-    native_stream_close(stream);
-    return purc_variant_make_boolean(true);
+    const struct purc_native_ops* ops = purc_variant_native_get_ops(argv[0]);
+    assert(ops->property_getter);
+    purc_nvariant_method closer = ops->property_getter(stream, _KW_close);
+    return closer(stream, _KW_close, nr_args - 1, argv + 1, call_flags);
 
 out:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
