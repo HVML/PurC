@@ -338,6 +338,10 @@ comp_process_file(const char *file)
     return comp_add_sample(sample);
 }
 
+#ifndef PATH_MAX
+#   define PATH_MAX 4096
+#endif
+
 void
 go_comp_test(const char *files)
 {
@@ -347,7 +351,7 @@ go_comp_test(const char *files)
     glob_t globbuf;
     memset(&globbuf, 0, sizeof(globbuf));
 
-    char path[PATH_MAX+1];
+    char path[PATH_MAX];
     const char *env = "SOURCE_FILES";
     const char *rel = files;
     test_getpath_from_env_or_rel(path, sizeof(path),
@@ -385,7 +389,7 @@ go_comp_test(const char *files)
 
 void run_one_comp_test(const char *file)
 {
-    char path[PATH_MAX+1];
+    char path[PATH_MAX];
     const char *env = "SOURCE_FILES";
     const char *rel = file;
     test_getpath_from_env_or_rel(path, sizeof(path),
