@@ -857,7 +857,7 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         calloc(1, sizeof(struct purc_broken_down_url));
     if (!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error;
+        goto error_free_url;
     }
 
     purc_atom_t schema = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
@@ -898,9 +898,12 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *entity_name  = NATIVE_ENTITY_NAME_SOCKET ":stream";
     ret_var = purc_variant_make_native_entity(socket, &ops, entity_name);
-
     if (ret_var) {
+        socket->url = url;
         socket->observed = ret_var;
+    }
+    else {
+        dvobjs_socket_delete(socket);
     }
 
     return ret_var;

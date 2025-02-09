@@ -2135,7 +2135,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         calloc(1, sizeof(struct purc_broken_down_url));
     if (!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto out_free_url;
     }
 
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, url->schema);
