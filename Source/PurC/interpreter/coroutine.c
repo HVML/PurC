@@ -578,6 +578,7 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
                 co, (void **)&doc, NULL)) {
         assert(co->stack.doc->ldc != 0);
         co->stack.doc->ldc--;
+        co->supressed = 1;
 
         if ((co_loaded == NULL || co_loaded->stack.doc != doc) &&
                 co->stack.doc->ldc == 0) {
@@ -611,6 +612,7 @@ pcintr_reload_crtn_doc(struct pcinst *inst, pcrdr_conn *conn,
     if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
                 co, (void **)&doc, NULL)) {
         co->stack.doc->ldc++;
+        co->supressed = 0;
 
          if (co_revoked == NULL || co_revoked->stack.doc != doc) {
             /* only send page to the conn */

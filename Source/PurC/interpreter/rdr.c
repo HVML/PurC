@@ -620,8 +620,12 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 {
     PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
 
-    pcrdr_msg *response_msg = NULL;
+    /* supress update opeations */
+    if (cor && cor->supressed) {
+        goto failed;
+    }
 
+    pcrdr_msg *response_msg = NULL;
     purc_document_t doc = cor->stack.doc;
 
     pcrdr_msg_target target;
@@ -1065,7 +1069,7 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
     return 0;
 }
 
-pcrdr_msg *
+static pcrdr_msg *
 pcintr_rdr_send_dom_req(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
@@ -1084,6 +1088,11 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
     int n;
 
     if (!co || co->stack.doc->ldc == 0 ) {
+        return NULL;
+    }
+
+    /* supress update opeations */
+    if (co && co->supressed) {
         return NULL;
     }
 
@@ -1202,7 +1211,7 @@ failed:
     return NULL;
 }
 
-pcrdr_msg *
+static pcrdr_msg *
 pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
@@ -1246,6 +1255,11 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     if (data && len == 0) {
         len = strlen(data);
     }
@@ -1262,6 +1276,8 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         pcrdr_release_message(response_msg);
         return true;
     }
+
+out:
     return false;
 }
 
@@ -1275,6 +1291,12 @@ pcintr_rdr_call_method(struct pcinst *inst,
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     if (!data) {
         goto out;
     }
@@ -1341,6 +1363,11 @@ pcintr_rdr_set_property(struct pcinst *inst,
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
     purc_variant_t data = value;
 
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
         response_msg = pcintr_rdr_send_dom_req(inst, co,
@@ -1370,6 +1397,7 @@ pcintr_rdr_set_property(struct pcinst *inst,
         pcrdr_release_message(response_msg);
     }
 
+out:
     return ret;
 }
 
@@ -1381,6 +1409,11 @@ pcintr_rdr_get_property(struct pcinst *inst,
     purc_variant_t ret = PURC_VARIANT_INVALID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
 
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
@@ -1411,6 +1444,7 @@ pcintr_rdr_get_property(struct pcinst *inst,
         pcrdr_release_message(response_msg);
     }
 
+out:
     return ret;
 }
 

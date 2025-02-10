@@ -272,20 +272,6 @@ Note that for different operation, the reference element:
 
 */
 
-pcrdr_msg *
-pcintr_rdr_send_dom_req(struct pcinst *inst,
-        pcintr_coroutine_t co, int op, const char *request_id,
-        pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
-        pcrdr_msg_data_type data_type, purc_variant_t data);
-
-pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
-        pcintr_coroutine_t co, int op, const char *request_id,
-        pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
-        pcrdr_msg_data_type data_type, const char *data, size_t len);
-
 bool
 pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
