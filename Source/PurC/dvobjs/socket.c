@@ -639,25 +639,29 @@ accept_getter(void *native_entity, const char *property_name,
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
-    if (fd >= 0) {
-        if (flags & O_CLOEXEC) {
-            fcntl(fd, F_SETFD, FD_CLOEXEC);
-        }
-
-        if (flags & O_NONBLOCK) {
-            fcntl(fd, F_SETFL, O_NONBLOCK);
-        }
-
-        purc_variant_t stream =
-            dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
-                    nr_args > 0 ? argv[0] : NULL,
-                    nr_args > 1 ? argv[1] : NULL);
-        if (!stream) {
-            goto error;
-        }
-
-        return stream;
+    if (fd < 0) {
+        goto error;
     }
+
+    if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    if (flags & O_NONBLOCK && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    purc_variant_t stream =
+        dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
+                nr_args > 0 ? argv[0] : NULL,
+                nr_args > 1 ? argv[1] : NULL);
+    if (!stream) {
+        goto error;
+    }
+
+    return stream;
 
 error:
     if (fd >= 0)

@@ -87,6 +87,8 @@ enum {
     K_KW_create,
 #define _KW_truncate                "truncate"
     K_KW_truncate,
+#define _KW_nameless                "nameless"
+    K_KW_nameless,
 #define _KW_nonblock                "nonblock"
     K_KW_nonblock,
 #define _KW_cloexec                 "cloexec"
@@ -156,6 +158,7 @@ static struct keyword_to_atom {
     { _KW_append, 0 },              // "append"
     { _KW_create, 0 },              // "create"
     { _KW_truncate, 0 },            // "truncate"
+    { _KW_nameless, 0 },            // "nameless"
     { _KW_nonblock, 0 },            // "nonblock"
     { _KW_cloexec, 0 },             // "cloexec"
     { _KW_set, 0 },                 // "set"
@@ -1438,8 +1441,11 @@ out:
 #define READ_FLAG       0x01
 #define WRITE_FLAG      0x02
 
+/* We use the high 32-bit for customized flags */
+#define _O_NAMELESS     (0x01L << 32)
+
 static
-int parse_open_option(purc_variant_t option)
+int64_t parse_open_option(purc_variant_t option)
 {
     purc_atom_t atom = 0;
     size_t parts_len;
@@ -1493,6 +1499,9 @@ int parse_open_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_write].atom) {
                 rw |= WRITE_FLAG;
             }
+            else if (atom == keywords2atoms[K_KW_nameless].atom) {
+                flags |= _O_NAMELESS;
+            }
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
                 flags |= O_NONBLOCK;
             }
@@ -1540,7 +1549,7 @@ static
 struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
-    int flags = parse_open_option(option);
+    int flags = (int)parse_open_option(option);
     if (flags == -1) {
         return NULL;
     }
@@ -1596,7 +1605,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     unsigned nr_args = 0;
     char **argv = NULL;
 
-    int flags = parse_open_option(option);
+    int flags = (int)parse_open_option(option);
     if (flags == -1) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -1763,7 +1772,7 @@ struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
     UNUSED_PARAM(url);
     UNUSED_PARAM(option);
 
-    int flags = parse_open_option(option);
+    int flags = (int)parse_open_option(option);
     if (flags == -1) {
         return NULL;
     }
@@ -1822,7 +1831,7 @@ struct pcdvobjs_stream *
 create_unix_socket_stream(struct purc_broken_down_url *url,
         purc_variant_t option, const char *prot)
 {
-    UNUSED_PARAM(option);
+    int64_t flags = parse_open_option(option);
 
     if (!file_exists(url->path)) {
         PC_DEBUG("Path does not exist: %s\n", url->path);
@@ -1836,39 +1845,45 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    char peer_name[33];
-    pcutils_md5_ctxt ctx;
-    unsigned char md5_digest[16];
-    struct pcinst* inst = pcinst_current();
-
-    pcutils_md5_begin(&ctx);
-    if (inst) {
-        pcutils_md5_hash(&ctx, inst->app_name, strlen(inst->app_name));
-        pcutils_md5_hash(&ctx, inst->runner_name, strlen(inst->runner_name));
-    }
-    pcutils_md5_hash(&ctx, prot, strlen(prot));
-    pcutils_md5_end(&ctx, md5_digest);
-    pcutils_bin2hex(md5_digest, 16, peer_name, false);
-
-    /* fill socket address structure w/our address */
     struct sockaddr_un unix_addr;
-    memset(&unix_addr, 0, sizeof(unix_addr));
-    unix_addr.sun_family = AF_UNIX;
-    /* On Linux sun_path is 108 bytes in size */
-    sprintf(unix_addr.sun_path, "%s%s-%05d", US_CLI_PATH, peer_name, getpid());
-    size_t len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
+    socklen_t len;
 
-    unlink(unix_addr.sun_path);        /* in case it already exists */
-    if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG("Failed to call `bind`: %s\n", strerror(errno));
-        purc_set_error(purc_error_from_errno(errno));
-        goto out_close_fd;
-    }
+    if (!(flags & _O_NAMELESS)) {
+        char socket_path[33];
+        pcutils_md5_ctxt ctx;
+        unsigned char md5_digest[16];
+        struct pcinst* inst = pcinst_current();
 
-    if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
-        PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
-        purc_set_error(purc_error_from_errno(errno));
-        goto out_close_fd;
+        pcutils_md5_begin(&ctx);
+        if (inst) {
+            pcutils_md5_hash(&ctx, inst->app_name, strlen(inst->app_name));
+            pcutils_md5_hash(&ctx, inst->runner_name, strlen(inst->runner_name));
+        }
+        pcutils_md5_hash(&ctx, prot, strlen(prot));
+        pcutils_md5_end(&ctx, md5_digest);
+        pcutils_bin2hex(md5_digest, 16, socket_path, false);
+
+        /* fill socket address structure w/our address */
+        memset(&unix_addr, 0, sizeof(unix_addr));
+        unix_addr.sun_family = AF_UNIX;
+        /* On Linux sun_path is 108 bytes in size */
+        sprintf(unix_addr.sun_path, "%s%s-%05d", US_CLI_PATH,
+                socket_path, getpid());
+        len = sizeof(unix_addr.sun_family);
+        len += strlen(unix_addr.sun_path) + 1;
+
+        unlink(unix_addr.sun_path);        /* in case it already exists */
+        if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+            PC_DEBUG("Failed to call `bind`: %s\n", strerror(errno));
+            purc_set_error(purc_error_from_errno(errno));
+            goto out_close_fd;
+        }
+
+        if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
+            PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
+            purc_set_error(purc_error_from_errno(errno));
+            goto out_close_fd;
+        }
     }
 
     /* fill socket address structure w/server's addr */
@@ -1914,7 +1929,7 @@ struct pcdvobjs_stream *
 create_inet_socket_stream(purc_atom_t schema,
         struct purc_broken_down_url *url, purc_variant_t option)
 {
-    UNUSED_PARAM(option);
+    int flags = (int)parse_open_option(option);
 
     enum stream_inet_socket_family isf = ISF_UNSPEC;
     char *peer_addr = NULL;
@@ -1925,10 +1940,25 @@ create_inet_socket_stream(purc_atom_t schema,
     else if (schema == keywords2atoms[K_KW_inet6].atom) {
         isf = ISF_INET6;
     }
+    else if (schema != keywords2atoms[K_KW_inet].atom) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
 
     int fd = dvobjs_inet_socket_connect(isf, url->host, url->port, &peer_addr);
     if (fd < 0) {
+        purc_set_error(purc_error_from_errno(errno));
         return NULL;
+    }
+
+    if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto out_close_fd;
+    }
+
+    if (flags & O_NONBLOCK && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto out_close_fd;
     }
 
     struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_INET, url);
