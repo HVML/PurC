@@ -46,6 +46,10 @@ int vasprintf(char **buf, const char *fmt, va_list ap);
    last modification time, and so on. */
 bool pcutils_file_md5(const char *pathname, unsigned char *md5_buf, size_t *sz);
 
+#if !HAVE(STRERRORNAME_NP)
+const char* strerrorname_np(int errnum);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
