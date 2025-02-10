@@ -36,6 +36,7 @@
 #include "private/dvobjs.h"
 #include "private/atom-buckets.h"
 #include "private/interpreter.h"
+#include "private/ports.h"
 
 #include <errno.h>
 
@@ -823,9 +824,11 @@ sendto_getter(void *native_entity, const char *property_name,
         goto error_free_url;
     }
 
+    pcutils_broken_down_url_delete(dst);
+
     if (ai == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error_free_url;
+        goto error;
     }
 
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
@@ -837,7 +840,31 @@ sendto_getter(void *native_entity, const char *property_name,
             , ai->ai_addr, ai->ai_addrlen);
     freeaddrinfo(ai);
 
-    return purc_variant_make_longint(nr_sent);
+    purc_variant_t retv = purc_variant_make_object_0();
+    if (retv) {
+        purc_variant_t tmp;
+
+        tmp = purc_variant_make_longint(nr_sent);
+        purc_variant_object_set_by_static_ckey(retv, "sent", tmp);
+        purc_variant_unref(tmp);
+
+        if (nr_sent >= 0) {
+            tmp = purc_variant_make_null();
+            purc_variant_object_set_by_static_ckey(retv, "errorname", tmp);
+            purc_variant_unref(tmp);
+        }
+        else {
+            tmp = purc_variant_make_string_static(
+                    strerrorname_np(errno), false);
+            purc_variant_object_set_by_static_ckey(retv, "errorname", tmp);
+            purc_variant_unref(tmp);
+        }
+    }
+    else {
+        goto error;
+    }
+
+    return retv;
 
 error_free_url:
     pcutils_broken_down_url_delete(dst);
@@ -910,7 +937,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
             purc_variant_unref(tmp);
 
             tmp = purc_variant_make_null();
-            purc_variant_object_set_by_static_ckey(retv, "errno", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "errorname", tmp);
             purc_variant_unref(tmp);
         }
         else {
@@ -922,7 +949,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
 
             tmp = purc_variant_make_string_static(
                     strerrorname_np(errno), false);
-            purc_variant_object_set_by_static_ckey(retv, "errname", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "errorname", tmp);
             purc_variant_unref(tmp);
 
             flags |= _O_NOSOURCE;
