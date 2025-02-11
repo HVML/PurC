@@ -616,6 +616,14 @@ positive:
     bx0a000a000000
 
 positive:
+    $DATA.pack( "bytes:1 bytes:2", bx00, bx1122)
+    bx001122
+
+positive:
+    $DATA.pack( "bytes:0 bytes:2", bx, bx1122)
+    bx1122
+
+positive:
     $DATA.pack( "i16le:2 i32le", [[10, 15], 255])
     bx0A000F00FF000000
 
