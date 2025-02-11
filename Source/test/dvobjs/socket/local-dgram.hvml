@@ -1,0 +1,46 @@
+#!/usr/bin/purc
+
+# RESULT: bx00112233445566778899AABBCCDDEEFF
+
+<hvml target="void">
+    <head>
+    </head>
+
+    <body>
+
+        <init as 'result' with {} />
+
+        <init as 'dgramSocket' with  $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
+            <observe on $? for 'newDatagram' >
+                <choose on $dgramSocket.recvfrom('default', 16) >
+                    <update on $result at '.recved' with $?.recved />
+                    <update on $result at '.bytes' with $?.bytes />
+                    <catch for `ANY`>
+                        <update on $result at '.recved' with -1 />
+                    </catch>
+                </choose>
+            </observe>
+        </init>
+
+        <load from "#client" within 'client' onto 'null:' as "client" async />
+
+        <observe on $client for "corState:exited" >
+            <exit with $result />
+        </observe>
+
+    </body>
+
+    <body id="client">
+
+        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-client', 'nameless') >
+            <choose on $dgramSocket.sendto('local:///var/tmp/hvml-dgram-server', 'default', $bytes) >
+                <sleep for '1s' />
+                <exit with 'success' />
+                <catch for `ANY`>
+                    <exit with 'failure' />
+                </catch>
+            </choose>
+        </init>
+
+    </body>
+</hvml>
