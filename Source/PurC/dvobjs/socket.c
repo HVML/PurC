@@ -700,14 +700,13 @@ struct addrinfo *get_network_address(enum stream_inet_socket_family isf,
     }
 
     char port[10] = {0};
-    if (url->port <= 0 || url->port > 65535) {
+    if (url->port == 0 || url->port > 65535) {
         PC_DEBUG("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
     sprintf(port, "%d", url->port);
 
-    /* get a socket and bind it */
     hints.ai_socktype = SOCK_DGRAM;
     if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
         PC_DEBUG("Error while getting address info (%s:%d)\n",
@@ -809,10 +808,10 @@ sendto_getter(void *native_entity, const char *property_name,
     }
 
     struct addrinfo *ai = NULL;
+    struct sockaddr_un *unix_addr = NULL;
     if (schema == keywords2atoms[K_KW_unix].atom ||
             schema == keywords2atoms[K_KW_local].atom) {
 
-        struct sockaddr_un *unix_addr;
         if (strlen(dst->path) + 1 > sizeof(unix_addr->sun_path)) {
             purc_set_error(PURC_ERROR_TOO_LONG);
             goto error_free_url;
@@ -856,6 +855,8 @@ sendto_getter(void *native_entity, const char *property_name,
 #endif
             , ai->ai_addr, ai->ai_addrlen);
     freeaddrinfo(ai);
+    if (unix_addr)
+        free(unix_addr);
 
     purc_variant_t retv = purc_variant_make_object_0();
     if (retv) {
@@ -929,7 +930,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
         goto error;
     }
 
-    struct sockaddr_storage src_addr;
+    struct sockaddr_storage src_addr = { 0, };
     socklen_t addrlen = 0;
 
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
@@ -972,7 +973,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
             flags |= _O_NOSOURCE;
         }
 
-        if (flags & _O_NOSOURCE && src_addr.ss_family == AF_UNIX) {
+        if (!(flags & _O_NOSOURCE) && src_addr.ss_family == AF_UNIX) {
             struct sockaddr_un *unix_addr = (struct sockaddr_un *)&src_addr;
             tmp = purc_variant_make_string(unix_addr->sun_path, false);
             purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
@@ -982,7 +983,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
             purc_variant_object_set_by_static_ckey(retv, "source-port", tmp);
             purc_variant_unref(tmp);
         }
-        else {
+        else if (!(flags & _O_NOSOURCE)) {
             char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
             if (0 != getnameinfo((struct sockaddr *)&src_addr, addrlen,
                         hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
@@ -1307,7 +1308,7 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     }
 
     char port[10] = {0};
-    if (url->port <= 0 || url->port > 65535) {
+    if (url->port > 65535) {    /* 0 is acceptable for a stream socket */
         PC_DEBUG("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
@@ -1578,7 +1579,7 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
     }
 
     char port[10] = {0};
-    if (url->port <= 0 || url->port > 65535) {
+    if (url->port > 65535) {    /* 0 is acceptable for dgram socket. */
         PC_DEBUG("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
@@ -1610,13 +1611,13 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
         goto failed;
     }
 
-    /* Options */
+    /* FIXME: different manners amony OSes.
     int ov = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ov, sizeof(ov)) == -1) {
         PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
-    }
+    } */
 
     if (!(flags & _O_NAMELESS)) {
         /* Bind the socket to the address. */
