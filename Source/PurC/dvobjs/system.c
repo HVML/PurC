@@ -1880,6 +1880,38 @@ random_sequence_getter(purc_variant_t root,
 }
 #endif  /* !OS(LINUX) */
 
+static purc_variant_t
+remove_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const char *path;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if ((path = purc_variant_get_string_const(argv[0])) == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (remove(path)) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -1895,6 +1927,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "env",        env_getter,         env_setter },
         { "random",     random_getter,      random_setter },
         { "random_sequence", random_sequence_getter, NULL },
+        { "remove",     remove_getter,      NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
