@@ -1,27 +1,27 @@
 # test cases for $STREAM.open
-#negative:
-#    $STREAM.open('file:///tmp/test_stream_not_exist')
-#    EntityNotFound
-#
-#negative:
-#    $STREAM.open('file:///tmp/test_stream_not_exist', 'read write')
-#    EntityNotFound
-#
-#positive:
-#    $DATA.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
-#    'native'
-#
-#positive:
-#    $FS.unlink('/tmp/test_stream_not_exist')
-#    true
-#
-#positive:
-#    $DATA.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
-#    'native'
-#
-#positive:
-#    $FS.unlink('/tmp/test_stream_create')
-#    true
+negative:
+    $STREAM.open('file:///tmp/test_stream_not_exist')
+    EntityNotFound
+
+negative:
+    $STREAM.open('file:///tmp/test_stream_not_exist', 'read write')
+    EntityNotFound
+
+positive:
+    $DATA.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
+    'native'
+
+positive:
+    $SYS.remove('/tmp/test_stream_not_exist')
+    true
+
+positive:
+    $DATA.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
+    'native'
+
+positive:
+    $SYS.remove('/tmp/test_stream_create')
+    true
 
 # $STREAM.readbytes/writebytes
 positive:
@@ -40,9 +40,9 @@ positive:
     $STREAM.open('file:///tmp/test_stream_bytes', 'read').readbytes(100)
     bx777269746520737472696e6700
 
-#positive:
-#    $FS.unlink('/tmp/test_stream_bytes')
-#    true
+positive:
+    $SYS.remove('/tmp/test_stream_bytes')
+    true
 
 # $STREAM.writelines/readlines
 
@@ -66,9 +66,9 @@ positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(20)
     ["This is the string to write", "Second line"]
 
-#positive:
-#    $FS.unlink('/tmp/test_stream_lines')
-#    true
+positive:
+    $SYS.remove('/tmp/test_stream_lines')
+    true
 
 # $STREAM.writestruct/readsruct
 positive:
@@ -100,9 +100,9 @@ negative:
     InvalidValue
     [[10L, 15L]]
 
-#positive:
-#    $FS.unlink('/tmp/test_stream_struct')
-#    true
+positive:
+    $SYS.remove('/tmp/test_stream_struct')
+    true
 
 # $STREAM.seek
 positive:
@@ -141,9 +141,9 @@ negative:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, '')
     InvalidValue
 
-#positive:
-#    $FS.unlink('/tmp/test_stream_seek')
-#    true
+positive:
+    $SYS.remove('/tmp/test_stream_seek')
+    true
 
 # $STREAM read string
 positive:
@@ -186,9 +186,9 @@ positive:
     $STREAM.close($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'))
     true
 
-#positive:
-#    $FS.unlink('/tmp/test_stream_readstring')
-#    true
+positive:
+    $SYS.remove('/tmp/test_stream_readstring')
+    true
 
 positive:
     $STREAM.stdout.writelines('##### write to stdout #####')

@@ -11,3 +11,19 @@ negative:
     $SOCKET.stream('local')
     InvalidValue
 
+negative:
+    $SOCKET.stream('local:///tmp/foo', null)
+    WrongDataType
+
+negative:
+    $SOCKET.stream('local:///tmp/foo', 'unknown')
+    InvalidValue
+
+negative:
+    $SOCKET.stream('local:///tmp/foo', 'default', null)
+    WrongDataType
+
+negative:
+    $SOCKET.dgram('local')
+    InvalidValue
+

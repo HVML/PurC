@@ -1,4 +1,20 @@
-# test cases for $STR.contains
+# test cases for $SYS, $STR, $DATA, and $URL
+negative:
+    $SYS.remove()
+    ArgumentMissed
+
+negative:
+    $SYS.remove(null)
+    WrongDataType
+
+positive:
+    $SYS.remove("/root")
+    false
+
+positive:
+    $SYS.remove("/tmp/file-not-exists")
+    false
+
 # TODO: more cases for case-insensitive.
 negative:
     $STR.contains
