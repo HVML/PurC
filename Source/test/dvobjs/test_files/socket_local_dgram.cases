@@ -1,5 +1,13 @@
 # test cases for socket local dgram
 negative:
+    $SOCKET.dgram()
+    ArgumentMissed
+
+negative:
+    $SOCKET.dgram(null)
+    WrongDataType
+
+negative:
     $SOCKET.dgram('unix:///not/exist/path/foo')
     EntityNotFound
 
@@ -30,6 +38,54 @@ positive:
 positive:
     $DATA.type($SOCKET.dgram('unix:///var/tmp/foo'))
     'native'
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto()
+    ArgumentMissed
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto(null, null, null)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto('local:///var/tmp/foo', null, null)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto('local:///var/tmp/foo', 'unknown', null)
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto('local:///var/tmp/foo', 'default', null)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto('local:///var/tmp/foo', 'default', bx123456, 3, 1)
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.sendto('local:///var/tmp/foo', 'default', '', 3, 1)
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.recvfrom()
+    ArgumentMissed
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.recvfrom(null, null)
+    WrongDataType
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.recvfrom('unknown', null)
+    InvalidValue
+
+negative:
+    $RUNNER.myObj.localDatagramSocket.recvfrom('default', null)
+    WrongDataType
+
+positive:
+    $DATA.type($RUNNER.myObj.localDatagramSocket.recvfrom('dontwait', 16))
+    'object'
 
 positive:
     $RUNNER.myObj.localDatagramSocket.close()
