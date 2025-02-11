@@ -187,6 +187,23 @@ static int comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
                 << std::endl;
         }
     }
+    else if (event == PURC_COND_COR_TERMINATED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct comp_sample_data *sample = (struct comp_sample_data*)user_data;
+
+        struct purc_cor_term_info *info = (struct purc_cor_term_info *)data;
+        ADD_FAILURE()
+            << sample->file << std::endl
+            << "The coroutine terminated due to an exception: "
+            << TCS_YELLOW
+            << purc_atom_to_string(info->except)
+            << TCS_NONE
+            << std::endl;
+    }
     else if (event == PURC_COND_COR_DESTROYED) {
         void *user_data = purc_coroutine_get_user_data(cor);
         if (!user_data) {
