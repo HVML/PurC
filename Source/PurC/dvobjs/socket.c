@@ -50,7 +50,7 @@
 #include <sys/un.h>
 #include <netdb.h>
 
-#define SOCKET_EVENT_NAME               "event"
+#define SOCKET_EVENT_NAME               "socket"
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
 #define SOCKET_SUB_EVENT_NEWDATAGRAM    "newDatagram"
 
@@ -811,9 +811,14 @@ sendto_getter(void *native_entity, const char *property_name,
     struct addrinfo *ai = NULL;
     if (schema == keywords2atoms[K_KW_unix].atom ||
             schema == keywords2atoms[K_KW_local].atom) {
-        ai = calloc(1, sizeof(struct addrinfo));
 
         struct sockaddr_un *unix_addr;
+        if (strlen(dst->path) + 1 > sizeof(unix_addr->sun_path)) {
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto error_free_url;
+        }
+
+        ai = calloc(1, sizeof(struct addrinfo));
         unix_addr = calloc(1, sizeof(struct sockaddr_un));
         unix_addr->sun_family = AF_UNIX;
         strcpy(unix_addr->sun_path, dst->path);
@@ -1236,6 +1241,10 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     /* fill in socket address structure */
     memset(&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
+    if (strlen(url->path) + 1 > sizeof(unix_addr.sun_path)) {
+        purc_set_error(PURC_ERROR_TOO_LONG);
+        goto error;
+    }
     strcpy(unix_addr.sun_path, url->path);
     len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
 
@@ -1502,6 +1511,11 @@ create_local_dgram_socket(struct purc_broken_down_url *url,
     }
 
     if (!(flags & _O_NAMELESS)) {
+        if (strlen(url->path) + 1 > sizeof(unix_addr.sun_path)) {
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto error;
+        }
+
         /* in case it already exists */
         unlink(url->path);
 

@@ -4,19 +4,31 @@
 
 <hvml target="void">
     <head>
+        <init as 'bytes' with bx00112233445566778899AABBCCDDEEFF />
     </head>
 
     <body>
 
         <init as 'result' with {} />
 
-        <init as 'dgramSocket' with  $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
-            <observe on $? for 'newDatagram' >
-                <choose on $dgramSocket.recvfrom('default', 16) >
+        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.dgram()" />
+            </catch>
+            <observe on $dgramSocket for 'socket:newDatagram' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:newDatagram event')
+                </inherit>
+
+                <choose on $dgramSocket.recvfrom('default', $STR.nr_bytes($bytes)) >
+                    <inherit>
+                        $STREAM.stdout.writelines("Received bytes: $?.recved")
+                    </inherit>
+
                     <update on $result at '.recved' with $?.recved />
                     <update on $result at '.bytes' with $?.bytes />
                     <catch for `ANY`>
-                        <update on $result at '.recved' with -1 />
+                        <exit with "Server failed with $?.name when calling dgramSocket.recvfrom()" />
                     </catch>
                 </choose>
             </observe>
@@ -33,14 +45,23 @@
     <body id="client">
 
         <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-client', 'nameless') >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling SOCKET.dgram()" />
+            </catch>
+
             <choose on $dgramSocket.sendto('local:///var/tmp/hvml-dgram-server', 'default', $bytes) >
+                <inherit>
+                    $STREAM.stdout.writelines("Sent bytes: $?.sent")
+                </inherit>
+
                 <sleep for '1s' />
                 <exit with 'success' />
                 <catch for `ANY`>
-                    <exit with 'failure' />
+                    <exit with "Client failed with $?.name when calling dgramSocket.sendto()" />
                 </catch>
             </choose>
         </init>
 
     </body>
 </hvml>
+

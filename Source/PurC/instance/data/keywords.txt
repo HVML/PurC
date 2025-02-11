@@ -142,5 +142,7 @@ msg fetcherState
 msg requestChan
 msg newRenderer
 msg dupRenderer
+msg stream
+msg socket
 msg user
 

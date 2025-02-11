@@ -58,7 +58,7 @@
 #define STDOUT_NAME                 "stdout"
 #define STDERR_NAME                 "stderr"
 
-#define STREAM_EVENT_NAME           "event"
+#define STREAM_EVENT_NAME           "stream"
 #define STREAM_SUB_EVENT_READ       "readable"
 #define STREAM_SUB_EVENT_WRITE      "writable"
 #define STREAM_SUB_EVENT_ALL        "*"
@@ -1833,6 +1833,14 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
 {
     int64_t flags = parse_open_option(option);
 
+    struct sockaddr_un unix_addr;
+    socklen_t len;
+
+    if (strlen(url->path) + 1 > sizeof(unix_addr.sun_path)) {
+        purc_set_error(PURC_ERROR_TOO_LONG);
+        return NULL;
+    }
+
     if (!file_exists(url->path)) {
         PC_DEBUG("Path does not exist: %s\n", url->path);
         purc_set_error(PURC_ERROR_NOT_EXISTS);
@@ -1844,9 +1852,6 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
         purc_set_error(purc_error_from_errno(errno));
         return NULL;
     }
-
-    struct sockaddr_un unix_addr;
-    socklen_t len;
 
     if (!(flags & _O_NAMELESS)) {
         char socket_path[33];
