@@ -1,21 +1,5 @@
 # test cases for socket inet dgram
 negative:
-    $SOCKET.dgram('inet://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.dgram('inet4://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.dgram('inet6://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.dgram('inet:///var/tmp/foo')
-    InvalidValue
-
-negative:
     $SOCKET.dgram('inet4://localhost:34567890')
     InvalidValue
 

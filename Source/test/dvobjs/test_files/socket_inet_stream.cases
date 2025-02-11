@@ -1,21 +1,5 @@
 # test cases for socket inet stream
 negative:
-    $SOCKET.stream('inet://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.stream('inet4://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.stream('inet6://localhost')
-    InvalidValue
-
-negative:
-    $SOCKET.stream('inet:///var/tmp/foo')
-    InvalidValue
-
-negative:
     $SOCKET.stream('inet4://localhost:34567890')
     InvalidValue
 

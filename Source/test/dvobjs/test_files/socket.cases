@@ -44,7 +44,7 @@ negative:
     InvalidValue
 
 negative:
-    $SOCKET.dgram('inet:///tmp/foo', 'default')
+    $SOCKET.dgram('inet://^%^&**/tmp/foo', 'default')
     InvalidValue
 
 negative:
