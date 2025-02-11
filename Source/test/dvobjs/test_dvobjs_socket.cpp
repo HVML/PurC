@@ -46,6 +46,18 @@ TEST(dvobjs, socket_inet_stream)
     tester.run_testcases_in_file("socket_inet_stream");
 }
 
+TEST(dvobjs, socket_local_dgram)
+{
+    TestDVObj tester;
+    tester.run_testcases_in_file("socket_local_dgram");
+}
+
+TEST(dvobjs, socket_inet_dgram)
+{
+    TestDVObj tester;
+    tester.run_testcases_in_file("socket_inet_dgram");
+}
+
 #else
 
 TEST(dvobjs, foo)

@@ -1,0 +1,57 @@
+# test cases for socket local dgram
+negative:
+    $SOCKET.dgram('unix:///not/exist/path/foo')
+    EntityNotFound
+
+positive:
+    $DATA.type($SYS.remove('/var/tmp/foo'))
+    'boolean'
+
+positive:
+    $DATA.type($SOCKET.dgram('unix:///var/tmp/foo'))
+    'native'
+
+positive:
+    $SYS.remove('/var/tmp/foo')
+    true
+
+positive:
+    $RUNNER.user(! "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo', 'nameless global nonblock cloexec') )
+    true
+
+positive:
+    $L.ge($RUNNER.myObj.localDatagramSocket.fd(), 3)
+    true
+
+positive:
+    $SYS.remove('/var/tmp/foo')
+    false
+
+positive:
+    $DATA.type($SOCKET.dgram('unix:///var/tmp/foo'))
+    'native'
+
+positive:
+    $RUNNER.myObj.localDatagramSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'localDatagramSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.localDatagramSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'localDatagramSocket', undefined )
+    true
+
+positive:
+    $SYS.remove('/var/tmp/foo')
+    true
+

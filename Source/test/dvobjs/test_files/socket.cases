@@ -27,3 +27,39 @@ negative:
     $SOCKET.dgram('local')
     InvalidValue
 
+negative:
+    $SOCKET.dgram('local:///tmp/foo', null)
+    WrongDataType
+
+negative:
+    $SOCKET.dgram('local:///tmp/foo', 'defaultsdf')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('local:///tmp/foo', 'global cloexe asfasf')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('foo:///tmp/foo', 'default')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet:///tmp/foo', 'default')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet://localhost:80/tmp/foo', 'default')
+    AccessDenied
+
+negative:
+    $SOCKET.dgram('inet://localhost:1234567890/tmp/foo', 'default')
+    InvalidValue
+
+positive:
+    $DATA.type($SOCKET.dgram('local:///tmp/foo', 'default'))
+    'native'
+
+positive:
+    $SYS.remove('/tmp/foo')
+    true
+

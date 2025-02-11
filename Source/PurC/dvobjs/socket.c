@@ -275,6 +275,10 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_cloexec].atom) {
                 flags |= O_CLOEXEC;
             }
+            else {
+                flags = -1;
+                break;
+            }
 
             if (parts_len <= length)
                 break;

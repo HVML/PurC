@@ -1,0 +1,105 @@
+# test cases for socket inet dgram
+negative:
+    $SOCKET.dgram('inet://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet4://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet6://localhost')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet:///var/tmp/foo')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet4://localhost:34567890')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet4://localhost:80')
+    AccessDenied
+
+positive:
+    $DATA.type($SOCKET.dgram('inet4://localhost:8080'))
+    'native'
+
+positive:
+    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    true
+
+negative:
+    $SOCKET.dgram('inet4://localhost:8080')
+    Conflict
+
+positive:
+    $L.ge($RUNNER.myObj.inetDatagramSocket.fd(), 3)
+    true
+
+positive:
+    $RUNNER.myObj.inetDatagramSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.inetDatagramSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    true
+
+negative:
+    $SOCKET.dgram('inet6://localhost:34567890')
+    InvalidValue
+
+negative:
+    $SOCKET.dgram('inet6://localhost:80')
+    AccessDenied
+
+positive:
+    $DATA.type($SOCKET.dgram('inet6://localhost:8080', 'nameless nonblock cloexec'))
+    'native'
+
+positive:
+    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080', 'default') )
+    true
+
+negative:
+    $SOCKET.dgram('inet6://localhost:8080')
+    Conflict
+
+positive:
+    $L.ge($RUNNER.myObj.inetDatagramSocket.fd(), 3)
+    true
+
+positive:
+    $RUNNER.myObj.inetDatagramSocket.close()
+    true
+
+positive:
+    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080') )
+    true
+
+positive:
+    $SOCKET.close($RUNNER.myObj.inetDatagramSocket)
+    true
+
+positive:
+    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    true
+
