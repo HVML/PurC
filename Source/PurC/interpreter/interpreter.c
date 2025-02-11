@@ -1557,11 +1557,6 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
-    if (co->target_page_type != PCRDR_PAGE_TYPE_NULL) {
-        if (pcintr_rdr_page_control_revoke(inst, inst->conn_to_rdr, co)) {
-            purc_clr_error();
-        }
-    }
     purc_variant_t result = pcintr_coroutine_get_result(co);
 
     if (heap->cond_handler && !stack->terminated) {
@@ -1983,10 +1978,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
                 }
                 if (parent->page_name) {
                     co->page_name = strdup(parent->page_name);
-                }
-                int r = pcintr_rdr_page_control_register(inst, conn, co);
-                if (r && r != PCRDR_ERROR_NOT_IMPLEMENTED) {
-                    ret = false;
                 }
             }
             else {
