@@ -26,7 +26,7 @@
                     </inherit>
 
                     <test with $L.gt($?.recved, 0) >
-                        <init as 'got' at '#result' with $DATA.pack("bytes:{$STR.nr_bytes($got)} bytes:{$?.recved}", $got, $?.bytes) silently />
+                        <init as 'got' at '#result' with $DATA.pack("bytes:0 bytes:{$?.recved}", $got, $?.bytes) silently />
 
                         <differ>
                             $STREAM.stdout.writelines("Do nothing")
