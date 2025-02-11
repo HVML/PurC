@@ -194,6 +194,10 @@ int64_t parse_socket_stream_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_cloexec].atom) {
                 flags |= O_CLOEXEC;
             }
+            else {
+                flags = -1;
+                break;
+            }
 
             if (parts_len <= length)
                 break;
@@ -1207,6 +1211,10 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     unlink(url->path);
 
     int64_t flags = parse_socket_stream_option(option);
+    if (flags == -1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
 
     /* create a Unix domain stream socket */
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
@@ -1215,8 +1223,11 @@ create_local_stream_socket(struct purc_broken_down_url *url,
         goto error;
     }
 
-    if (flags & O_CLOEXEC)
-        fcntl(fd, F_SETFD, FD_CLOEXEC);
+    if ((flags & O_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+        PC_DEBUG("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
 
     /* fill in socket address structure */
     memset(&unix_addr, 0, sizeof(unix_addr));
@@ -1306,8 +1317,16 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     }
 
     int64_t flags = parse_socket_stream_option(option);
-    if (flags & O_CLOEXEC)
-        fcntl(fd, F_SETFD, FD_CLOEXEC);
+    if (flags == -1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if ((flags & O_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+        PC_DEBUG("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
 
     /* Options */
     int ov = 1;
@@ -1382,7 +1401,7 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t tmp_v = nr_args > 2 ? argv[2] : PURC_VARIANT_INVALID;
     if (tmp_v != PURC_VARIANT_INVALID &&
             !purc_variant_cast_to_longint(tmp_v, &tmp_l, false)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto error;
     }
 
