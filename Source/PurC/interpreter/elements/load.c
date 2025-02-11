@@ -773,16 +773,10 @@ process_attr_within(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    char app_name[PURC_LEN_APP_NAME + 1];
-    char runner_name[PURC_LEN_RUNNER_NAME + 1];
+    const char *runner_name = purc_variant_get_string_const(val);
+    bool r = purc_is_valid_runner_name(runner_name);
 
-    const char *s = purc_variant_get_string_const(val);
-
-    int r;
-    r = purc_extract_app_name(s, app_name) &&
-        purc_extract_runner_name(s, runner_name);
-
-    if (r == 0) {
+    if (!r) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> is not valid",
                 purc_atom_to_string(name), element->tag_name);
