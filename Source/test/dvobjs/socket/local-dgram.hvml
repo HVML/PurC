@@ -7,9 +7,9 @@
         <init as 'bytes' with bx00112233445566778899AABBCCDDEEFF />
     </head>
 
-    <body>
+    <body id='result' >
 
-        <init as 'result' with {} />
+        <init as 'got' with bx />
 
         <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
             <catch for `ANY`>
@@ -22,11 +22,17 @@
 
                 <choose on $dgramSocket.recvfrom('dontwait', $STR.nr_bytes($bytes)) >
                     <inherit>
-                        $STREAM.stdout.writelines("Received bytes: $?.recved / $?.errorname")
+                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved / $?.errorname")
                     </inherit>
 
-                    <update on $result at '.recved' with $?.recved />
-                    <update on $result at '.bytes' with $?.bytes />
+                    <test with $L.gt($?.recved, 0) >
+                        <init as 'got' at '#result' with $DATA.pack("bytes:{$STR.nr_bytes($got)} bytes:{$?.recved}", $got, $?.bytes) silently />
+
+                        <differ>
+                            $STREAM.stdout.writelines("Do nothing")
+                        </differ>
+                    </test>
+
                     <catch for `ANY`>
                         <exit with "Server failed with $?.name when calling dgramSocket.recvfrom()" />
                     </catch>
@@ -37,7 +43,7 @@
         <load from "#client" within 'client' onto 'null:' as "client" async />
 
         <observe on $client for "corState:exited" >
-            <exit with $result />
+            <exit with $got />
         </observe>
 
     </body>
@@ -54,7 +60,7 @@
                     $STREAM.stdout.writelines("Sent bytes: $?.sent")
                 </inherit>
 
-                <sleep for '1s' />
+                <sleep for '0.5s' />
                 <exit with 'success' />
                 <catch for `ANY`>
                     <exit with "Client failed with $?.name when calling dgramSocket.sendto()" />
