@@ -20,9 +20,9 @@
                     $STREAM.stdout.writelines('Got socket:newDatagram event')
                 </inherit>
 
-                <choose on $dgramSocket.recvfrom('default', $STR.nr_bytes($bytes)) >
+                <choose on $dgramSocket.recvfrom('dontwait', $STR.nr_bytes($bytes)) >
                     <inherit>
-                        $STREAM.stdout.writelines("Received bytes: $?.recved")
+                        $STREAM.stdout.writelines("Received bytes: $?.recved / $?.errorname")
                     </inherit>
 
                     <update on $result at '.recved' with $?.recved />
