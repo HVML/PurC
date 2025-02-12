@@ -92,14 +92,14 @@
 
             <observe on ${$?.k} for 'callState:error/*'>
                 <inherit>
-                    $STREAM.stdout.writelines("Client returns with an error: $?")
+                    $STREAM.stdout.writelines("Client returns with an error: $_eventSubName")
                 </inherit>
                 <update on $status at '.error' with $DATA.arith('+', $status['error'], 1) />
             </observe>
 
             <observe on ${$?.k} for 'callState:except/*'>
                 <inherit>
-                    $STREAM.stdout.writelines("Client returns with an exception: $?")
+                    $STREAM.stdout.writelines("Client returns with an exception: $_eventSubName")
                 </inherit>
                 <update on $status at '.except' with $DATA.arith('+', $status['except'], 1) />
             </observe>
