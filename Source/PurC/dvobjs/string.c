@@ -1168,7 +1168,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_string_bytes (argv[0], &str_len);
     const char * src = purc_variant_get_string_const (argv[0]);
 
-    if (argv[1] == NULL || !(purc_variant_is_longint (argv[1])
+    if (!(purc_variant_is_longint (argv[1])
             || purc_variant_is_number (argv[1]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
@@ -1229,6 +1229,85 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
+/*
+$STR.strstr(
+        <string $haystack>,
+        <string $needle>
+        [, <bool $before_needle = false>
+            [, <bool $case_insensitivity = false:
+                false - `performs a case-sensitive check;`
+                true - `performs a case-insensitive check.`>
+            ]
+        ]
+) string | false
+*/
+
+static purc_variant_t
+strstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_string(argv[0]) ||
+            !purc_variant_is_string(argv[1])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    const char *haystack = purc_variant_get_string_const(argv[0]);
+    const char *needle = purc_variant_get_string_const(argv[1]);
+
+    bool before_needle = false;
+    if (nr_args > 2) {
+        before_needle = purc_variant_booleanize(argv[2]);
+    }
+
+    bool caseless = false;
+    if (nr_args > 3) {
+        caseless = purc_variant_booleanize(argv[3]);
+    }
+
+    const char *found;
+    if (caseless) {
+        /* TODO: handle case according to Unicode */
+        found = strcasestr(haystack, needle);
+    }
+    else {
+        found = strstr(haystack, needle);
+    }
+
+    if (found == NULL) {
+        return purc_variant_make_boolean(false);
+    }
+
+    if (before_needle) {
+        size_t len = (size_t)(found - haystack);
+        if (len == 0) {
+            return purc_variant_make_string_static("", false);
+        }
+
+        return purc_variant_make_string_ex(haystack, len, false);
+    }
+    else {
+        return purc_variant_make_string(found, false);
+    }
+
+    return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -1249,6 +1328,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "format_c",   format_c_getter,    NULL },
         { "format_p",   format_p_getter,    NULL },
         { "substr",     substr_getter,      NULL },
+        { "strstr",     strstr_getter,      NULL },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

@@ -328,6 +328,54 @@ positive:
     $STR.nr_bytes( bx08 )
     1UL
 
+negative:
+    $STR.strstr( )
+    ArgumentMissed
+
+negative:
+    $STR.strstr( null )
+    ArgumentMissed
+
+negative:
+    $STR.strstr( null, null )
+    WrongDataType
+
+negative:
+    $STR.strstr( '', null )
+    WrongDataType
+
+positive:
+    $STR.strstr( '', '' )
+    ''
+
+positive:
+    $STR.strstr( 'HVML', '' )
+    'HVML'
+
+positive:
+    $STR.strstr( 'HVML is', 'ML' )
+    'ML is'
+
+positive:
+    $STR.strstr( 'HVML is', 'ML', true )
+    'HV'
+
+positive:
+    $STR.strstr( 'HVML is', 'ml', false, true )
+    'ML is'
+
+positive:
+    $STR.strstr( 'HVML is', 'ml', true, true )
+    'HV'
+
+positive:
+    $STR.strstr( '中华人民共和国万岁！', '万' )
+    '万岁！'
+
+positive:
+    $STR.strstr( '中华人民共和国万岁！', '万', true )
+    '中华人民共和国'
+
 # test cases for $DATA.fetchreal with quantity specified
 negative:
     $DATA.fetchreal(bx12345678, 'i16:10')
