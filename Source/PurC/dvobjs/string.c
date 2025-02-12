@@ -31,26 +31,24 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-static const char * get_next_segment (const char *data,
+static const char *get_next_segment(const char *data,
         const char *delim, size_t *length)
 {
     const char *head = NULL;
     char *temp = NULL;
 
     *length = 0;
-
     if ((*data == 0x00) || (*delim == 0x00))
         return NULL;
 
     head = data;
-
-    temp = strstr (head, delim);
+    temp = strstr(head, delim);
 
     if (temp) {
         *length =  temp - head;
     }
     else {
-        *length = strlen (head);
+        *length = strlen(head);
     }
 
     return head;
