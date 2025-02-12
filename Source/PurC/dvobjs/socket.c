@@ -854,9 +854,13 @@ sendto_getter(void *native_entity, const char *property_name,
             | ((flags & _O_CONFIRM) ? MSG_CONFIRM : 0)
 #endif
             , ai->ai_addr, ai->ai_addrlen);
-    freeaddrinfo(ai);
-    if (unix_addr)
+    if (unix_addr) {
         free(unix_addr);
+        free(ai);
+    }
+    else {
+        freeaddrinfo(ai);
+    }
 
     purc_variant_t retv = purc_variant_make_object_0();
     if (retv) {
