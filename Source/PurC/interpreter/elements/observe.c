@@ -173,14 +173,17 @@ process_attr_on(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (val == PURC_VARIANT_INVALID) {
+    if (val == PURC_VARIANT_INVALID && !frame->handle_event) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->on = val;
-    purc_variant_ref(val);
+
+    if (val) {
+        ctxt->on = val;
+        purc_variant_ref(val);
+    }
 
     return 0;
 }
@@ -273,14 +276,20 @@ process_attr_for(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (val == PURC_VARIANT_INVALID) {
+    if (val == PURC_VARIANT_INVALID && !frame->handle_event) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->for_var = val;
-    purc_variant_ref(val);
+
+    if (val) {
+        ctxt->for_var = val;
+        purc_variant_ref(val);
+    }
+    else {
+        return 0;
+    }
 
     const char *s = purc_variant_get_string_const(ctxt->for_var);
     const char *p = strchr(s, EVENT_SEPARATOR);
@@ -700,7 +709,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_variant_t for_var;
     for_var = ctxt->for_var;
-    if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
+    if (!frame->handle_event &&
+            (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return ctxt;
     }
@@ -773,7 +783,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     }
 
     if (frame->handle_event) {
-        if ((strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
+        if ((ctxt->msg_type && strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
                 stack->co->curator && pcintr_is_crtn_exists(stack->co->curator)) {
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
