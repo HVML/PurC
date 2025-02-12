@@ -499,7 +499,7 @@ failed:
 
 static int
 inet_socket_accept_client(struct pcdvobjs_socket *socket,
-        enum stream_inet_socket_family isf, char **peer_addr)
+        enum stream_inet_socket_family isf, char **peer_addr, char **peer_port)
 {
     UNUSED_PARAM(isf);
 
@@ -513,9 +513,9 @@ inet_socket_accept_client(struct pcdvobjs_socket *socket,
         goto failed;
     }
 
-    char host[NI_MAXHOST];
-    if (0 != getnameinfo((struct sockaddr *)&addr, len, host, sizeof(host),
-                NULL, 0, NI_NUMERICHOST)) {
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+    if (0 != getnameinfo((struct sockaddr *)&addr, len, hbuf, sizeof(hbuf),
+                sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV)) {
         PC_DEBUG("Failed getnameinfo(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
 
@@ -523,7 +523,8 @@ inet_socket_accept_client(struct pcdvobjs_socket *socket,
         fd = -1;
     }
     else {
-        *peer_addr = strdup(host);
+        *peer_addr = strdup(hbuf);
+        *peer_port = strdup(sbuf);
     }
 
 failed:
@@ -625,19 +626,23 @@ accept_getter(void *native_entity, const char *property_name,
     }
 
     char *peer_addr = NULL;
+    char *peer_port = NULL;
 
     if (schema == keywords2atoms[K_KW_unix].atom ||
             schema == keywords2atoms[K_KW_local].atom) {
         fd = local_socket_accept_client(socket, &peer_addr);
     }
     else if (schema == keywords2atoms[K_KW_inet].atom) {
-        fd = inet_socket_accept_client(socket, ISF_UNSPEC, &peer_addr);
+        fd = inet_socket_accept_client(socket, ISF_UNSPEC,
+                &peer_addr, &peer_port);
     }
     else if (schema == keywords2atoms[K_KW_inet4].atom) {
-        fd = inet_socket_accept_client(socket, ISF_INET4, &peer_addr);
+        fd = inet_socket_accept_client(socket, ISF_INET4,
+                &peer_addr, &peer_port);
     }
     else if (schema == keywords2atoms[K_KW_inet6].atom) {
-        fd = inet_socket_accept_client(socket, ISF_INET6, &peer_addr);
+        fd = inet_socket_accept_client(socket, ISF_INET6,
+                &peer_addr, &peer_port);
     }
     else {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -658,7 +663,7 @@ accept_getter(void *native_entity, const char *property_name,
     }
 
     purc_variant_t stream =
-        dvobjs_create_stream_by_accepted(schema, peer_addr, fd,
+        dvobjs_create_stream_by_accepted(schema, peer_addr, peer_port, fd,
                 nr_args > 0 ? argv[0] : NULL,
                 nr_args > 1 ? argv[1] : NULL);
     if (!stream) {

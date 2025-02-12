@@ -102,6 +102,7 @@ typedef struct pcdvobjs_stream {
     purc_atom_t cid;
 
     char *peer_addr;        /* the address of the connection peer; 0.9.22 */
+    char *peer_port;        /* the port of the connection peer; 0.9.22 */
 
     struct stream_extended ext0;   /* for presentation layer */
     struct stream_extended ext1;   /* for application layer */
@@ -125,11 +126,12 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     WTF_INTERNAL;
 
 int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
-        const char *host_name, int port, char **peer_addr)
+        const char *host_name, int port, char **peer_addr, char **peer_port)
     WTF_INTERNAL;
 
 purc_variant_t
-dvobjs_create_stream_by_accepted(purc_atom_t schema, char *peer_addr, int fd,
+dvobjs_create_stream_by_accepted(purc_atom_t schema,
+        char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot, purc_variant_t extra_opts)
     WTF_INTERNAL;
 

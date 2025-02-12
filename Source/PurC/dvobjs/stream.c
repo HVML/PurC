@@ -145,6 +145,8 @@ enum {
     K_KW_fd,
 #define _KW_peer_addr               "peer_addr"
     K_KW_peer_addr,
+#define _KW_peer_port               "peer_port"
+    K_KW_peer_port,
 };
 
 static struct keyword_to_atom {
@@ -187,6 +189,7 @@ static struct keyword_to_atom {
     { _KW_close, 0},                // "close"
     { _KW_fd, 0},                   // "fd"
     { _KW_peer_addr, 0},            // "peer_addr"
+    { _KW_peer_port, 0},            // "peer_port"
 };
 
 static struct pcdvobjs_stream *
@@ -258,6 +261,16 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
         }
         stream->cpid = -1;
     }
+
+    if (stream->peer_addr) {
+        free(stream->peer_addr);
+        stream->peer_addr = NULL;
+    }
+
+    if (stream->peer_addr) {
+        free(stream->peer_addr);
+        stream->peer_port = NULL;
+    }
 }
 
 static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
@@ -268,12 +281,9 @@ static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
 
     native_stream_close(stream);
 
+    /* we keep url for possible reopen() the stream in the future */
     if (stream->url) {
         pcutils_broken_down_url_delete(stream->url);
-    }
-
-    if (stream->peer_addr) {
-        free(stream->peer_addr);
     }
 
     free(stream);
@@ -980,7 +990,25 @@ peer_addr_getter(void *native_entity, const char *property_name,
     if (stream->peer_addr)
         return purc_variant_make_string(stream->peer_addr, false);
 
-    return purc_variant_make_string_static("", false);
+    return purc_variant_make_null();
+}
+
+static purc_variant_t
+peer_port_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    assert(native_entity);
+
+    struct pcdvobjs_stream *stream = get_stream(native_entity);
+    if (stream->peer_port)
+        return purc_variant_make_string(stream->peer_port, false);
+
+    return purc_variant_make_null();
 }
 
 struct io_callback_data {
@@ -1156,6 +1184,9 @@ property_getter(void *entity, const char *name)
     }
     else if (atom == keywords2atoms[K_KW_peer_addr].atom) {
         return peer_addr_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_peer_port].atom) {
+        return peer_port_getter;
     }
 
 failed:
@@ -1376,7 +1407,7 @@ static bool is_fd_inet_socket(int fd)
 
 static
 struct pcdvobjs_stream *
-create_inet_socket_stream_from_fd(int fd, char *peer_addr,
+create_inet_socket_stream_from_fd(int fd, char *peer_addr, char *peer_port,
         purc_variant_t option)
 {
     if (option) {
@@ -1402,10 +1433,12 @@ create_inet_socket_stream_from_fd(int fd, char *peer_addr,
             goto out;
         }
 
-        char buf[NI_MAXHOST];
-        if (0 == getnameinfo((struct sockaddr *)&addr, len, buf, sizeof(buf),
-                       NULL, 0, NI_NUMERICHOST)) {
-            peer_addr = strdup(buf);
+        char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+        if (0 == getnameinfo((struct sockaddr *)&addr, len,
+                    hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
+                    NI_NUMERICHOST | NI_NUMERICSERV)) {
+            peer_addr = strdup(hbuf);
+            peer_port = strdup(sbuf);
         }
         else {
             purc_set_error(purc_error_from_errno(errno));
@@ -1428,6 +1461,7 @@ create_inet_socket_stream_from_fd(int fd, char *peer_addr,
     stream->fd4r = fd;
     stream->fd4w = fd;
     stream->peer_addr = peer_addr;
+    stream->peer_port = peer_port;
 
     return stream;
 
@@ -1929,6 +1963,79 @@ out_close_fd:
     return NULL;
 }
 
+int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
+        const char *host, int port, char **peer_addr, char **peer_port)
+{
+    int fd = -1;
+    struct addrinfo *addrinfo;
+    struct addrinfo *p;
+    struct addrinfo hints = { 0 };
+
+    switch (isf) {
+        case ISF_UNSPEC:
+            hints.ai_family = AF_UNSPEC;
+            break;
+        case ISF_INET4:
+            hints.ai_family = AF_INET;
+            break;
+        case ISF_INET6:
+            hints.ai_family = AF_INET6;
+            break;
+    }
+
+    char s_port[10] = {0};
+    if (port <= 0 || port > 65535) {
+        PC_DEBUG("Bad port value: (%d)\n", port);
+        goto out;
+    }
+    sprintf(s_port, "%d", port);
+
+    hints.ai_socktype = SOCK_STREAM;
+    if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
+        PC_DEBUG("Error while getting address info (%s:%d)\n",
+                host, port);
+        goto out;
+    }
+
+    for (p = addrinfo; p != NULL; p = p->ai_next) {
+        if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            continue;
+        }
+
+        if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(fd);
+            continue;
+        }
+
+        if (*peer_addr == NULL) {
+            char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+            if (0 != getnameinfo(p->ai_addr, p->ai_addrlen,
+                        hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
+                        NI_NUMERICHOST | NI_NUMERICSERV)) {
+                PC_DEBUG ("Error while getting name info (%s:%d)\n",
+                        host, port);
+                close(fd);
+                fd = -1;
+            }
+            else {
+                *peer_addr = strdup(hbuf);
+                *peer_port = strdup(sbuf);
+            }
+        }
+
+        break;
+    }
+    freeaddrinfo(addrinfo);
+
+    if (p == NULL) {
+        PC_DEBUG("Failed to create socket for %s:%d\n", host, port);
+        goto out;
+    }
+
+out:
+    return fd;
+}
+
 static
 struct pcdvobjs_stream *
 create_inet_socket_stream(purc_atom_t schema,
@@ -1938,6 +2045,7 @@ create_inet_socket_stream(purc_atom_t schema,
 
     enum stream_inet_socket_family isf = ISF_UNSPEC;
     char *peer_addr = NULL;
+    char *peer_port = NULL;
 
     if (schema == keywords2atoms[K_KW_inet4].atom) {
         isf = ISF_INET4;
@@ -1950,7 +2058,8 @@ create_inet_socket_stream(purc_atom_t schema,
         return NULL;
     }
 
-    int fd = dvobjs_inet_socket_connect(isf, url->host, url->port, &peer_addr);
+    int fd = dvobjs_inet_socket_connect(isf, url->host, url->port,
+            &peer_addr, &peer_port);
     if (fd < 0) {
         purc_set_error(purc_error_from_errno(errno));
         return NULL;
@@ -1981,6 +2090,7 @@ create_inet_socket_stream(purc_atom_t schema,
     stream->fd4r = fd;
     stream->fd4w = fd;
     stream->peer_addr = peer_addr;
+    stream->peer_port = peer_port;
 
     return stream;
 
@@ -2088,7 +2198,7 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             prot = purc_variant_get_string_const(argv[2]);
         }
 
-        stream = create_inet_socket_stream_from_fd(fd, NULL, option);
+        stream = create_inet_socket_stream_from_fd(fd, NULL, NULL, option);
 
         if (prot && stream) {
             purc_atom_t atom;
@@ -2426,7 +2536,8 @@ purc_variant_t purc_dvobj_stream_new(void)
 }
 
 purc_variant_t
-dvobjs_create_stream_by_accepted(purc_atom_t schema, char *peer_addr, int fd,
+dvobjs_create_stream_by_accepted(purc_atom_t schema,
+        char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot_v, purc_variant_t prot_opts)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -2487,7 +2598,8 @@ dvobjs_create_stream_by_accepted(purc_atom_t schema, char *peer_addr, int fd,
             prot = purc_variant_get_string_const(prot_v);
         }
 
-        stream = create_inet_socket_stream_from_fd(fd, peer_addr, NULL);
+        stream = create_inet_socket_stream_from_fd(fd, peer_addr, peer_port,
+                NULL);
 
         if (prot && stream) {
             purc_atom_t atom;
