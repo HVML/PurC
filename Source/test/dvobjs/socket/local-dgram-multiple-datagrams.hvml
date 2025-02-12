@@ -1,0 +1,77 @@
+#!/usr/bin/purc
+
+# RESULT: bx00112233445566778899AABBCCDDEEFF
+
+<hvml target="void">
+    <head>
+        <init as 'bytes' with [bx0011, bx2233, bx4455, bx6677, bx8899, bxaabb, bxccdd, bxeeff] />
+    </head>
+
+    <body id='result' >
+
+        <init as 'got' with bx />
+
+        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.dgram()" />
+            </catch>
+            <observe on $dgramSocket for 'socket:newDatagram' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:newDatagram event')
+                </inherit>
+
+                <choose on $dgramSocket.recvfrom('dontwait', $STR.nr_bytes($bytes[0])) >
+                    <inherit>
+                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved / $?.errorname")
+                    </inherit>
+
+                    <test with $L.gt($?.recved, 0) >
+                        <init as 'got' at '#result' with $DATA.pack("bytes:0 bytes:0", $got, $?.bytes) />
+
+                        <differ>
+                            $STREAM.stdout.writelines("Do nothing")
+                        </differ>
+                    </test>
+
+                    <catch for `ANY`>
+                        <exit with "Server failed with $?.name when calling dgramSocket.recvfrom()" />
+                    </catch>
+                </choose>
+            </observe>
+        </init>
+
+        <load from "#client" within 'client' onto 'null:' as "client" async />
+
+        <observe on $client for "corState:exited" >
+            <exit with $got />
+        </observe>
+
+    </body>
+
+    <body id="client">
+
+        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-client') >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling SOCKET.dgram()" />
+            </catch>
+
+            <iterate on $bytes >
+                <choose on $dgramSocket.sendto('local:///var/tmp/hvml-dgram-server', 'default', $?) >
+                    <inherit>
+                        $STREAM.stdout.writelines("Sent bytes: $?.sent")
+                    </inherit>
+
+                    <sleep for '0.1s' />
+                    <catch for `ANY`>
+                        <exit with "Client failed with $?.name when calling dgramSocket.sendto()" />
+                    </catch>
+                </choose>
+            </iterate>
+
+            <sleep for '0.5s' />
+            <exit with 'success' />
+        </init>
+
+    </body>
+</hvml>
+

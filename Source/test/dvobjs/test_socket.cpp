@@ -141,7 +141,7 @@ TEST(socket, local_dgram)
     }
 }
 
-TEST(socket, local_dgram_multiple)
+TEST(socket, local_dgram_multiple_datagrams)
 {
     PurCInstance purc(false);
 
@@ -151,7 +151,7 @@ TEST(socket, local_dgram_multiple)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/local-dgram-multiple.hvml");
+    run_one_comp_test("dvobjs/socket/local-dgram-multiple-datagrams.hvml");
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -162,5 +162,13 @@ TEST(socket, local_dgram_multiple)
         seconds++;
         ASSERT_LT(seconds, 10);
     }
+}
+
+/* using call within */
+TEST(socket, local_dgram_multiple_clients)
+{
+    PurCInstance purc(false);
+
+    run_one_comp_test("dvobjs/socket/local-dgram-multiple-clients.hvml");
 }
 
