@@ -1737,17 +1737,13 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
     }
 
     do {
-        const char *format;
         size_t format_len;
 
-        format = pcutils_get_next_token_len(formats, formats_left,
+        formats = pcutils_get_next_token_len(formats, formats_left,
                 _KW_DELIMITERS, &format_len);
-        if (format == NULL) {
+        if (formats == NULL) {
             break;
         }
-
-        formats += format_len;
-        formats_left -= format_len;
 
         if (item_idx >= nr_items) {
             purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1765,7 +1761,7 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         item_idx++;
 
         size_t quantity;
-        int format_id = purc_dvobj_parse_format(format, format_len, &quantity);
+        int format_id = purc_dvobj_parse_format(formats, format_len, &quantity);
         if (format_id < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
@@ -1829,7 +1825,10 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
             }
         }
 
-    } while (true);
+        formats += format_len;
+        formats_left -= format_len;
+
+    } while (formats_left > 0);
 
     return 0;
 
