@@ -6,7 +6,7 @@
 <hvml target="void">
     <body id='result' >
 
-        <init as 'got' with { } />
+        <init as 'got' with { 'client0': bx, 'client1': bx, 'client2': bx, 'client3': bx } />
 
         <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
             <catch for `ANY`>
@@ -19,11 +19,15 @@
 
                 <choose on $dgramSocket.recvfrom('dontwait', 13) >
                     <inherit>
-                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved / $?.errorname")
+                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved | $?.errorname | $?['source-addr']")
                     </inherit>
 
                     <test with $L.gt($?.recved, 0) >
                         <init as 'clientName' with $STR.strstr($?['source-addr'], 'client') temp />
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Client name: $clientName")
+                        </inherit>
 
                         <update on $got at ".$clientName" with $DATA.pack("bytes:0 bytes:{$?.recved}", $got[$clientName], $?.bytes) />
 
@@ -82,22 +86,24 @@
                 $STREAM.stdout.writelines("Calling sendDatagram for $?.k")
             </inherit>
 
-            <call on $sendDatagram within "$?.k" with {name: $?.k, bytes: $?.v} as "$?.k" concurrently asynchronously />
-            <observe on ${$?.k} for 'callState:success'>
+            <init as 'clientName' with "$?.k" />
+
+            <call on $sendDatagram within $clientName with {name: $clientName, bytes: $?.v} as $clientName concurrently asynchronously />
+            <observe on ${$clientName} for 'callState:success'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns: $?")
                 </inherit>
                 <update on $status at '.success' with $DATA.arith('+', $status['success'], 1) />
             </observe>
 
-            <observe on ${$?.k} for 'callState:error/*'>
+            <observe on ${$clientName} for 'callState:error/*'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns with an error: $_eventSubName")
                 </inherit>
                 <update on $status at '.error' with $DATA.arith('+', $status['error'], 1) />
             </observe>
 
-            <observe on ${$?.k} for 'callState:except/*'>
+            <observe on ${$clientName} for 'callState:except/*'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns with an exception: $_eventSubName")
                 </inherit>

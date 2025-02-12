@@ -40,7 +40,7 @@
             </observe>
         </init>
 
-        <load from "#client" within 'client' onto 'null:' as "client" async />
+        <load from "#client" within 'client' onto 'null:' as 'client' async />
 
         <observe on $client for "corState:exited" >
             <exit with $got />

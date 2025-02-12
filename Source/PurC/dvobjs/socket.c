@@ -157,7 +157,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto out;
+            goto done;
         }
 
         parts = pcutils_trim_spaces(parts, &parts_len);
@@ -211,10 +211,8 @@ int64_t parse_socket_stream_option(purc_variant_t option)
         flags = O_CLOEXEC;
     }
 
+done:
     return flags;
-
-out:
-    return -1;
 }
 
 static
@@ -232,7 +230,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto out;
+            goto done;
         }
 
         parts = pcutils_trim_spaces(parts, &parts_len);
@@ -261,12 +259,14 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
                 strncpy(tmp, part, length);
                 tmp[length]= '\0';
                 atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
+                printf("got an option: %s (%d)\n", tmp, atom);
             }
 
             if (atom == keywords2atoms[K_KW_global].atom) {
                 flags |= _O_GLOBAL;
             }
             else if (atom == keywords2atoms[K_KW_nameless].atom) {
+                printf("match nameless\n");
                 flags |= _O_NAMELESS;
             }
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
@@ -292,10 +292,8 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
         flags = O_CLOEXEC;
     }
 
+done:
     return flags;
-
-out:
-    return -1;
 }
 
 static int64_t
@@ -325,7 +323,7 @@ parse_dgram_sendto_option(purc_variant_t option)
                 _KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
-                break;
+                atom = 0;
             }
             else {
                 char tmp[length + 1];
@@ -341,7 +339,8 @@ parse_dgram_sendto_option(purc_variant_t option)
                 flags |= _O_CONFIRM;
             }
             else {
-                goto error;
+                flags = -1;
+                break;
             }
 
             if (parts_len <= length)
@@ -354,9 +353,6 @@ parse_dgram_sendto_option(purc_variant_t option)
     }
 
     return flags;
-
-error:
-    return -1;
 }
 
 static int64_t
@@ -935,7 +931,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
     }
 
     struct sockaddr_storage src_addr = { 0, };
-    socklen_t addrlen = 0;
+    socklen_t addrlen = sizeof(src_addr);
 
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
     ssize_t nr_recved = recvfrom(socket->fd, buf, bsize,
@@ -979,6 +975,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
 
         if (!(flags & _O_NOSOURCE) && src_addr.ss_family == AF_UNIX) {
             struct sockaddr_un *unix_addr = (struct sockaddr_un *)&src_addr;
+            printf("Getting source address: %s\n", unix_addr->sun_path);
             tmp = purc_variant_make_string(unix_addr->sun_path, false);
             purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
             purc_variant_unref(tmp);
@@ -1695,6 +1692,7 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int64_t flags = parse_socket_dgram_option(option);
     if (flags == -1L) {
+        printf("dgram_getter(): bad option\n");
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
