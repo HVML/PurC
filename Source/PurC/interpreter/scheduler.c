@@ -789,6 +789,13 @@ again:
         pcrdr_release_message(msg);
     }
 
+    if (!busy) {
+        size_t count =  pcinst_msg_queue_count(co->mq);
+        if (count > 0) {
+            busy = true;
+        }
+    }
+
 out:
     if (type) {
         free(type);
@@ -851,6 +858,24 @@ again:
     return is_busy;
 }
 
+static bool
+has_ready_co(struct pcinst *inst)
+{
+    bool ret = false;
+    struct pcintr_heap *heap = inst->intr_heap;
+
+    pcintr_coroutine_t p, q;
+    struct list_head *crtns;
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        if (p->state == CO_STATE_READY) {
+            ret = true;
+            break;
+        }
+    }
+    return ret;
+}
+
 void
 pcintr_schedule(void *ctxt)
 {
@@ -892,7 +917,7 @@ again:
     event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
-    if (step_is_busy || event_is_busy) {
+    if (step_is_busy || event_is_busy || has_ready_co(inst)) {
         pcintr_update_timestamp(inst);
         goto again;
     }

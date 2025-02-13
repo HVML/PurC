@@ -150,6 +150,44 @@ to_gio_condition(purc_runloop_io_event event)
     return (GIOCondition)condition;
 }
 
+static int
+get_fd_state(int fd)
+{
+    int condition = 0;
+    struct timeval tv;
+    fd_set rset, wset, xset;
+    int ready;
+    int maxfd = 0;
+
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&xset);
+
+    FD_SET(fd, &rset);
+    FD_SET(fd, &wset);
+    FD_SET(fd, &xset);
+    maxfd = fd;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    ready = select(maxfd + 1, &rset, &wset, &xset, &tv);
+    if (ready > 0) {
+        if (FD_ISSET(fd, &rset)) {
+            condition |= PCRUNLOOP_IO_IN;
+        }
+        if (FD_ISSET(fd, &wset)) {
+            condition |= PCRUNLOOP_IO_OUT;
+        }
+        if (FD_ISSET(fd, &xset)) {
+            condition |= PCRUNLOOP_IO_PRI;
+        }
+    }
+
+    return ready;
+}
+
+
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         purc_runloop_io_event event, purc_runloop_io_callback callback,
         void *ctxt)
@@ -165,7 +203,16 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
             PC_ASSERT(pcintr_get_runloop()==nullptr);
             purc_runloop_io_event io_event;
             io_event = to_runloop_io_event(condition);
-            callback(fd, io_event, ctxt);
+            if (io_event &
+                    (PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT |PCRUNLOOP_IO_PRI)) {
+                int status = get_fd_state(fd);
+                if (status) {
+                    callback(fd, io_event, ctxt);
+                }
+            }
+            else {
+                callback(fd, io_event, ctxt);
+            }
             return true;
         });
 }
