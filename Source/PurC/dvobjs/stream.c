@@ -2563,6 +2563,8 @@ dvobjs_create_stream_by_accepted(purc_atom_t schema,
         }
 
         stream = create_stream_from_fd(fd, STREAM_TYPE_UNIX, NULL);
+        stream->peer_addr = peer_addr;
+        stream->peer_port = peer_port;
 
         if (prot && stream) {
             purc_atom_t atom;

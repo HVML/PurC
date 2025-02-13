@@ -262,14 +262,12 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
                 strncpy(tmp, part, length);
                 tmp[length]= '\0';
                 atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
-                printf("got an option: %s (%d)\n", tmp, atom);
             }
 
             if (atom == keywords2atoms[K_KW_global].atom) {
                 flags |= _O_GLOBAL;
             }
             else if (atom == keywords2atoms[K_KW_nameless].atom) {
-                printf("match nameless\n");
                 flags |= _O_NAMELESS;
             }
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
@@ -487,13 +485,18 @@ local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
 
     /* obtain the peer address */
     len -= sizeof(addr.sun_family);
-    if (len <= 0) {
-        *peer_addr = strdup("<anonymous>");     /* FIXME */
+    addr.sun_path[len] = 0;            /* null terminate */
+
+    if (strlen(addr.sun_path) == 0) {
+        char buf[PURC_LEN_UNIQUE_ID + 1];
+        purc_generate_unique_id(buf, "anonymous");
+        *peer_addr = strdup(buf);
     }
     else {
-        addr.sun_path[len] = 0;            /* null terminate */
         *peer_addr = strdup(addr.sun_path);
     }
+
+    PC_INFO("client path in %s: %s(%d)\n", __func__, *peer_addr, len);
 
 failed:
     return fd;
@@ -982,7 +985,10 @@ recvfrom_getter(void *native_entity, const char *property_name,
 
         if (!(flags & _O_NOSOURCE) && src_addr.ss_family == AF_UNIX) {
             struct sockaddr_un *unix_addr = (struct sockaddr_un *)&src_addr;
-            printf("Getting source address: %s\n", unix_addr->sun_path);
+
+            /* make sure there is a null terminate character */
+            unix_addr->sun_path[sizeof(*unix_addr) -
+                sizeof(unix_addr->sun_family)] = 0;
             tmp = purc_variant_make_string(unix_addr->sun_path, false);
             purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
             purc_variant_unref(tmp);
@@ -1712,7 +1718,6 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int64_t flags = parse_socket_dgram_option(option);
     if (flags == -1L) {
-        printf("dgram_getter(): bad option\n");
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }

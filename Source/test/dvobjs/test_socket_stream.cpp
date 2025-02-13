@@ -118,3 +118,13 @@ TEST(socket, local_stream)
     }
 }
 
+/* using call within */
+TEST(socket, local_stream_multiple_clients)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/local-stream-multiple-clients.hvml");
+}
+
