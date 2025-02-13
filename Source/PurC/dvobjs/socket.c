@@ -191,6 +191,9 @@ int64_t parse_socket_stream_option(purc_variant_t option)
             if (atom == keywords2atoms[K_KW_global].atom) {
                 flags |= _O_GLOBAL;
             }
+            else if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
             else if (atom == keywords2atoms[K_KW_cloexec].atom) {
                 flags |= O_CLOEXEC;
             }
@@ -647,8 +650,8 @@ accept_getter(void *native_entity, const char *property_name,
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
-    if (fd < 0) {
-        goto error;
+    if (fd < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
+        return purc_variant_make_null();
     }
 
     if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
@@ -663,8 +666,8 @@ accept_getter(void *native_entity, const char *property_name,
 
     purc_variant_t stream =
         dvobjs_create_stream_by_accepted(schema, peer_addr, peer_port, fd,
-                nr_args > 0 ? argv[0] : NULL,
-                nr_args > 1 ? argv[1] : NULL);
+                nr_args > 1 ? argv[1] : NULL,
+                nr_args > 2 ? argv[2] : NULL);
     if (!stream) {
         goto error;
     }
@@ -1239,6 +1242,12 @@ create_local_stream_socket(struct purc_broken_down_url *url,
         goto error;
     }
 
+    if ((flags & O_NONBLOCK) && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+        PC_DEBUG("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
     if ((flags & O_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
         PC_DEBUG("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
@@ -1339,6 +1348,12 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     int64_t flags = parse_socket_stream_option(option);
     if (flags == -1) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if ((flags & O_NONBLOCK) && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+        PC_DEBUG("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 

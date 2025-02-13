@@ -7,7 +7,7 @@
         <init as 'bytes' with bx00112233445566778899AABBCCDDEEFF />
     </head>
 
-    <body id='result' >
+    <body id='server' >
 
         <init as 'got' with bx />
 
@@ -26,7 +26,7 @@
                     </inherit>
 
                     <test with $L.gt($?.recved, 0) >
-                        <init as 'got' at '#result' with $DATA.pack("bytes:0 bytes:{$?.recved}", $got, $?.bytes) />
+                        <init as 'got' at '#server' with $DATA.pack("bytes:0 bytes:{$?.recved}", $got, $?.bytes) />
 
                         <differ>
                             $STREAM.stdout.writelines("Do nothing")

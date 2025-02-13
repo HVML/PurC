@@ -3,7 +3,7 @@
 # RESULT: { 'client0': bx00112233445566778899AABBCC, 'client1': bx112233445566778899AABBCCDD, 'client2': bx2233445566778899AABBCCDDEE, 'client3': bx33445566778899AABBCCDDEEFF, 'success': 4L, 'error': 0L, 'except': 0L }
 
 <hvml target="void">
-    <body id='result' >
+    <body>
 
         <init as 'got'>
             {

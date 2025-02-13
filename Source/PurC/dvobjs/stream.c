@@ -482,6 +482,7 @@ readlines_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(property_name);
+
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
     int64_t line_num = 0;
@@ -2551,7 +2552,7 @@ dvobjs_create_stream_by_accepted(purc_atom_t schema,
 
     const struct purc_native_ops *ops = &basic_ops;
     struct pcdvobjs_stream *stream = NULL;
-    const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
+    const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
 
     if (schema == keywords2atoms[K_KW_unix].atom ||
             schema == keywords2atoms[K_KW_local].atom) {

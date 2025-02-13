@@ -3,13 +3,9 @@
 # RESULT: "Hello"
 
 <hvml target="void">
-    <head>
-        <init as 'bytes' with bx00112233445566778899AABBCCDDEEFF />
-    </head>
-
     <body id='server' >
 
-        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'default') >
+        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'nonblock') >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
@@ -18,30 +14,49 @@
                     $STREAM.stdout.writelines('Got socket:connAttempt event')
                 </inherit>
 
-                <init as 'stream' with $streamSocket.accept('default') >
-                    <inherit>
-                        $STREAM.stdout.writelines("Return type of accept(): $DATA.type($stream)")
-                    </inherit>
+                <choose on $streamSocket.accept('default') >
 
-                    <observe on $stream for 'stream:readable'>
-                        <choose on $stream.readlines(1)>
-                            <!-- echo -->
-                            <choose on $stream.writelines($?)>
+                    <test with $L.not($DATA.isequal($?, null)) >
+
+                        <init as 'stream' with $? />
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Return type of accept(): $DATA.type($stream)")
+                        </inherit>
+
+                        <observe on $stream for 'stream:readable'>
+                            <inherit>
+                                $STREAM.stdout.writelines('Got stream:readable event')
+                            </inherit>
+
+                            <inherit>
+                                $STREAM.stdout.writelines("Type of stream: $DATA.type($stream)")
+                            </inherit>
+
+                            <choose on $stream.readlines(1) >
+                                <!-- echo -->
+                                <choose on $stream.writelines($?)>
+                                    <catch for `ANY`>
+                                        <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                    </catch>
+                                </choose>
+
                                 <catch for `ANY`>
-                                    <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                    <exit with "Server failed with $?.name when calling stream.readlines(1)" />
                                 </catch>
                             </choose>
+                        </observe>
 
-                            <catch for `ANY`>
-                                <exit with "Server failed with $?.name when calling stream.readlines(1)" />
-                            </catch>
-                        </choose>
-                    </observe>
+                        <differ>
+                            $STREAM.stdout.writelines("No connections are present to be accepted.")
+                        </differ>
+                    </test>
 
                     <catch for `ANY`>
                         <exit with "Server failed with $?.name when calling streamSocket.accept()" />
                     </catch>
-                </init>
+
+                </choose>
             </observe>
         </init>
 
@@ -72,11 +87,8 @@
 
             <observe on $stream for 'stream:readable' >
                 <choose on $stream.readlines(1)>
-                    <inherit>
-                        $STREAM.stdout.writelines("Client got: $?")
-                    </inherit>
 
-                    <exit with $? />
+                    <exit with $?[0] />
 
                     <catch for `ANY`>
                         <exit with "Client failed with $?.name when calling stream.writelines()" />
