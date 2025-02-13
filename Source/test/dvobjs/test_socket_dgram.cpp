@@ -1,8 +1,8 @@
 /*
- * @file test-socket-stream.c
+ * @file test-socket-dgram.c
  * @author Vincent Wei
  * @date 2025/02/07
- * @brief The program tests $SOCKET and $STREAM
+ * @brief The program tests $SOCKET and $dgramSocket
  *
  * Copyright (C) 2025 FMSoft <https://www.fmsoft.cn>
  *
@@ -95,6 +95,7 @@ static int client_cond_handler(purc_cond_k event, void *arg, void *data)
     return 0;
 }
 
+/* using load within */
 TEST(socket, basic)
 {
     PurCInstance purc(false);
@@ -118,6 +119,7 @@ TEST(socket, basic)
     }
 }
 
+/* using load within */
 TEST(socket, local_dgram)
 {
     PurCInstance purc(false);
@@ -141,6 +143,7 @@ TEST(socket, local_dgram)
     }
 }
 
+/* using load within */
 TEST(socket, local_dgram_multiple_datagrams)
 {
     PurCInstance purc(false);
@@ -180,7 +183,7 @@ TEST(socket, inet_dgram_multiple_clients)
     run_one_comp_test("dvobjs/socket/inet-dgram-multiple-clients.hvml");
 }
 
-/* using call within */
+/* using load within */
 TEST(socket, inet6_dgram_multiple_datagrams)
 {
     PurCInstance purc(false);

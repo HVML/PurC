@@ -474,11 +474,10 @@ local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
 {
     int                fd = -1;
     struct sockaddr_un addr;
-    socklen_t          len;
+    socklen_t          len = sizeof(addr);
 
     len = sizeof(addr);
     if ((fd = accept(socket->fd, (struct sockaddr *)&addr, &len)) < 0) {
-        PC_DEBUG("Failed accept(): %s", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1126,6 +1125,7 @@ static void on_socket_io_callback(struct io_callback_data *data)
     }
 
     if (sub && socket->cid) {
+        PC_INFO("Post event: %s:%s (%p)\n", SOCKET_EVENT_NAME, sub, socket->observed);
         pcintr_coroutine_post_event(socket->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 socket->observed, SOCKET_EVENT_NAME, sub,

@@ -463,10 +463,10 @@ PURC_COMPUTE_SOURCES(test_dvobjs_rdr)
 PURC_FRAMEWORK(test_dvobjs_rdr)
 GTEST_DISCOVER_TESTS(test_dvobjs_rdr DISCOVERY_TIMEOUT 10)
 
-# test_socket
-PURC_EXECUTABLE_DECLARE(test_socket)
+# test_socket_dgram
+PURC_EXECUTABLE_DECLARE(test_socket_dgram)
 
-list(APPEND test_socket_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_socket_dgram_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
@@ -474,19 +474,48 @@ list(APPEND test_socket_PRIVATE_INCLUDE_DIRECTORIES
     "${GTEST_INCLUDE_DIRS}"
 )
 
-PURC_EXECUTABLE(test_socket)
+PURC_EXECUTABLE(test_socket_dgram)
 
-set(test_socket_SOURCES
-    test_socket.cpp
+set(test_socket_dgram_SOURCES
+    test_socket_dgram.cpp
     ../tools.cpp
 )
 
-set(test_socket_LIBRARIES
+set(test_socket_dgram_LIBRARIES
     PurC::PurC
     "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_socket)
-PURC_FRAMEWORK(test_socket)
-GTEST_DISCOVER_TESTS(test_socket DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_socket_dgram)
+PURC_FRAMEWORK(test_socket_dgram)
+GTEST_DISCOVER_TESTS(test_socket_dgram DISCOVERY_TIMEOUT 10)
+
+# test_socket_stream
+PURC_EXECUTABLE_DECLARE(test_socket_stream)
+
+list(APPEND test_socket_stream_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_socket_stream)
+
+set(test_socket_stream_SOURCES
+    test_socket_stream.cpp
+    ../tools.cpp
+)
+
+set(test_socket_stream_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_socket_stream)
+PURC_FRAMEWORK(test_socket_stream)
+GTEST_DISCOVER_TESTS(test_socket_stream DISCOVERY_TIMEOUT 10)
+

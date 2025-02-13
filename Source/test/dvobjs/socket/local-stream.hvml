@@ -1,0 +1,90 @@
+#!/usr/bin/purc
+
+# RESULT: "Hello"
+
+<hvml target="void">
+    <head>
+        <init as 'bytes' with bx00112233445566778899AABBCCDDEEFF />
+    </head>
+
+    <body id='server' >
+
+        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'default') >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+            <observe on $streamSocket for 'socket:connAttempt' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:connAttempt event')
+                </inherit>
+
+                <init as 'stream' with $streamSocket.accept('default') >
+                    <inherit>
+                        $STREAM.stdout.writelines("Return type of accept(): $DATA.type($stream)")
+                    </inherit>
+
+                    <observe on $stream for 'stream:readable'>
+                        <choose on $stream.readlines(1)>
+                            <!-- echo -->
+                            <choose on $stream.writelines($?)>
+                                <catch for `ANY`>
+                                    <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                </catch>
+                            </choose>
+
+                            <catch for `ANY`>
+                                <exit with "Server failed with $?.name when calling stream.readlines(1)" />
+                            </catch>
+                        </choose>
+                    </observe>
+
+                    <catch for `ANY`>
+                        <exit with "Server failed with $?.name when calling streamSocket.accept()" />
+                    </catch>
+                </init>
+            </observe>
+        </init>
+
+        <load from "#client" within 'client' onto 'null:' as 'client' async >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when loading client" />
+            </catch>
+        </load>
+
+        <observe on $client for "corState:exited" >
+            <exit with $? />
+        </observe>
+
+    </body>
+
+    <body id="client">
+
+        <init as 'stream' with $STREAM.open('local:///var/tmp/hvml-stream-server', 'nameless read write cloexec') >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <choose on $stream.writelines('Hello')>
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling stream.writelines()" />
+                </catch>
+            </choose>
+
+            <observe on $stream for 'stream:readable' >
+                <choose on $stream.readlines(1)>
+                    <inherit>
+                        $STREAM.stdout.writelines("Client got: $?")
+                    </inherit>
+
+                    <exit with $? />
+
+                    <catch for `ANY`>
+                        <exit with "Client failed with $?.name when calling stream.writelines()" />
+                    </catch>
+                </choose>
+            </observe>
+        </init>
+
+    </body>
+</hvml>
+
