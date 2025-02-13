@@ -484,19 +484,14 @@ local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
     }
 
     /* obtain the peer address */
-    len -= sizeof(addr.sun_family);
-    addr.sun_path[len] = 0;            /* null terminate */
-
     if (strlen(addr.sun_path) == 0) {
         char buf[PURC_LEN_UNIQUE_ID + 1];
         purc_generate_unique_id(buf, "anonymous");
         *peer_addr = strdup(buf);
     }
     else {
-        *peer_addr = strdup(addr.sun_path);
+        *peer_addr = strndup(addr.sun_path, sizeof(addr.sun_path));
     }
-
-    PC_INFO("client path in %s: %s(%d)\n", __func__, *peer_addr, len);
 
 failed:
     return fd;
@@ -987,9 +982,8 @@ recvfrom_getter(void *native_entity, const char *property_name,
             struct sockaddr_un *unix_addr = (struct sockaddr_un *)&src_addr;
 
             /* make sure there is a null terminate character */
-            unix_addr->sun_path[sizeof(*unix_addr) -
-                sizeof(unix_addr->sun_family)] = 0;
-            tmp = purc_variant_make_string(unix_addr->sun_path, false);
+            tmp = purc_variant_make_string_ex(unix_addr->sun_path,
+                    sizeof(unix_addr->sun_path), false);
             purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
             purc_variant_unref(tmp);
 
@@ -1134,7 +1128,6 @@ static void on_socket_io_callback(struct io_callback_data *data)
     }
 
     if (sub && socket->cid) {
-        PC_INFO("Post event: %s:%s (%p)\n", SOCKET_EVENT_NAME, sub, socket->observed);
         pcintr_coroutine_post_event(socket->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 socket->observed, SOCKET_EVENT_NAME, sub,
