@@ -11,7 +11,7 @@
 
         <init as 'got' with bx />
 
-        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', 'default') >
+        <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-server', {{ $REQ.mode || 'default' }}) >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.dgram()" />
             </catch>

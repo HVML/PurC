@@ -120,7 +120,7 @@ TEST(socket, basic)
 }
 
 /* using load within */
-TEST(socket, local_dgram)
+TEST(socket, local_dgram_default)
 {
     PurCInstance purc(false);
 
@@ -130,7 +130,31 @@ TEST(socket, local_dgram)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/local-dgram.hvml");
+    run_one_comp_test("dvobjs/socket/local-dgram.hvml", "mode=default");
+
+    purc_inst_ask_to_shutdown(client_inst);
+
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(client_inst)) {
+        purc_log_info("Wait for termination of client instance...\n");
+        sleep(1);
+        seconds++;
+        ASSERT_LT(seconds, 10);
+    }
+}
+
+/* using load within */
+TEST(socket, local_dgram_nonblock)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    purc_atom_t client_inst = purc_inst_create_or_get(APP_NAME,
+            "client", client_cond_handler, NULL);
+    assert(client_inst != 0);
+
+    run_one_comp_test("dvobjs/socket/local-dgram.hvml", "mode=nonblock");
 
     purc_inst_ask_to_shutdown(client_inst);
 
