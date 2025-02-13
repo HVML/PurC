@@ -219,7 +219,7 @@ static int comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 }
 
 static int
-comp_add_sample(struct comp_sample_data *sample)
+comp_add_sample(struct comp_sample_data *sample, purc_variant_t request)
 {
     purc_vdom_t vdom;
     vdom = purc_load_hvml_from_string(sample->input_hvml);
@@ -235,7 +235,8 @@ comp_add_sample(struct comp_sample_data *sample)
         return -1;
     }
     else {
-        purc_coroutine_t cor = purc_schedule_vdom_null(vdom);
+        purc_coroutine_t cor = purc_schedule_vdom(vdom, 0, request,
+            PCRDR_PAGE_TYPE_NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         purc_coroutine_set_user_data(cor, sample);
     }
 
@@ -336,7 +337,7 @@ comp_eval_expected_result(const char *code)
 }
 
 static int
-comp_process_file(const char *file)
+comp_process_file(const char *file, purc_variant_t request)
 {
     std::cout << std::endl << "Running " << file << std::endl;
 
@@ -352,7 +353,7 @@ comp_process_file(const char *file)
     sample->input_hvml = strdup(buf);
     sample->expected_result = comp_eval_expected_result(buf);
 
-    return comp_add_sample(sample);
+    return comp_add_sample(sample, request);
 }
 
 #ifndef PATH_MAX
@@ -393,7 +394,7 @@ go_comp_test(const char *files)
                 break;
 
             for (size_t i=0; i<globbuf.gl_pathc; ++i) {
-                int ret = comp_process_file(globbuf.gl_pathv[i]);
+                int ret = comp_process_file(globbuf.gl_pathv[i], NULL);
                 if (ret == 0)
                     purc_run((purc_cond_handler)comp_cond_handler);
             }
@@ -404,7 +405,7 @@ go_comp_test(const char *files)
     // std::cerr << "env: " << env << "=" << path << std::endl;
 }
 
-void run_one_comp_test(const char *file)
+void run_one_comp_test(const char *file, const char *query)
 {
     char path[PATH_MAX];
     const char *env = "SOURCE_FILES";
@@ -412,8 +413,15 @@ void run_one_comp_test(const char *file)
     test_getpath_from_env_or_rel(path, sizeof(path),
         env, rel);
 
-    int ret = comp_process_file(path);
+    purc_variant_t request = PURC_VARIANT_INVALID;
+    if (query)
+        request = purc_make_object_from_query_string(query, false);
+
+    int ret = comp_process_file(path, request);
     if (ret == 0)
         purc_run((purc_cond_handler)comp_cond_handler);
+
+    if (request)
+        purc_variant_unref(request);
 }
 

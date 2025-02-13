@@ -90,7 +90,7 @@ void
 go_comp_test(const char *files);
 
 void
-run_one_comp_test(const char *file);
+run_one_comp_test(const char *file, const char *query = NULL);
 
 PCA_EXTERN_C_END
 

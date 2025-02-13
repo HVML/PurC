@@ -4,8 +4,7 @@
 
 <hvml target="void">
     <body id='server' >
-
-        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'nonblock') >
+        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', {{ $REQ.mode || 'default' }}) >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
