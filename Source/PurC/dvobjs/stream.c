@@ -1695,6 +1695,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     pid_t cpid;
 
 
+    /* FIXME: handle O_CLOEXEC flag */
 #if OS(LINUX)
     if (pipe2(pipefd_stdin, (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
          purc_set_error(purc_error_from_errno(errno));
@@ -2123,6 +2124,11 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (tmp_v == PURC_VARIANT_INVALID ||
             !purc_variant_cast_to_longint(tmp_v, &tmp_l, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
 
