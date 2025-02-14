@@ -17,6 +17,8 @@
             }
         </init>
 
+        <init as 'clients' with {} />
+
         <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'nonblock') >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
@@ -29,13 +31,11 @@
 
                 <choose on $streamSocket.accept('default')>
 
-                    <init as 'clients' with {} />
-
                     <test with $L.not($DATA.isequal($?, null)) >
 
                         <init as 'clientName' with $?.peer_addr() temp />
 
-                        <update on $clients to 'merge' with { $clientName: $? } />
+                        <update on $clients to 'merge' with { $clientName : $? } />
 
                         <observe on $clients[$clientName] for 'stream:readable'>
                             $clientName
@@ -49,12 +49,20 @@
                             </inherit>
 
                             <choose on $_observedOn.readlines(1) >
+
+                                <init as 'client' with $STR.strstr($?[0], 'client') temp />
+
                                 <inherit>
-                                    $STREAM.stdout.writelines("Server got: $?")
+                                    $STREAM.stdout.writelines("Server got: $client")
                                 </inherit>
 
+                                <update on $got at ".$client" with $?[0] } />
+
                                 <!-- echo -->
-                                <choose on $_observedOn.writelines($?[0]) >
+                                <choose on $_observedOn.writelines($?) >
+
+                                    <choose on $_observedOn.close() />
+
                                     <catch for `ANY`>
                                         <exit with "Server failed with $?.name when calling stream.writelines(1)" />
                                     </catch>
@@ -92,16 +100,16 @@
                 </catch>
             </choose>
 
-            <observe on $stream for 'stream:readable' >
-                <choose on $stream.readlines(1)>
+            <choose on $stream.readlines(1)>
 
-                    <return with $?[0] />
+                <choose on $stream.close() />
 
-                    <catch for `ANY`>
-                        <exit with "Client $2?.name failed with $?.name when calling stream.readlines()" />
-                    </catch>
-                </choose>
-            </observe>
+                <return with $?[0] />
+
+                <catch for `ANY`>
+                    <exit with "Client $2?.name failed with $?.name when calling stream.readlines()" />
+                </catch>
+            </choose>
         </define>
 
         <iterate on ['client0', 'client1', 'client2', 'client3'] >
