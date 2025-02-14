@@ -25,6 +25,7 @@
 #define _GNU_SOURCE
 #include "config.h"
 #include "stream.h"
+#include "socket.h"
 
 #include "purc-variant.h"
 #include "purc-runloop.h"
@@ -46,6 +47,12 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netdb.h>
+
+#if HAVE(OPENSSL)
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#endif
 
 #if defined(__linux__) || defined(__CYGWIN__)
 #  include <endian.h>
@@ -94,6 +101,13 @@
 #  error Platform not supported!
 #endif
 
+#define WS_BAD_REQUEST_STR "HTTP/1.1 400 Invalid Request\r\n\r\n"
+#define WS_SWITCH_PROTO_STR "HTTP/1.1 101 Switching Protocols"
+#define WS_TOO_BUSY_STR "HTTP/1.1 503 Service Unavailable\r\n\r\n"
+#define WS_INTERNAL_ERROR_STR "HTTP/1.1 505 Internal Server Error\r\n\r\n"
+
+#define CRLF "\r\n"
+
 #define WS_MAGIC_STR        "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 #define WS_KEY_LEN          16
 #define SHA_DIGEST_LEN      20
@@ -107,6 +121,7 @@
 #define PING_NO_RESPONSE_SECONDS            30
 #define MAX_PINGS_TO_FORCE_CLOSING          3
 
+#define EVENT_TYPE_HANDSHAKE                "handshake"
 #define EVENT_TYPE_MESSAGE                  "message"
 #   define EVENT_SUBTYPE_TEXT               "text"
 #   define EVENT_SUBTYPE_BINARY             "binary"
@@ -125,6 +140,35 @@ typedef enum ws_opcode {
     WS_OPCODE_PONG = 0x0A,
 } ws_opcode;
 
+#define WS_MAX_HEAD_SZ        8192 /* a reasonable size for request headers */
+
+/* WS Client Info */
+typedef struct ws_client_info
+{
+    int reading;
+    int buflen;
+    char buf[WS_MAX_HEAD_SZ + 1];
+
+    char *agent;
+    char *path;
+    char *method;
+    char *protocol;
+    char *host;
+    char *origin;
+    char *upgrade;
+    char *referer;
+    char *connection;
+    char *ws_protocol;
+    char *ws_key;
+    char *ws_sock_ver;
+
+    char *ws_accept;
+    char *ws_resp;
+
+    struct timeval start_proc;
+    struct timeval end_proc;
+} ws_client_info;
+
 /* The frame header for WebSocket */
 typedef struct ws_frame_header {
     unsigned int fin;
@@ -141,6 +185,12 @@ typedef struct ws_frame_header {
 #define WS_CLOSING              0x00004000
 #define WS_THROTTLING           0x00008000
 #define WS_WAITING4PAYLOAD      0x00010000
+#define WS_WAITING4HANDSHAKE    0x00020000      /* server-only */
+
+#define WS_TLS_ACCEPTING        0x00100000
+#define WS_TLS_READING          0x00200000
+#define WS_TLS_WRITING          0x00400000
+#define WS_TLS_SHUTTING         0x00800000
 
 #define WS_ERR_ANY              0x00000FFF
 #define WS_ERR_OOM              0x00000101
@@ -159,7 +209,7 @@ typedef struct ws_pending_data {
 } ws_pending_data;
 
 struct stream_extended_data {
-    /* the status of the client */
+    /* the status */
     unsigned            status;
     int                 msg_type;
 
@@ -168,6 +218,15 @@ struct stream_extended_data {
 
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
+
+    /* server-only fields */
+    pcdvobjs_socket    *server_socket;
+    ws_client_info     *client_info;
+
+#if HAVE(OPENSSL)
+    SSL                *ssl;
+    int                 sslstatus;      /* ssl connection status */
+#endif
 
     /* fields for pending data to write */
     size_t              sz_pending;

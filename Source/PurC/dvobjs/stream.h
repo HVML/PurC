@@ -47,6 +47,11 @@ enum pcdvobjs_stream_type {
 struct pcdvobjs_stream;
 struct stream_extended_data;
 
+enum stream_socket_role {
+    SR_CLIENT = 0,
+    SR_SERVER,
+};
+
 enum stream_message_type {
     MT_UNKNOWN = 0,
     MT_TEXT,

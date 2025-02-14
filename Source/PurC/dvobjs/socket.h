@@ -26,12 +26,19 @@
 #ifndef PURC_DVOBJS_SOCKET_H
 #define PURC_DVOBJS_SOCKET_H
 
+#include "config.h"
 #include "purc-macros.h"
 #include "purc-variant.h"
 #include "purc-rwstream.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
+
+#if HAVE(OPENSSL)
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#endif
 
 #define DEF_BACKLOG     32
 #define NATIVE_ENTITY_NAME_SOCKET       "socket"
@@ -50,6 +57,10 @@ typedef struct pcdvobjs_socket {
     uintptr_t monitor;
     int fd;
     purc_atom_t cid;
+
+#if HAVE(OPENSSL)
+    SSL_CTX            *ssl_ctxt;   /* per-server */
+#endif
 } pcdvobjs_socket;
 
 PCA_EXTERN_C_BEGIN
