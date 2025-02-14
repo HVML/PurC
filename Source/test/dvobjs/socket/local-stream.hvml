@@ -25,20 +25,25 @@
 
                         <observe on $stream for 'stream:readable'>
                             <inherit>
-                                $STREAM.stdout.writelines('Got stream:readable event')
-                            </inherit>
-
-                            <inherit>
-                                $STREAM.stdout.writelines("Type of stream: $DATA.type($stream)")
+                                $STREAM.stdout.writelines("Got stream:readable event for $stream")
                             </inherit>
 
                             <choose on $stream.readlines(1) >
+                                <inherit>
+                                    $STREAM.stdout.writelines("Data returned by readlines(1): $DATA.serialize($?)")
+                                </inherit>
+
                                 <!-- echo -->
-                                <choose on $stream.writelines($?)>
-                                    <catch for `ANY`>
-                                        <exit with "Server failed with $?.name when calling stream.writelines(1)" />
-                                    </catch>
-                                </choose>
+                                <test with $DATA.count($?) >
+                                    <choose on $stream.writelines($?[0])>
+                                        <inherit>
+                                            $STREAM.stdout.writelines("Data echo to client: {$2?[0]}")
+                                        </inherit>
+                                        <catch for `ANY`>
+                                            <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                        </catch>
+                                    </choose>
+                                </test>
 
                                 <catch for `ANY`>
                                     <exit with "Server failed with $?.name when calling stream.readlines(1)" />
