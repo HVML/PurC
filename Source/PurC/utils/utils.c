@@ -214,28 +214,15 @@ size_t pcutils_get_next_fibonacci_number(size_t n)
     return fib_n;
 }
 
-#define MAX_NUMBER_STRING       128
-
 #ifndef MIN
 #define MIN(x, y) (((x) > (y)) ? (y) : (x))
 #endif
 
-/* FIXME: invalid access of buf[len]  */
-#define COPY_STRING(buf, len)                           \
-    char my_buf[MAX_NUMBER_STRING];                     \
-    if (buf[len]) { /* not a string */                  \
-        size_t my_len = MIN(len, sizeof(my_buf) - 1);   \
-        memcpy(my_buf, buf, my_len);                    \
-        my_buf[my_len] = 0;                             \
-        buf = my_buf;                                   \
-    }
-
 int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval)
 {
+    (void)len;
     char *end = NULL;
     int32_t val;
-
-    COPY_STRING(buf, len);
 
     errno = 0;
     val = strtol(buf, &end, 10);
@@ -246,10 +233,9 @@ int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval)
 
 int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval)
 {
+    (void)len;
     char *end = NULL;
     uint32_t val;
-
-    COPY_STRING(buf, len);
 
     errno = 0;
     while (*buf == ' ')
@@ -265,11 +251,9 @@ int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval)
 
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
 {
+    (void)len;
     char *end = NULL;
     int64_t val;
-
-    printf("len: %d\n", len);
-    COPY_STRING(buf, len);
 
     errno = 0;
     val = strtoll(buf, &end, 10);
@@ -280,10 +264,9 @@ int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
 
 int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval)
 {
+    (void)len;
     char *end = NULL;
     uint64_t val;
-
-    COPY_STRING(buf, len);
 
     errno = 0;
     while (*buf == ' ')
@@ -299,9 +282,8 @@ int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval)
 
 int pcutils_parse_double(const char *buf, size_t len, double *retval)
 {
+    (void)len;
     char *end;
-
-    COPY_STRING(buf, len);
 
     *retval = strtod(buf, &end);
     if (buf + len == end)
@@ -311,9 +293,8 @@ int pcutils_parse_double(const char *buf, size_t len, double *retval)
 
 int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
 {
+    (void)len;
     char *end;
-
-    COPY_STRING(buf, len);
 
     *retval = strtold(buf, &end);
     if (buf + len == end)
