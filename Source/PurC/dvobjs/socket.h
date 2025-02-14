@@ -35,8 +35,6 @@
 #include "private/errors.h"
 
 #if HAVE(OPENSSL)
-#include <openssl/crypto.h>
-#include <openssl/err.h>
 #include <openssl/ssl.h>
 #endif
 
