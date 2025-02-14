@@ -109,6 +109,12 @@ enum {
     K_KW_measurement,
 #define _KW_identification      "identification"
     K_KW_identification,
+#define _KW_cloexec             "cloexec"
+    K_KW_cloexec,
+#define _KW_nonblock            "nonblock"
+    K_KW_nonblock,
+#define _KW_append              "append"
+    K_KW_append,
 };
 
 static struct keyword_to_atom {
@@ -144,6 +150,9 @@ static struct keyword_to_atom {
     { _KW_telephone, 0 },              // "telephone"
     { _KW_measurement, 0 },            // "measurement"
     { _KW_identification, 0 },         // "identification"
+    { _KW_cloexec, 0 },                // "cloexec"
+    { _KW_nonblock, 0 },               // "nonblock"
+    { _KW_append, 0 },                 // "append"
 };
 
 static int
@@ -1912,6 +1921,415 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static
+int parse_pipe_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            flags = -1;
+            goto done;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_default].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char tmp[parts_len + 1];
+        strncpy(tmp, parts, parts_len);
+        tmp[parts_len]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+    }
+
+    if (atom != keywords2atoms[K_KW_default].atom) {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = 0;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
+            else {
+                flags = -1;
+                break;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+    else {
+        flags = O_CLOEXEC;
+    }
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+pipe_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int flags = parse_pipe_flags(nr_args > 0 ? argv[0] : PURC_VARIANT_INVALID);
+    if (flags == -1)
+        goto failed;
+
+    int fds[2];
+
+#if OS(LINUX)
+    if (pipe2(fds, flags) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         goto failed;
+    }
+#else
+    if (pipe(fds) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         goto failed;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        if (flags & O_CLOEXEC && fcntl(fds[i], F_SETFD, FD_CLOEXEC) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+
+        if (flags & O_NONBLOCK && fcntl(fds[i], F_SETFL, O_NONBLOCK) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+    }
+#endif
+
+    purc_variant_t fd1 = purc_variant_make_longint(fds[0]);
+    purc_variant_t fd2 = purc_variant_make_longint(fds[0]);
+    if (!fd1 || !fd2) {
+        if (fd1)
+            purc_variant_unref(fd1);
+        if (fd2)
+            purc_variant_unref(fd2);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t kv[2] = { fd1, fd2 };
+    purc_variant_t retv = purc_variant_make_tuple(2, kv);
+    purc_variant_unref(fd1);
+    purc_variant_unref(fd2);
+    return retv;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+int parse_fdflags_getter_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        flags = -1;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            flags = -1;
+            goto done;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            flags = -1;
+        }
+        else {
+            char tmp[parts_len + 1];
+            strncpy(tmp, parts, parts_len);
+            tmp[parts_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags = O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags = O_CLOEXEC;
+            }
+            else if (atom == keywords2atoms[K_KW_append].atom) {
+                flags = O_APPEND;
+            }
+            else {
+                flags = -1;
+            }
+        }
+    }
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+fdflags_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int flags = parse_fdflags_getter_flags(argv[1]);
+    if (flags == -1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    bool result = false;
+    if (flags & O_CLOEXEC) {
+        int ret = fcntl(fd, F_GETFD);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+
+        result = !!(ret & FD_CLOEXEC);
+    }
+    else if (flags & O_APPEND) {
+        int ret = fcntl(fd, F_GETFL);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+        result = !!(ret & O_APPEND);
+    }
+    else if (flags & O_NONBLOCK) {
+        int ret = fcntl(fd, F_GETFL);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+        result = !!(ret & O_NONBLOCK);
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(result);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+int parse_fdflags_setter_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        flags = -1;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            flags = -1;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            flags = -1;
+        }
+    }
+
+    if (flags == -1)
+        goto done;
+
+    size_t length = 0;
+    const char *part = pcutils_get_next_token_len(parts, parts_len,
+            _KW_DELIMITERS, &length);
+    do {
+        if (length == 0 || length > MAX_LEN_KEYWORD) {
+            atom = 0;
+        }
+        else {
+            char tmp[length + 1];
+            strncpy(tmp, part, length);
+            tmp[length]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        }
+
+        if (atom == keywords2atoms[K_KW_nonblock].atom) {
+            flags |= O_NONBLOCK;
+        }
+        else if (atom == keywords2atoms[K_KW_append].atom) {
+            flags |= O_APPEND;
+        }
+        else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+            flags |= O_CLOEXEC;
+        }
+        else {
+            flags = -1;
+            break;
+        }
+
+        if (parts_len <= length)
+            break;
+
+        parts_len -= length;
+        part = pcutils_get_next_token_len(part + length, parts_len,
+                _KW_DELIMITERS, &length);
+    } while (part);
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+fdflags_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int flags = parse_fdflags_setter_flags(argv[1]);
+    if (flags == -1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    if ((flags & O_CLOEXEC) && (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    if (flags & O_APPEND || flags & O_NONBLOCK) {
+        if (fcntl(fd, F_SETFL,
+                    (flags & O_APPEND) ? O_APPEND : 0 |
+                    (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    if (close(fd) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -1928,6 +2346,9 @@ purc_variant_t purc_dvobj_system_new (void)
         { "random",     random_getter,      random_setter },
         { "random_sequence", random_sequence_getter, NULL },
         { "remove",     remove_getter,      NULL },
+        { "pipe",       pipe_getter,        NULL },
+        { "fdflag",     fdflags_getter,     fdflags_setter },
+        { "close",      close_getter,       NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
