@@ -544,7 +544,10 @@ struct pcintr_observer {
 
     pcintr_stack_t              stack;
     // the observed variant.
-    purc_variant_t observed;
+    purc_variant_t              observed;
+
+    // object: _observedAgainst, _observedOn, _observedIn and so on
+    purc_variant_t              implicit_data;
 
     // the type of the message observed (cloned from the `for` attribute)
     char* type;
@@ -739,6 +742,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
         int                         cor_stage,
         int                         cor_state,
         purc_variant_t              observed,
+        purc_variant_t              implicit_data,
         const char                 *type,
         const char                 *sub_type,
         pcvdom_element_t            scope,

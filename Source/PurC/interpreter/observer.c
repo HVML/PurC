@@ -62,6 +62,9 @@ release_observer(struct pcintr_observer *observer)
         PURC_VARIANT_SAFE_CLEAR(observer->observed);
     }
 
+
+    PURC_VARIANT_SAFE_CLEAR(observer->implicit_data);
+
     free(observer->type);
     observer->type = NULL;
 
@@ -168,6 +171,10 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
     task->edom_element = p->edom_element;
     task->stack = &co->stack;
 
+    if (p->implicit_data) {
+        task->implicit_data = purc_variant_ref(p->implicit_data);
+    }
+
     if (msg->elementValue && purc_variant_is_native(msg->elementValue)) {
         task->observed = purc_variant_ref(msg->elementValue);
     }
@@ -220,6 +227,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
         int                         cor_stage,
         int                         cor_state,
         purc_variant_t              observed,
+        purc_variant_t              implicit_data,
         const char                 *type,
         const char                 *sub_type,
         pcvdom_element_t            scope,
@@ -253,8 +261,10 @@ pcintr_register_observer(pcintr_stack_t  stack,
     observer->cor_stage = cor_stage;
     observer->cor_state = cor_state;
     observer->stack = stack;
-    observer->observed = observed;
-    purc_variant_ref(observed);
+    observer->observed = purc_variant_ref(observed);
+    if (implicit_data) {
+        observer->implicit_data = purc_variant_ref(implicit_data);
+    }
     observer->scope = scope;
     observer->edom_element = edom_element;
     observer->pos = pos;
@@ -297,6 +307,7 @@ pcintr_register_inner_observer(
             cor_stage,
             cor_state,
             observed,
+            PURC_VARIANT_INVALID,
             event_type,
             event_sub_type,
             NULL,

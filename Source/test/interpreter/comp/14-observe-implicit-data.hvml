@@ -1,0 +1,23 @@
+#!/usr/bin/purc
+
+# RESULT: 'expired:clock'
+
+
+<hvml target="void">
+    <body>
+
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <update on="$TIMERS" to="overwrite">
+            { "id" : "clock", "active" : "no" }
+            </update>
+            <exit with "$_observedFor" />
+        </observe>
+
+    </body>
+</hvml>

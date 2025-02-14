@@ -63,6 +63,13 @@
 #define PCINTR_EXCLAMATION_EVENT_SOURCE       "_eventSource"
 #define PCINTR_EXCLAMATION_EVENT_REQUEST_ID   "_eventRequestId"
 
+#define PCINTR_EXCLAMATION_OBSERVEDAGAINST    "_observedAgainst"
+#define PCINTR_EXCLAMATION_OBSERVEDON         "_observedOn"
+#define PCINTR_EXCLAMATION_OBSERVEDFOR        "_observedFor"
+#define PCINTR_EXCLAMATION_OBSERVEDIN         "_observedIn"
+#define PCINTR_EXCLAMATION_OBSERVEDWITH       "_observedWith"
+#define PCINTR_EXCLAMATION_OBSERVEDCONTENT    "_observedContent"
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -83,6 +90,7 @@ struct pcintr_observer_task {
     purc_variant_t                source;
     purc_variant_t                request_id;
     purc_variant_t                observed;   /* msg->elementValue && native */
+    purc_variant_t                implicit_data;
 };
 
 enum VIA {

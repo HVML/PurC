@@ -46,6 +46,10 @@ destroy_task(struct pcintr_observer_task *task)
         return;
     }
 
+    if (task->implicit_data) {
+        purc_variant_unref(task->implicit_data);
+    }
+
     if (task->observed) {
         purc_variant_unref(task->observed);
     }
@@ -178,6 +182,13 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     if (task->request_id) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
                 PCINTR_EXCLAMATION_EVENT_REQUEST_ID, task->request_id);
+    }
+
+    if (task->implicit_data) {
+        purc_variant_t k, v;
+        foreach_key_value_in_variant_object(task->implicit_data, k, v) {
+            purc_variant_object_set(exclamation_var, k, v);
+        } end_foreach;
     }
 
     // scheduler by pcintr_schedule
