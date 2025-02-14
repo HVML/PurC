@@ -21,6 +21,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#define _GNU_SOURCE
 #include "config.h"
 #include "helper.h"
 
@@ -39,6 +40,7 @@
 #include <time.h>
 #include <math.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
