@@ -48,9 +48,13 @@
                                 $STREAM.stdout.writelines("Current client: $_observedContent")
                             </inherit>
 
-                            <choose on $clients[$_observedContent].readlines(1) >
+                            <choose on $_observedOn.readlines(1) >
+                                <inherit>
+                                    $STREAM.stdout.writelines("Server got: $?")
+                                </inherit>
+
                                 <!-- echo -->
-                                <choose on $clients[$_observedContent].writelines($?) >
+                                <choose on $_observedOn.writelines($?[0]) >
                                     <catch for `ANY`>
                                         <exit with "Server failed with $?.name when calling stream.writelines(1)" />
                                     </catch>
@@ -82,7 +86,7 @@
                 </catch>
             </init>
 
-            <choose on $stream.writelines("Hello from $?.name") >
+            <choose on $stream.writelines("Hello from $name") >
                 <catch for `ANY`>
                     <return with "Client $2?.name failed with $?.name when calling stream.writelines()" />
                 </catch>
@@ -108,7 +112,7 @@
 
             <init as 'clientName' with "$?" />
 
-            <call on $commWithServer within $clientName with {name: $clientName, bytes: $?.v} as $clientName concurrently asynchronously />
+            <call on $commWithServer within $clientName with { name: $clientName } as $clientName concurrently asynchronously />
             <observe on ${$clientName} for 'callState:success'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns: $?")
