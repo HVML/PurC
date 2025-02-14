@@ -220,6 +220,7 @@ size_t pcutils_get_next_fibonacci_number(size_t n)
 #define MIN(x, y) (((x) > (y)) ? (y) : (x))
 #endif
 
+/* FIXME: invalid access of buf[len]  */
 #define COPY_STRING(buf, len)                           \
     char my_buf[MAX_NUMBER_STRING];                     \
     if (buf[len]) { /* not a string */                  \
@@ -267,6 +268,7 @@ int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
     char *end = NULL;
     int64_t val;
 
+    printf("len: %d\n", len);
     COPY_STRING(buf, len);
 
     errno = 0;

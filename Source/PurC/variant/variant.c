@@ -919,6 +919,7 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_int32(bytes, sz, i32) != 0) {
                 *i32 = 0;
             }
@@ -1043,6 +1044,8 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_uint32(bytes, sz, u32) != 0) {
                 *u32 = 0;
             }
@@ -1164,6 +1167,8 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_int64(bytes, sz, i64) != 0) {
                 *i64 = 0;
             }
@@ -1281,6 +1286,8 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_uint64(bytes, sz, u64) != 0) {
                 *u64 = 0;
             }
@@ -1359,6 +1366,8 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_double(bytes, sz, d) != 0) {
                 *d = 0;
             }
@@ -1439,6 +1448,8 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
                 bytes = (void*)v->bytes;
                 sz = v->size;
             }
+
+            /* FIXME: DONOT call this function directly for bsequence! */
             if (pcutils_parse_long_double(bytes, sz, d) != 0) {
                 *d = 0;
             }

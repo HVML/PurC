@@ -56,6 +56,9 @@
 #include <string.h>
 #include <time.h>
 
+#if OS(UNIX)
+#   include <signal.h>
+#endif
 
 #include "generic_err_msgs.inc"
 
@@ -290,6 +293,19 @@ static void _init_once(void)
 #if 0
      __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
     atexit(free_locale_c);
+#endif
+
+#if OS(UNIX)
+    /* Ignore SIGPIPE since 0.9.22 */
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGPIPE, &sa, NULL) != 0) {
+        perror("sigaction(SIGPIPE, SIG_IGN)");
+    }
 #endif
 
     /* call once initializers of modules */
