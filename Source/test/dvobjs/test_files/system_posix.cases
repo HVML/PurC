@@ -1,0 +1,113 @@
+# test cases for socket
+negative:
+    $SYS.pipe(null)
+    WrongDataType
+
+negative:
+    $SYS.pipe('foo')
+    InvalidValue
+
+negative:
+    $SYS.fdflags()
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags(null, null)
+    WrongDataType
+
+negative:
+    $SYS.fdflags(0)
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags(0, null)
+    WrongDataType
+
+negative:
+    $SYS.fdflags(0, 'foo')
+    InvalidValue
+
+negative:
+    $SYS.fdflags(! )
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags(! null, null )
+    WrongDataType
+
+negative:
+    $SYS.fdflags(! 0 )
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags(! 0, null )
+    WrongDataType
+
+negative:
+    $SYS.fdflags(! 0, 'foo' )
+    InvalidValue
+
+positive:
+    $RUNNER.user(! "myPipe", $SYS.pipe() )
+    true
+
+positive:
+    $DATA.type($RUNNER.myObj.myPipe)
+    'tuple'
+
+positive:
+    $DATA.type($RUNNER.myObj.myPipe[0])
+    'longint'
+
+negative:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0])
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0], null)
+    WrongDataType
+
+negative:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0], '')
+    InvalidValue
+
+positive:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0], 'cloexec')
+    true
+
+positive:
+    $SYS.fdflags($RUNNER.myObj.myPipe[1], 'cloexec')
+    true
+
+negative:
+    $SYS.fdflags(! $RUNNER.myObj.myPipe[0] )
+    ArgumentMissed
+
+negative:
+    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], null )
+    WrongDataType
+
+negative:
+    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], '' )
+    InvalidValue
+
+negative:
+    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], 'foo' )
+    InvalidValue
+
+positive:
+    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], 'nonblock' )
+    true
+
+positive:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0], 'nonblock')
+    true
+
+positive:
+    $SYS.close($RUNNER.myObj.myPipe[0])
+    true
+
+negative:
+    $SYS.fdflags($RUNNER.myObj.myPipe[0], 'nonblock')
+    InvalidValue
+

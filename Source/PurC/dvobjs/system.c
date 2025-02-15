@@ -1977,6 +1977,7 @@ int parse_pipe_flags(purc_variant_t option)
                 flags |= O_CLOEXEC;
             }
             else {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
                 flags = -1;
                 break;
             }
@@ -2004,8 +2005,9 @@ pipe_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     int flags = parse_pipe_flags(nr_args > 0 ? argv[0] : PURC_VARIANT_INVALID);
-    if (flags == -1)
+    if (flags == -1) {
         goto failed;
+    }
 
     int fds[2];
 
@@ -2065,18 +2067,21 @@ int parse_fdflags_getter_flags(purc_variant_t option)
     int64_t flags = 0;
 
     if (option == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         flags = -1;
     }
     else {
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
             flags = -1;
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto done;
         }
 
         parts = pcutils_trim_spaces(parts, &parts_len);
         if (parts_len == 0) {
             flags = -1;
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
         }
         else {
             char tmp[parts_len + 1];
@@ -2094,6 +2099,7 @@ int parse_fdflags_getter_flags(purc_variant_t option)
                 flags = O_APPEND;
             }
             else {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
                 flags = -1;
             }
         }
@@ -2127,7 +2133,6 @@ fdflags_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int flags = parse_fdflags_getter_flags(argv[1]);
     if (flags == -1) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 
@@ -2182,17 +2187,20 @@ int parse_fdflags_setter_flags(purc_variant_t option)
 
     if (option == PURC_VARIANT_INVALID) {
         flags = -1;
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
     }
     else {
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
+            flags = -1;
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            flags = -1;
         }
-
-        parts = pcutils_trim_spaces(parts, &parts_len);
-        if (parts_len == 0) {
-            flags = -1;
+        else {
+            parts = pcutils_trim_spaces(parts, &parts_len);
+            if (parts_len == 0) {
+                flags = -1;
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+            }
         }
     }
 
@@ -2223,6 +2231,7 @@ int parse_fdflags_setter_flags(purc_variant_t option)
             flags |= O_CLOEXEC;
         }
         else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             flags = -1;
             break;
         }
@@ -2263,7 +2272,6 @@ fdflags_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int flags = parse_fdflags_setter_flags(argv[1]);
     if (flags == -1) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 
@@ -2349,7 +2357,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "random_sequence", random_sequence_getter, NULL },
         { "remove",     remove_getter,      NULL },
         { "pipe",       pipe_getter,        NULL },
-        { "fdflag",     fdflags_getter,     fdflags_setter },
+        { "fdflags",    fdflags_getter,     fdflags_setter },
         { "close",      close_getter,       NULL },
     };
 

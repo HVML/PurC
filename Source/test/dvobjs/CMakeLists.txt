@@ -463,6 +463,35 @@ PURC_COMPUTE_SOURCES(test_dvobjs_rdr)
 PURC_FRAMEWORK(test_dvobjs_rdr)
 GTEST_DISCOVER_TESTS(test_dvobjs_rdr DISCOVERY_TIMEOUT 10)
 
+# test_dvobjs_system_posix
+PURC_EXECUTABLE_DECLARE(test_dvobjs_system_posix)
+
+list(APPEND test_dvobjs_system_posix_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_dvobjs_system_posix)
+
+set(test_dvobjs_system_posix_SOURCES
+    test_dvobjs_system_posix.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_dvobjs_system_posix_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_system_posix)
+PURC_FRAMEWORK(test_dvobjs_system_posix)
+GTEST_DISCOVER_TESTS(test_dvobjs_system_posix DISCOVERY_TIMEOUT 10)
+
 # test_socket_dgram
 PURC_EXECUTABLE_DECLARE(test_socket_dgram)
 
