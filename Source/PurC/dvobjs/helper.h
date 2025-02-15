@@ -42,10 +42,12 @@ struct pcdvobjs_logical_param {
     purc_variant_t variables;
 };
 
-bool pcdvobjs_wildcard_cmp (const char *str1,
-        const char *pattern) WTF_INTERNAL;
+bool pcdvobjs_wildcard_cmp(const char *pattern,
+        const char *str) WTF_INTERNAL;
+bool pcdvobjs_regex_cmp(const char *pattern,
+        const char *str) WTF_INTERNAL;
 
-const char *pcdvobjs_remove_space (char * buffer) WTF_INTERNAL;
+char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;

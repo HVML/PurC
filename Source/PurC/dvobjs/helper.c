@@ -30,11 +30,13 @@
 #include "purc-variant.h"
 #include "helper.h"
 
+#include <regex.h>
+
 #if USE(GLIB)
 #include <glib.h>
 #endif
 
-const char *pcdvobjs_remove_space (char *buffer)
+char *pcdvobjs_remove_space(char *buffer)
 {
     int i = 0;
     int j = 0;
@@ -51,35 +53,35 @@ const char *pcdvobjs_remove_space (char *buffer)
 }
 
 #if USE(GLIB)
-bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
+bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str)
 {
-    GPatternSpec *glib_pattern = g_pattern_spec_new (pattern);
+    GPatternSpec *glib_pattern = g_pattern_spec_new(pattern);
 
 #if GLIB_CHECK_VERSION(2, 70, 0)
-    gboolean result = g_pattern_spec_match_string (glib_pattern, str1);
+    gboolean result = g_pattern_spec_match_string(glib_pattern, str);
 #else
-    gboolean result = g_pattern_match_string (glib_pattern, str1);
+    gboolean result = g_pattern_match_string(glib_pattern, str);
 #endif
 
-    g_pattern_spec_free (glib_pattern);
+    g_pattern_spec_free(glib_pattern);
 
     return (bool)result;
 }
 #else
-bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
+bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str)
 {
-    if (str1 == NULL)
+    if (str == NULL)
         return false;
     if (pattern == NULL)
         return false;
 
-    int len1 = strlen (str1);
-    int len2 = strlen (pattern);
-    int mark = 0;
-    int p1 = 0;
-    int p2 = 0;
+    size_t len1 = strlen(str);
+    size_t len2 = strlen(pattern);
+    size_t mark = 0;
+    size_t p1 = 0;
+    size_t p2 = 0;
 
-    while ((p1 < len1) && (p2<len2)) {
+    while ((p1 < len1) && (p2 < len2)) {
         if (pattern[p2] == '?') {
             p1++;
             p2++;
@@ -90,7 +92,7 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
             mark = p2;
             continue;
         }
-        if (str1[p1] != pattern[p2]) {
+        if (str[p1] != pattern[p2]) {
             if (p1 == 0 && p2 == 0)
                 return false;
             p1 -= p2 - mark - 1;
@@ -114,6 +116,31 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
     return true;
 }
 #endif
+
+bool pcdvobjs_regex_cmp(const char *pattern, const char *str)
+{
+    regex_t regex;
+
+    assert(pattern);
+    assert(str);
+
+    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) < 0) {
+        goto error;
+    }
+
+    if (regexec(&regex, str, 0, NULL, 0) == REG_NOMATCH) {
+        goto error_free;
+    }
+
+    regfree(&regex);
+    return true;
+
+error_free:
+    regfree(&regex);
+
+error:
+    return false;
+}
 
 purc_variant_t
 purc_dvobj_make_from_methods(const struct purc_dvobj_method *methods,
