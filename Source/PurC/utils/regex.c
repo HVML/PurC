@@ -47,7 +47,8 @@ struct pcregex_match_info {
     GMatchInfo *g_match_info;
 };
 
-GRegexCompileFlags to_g_regex_compile_flags(enum pcregex_compile_flags flags)
+static GRegexCompileFlags
+to_g_regex_compile_flags(enum pcregex_compile_flags flags)
 {
     int ret = 0;
     if (flags & PCREGEX_CASELESS) {
@@ -109,7 +110,8 @@ GRegexCompileFlags to_g_regex_compile_flags(enum pcregex_compile_flags flags)
     return (GRegexCompileFlags)ret;
 }
 
-GRegexMatchFlags to_g_regex_match_flags(enum pcregex_match_flags flags)
+static GRegexMatchFlags
+to_g_regex_match_flags(enum pcregex_match_flags flags)
 {
     int ret = 0;
     if (flags & PCREGEX_MATCH_ANCHORED) {
@@ -160,7 +162,8 @@ GRegexMatchFlags to_g_regex_match_flags(enum pcregex_match_flags flags)
     return (GRegexMatchFlags)ret;
 }
 
-void set_error_code_from_gerror(GError *err)
+static void
+set_error_code_from_gerror(GError *err)
 {
     if (!err) {
         return;
