@@ -67,6 +67,31 @@ bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str)
 
     return (bool)result;
 }
+
+int pcdvobjs_wildcard_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs)
+{
+    int matched = 0;
+
+    GPatternSpec *glib_pattern = g_pattern_spec_new(pattern);
+
+    for (int i = 0; i < MIN(nr_strs, 31) && strs[i] != NULL; i++) {
+        gboolean result;
+#if GLIB_CHECK_VERSION(2, 70, 0)
+        result = g_pattern_spec_match_string(glib_pattern, strs[i]);
+#else
+        result = g_pattern_match_string(glib_pattern, strs[i]);
+#endif
+        if (result) {
+            matched |= (0x01 << i);
+        }
+    }
+
+    g_pattern_spec_free(glib_pattern);
+
+    return matched;
+}
+
 #else
 bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str)
 {
@@ -115,31 +140,155 @@ bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str)
     }
     return true;
 }
+
+int pcdvobjs_wildcard_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs)
+{
+    int matched = 0;
+
+    for (int i = 0; i < MIN(nr_strs, 31) && strs[i] != NULL; i++) {
+        if (pcdvobjs_wildcard_cmp(pattern, strs[i])) {
+            matched |= (0x01 << i);
+        }
+    }
+
+    return matched;
+}
+
 #endif
+
+static bool
+init_regex(regex_t *regex, const char *pattern, int *eflags)
+{
+    assert(pattern);
+
+    int cflags = REG_EXTENDED | REG_NOSUB;
+    const char *_pattern = pattern;
+
+    *eflags = REG_NOTBOL | REG_NOTEOL;
+    if (pattern[0] == '/') {
+        _pattern = strdup(pattern + 1);
+
+        char *last_slash = strrchr(_pattern, '/');
+        if (last_slash != NULL) {
+            /* check the flags: */
+            const char *flags = last_slash + 1;
+            while (*flags) {
+
+                switch (*flags) {
+                    case 'i':
+                        cflags |= REG_ICASE;
+                        break;
+                    case 's':
+                        cflags |= REG_NEWLINE;
+                        break;
+                    case 'm':
+                        *eflags &= ~(REG_NOTBOL | REG_NOTEOL);
+                }
+
+                flags++;
+            }
+
+            /* remove the last slash */
+            *last_slash = 0;
+        }
+    }
+
+    bool result = true;
+    if (regcomp(regex, _pattern, cflags) != 0) {
+        result = false;
+    }
+
+    if (_pattern != pattern)
+        free((void *)_pattern);
+
+    return result;
+}
 
 bool pcdvobjs_regex_cmp(const char *pattern, const char *str)
 {
     regex_t regex;
+    int eflags;
 
-    assert(pattern);
     assert(str);
 
-    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) < 0) {
+    if (!init_regex(&regex, pattern, &eflags))
         goto error;
-    }
 
-    if (regexec(&regex, str, 0, NULL, 0) == REG_NOMATCH) {
-        goto error_free;
+    bool result = false;
+    if (regexec(&regex, str, 0, NULL, eflags) == 0) {
+        result = true;
     }
 
     regfree(&regex);
-    return true;
-
-error_free:
-    regfree(&regex);
+    return result;
 
 error:
     return false;
+}
+
+int pcdvobjs_regex_cmp_ex(const char *pattern, const char *strs[], int nr_strs)
+{
+    regex_t regex;
+    int eflags;
+    int matched = 0;
+
+    if (!init_regex(&regex, pattern, &eflags)) {
+        goto error;
+    }
+
+    assert(strs);
+    for (int i = 0; i < MIN(nr_strs, 31) && strs[i] != NULL; i++) {
+        if (regexec(&regex, strs[i], 0, NULL, eflags) == 0) {
+            matched |= (0x01 << i);
+        }
+    }
+
+    regfree(&regex);
+    return matched;
+
+error:
+    return -1;
+}
+
+int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
+        const char *events[], int nr_events)
+{
+    int matched = 0;
+
+    assert(main_pattern);
+
+    const char *pattern;
+    if (sub_pattern == NULL) {
+        pattern = main_pattern;
+    }
+    else {
+        char *p = malloc(strlen(main_pattern) + strlen(sub_pattern) + 2);
+        pattern = p;
+        p = stpcpy(p, main_pattern);
+        *p = ':';
+        p++;
+        strcpy(p, sub_pattern);
+    }
+
+    if (pattern[0] == '/') { /* regexp */
+        matched = pcdvobjs_regex_cmp_ex(pattern, events, nr_events);
+    }
+    else if (strchr(pattern, '*') || strchr(pattern, '/')) { /* wildcard */
+        matched = pcdvobjs_wildcard_cmp_ex(pattern, events, nr_events);
+    }
+    else { /* plain */
+        for (int i = 0; i < MIN(nr_events, 31) && events[i] != NULL; i++) {
+            if (strcmp(events[i], pattern) == 0) {
+                matched |= (0x01 << i);
+            }
+        }
+    }
+
+    if (pattern != main_pattern)
+        free((void *)pattern);
+
+    return matched;
 }
 
 purc_variant_t

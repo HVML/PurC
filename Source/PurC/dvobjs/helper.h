@@ -47,6 +47,16 @@ bool pcdvobjs_wildcard_cmp(const char *pattern,
 bool pcdvobjs_regex_cmp(const char *pattern,
         const char *str) WTF_INTERNAL;
 
+/* The following function does the batch matchs and returns the result
+   for each string as bits in a 32-bit integer. -1 for failure.
+   Note that the nr_strs should be less than 32. */
+int pcdvobjs_wildcard_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs) WTF_INTERNAL;
+int pcdvobjs_regex_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs) WTF_INTERNAL;
+int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
+        const char *events[], int nr_events) WTF_INTERNAL;
+
 char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 
 int pcdvobjs_logical_parse(const char *input,
