@@ -100,7 +100,12 @@ typedef struct pcdvobjs_stream {
     purc_rwstream_t stm4r;      /* stream for read */
     purc_rwstream_t stm4w;      /* stream for write */
     purc_variant_t observed;    /* not inc ref */
+
+    #define NR_STREAM_MONITORS      6
+    uintptr_t monitors[0];
     uintptr_t monitor4r, monitor4w;
+    uintptr_t monitor4rh, monitor4wh; /* Since 0.9.22 */
+    uintptr_t monitor4re, monitor4we; /* Since 0.9.22 */
     int fd4r, fd4w;
 
     pid_t cpid;             /* only for pipe, the pid of child */

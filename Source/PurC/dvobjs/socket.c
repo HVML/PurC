@@ -26,6 +26,7 @@
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
+#include "helper.h"
 
 #include "purc-variant.h"
 #include "purc-runloop.h"
@@ -1150,40 +1151,50 @@ socket_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     return true;
 }
 
+static const char *socket_events[] = {
+#define MATCHED_CONNATTEMPT 0x01
+    SOCKET_EVENT_NAME ":" SOCKET_SUB_EVENT_CONNATTEMPT,
+#define MATCHED_NEWDATAGRAM 0x02
+    SOCKET_EVENT_NAME ":" SOCKET_SUB_EVENT_NEWDATAGRAM,
+};
+
 static bool
 on_observe(void *native_entity, const char *event_name,
         const char *event_subname)
 {
-    if (strcmp(event_name, SOCKET_EVENT_NAME) != 0) {
-        return false;
+    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)native_entity;
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    if (co && socket->cid == 0) {
+        socket->cid = co->cid;
     }
 
-    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)native_entity;
+    int matched = pcdvobjs_match_events(event_name, event_subname,
+            socket_events, PCA_TABLESIZE(socket_events));
+    if (matched == -1)
+        return false;
 
     purc_runloop_io_event event = 0;
     if (socket->type == SOCKET_TYPE_STREAM &&
-            strcmp(event_subname, SOCKET_SUB_EVENT_CONNATTEMPT) == 0) {
+            (matched & MATCHED_CONNATTEMPT)) {
         event = PCRUNLOOP_IO_IN;
     }
     else if (socket->type == SOCKET_TYPE_DGRAM &&
-            strcmp(event_subname, SOCKET_SUB_EVENT_NEWDATAGRAM) == 0) {
+            (matched & MATCHED_NEWDATAGRAM)) {
         event = PCRUNLOOP_IO_IN;
+    }
+    else {
+        return true;    /* false? */
     }
 
     if ((event & PCRUNLOOP_IO_IN) && socket->fd >= 0) {
         socket->monitor = purc_runloop_add_fd_monitor(
                 purc_runloop_get_current(), socket->fd, PCRUNLOOP_IO_IN,
                 socket_io_callback, socket);
-        if (socket->monitor) {
-            pcintr_coroutine_t co = pcintr_get_coroutine();
-            if (co) {
-                socket->cid = co->cid;
-            }
-
-            return true;
+        if (socket->monitor == 0) {
+            PC_ERROR("Failed purc_runloop_add_fd_monitor(SOCKET, IN)\n");
+            return false;
         }
-
-        return false;
     }
 
     return true;
@@ -1193,10 +1204,12 @@ static bool
 on_forget(void *native_entity, const char *event_name,
         const char *event_subname)
 {
-    UNUSED_PARAM(event_name);
-    UNUSED_PARAM(event_subname);
-    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)native_entity;
+    int matched = pcdvobjs_match_events(event_name, event_subname,
+            socket_events, PCA_TABLESIZE(socket_events));
+    if (matched == -1)
+        return false;
 
+    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)native_entity;
     if (socket->monitor) {
         purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
                 socket->monitor);
