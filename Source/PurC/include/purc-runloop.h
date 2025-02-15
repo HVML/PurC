@@ -133,7 +133,7 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
 typedef bool (*purc_runloop_io_callback)(int fd,
-        uint32_t event, void *ctxt);
+        int event, void *ctxt);
 
 /**
  * Add file descriptors monitor on the runloop
@@ -150,7 +150,7 @@ typedef bool (*purc_runloop_io_callback)(int fd,
  */
 PCA_EXPORT
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        uint32_t event, purc_runloop_io_callback callback,
+        int event, purc_runloop_io_callback callback,
         void *ctxt);
 
 /**

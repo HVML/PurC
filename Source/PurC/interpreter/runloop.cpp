@@ -100,10 +100,10 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
-static uint32_t
+static int
 to_runloop_io_event(GIOCondition condition)
 {
-    uint32_t event = 0;;
+    int event = 0;;
     if (condition & G_IO_IN) {
         event |= PCRUNLOOP_IO_IN;
     }
@@ -126,7 +126,7 @@ to_runloop_io_event(GIOCondition condition)
 }
 
 static GIOCondition
-to_gio_condition(uint32_t event)
+to_gio_condition(int event)
 {
     gushort condition = 0;
     if (event & PCRUNLOOP_IO_IN) {
@@ -189,7 +189,7 @@ get_fd_state(int fd)
 
 
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        uint32_t event, purc_runloop_io_callback callback,
+        int event, purc_runloop_io_callback callback,
         void *ctxt)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -201,7 +201,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             PC_ASSERT(pcintr_get_runloop()==nullptr);
-            uint32_t io_event;
+            int io_event;
             io_event = to_runloop_io_event(condition);
             if (io_event &
                     (PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT |PCRUNLOOP_IO_PRI)) {

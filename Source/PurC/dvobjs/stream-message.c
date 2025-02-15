@@ -484,7 +484,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
 }
 
 static bool
-us_handle_reads(int fd, uint32_t event, void *ctxt)
+us_handle_reads(int fd, int event, void *ctxt)
 {
     (void)fd;
     (void)event;
@@ -657,7 +657,7 @@ closing:
 }
 
 static bool
-us_handle_writes(int fd, uint32_t event, void *ctxt)
+us_handle_writes(int fd, int event, void *ctxt)
 {
     (void)fd;
     (void)event;

@@ -1112,7 +1112,7 @@ failed:
 
 struct io_callback_data {
     int                           fd;
-    uint32_t                      io_event;
+    int                           io_event;
     struct pcdvobjs_socket       *socket;
 };
 
@@ -1137,7 +1137,7 @@ static void on_socket_io_callback(struct io_callback_data *data)
 }
 
 static bool
-socket_io_callback(int fd, uint32_t event, void *ctxt)
+socket_io_callback(int fd, int event, void *ctxt)
 {
     struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)ctxt;
     PC_ASSERT(socket);
