@@ -829,7 +829,7 @@ static int try_to_read_frame(struct pcdvobjs_stream *stream)
 }
 
 static bool
-ws_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
+ws_handle_reads(int fd, uint32_t event, void *ctxt)
 {
     (void)fd;
     (void)event;
@@ -1011,7 +1011,7 @@ closing:
 }
 
 static bool
-ws_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
+ws_handle_writes(int fd, uint32_t event, void *ctxt)
 {
     (void)fd;
     (void)event;

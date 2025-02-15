@@ -30,15 +30,13 @@
 #include <stdint.h>
 
 typedef void* purc_runloop_t;
-typedef enum purc_runloop_io_event
-{
-    PCRUNLOOP_IO_IN = 0x01,
-    PCRUNLOOP_IO_PRI = 0x02,
-    PCRUNLOOP_IO_OUT = 0x04,
-    PCRUNLOOP_IO_ERR = 0x08,
-    PCRUNLOOP_IO_HUP = 0x10,
-    PCRUNLOOP_IO_NVAL = 0x20,
-} purc_runloop_io_event;
+
+#define     PCRUNLOOP_IO_IN     0x01
+#define     PCRUNLOOP_IO_PRI    0x02
+#define     PCRUNLOOP_IO_OUT    0x04
+#define     PCRUNLOOP_IO_ERR    0x08
+#define     PCRUNLOOP_IO_HUP    0x10
+#define     PCRUNLOOP_IO_NVAL   0x20
 
 PCA_EXTERN_C_BEGIN
 
@@ -135,7 +133,7 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
 typedef bool (*purc_runloop_io_callback)(int fd,
-        purc_runloop_io_event event, void *ctxt);
+        uint32_t event, void *ctxt);
 
 /**
  * Add file descriptors monitor on the runloop
@@ -152,7 +150,7 @@ typedef bool (*purc_runloop_io_callback)(int fd,
  */
 PCA_EXPORT
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        purc_runloop_io_event event, purc_runloop_io_callback callback,
+        uint32_t event, purc_runloop_io_callback callback,
         void *ctxt);
 
 /**

@@ -1013,7 +1013,7 @@ peer_port_getter(void *native_entity, const char *property_name,
 }
 
 static bool
-stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
+stream_io_callback(int fd, uint32_t event, void *ctxt)
 {
     UNUSED_PARAM(fd);
 

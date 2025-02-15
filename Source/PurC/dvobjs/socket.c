@@ -1112,7 +1112,7 @@ failed:
 
 struct io_callback_data {
     int                           fd;
-    purc_runloop_io_event         io_event;
+    uint32_t                      io_event;
     struct pcdvobjs_socket       *socket;
 };
 
@@ -1137,7 +1137,7 @@ static void on_socket_io_callback(struct io_callback_data *data)
 }
 
 static bool
-socket_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
+socket_io_callback(int fd, uint32_t event, void *ctxt)
 {
     struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)ctxt;
     PC_ASSERT(socket);
@@ -1174,7 +1174,7 @@ on_observe(void *native_entity, const char *event_name,
     if (matched == -1)
         return false;
 
-    purc_runloop_io_event event = 0;
+    uint32_t event = 0;
     if (socket->type == SOCKET_TYPE_STREAM &&
             (matched & MATCHED_CONNATTEMPT)) {
         event = PCRUNLOOP_IO_IN;
