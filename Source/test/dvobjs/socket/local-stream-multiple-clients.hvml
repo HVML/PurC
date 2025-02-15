@@ -88,7 +88,7 @@
         </init>
 
         <define as 'commWithServer' >
-            <init as 'stream' with $STREAM.open('local:///var/tmp/hvml-stream-server', 'nameless read write cloexec') >
+            <init as 'stream' with $STREAM.open('local:///var/tmp/hvml-stream-server', 'nameless read write cloexec') temp >
                 <catch for `ANY`>
                     <return with "Client $2?.name failed with $?.name when calling SOCKET.open()" />
                 </catch>
@@ -100,14 +100,22 @@
                 </catch>
             </choose>
 
-            <choose on $stream.readlines(1)>
+            <choose on $stream.readlines(1) >
 
-                <choose on $stream.close() />
+                <inherit>
+                    $STREAM.stdout.writelines("Client $name $stream got $DATA.serialize($?) and is going to close.")
+                </inherit>
+
+                <choose on $stream.close() >
+                    <catch for `ANY`>
+                        <return with "Client $name $stream failed with $?.name when calling stream.close()" />
+                    </catch>
+                </choose>
 
                 <return with $?[0] />
 
                 <catch for `ANY`>
-                    <exit with "Client $2?.name failed with $?.name when calling stream.readlines()" />
+                    <return with "Client $name $stream failed with $?.name when calling stream.readlines()" />
                 </catch>
             </choose>
         </define>

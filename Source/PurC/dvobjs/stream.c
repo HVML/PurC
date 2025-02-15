@@ -1020,6 +1020,8 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)ctxt;
     PC_ASSERT(stream);
 
+    PC_INFO("Got an event %x (%p)\n", event, ctxt);
+
     const char* sub = NULL;
     if (event & PCRUNLOOP_IO_IN) {
         sub = STREAM_SUB_EVENT_READABLE;
@@ -1090,6 +1092,7 @@ on_observe(void *native_entity, const char *event_name,
     }
 
     if (matched & MATCHED_HANGUP) {
+        PC_INFO("Add a HANGUP event for desired %s:%s\n", event_name, event_subname);
         if (stream->fd4r >= 0) {
             stream->monitor4rh = purc_runloop_add_fd_monitor(
                     purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_HUP,
