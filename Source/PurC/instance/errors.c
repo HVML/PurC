@@ -831,10 +831,14 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
-    default:
-        return PURC_ERROR_BAD_SYSTEM_CALL;
+#ifdef EBADF
+    case EBADF: /* Since 0.9.22 */
+        return PURC_ERROR_INVALID_VALUE;
+        break;
+#endif
     }
-    return PURC_ERROR_OK;
+
+    return PURC_ERROR_BAD_SYSTEM_CALL;
 }
 
 void
