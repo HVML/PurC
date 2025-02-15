@@ -201,19 +201,20 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             PC_ASSERT(pcintr_get_runloop()==nullptr);
+            bool ret = true;
             int io_event;
             io_event = to_runloop_io_event(condition);
             if (io_event &
                     (PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT |PCRUNLOOP_IO_PRI)) {
                 int status = get_fd_state(fd);
                 if (status) {
-                    callback(fd, io_event, ctxt);
+                    ret = callback(fd, io_event, ctxt);
                 }
             }
             else {
-                callback(fd, io_event, ctxt);
+                ret = callback(fd, io_event, ctxt);
             }
-            return true;
+            return ret;
         });
 }
 
