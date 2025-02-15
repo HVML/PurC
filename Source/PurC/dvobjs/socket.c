@@ -604,9 +604,9 @@ accept_getter(void *native_entity, const char *property_name,
 {
     UNUSED_PARAM(property_name);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
-    assert(socket->type == SOCKET_TYPE_STREAM);
+    PC_ASSERT(socket->type == SOCKET_TYPE_STREAM);
 
     int fd = -1;
     if (nr_args == 0) {
@@ -729,7 +729,7 @@ sendto_getter(void *native_entity, const char *property_name,
 {
     UNUSED_PARAM(property_name);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     if (nr_args < 3) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -906,7 +906,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
 {
     UNUSED_PARAM(property_name);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1046,7 +1046,7 @@ fd_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
     return purc_variant_make_longint(socket->fd);
@@ -1061,7 +1061,7 @@ close_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
     dvobjs_socket_close(socket);
@@ -1116,9 +1116,20 @@ struct io_callback_data {
     struct pcdvobjs_socket       *socket;
 };
 
-static void on_socket_io_callback(struct io_callback_data *data)
+static bool
+socket_io_callback(int fd, int event, void *ctxt)
 {
-    struct pcdvobjs_socket *socket = data->socket;
+    UNUSED_PARAM(fd);
+
+    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)ctxt;
+    PC_ASSERT(socket);
+
+    if ((event & PCRUNLOOP_IO_HUP) || (event & PCRUNLOOP_IO_ERR) ||
+            (event & PCRUNLOOP_IO_NVAL)) {
+        socket->monitor = 0;
+        PC_ERROR("Got a weird IO event for socket.\n");
+        return false;
+    }
 
     const char* sub = NULL;
     if (socket->type == SOCKET_TYPE_STREAM) {
@@ -1134,20 +1145,7 @@ static void on_socket_io_callback(struct io_callback_data *data)
                 socket->observed, SOCKET_EVENT_NAME, sub,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     }
-}
 
-static bool
-socket_io_callback(int fd, int event, void *ctxt)
-{
-    struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)ctxt;
-    PC_ASSERT(socket);
-
-    struct io_callback_data data;
-    data.fd = fd;
-    data.io_event = event;
-    data.socket = socket;
-
-    on_socket_io_callback(&data);
     return true;
 }
 
@@ -1164,9 +1162,12 @@ on_observe(void *native_entity, const char *event_name,
 {
     struct pcdvobjs_socket *socket = (struct pcdvobjs_socket*)native_entity;
 
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    if (co && socket->cid == 0) {
-        socket->cid = co->cid;
+    if (socket->cid == 0) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        if (co)
+            socket->cid = co->cid;
+        else
+            return false;
     }
 
     int matched = pcdvobjs_match_events(event_name, event_subname,

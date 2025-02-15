@@ -945,7 +945,7 @@ close_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     native_stream_close(stream);
@@ -962,7 +962,7 @@ fd_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     int fd = -1;
@@ -985,7 +985,7 @@ peer_addr_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     if (stream->peer_addr)
@@ -1003,7 +1003,7 @@ peer_port_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    assert(native_entity);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     if (stream->peer_port)
@@ -1020,28 +1020,146 @@ stream_io_callback(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)ctxt;
     PC_ASSERT(stream);
 
-    PC_INFO("Got an event %x (%p)\n", event, ctxt);
+    if (stream->cid == 0) {
+        PC_ERROR("Got an IO event for stream not bound to a coroutine.\n");
+        return false;
+    }
 
-    const char* sub = NULL;
+    if ((event & PCRUNLOOP_IO_HUP)) {
+        if ((fd == stream->fd4r && stream->ioevents4r & PCRUNLOOP_IO_HUP) ||
+                (fd == stream->fd4w && stream->ioevents4w & PCRUNLOOP_IO_HUP)) {
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+                    stream->observed,
+                    STREAM_EVENT_NAME, STREAM_SUB_EVENT_HANGUP,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+        else {
+            PC_WARN("Got an IO event HUP for stream (%p), but not observed.\n",
+                    stream);
+        }
+    }
+
+    if ((event & PCRUNLOOP_IO_ERR)) {
+        if ((fd == stream->fd4r && stream->ioevents4r & PCRUNLOOP_IO_ERR) ||
+                (fd == stream->fd4w && stream->ioevents4w & PCRUNLOOP_IO_ERR)) {
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+                    stream->observed,
+                    STREAM_EVENT_NAME, STREAM_SUB_EVENT_ERROR,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+        else {
+            PC_WARN("Got an IO event ERR for stream (%p), but not observed.\n",
+                    stream);
+        }
+    }
+
+    if ((event & PCRUNLOOP_IO_HUP) || (event & PCRUNLOOP_IO_ERR) ||
+            (event & PCRUNLOOP_IO_NVAL)) {
+        if (fd == stream->fd4r) {
+            stream->monitor4r = 0;
+        }
+
+        if (fd == stream->fd4w) {
+            stream->monitor4w = 0;
+        }
+
+        if (event & PCRUNLOOP_IO_NVAL) {
+            PC_ERROR("Got a weird IO NVAL event for stream (%p).\n", stream);
+        }
+
+        return false;
+    }
+
     if (event & PCRUNLOOP_IO_IN) {
-        sub = STREAM_SUB_EVENT_READABLE;
-    }
-    else if (event & PCRUNLOOP_IO_OUT) {
-        sub = STREAM_SUB_EVENT_WRITABLE;
-    }
-    else if (event & PCRUNLOOP_IO_HUP) {
-        sub = STREAM_SUB_EVENT_HANGUP;
-    }
-    else if (event & PCRUNLOOP_IO_ERR) {
-        sub = STREAM_SUB_EVENT_ERROR;
+        if (stream->ioevents4r & PCRUNLOOP_IO_IN) {
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+                    stream->observed,
+                    STREAM_EVENT_NAME, STREAM_SUB_EVENT_READABLE,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+        else {
+            PC_WARN("Got an IO event IN for stream (%p), but not observed.\n",
+                    stream);
+        }
     }
 
-    if (sub && stream->cid) {
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
-                stream->observed, STREAM_EVENT_NAME, sub,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (event & PCRUNLOOP_IO_OUT) {
+        if (stream->ioevents4w & PCRUNLOOP_IO_OUT) {
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+                    stream->observed,
+                    STREAM_EVENT_NAME, STREAM_SUB_EVENT_WRITABLE,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+        else {
+            PC_WARN("Got an IO event OUT for stream (%p), but not observed.\n",
+                    stream);
+        }
     }
+
+    return true;
+}
+
+static bool handle_runloop_monitors(struct pcdvobjs_stream *stream,
+        int ioevents4r, int ioevents4w)
+{
+    if (stream->fd4r >= 0) {
+        if (stream->fd4r == stream->fd4w) {
+            ioevents4r |= ioevents4w;
+        }
+
+        if (ioevents4r != stream->ioevents4r) {
+            if (stream->monitor4r) {
+                purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                        stream->monitor4r);
+                stream->monitor4r = 0;
+                stream->ioevents4r = 0;
+            }
+
+            if (ioevents4r) {
+                stream->monitor4r = purc_runloop_add_fd_monitor(
+                        purc_runloop_get_current(), stream->fd4r, ioevents4r,
+                        stream_io_callback, stream);
+                if (stream->monitor4r == 0) {
+                    PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM, IN)\n");
+                    return false;
+                }
+                else {
+                    stream->ioevents4r = ioevents4r;
+                    if (stream->fd4w == stream->fd4r) {
+                        stream->ioevents4w = stream->ioevents4r;
+                    }
+                }
+            }
+        }
+    }
+    else if (stream->fd4w > 0 && stream->fd4w != stream->fd4r) {
+        if (ioevents4w != stream->ioevents4w) {
+            if (stream->monitor4w) {
+                purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                        stream->monitor4w);
+                stream->monitor4w = 0;
+                stream->ioevents4w = 0;
+            }
+
+            if (ioevents4w) {
+                stream->monitor4w = purc_runloop_add_fd_monitor(
+                        purc_runloop_get_current(), stream->fd4w, ioevents4w,
+                        stream_io_callback, stream);
+                if (stream->monitor4w == 0) {
+                    PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM, OUT)\n");
+                    return false;
+                }
+                else {
+                    stream->ioevents4w = ioevents4w;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -1066,6 +1184,8 @@ on_observe(void *native_entity, const char *event_name,
         pcintr_coroutine_t co = pcintr_get_coroutine();
         if (co)
             stream->cid = co->cid;
+        else
+            return false;
     }
 
     int matched = pcdvobjs_match_events(event_name, event_subname,
@@ -1073,66 +1193,26 @@ on_observe(void *native_entity, const char *event_name,
     if (matched == -1)
         return false;
 
-    if ((matched & MATCHED_READABLE) && stream->fd4r >= 0) {
-        stream->monitor4r = purc_runloop_add_fd_monitor(
-                purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
-                stream_io_callback, stream);
-        if (stream->monitor4r == 0) {
-            PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM, IN)\n");
-        }
+    int ioevents4r = stream->ioevents4r, ioevents4w = stream->ioevents4w;
+    if ((matched & MATCHED_READABLE)) {
+        ioevents4r |= PCRUNLOOP_IO_IN;
     }
 
-    if ((matched & MATCHED_WRITABLE) && stream->fd4w >= 0) {
-        stream->monitor4w = purc_runloop_add_fd_monitor(
-                purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
-                stream_io_callback, stream);
-        if (stream->monitor4w == 0) {
-            PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM, OUT)\n");
-        }
+    if ((matched & MATCHED_WRITABLE)) {
+        ioevents4w |= PCRUNLOOP_IO_OUT;
     }
 
     if (matched & MATCHED_HANGUP) {
-        PC_INFO("Add a HANGUP event for desired %s:%s\n", event_name, event_subname);
-        if (stream->fd4r >= 0) {
-            stream->monitor4rh = purc_runloop_add_fd_monitor(
-                    purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_HUP,
-                    stream_io_callback, stream);
-            if (stream->monitor4rh == 0) {
-                PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM4R, HUP)\n");
-            }
-        }
-
-        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
-            stream->monitor4wh = purc_runloop_add_fd_monitor(
-                    purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_HUP,
-                    stream_io_callback, stream);
-            if (stream->monitor4wh == 0) {
-                PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM4W, HUP)\n");
-            }
-        }
+        ioevents4r |= PCRUNLOOP_IO_HUP;
+        ioevents4w |= PCRUNLOOP_IO_HUP;
     }
 
     if (matched & MATCHED_ERROR) {
-        if (stream->fd4r >= 0) {
-            stream->monitor4re = purc_runloop_add_fd_monitor(
-                    purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_ERR,
-                    stream_io_callback, stream);
-            if (stream->monitor4re == 0) {
-                PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM4R, ERR)\n");
-            }
-        }
-
-        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
-            stream->monitor4we = purc_runloop_add_fd_monitor(
-                    purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_ERR,
-                    stream_io_callback, stream);
-            if (stream->monitor4we == 0) {
-                PC_ERROR("Failed purc_runloop_add_fd_monitor(STREAM4W, ERR)\n");
-            }
-        }
+        ioevents4r |= PCRUNLOOP_IO_ERR;
+        ioevents4w |= PCRUNLOOP_IO_ERR;
     }
 
-    return true;
+    return handle_runloop_monitors(stream, ioevents4r, ioevents4w);
 }
 
 static bool
@@ -1146,47 +1226,28 @@ on_forget(void *native_entity, const char *event_name,
 
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
 
-    if ((matched & MATCHED_READABLE) && stream->monitor4r) {
-        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                stream->monitor4r);
-        stream->monitor4r = 0;
+    int ioevents4r = stream->ioevents4r;
+    int ioevents4w = stream->ioevents4w;
+
+    if (matched & MATCHED_READABLE) {
+        ioevents4r &= ~PCRUNLOOP_IO_IN;
     }
 
-    if ((matched & MATCHED_WRITABLE) && stream->monitor4w) {
-        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                stream->monitor4w);
-        stream->monitor4w = 0;
+    if (matched & MATCHED_WRITABLE) {
+        ioevents4w &= ~PCRUNLOOP_IO_OUT;
     }
 
-    if ((matched & MATCHED_HANGUP)) {
-        if (stream->monitor4rh) {
-            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                    stream->monitor4rh);
-            stream->monitor4rh = 0;
-        }
-
-        if (stream->monitor4wh) {
-            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                    stream->monitor4wh);
-            stream->monitor4wh = 0;
-        }
+    if (matched & MATCHED_HANGUP) {
+        ioevents4r &= ~PCRUNLOOP_IO_HUP;
+        ioevents4w &= ~PCRUNLOOP_IO_HUP;
     }
 
-    if ((matched & MATCHED_ERROR)) {
-        if (stream->monitor4re) {
-            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                    stream->monitor4re);
-            stream->monitor4re = 0;
-        }
-
-        if (stream->monitor4we) {
-            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                    stream->monitor4we);
-            stream->monitor4we = 0;
-        }
+    if (matched & MATCHED_ERROR) {
+        ioevents4r &= ~PCRUNLOOP_IO_ERR;
+        ioevents4w &= ~PCRUNLOOP_IO_ERR;
     }
 
-    return true;
+    return handle_runloop_monitors(stream, ioevents4r, ioevents4w);
 }
 
 static void
@@ -2495,7 +2556,7 @@ stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     struct pcdvobjs_stream *stream = purc_variant_native_get_entity(argv[0]);
     const struct purc_native_ops* ops = purc_variant_native_get_ops(argv[0]);
-    assert(ops->property_getter);
+    PC_ASSERT(ops->property_getter);
     purc_nvariant_method closer = ops->property_getter(stream, _KW_close);
     return closer(stream, _KW_close, nr_args - 1, argv + 1, call_flags);
 
