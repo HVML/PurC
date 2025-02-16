@@ -118,7 +118,8 @@ TEST(socket, local_stream_default)
     }
 }
 
-TEST(socket, local_stream_nonblock)
+/* TODO: A test for blocked socket, and use sockopt() */
+TEST(socket, local_stream_blocked)
 {
     PurCInstance purc(false);
 

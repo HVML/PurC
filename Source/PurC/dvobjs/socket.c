@@ -212,7 +212,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
         } while (part);
     }
     else {
-        flags = O_CLOEXEC;
+        flags = O_CLOEXEC | O_NONBLOCK;
     }
 
 done:
@@ -291,7 +291,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
         } while (part);
     }
     else {
-        flags = O_CLOEXEC;
+        flags = O_CLOEXEC | O_NONBLOCK;
     }
 
 done:
@@ -589,7 +589,7 @@ int parse_accept_option(purc_variant_t option)
         } while (part);
     }
     else {
-        flags = O_CLOEXEC;
+        flags = O_CLOEXEC | O_NONBLOCK;
     }
 
     return flags;
