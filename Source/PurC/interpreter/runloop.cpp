@@ -150,44 +150,6 @@ to_gio_condition(int event)
     return (GIOCondition) condition;
 }
 
-static uint32_t
-get_fd_state(int fd)
-{
-    uint32_t condition = 0;
-    struct timeval tv;
-    fd_set rset, wset, xset;
-    int ready;
-    int maxfd = 0;
-
-    FD_ZERO(&rset);
-    FD_ZERO(&wset);
-    FD_ZERO(&xset);
-
-    FD_SET(fd, &rset);
-    FD_SET(fd, &wset);
-    FD_SET(fd, &xset);
-    maxfd = fd;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-
-    ready = select(maxfd + 1, &rset, &wset, &xset, &tv);
-    if (ready > 0) {
-        if (FD_ISSET(fd, &rset)) {
-            condition |= PCRUNLOOP_IO_IN;
-        }
-        if (FD_ISSET(fd, &wset)) {
-            condition |= PCRUNLOOP_IO_OUT;
-        }
-        if (FD_ISSET(fd, &xset)) {
-            condition |= PCRUNLOOP_IO_PRI;
-        }
-    }
-
-    return condition;
-}
-
-
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         int event, purc_runloop_io_callback callback,
         void *ctxt)
@@ -201,20 +163,8 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             PC_ASSERT(pcintr_get_runloop()==nullptr);
-            bool ret = true;
-            int io_event;
-            io_event = to_runloop_io_event(condition);
-            if (io_event &
-                    (PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT |PCRUNLOOP_IO_PRI)) {
-                int status = get_fd_state(fd);
-                if (status) {
-                    ret = callback(fd, io_event, ctxt);
-                }
-            }
-            else {
-                ret = callback(fd, io_event, ctxt);
-            }
-            return ret;
+            int io_event = to_runloop_io_event(condition);
+            return callback(fd, io_event, ctxt);
         });
 }
 
