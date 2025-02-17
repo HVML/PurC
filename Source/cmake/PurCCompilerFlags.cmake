@@ -156,7 +156,7 @@ if (COMPILER_IS_GCC_OR_CLANG AND NOT MSVC)
     PURC_PREPEND_GLOBAL_COMPILER_FLAGS(-Wall -Wextra -fmax-errors=10)
     if (ENABLE_DEVELOPER_MODE)
         set(CMAKE_C_FLAGS "-Werror ${CMAKE_C_FLAGS}")
-# set(CMAKE_CXX_FLAGS "-Werror ${CMAKE_CXX_FLAGS}")
+        # set(CMAKE_CXX_FLAGS "-Werror ${CMAKE_CXX_FLAGS}")
     endif ()
 endif ()
 
