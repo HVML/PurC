@@ -126,6 +126,9 @@ struct purc_variant {
         struct list_head    reserved;
     };
 
+    /* This field saves the extra size for variant. Since 0.9.22. */
+    size_t      extra_size;
+
     /* value */
     union {
         /* for boolean */
@@ -158,7 +161,8 @@ struct purc_variant {
               - `sz_ptr[1]` stores the pointer.
 
            for long string,
-              - `sz_ptr[0]` stores the length in characters;
+              - `sz_ptr[0]` stores the length in bytes
+                (including the terminating null byte);
               - `sz_ptr[1]` stores the pointer.
 
            for exception and atom string,
@@ -178,7 +182,6 @@ struct purc_variant {
         uintptr_t           extra_uintptr;
         intptr_t            extra_intptr;
         void               *extra_data;
-        size_t              extra_size;
 
         /* other aliases */
         /* the real length of `extra_bytes` is `sizeof(void*)` */
@@ -190,6 +193,8 @@ struct purc_variant {
     };
 
 };
+
+#define SZ_SPACE_IN_VARIANT     (sizeof(void *) * 3)
 
 #define USE_LOOP_BUFFER_FOR_RESERVED    0
 

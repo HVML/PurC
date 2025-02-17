@@ -422,10 +422,10 @@ void pcvariant_stat_set_extra_size(purc_variant_t value, size_t extra_size)
     int type = value->type;
 
     if (value->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-        stat->sz_mem[type] -= value->sz_ptr[0];
-        stat->sz_total_mem -= value->sz_ptr[0];
+        stat->sz_mem[type] -= value->extra_size;
+        stat->sz_total_mem -= value->extra_size;
 
-        value->sz_ptr[0] = extra_size;
+        value->extra_size = extra_size;
 
         stat->sz_mem[type] += extra_size;
         stat->sz_total_mem += extra_size;

@@ -555,20 +555,57 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_empty(void);
 
 /**
- * purc_variant_get_bytes_const:
+ * purc_variant_make_byte_sequence_empty_ex:
  *
- * @value: The bsequence variant.
+ * @sz_buf: The size of the buffer desired in bytes.
+ *
+ * Creates a variant which represents an empty byte sequence but has
+ * the specified buffer length.
+ *
+ * Returns: An empty bsequence variant if success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_empty_ex(size_t sz_buf);
+
+/**
+ * purc_variant_bsequence_buffer:
+ *
+ * @sequence: The bsequence variant.
  * @nr_bytes: The pointer to a size_t buffer to receive the length in bytes
  *      of the byte sequence.
+ * @sz_buf: The pointer to a size_t buffer to receive the size in bytes
+ *      of the buffer.
  *
- * Gets the pointer to the bytes array contained in a bsequence variant.
+ * Gets the pointer to the buffer of the sequence. If it is a byte sequence
+ * created from a static buffer, the size of the buffer will be zero.
  *
  * Returns: The pointer to the bytes array on success, or %NULL on failure.
  *
- * Since: 0.0.1
+ * Since: 0.9.22
  */
-PCA_EXPORT const unsigned char*
-purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
+PCA_EXPORT const unsigned char *
+purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
+        size_t *sz_buf);
+
+/**
+ * purc_variant_bsequence_append:
+ *
+ * @sequence: The bsequence variant.
+ * @bytes: The pointer to the new byte array to be appended to the sequence.
+ * @nr_bytes: The length in bytes of the new byte array.
+ *
+ * Appends a new byte array to the byte sequence which has a enough buffer.
+ *
+ * Returns: %true for success, or %false for failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT bool
+purc_variant_bsequence_append(purc_variant_t sequence,
+        const unsigned char *bytes, size_t nr_bytes);
 
 /**
  * purc_variant_bsequence_bytes:
@@ -606,6 +643,23 @@ purc_variant_bsequence_length(purc_variant_t bsequence)
         return PURC_VARIANT_BADSIZE;
     return len;
 }
+
+/**
+ * purc_variant_get_bytes_const:
+ *
+ * @value: The bsequence or string variant.
+ * @nr_bytes: The pointer to a size_t buffer to receive the length in bytes
+ *      of the byte sequence.
+ *
+ * Gets the pointer to the bytes array contained in a bsequence or
+ * a string variant.
+ *
+ * Returns: The pointer to the bytes array on success, or %NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT const unsigned char *
+purc_variant_get_bytes_const(purc_variant_t value, size_t *nr_bytes);
 
 #define PCVRT_CALL_FLAG_NONE            0x0000
 #define PCVRT_CALL_FLAG_SILENTLY        0x0001
