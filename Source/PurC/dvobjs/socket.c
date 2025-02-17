@@ -672,6 +672,9 @@ accept_getter(void *native_entity, const char *property_name,
     if (fd < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
         return purc_variant_make_null();
     }
+    else if (fd < 0 && errno == ETIMEDOUT) {
+        return purc_variant_make_null();
+    }
 
     if (flags & O_CLOEXEC && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
         purc_set_error(purc_error_from_errno(errno));
