@@ -44,6 +44,7 @@
 #include <limits.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
@@ -119,6 +120,20 @@ enum {
     K_KW_nonblock,
 #define _KW_append              "append"
     K_KW_append,
+#define _KW_type                "type"
+    K_KW_type,
+#define _KW_nread               "nread"
+    K_KW_nread,
+#define _KW_nwrite              "nwrite"
+    K_KW_nwrite,
+#define _KW_recv_timeout        "recv-timeout"
+    K_KW_recv_timeout,
+#define _KW_send_timeout        "send-timeout"
+    K_KW_send_timeout,
+#define _KW_recv_buffer         "recv-buffer"
+    K_KW_recv_buffer,
+#define _KW_send_buffer         "send-buffer"
+    K_KW_send_buffer,
 };
 
 static struct keyword_to_atom {
@@ -158,6 +173,13 @@ static struct keyword_to_atom {
     { _KW_cloexec, 0 },                // "cloexec"
     { _KW_nonblock, 0 },               // "nonblock"
     { _KW_append, 0 },                 // "append"
+    { _KW_type, 0 },                   // "type"
+    { _KW_nread, 0 },                  // "nread"
+    { _KW_nwrite, 0 },                 // "nwrite"
+    { _KW_recv_timeout, 0 },           // "recv-timeout"
+    { _KW_send_timeout, 0 },           // "send-timeout"
+    { _KW_recv_buffer, 0 },            // "recv-buffer"
+    { _KW_send_buffer, 0 },            // "send-buffer"
 };
 
 static int
@@ -2309,6 +2331,189 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static
+purc_atom_t parse_socket_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+
+    parts = purc_variant_get_string_const_ex(option, &parts_len);
+    if (parts == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    }
+    else {
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        }
+        else {
+            char tmp[parts_len + 1];
+            strncpy(tmp, parts, parts_len);
+            tmp[parts_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        }
+    }
+
+    return atom;
+}
+
+static purc_variant_t
+sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    purc_atom_t option = parse_socket_option(argv[1]);
+    if (option == 0) {
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    int optname = 0;
+    if (option == keywords2atoms[K_KW_type].atom) {
+        optname = SO_TYPE;
+    }
+#if OS(Mac)
+    else if (option == keywords2atoms[K_KW_nread].atom) {
+        optname = SO_NREAD;
+    }
+    else if (option == keywords2atoms[K_KW_nwrite].atom) {
+        optname = SO_NWRITE;
+    }
+#endif
+    else if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        optname = SO_RCVTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        optname = SO_SNDTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
+        optname = SO_RCVBUF;
+    }
+    else if (option == keywords2atoms[K_KW_send_buffer].atom) {
+        optname = SO_SNDBUF;
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+    }
+
+    int optval;
+    socklen_t optlen = sizeof(optval);
+    if (getsockopt(fd, SOL_SOCKET, optname, &optval, &optlen) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    purc_variant_t retv;
+    if (option == keywords2atoms[K_KW_type].atom) {
+        if (optval == SOCK_STREAM) {
+            retv = purc_variant_make_string_static("stream", false);
+        }
+        else if (optval == SOCK_DGRAM) {
+            retv = purc_variant_make_string_static("dgram", false);
+        }
+        else {
+            retv = purc_variant_make_string_static("unknown", false);
+        }
+    }
+    else {
+        retv = purc_variant_make_longint(optval);
+    }
+
+    return retv;
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 3) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    purc_atom_t option = parse_socket_option(argv[1]);
+    if (option == 0) {
+        goto error;
+    }
+
+    if (!purc_variant_cast_to_longint(argv[2], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    int optval = (int)tmp_l;
+
+    int optname = 0;
+    if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        optname = SO_RCVTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        optname = SO_SNDTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
+        optname = SO_RCVBUF;
+    }
+    else if (option == keywords2atoms[K_KW_send_buffer].atom) {
+        optname = SO_SNDBUF;
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+    }
+
+    socklen_t optlen = sizeof(optval);
+    if (setsockopt(fd, SOL_SOCKET, optname, &optval, optlen) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
 close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -2364,6 +2569,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "remove",     remove_getter,      NULL },
         { "pipe",       pipe_getter,        NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
+        { "sockopt",    sockopt_getter,     sockopt_setter },
         { "close",      close_getter,       NULL },
     };
 
