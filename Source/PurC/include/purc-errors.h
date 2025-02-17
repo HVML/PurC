@@ -487,7 +487,7 @@ purc_set_error_with_info_debug(int err_code,
 #define purc_set_error_with_info(err_code, fmt, ...)        \
         purc_set_error_with_info_debug(err_code,            \
                 __FILE__, __LINE__, __func__,               \
-                "%s" fmt "", "", ##__VA_ARGS__)
+                fmt "", ##__VA_ARGS__)
 
 /**
  * purc_get_error_message:
