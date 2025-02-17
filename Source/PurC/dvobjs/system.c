@@ -69,6 +69,8 @@ enum {
     K_KW_HVML_INTRPR_RELEASE,
 #define _KW_all                 "all"
     K_KW_all,
+#define _KW_none                "none"
+    K_KW_none,
 #define _KW_default             "default"
     K_KW_default,
 #define _KW_kernel_name         "kernel-name"
@@ -131,6 +133,7 @@ static struct keyword_to_atom {
     { _KW_HVML_INTRPR_VERSION, 0 },    // "HVML_INTRPR_VERSION"
     { _KW_HVML_INTRPR_RELEASE, 0 },    // "HVML_INTRPR_RELEASE"
     { _KW_all, 0 },                    // "all"
+    { _KW_none, 0 },                   // "none"
     { _KW_default, 0 },                // "default"
     { _KW_kernel_name, 0 },            // "kernel-name"
     { _KW_kernel_release, 0 },         // "kernel-release"
@@ -1955,7 +1958,13 @@ int parse_pipe_flags(purc_variant_t option)
         atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
     }
 
-    if (atom != keywords2atoms[K_KW_default].atom) {
+    if (atom == keywords2atoms[K_KW_none].atom) {
+        flags = 0;
+    }
+    else if (atom == keywords2atoms[K_KW_default].atom) {
+        flags = O_CLOEXEC;
+    }
+    else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
                 _KW_DELIMITERS, &length);
@@ -1989,9 +1998,6 @@ int parse_pipe_flags(purc_variant_t option)
             part = pcutils_get_next_token_len(part + length, parts_len,
                     _KW_DELIMITERS, &length);
         } while (part);
-    }
-    else {
-        flags = O_CLOEXEC;
     }
 
 done:

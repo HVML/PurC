@@ -87,6 +87,8 @@ enum {
     K_KW_recvfrom,
 #define _KW_close                   "close"
     K_KW_close,
+#define _KW_none                    "none"
+    K_KW_none,
 #define _KW_default                 "default"
     K_KW_default,
 #define _KW_nonblock                "nonblock"
@@ -124,6 +126,7 @@ static struct keyword_to_atom {
     { _KW_sendto, 0},               // "sendto"
     { _KW_recvfrom, 0},             // "recvfrom"
     { _KW_close, 0},                // "close"
+    { _KW_none, 0},                 // "none"
     { _KW_default, 0},              // "default"
     { _KW_nonblock, 0},             // "nonblock"
     { _KW_cloexec, 0},              // "cloexec"
@@ -157,6 +160,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
     else {
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
+            flags = -1;
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto done;
         }
@@ -174,7 +178,13 @@ int64_t parse_socket_stream_option(purc_variant_t option)
         atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
     }
 
-    if (atom != keywords2atoms[K_KW_default].atom) {
+    if (atom == keywords2atoms[K_KW_none].atom) {
+        flags = 0;
+    }
+    else if (atom == keywords2atoms[K_KW_default].atom) {
+        flags = O_CLOEXEC | O_NONBLOCK;
+    }
+    else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
                 _KW_DELIMITERS, &length);
@@ -200,6 +210,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
             }
             else {
                 flags = -1;
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
 
@@ -210,9 +221,6 @@ int64_t parse_socket_stream_option(purc_variant_t option)
             part = pcutils_get_next_token_len(part + length, parts_len,
                     _KW_DELIMITERS, &length);
         } while (part);
-    }
-    else {
-        flags = O_CLOEXEC | O_NONBLOCK;
     }
 
 done:
@@ -233,6 +241,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
     else {
         parts = purc_variant_get_string_const_ex(option, &parts_len);
         if (parts == NULL) {
+            flags = -1;
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto done;
         }
@@ -250,7 +259,13 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
         atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
     }
 
-    if (atom != keywords2atoms[K_KW_default].atom) {
+    if (atom == keywords2atoms[K_KW_none].atom) {
+        flags = 0;
+    }
+    else if (atom == keywords2atoms[K_KW_default].atom) {
+        flags = O_CLOEXEC | O_NONBLOCK;
+    }
+    else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
                 _KW_DELIMITERS, &length);
@@ -279,6 +294,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
             }
             else {
                 flags = -1;
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
 
@@ -289,9 +305,6 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
             part = pcutils_get_next_token_len(part + length, parts_len,
                     _KW_DELIMITERS, &length);
         } while (part);
-    }
-    else {
-        flags = O_CLOEXEC | O_NONBLOCK;
     }
 
 done:
@@ -542,8 +555,9 @@ int parse_accept_option(purc_variant_t option)
 
     parts = purc_variant_get_string_const_ex(option, &parts_len);
     if (parts == NULL) {
+        flags = -1;
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
+        goto done;
     }
 
     parts = pcutils_trim_spaces(parts, &parts_len);
@@ -558,7 +572,13 @@ int parse_accept_option(purc_variant_t option)
         atom = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, tmp);
     }
 
-    if (atom != keywords2atoms[K_KW_default].atom) {
+    if (atom == keywords2atoms[K_KW_none].atom) {
+        flags = 0;
+    }
+    else if (atom == keywords2atoms[K_KW_default].atom) {
+        flags = O_CLOEXEC | O_NONBLOCK;
+    }
+    else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
                 _KW_DELIMITERS, &length);
@@ -579,6 +599,11 @@ int parse_accept_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_cloexec].atom) {
                 flags |= O_CLOEXEC;
             }
+            else {
+                flags = -1;
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
 
             if (parts_len <= length)
                 break;
@@ -588,14 +613,9 @@ int parse_accept_option(purc_variant_t option)
                     _KW_DELIMITERS, &length);
         } while (part);
     }
-    else {
-        flags = O_CLOEXEC | O_NONBLOCK;
-    }
 
+done:
     return flags;
-
-failed:
-    return -1;
 }
 
 static purc_variant_t
@@ -919,7 +939,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
     }
 
     int64_t flags = parse_dgram_recvfrom_option(argv[0]);
-    if (flags == -1L) {
+    if (flags == -1) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
@@ -1244,7 +1264,6 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     int64_t flags = parse_socket_stream_option(option);
     if (flags == -1) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 
@@ -1360,7 +1379,6 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
 
     int64_t flags = parse_socket_stream_option(option);
     if (flags == -1) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -1709,6 +1727,11 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
+    int64_t flags = parse_socket_dgram_option(option);
+    if (flags == -1) {
+        goto error;
+    }
+
     struct purc_broken_down_url *url = (struct purc_broken_down_url*)
         calloc(1, sizeof(struct purc_broken_down_url));
     if (!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
@@ -1719,12 +1742,6 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_atom_t schema =
         purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
     if (schema == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error_free_url;
-    }
-
-    int64_t flags = parse_socket_dgram_option(option);
-    if (flags == -1L) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
