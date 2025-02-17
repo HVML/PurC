@@ -33,7 +33,7 @@
 
                     <test with $L.not($DATA.isequal($?, null)) >
 
-                        <init as 'clientName' with $?.peer_addr() temp />
+                        <init as 'clientName' with $?.peerAddr temp />
 
                         <update on $clients to 'merge' with { $clientName : $? } />
 

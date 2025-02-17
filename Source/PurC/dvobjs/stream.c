@@ -145,9 +145,9 @@ enum {
     K_KW_close,
 #define _KW_fd                      "fd"
     K_KW_fd,
-#define _KW_peer_addr               "peer_addr"
+#define _KW_peer_addr               "peerAddr"
     K_KW_peer_addr,
-#define _KW_peer_port               "peer_port"
+#define _KW_peer_port               "peerPort"
     K_KW_peer_port,
 };
 
@@ -190,8 +190,8 @@ static struct keyword_to_atom {
     { _KW_seek, 0},                 // "seek"
     { _KW_close, 0},                // "close"
     { _KW_fd, 0},                   // "fd"
-    { _KW_peer_addr, 0},            // "peer_addr"
-    { _KW_peer_port, 0},            // "peer_port"
+    { _KW_peer_addr, 0},            // "peerAddr"
+    { _KW_peer_port, 0},            // "peerPort"
 };
 
 static struct pcdvobjs_stream *
