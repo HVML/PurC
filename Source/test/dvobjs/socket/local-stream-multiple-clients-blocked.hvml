@@ -3,7 +3,7 @@
 # RESULT: { 'client0': 'Hello from client0', 'client1': 'Hello from client1', 'client2': 'Hello from client2', 'client3': 'Hello from client3', 'success': 4L, 'error': 0L, 'except': 0L }
 
 # This test program creates a server to listen at local:///var/tmp/hvml-stream-server and waits for connections from clients in blocking mode.
-# If the server got stream:hangup event, it exits.
+# After getting exit values from 4 clients, the server exits.
 
 <hvml target="void">
     <body>
