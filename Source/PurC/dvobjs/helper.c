@@ -324,3 +324,63 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
+{
+    switch (purc_variant_get_type(t)) {
+    case PURC_VARIANT_TYPE_NUMBER:
+    {
+        double time_d, sec_d, usec_d;
+
+        purc_variant_cast_to_number(t, &time_d, false);
+        if (isinf(time_d) || isnan(time_d)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        usec_d = modf(time_d, &sec_d);
+        timeval->tv_sec = (time_t)sec_d;
+        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    {
+        int64_t sec;
+        if (!purc_variant_cast_to_longint(t, &sec, false)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        timeval->tv_usec = (time_t)sec;
+        timeval->tv_usec = 0;
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+    {
+        long double time_d, sec_d, usec_d;
+        purc_variant_cast_to_longdouble(t, &time_d, false);
+
+        if (isinf(time_d) || isnan(time_d)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        usec_d = modfl(time_d, &sec_d);
+        timeval->tv_sec = (time_t)sec_d;
+        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
+        break;
+    }
+
+    default:
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return true;
+
+failed:
+    return false;
+}
+

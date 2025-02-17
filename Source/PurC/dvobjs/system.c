@@ -37,7 +37,6 @@
 
 #include <locale.h>
 #include <errno.h>
-#include <time.h>
 #include <math.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -626,66 +625,6 @@ time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_longint((int64_t)t_time);
 }
 
-static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
-{
-    switch (purc_variant_get_type(t)) {
-    case PURC_VARIANT_TYPE_NUMBER:
-    {
-        double time_d, sec_d, usec_d;
-
-        purc_variant_cast_to_number(t, &time_d, false);
-        if (isinf(time_d) || isnan(time_d)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        usec_d = modf(time_d, &sec_d);
-        timeval->tv_sec = (time_t)sec_d;
-        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
-        break;
-    }
-
-    case PURC_VARIANT_TYPE_LONGINT:
-    case PURC_VARIANT_TYPE_ULONGINT:
-    {
-        int64_t sec;
-        if (!purc_variant_cast_to_longint(t, &sec, false)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        timeval->tv_usec = (time_t)sec;
-        timeval->tv_usec = 0;
-        break;
-    }
-
-    case PURC_VARIANT_TYPE_LONGDOUBLE:
-    {
-        long double time_d, sec_d, usec_d;
-        purc_variant_cast_to_longdouble(t, &time_d, false);
-
-        if (isinf(time_d) || isnan(time_d)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        usec_d = modfl(time_d, &sec_d);
-        timeval->tv_sec = (time_t)sec_d;
-        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
-        break;
-    }
-
-    default:
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
-    return true;
-
-failed:
-    return false;
-}
-
 static purc_variant_t
 time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -702,7 +641,7 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!cast_to_timeval(&timeval, argv[0])) {
+    if (!dvobjs_cast_to_timeval(&timeval, argv[0])) {
         goto failed;
     }
 
@@ -2387,6 +2326,12 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int fd = (int)tmp_l;
     int optname = 0;
+
+    struct timeval timeval;
+    int intval;
+    void *optval = &intval;
+    socklen_t optlen = sizeof(intval);
+
     if (option == keywords2atoms[K_KW_type].atom) {
         optname = SO_TYPE;
     }
@@ -2399,9 +2344,13 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 #endif
     else if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        optval = &timeval;
+        optlen = sizeof(timeval);
         optname = SO_RCVTIMEO;
     }
     else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        optval = &timeval;
+        optlen = sizeof(timeval);
         optname = SO_SNDTIMEO;
     }
     else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
@@ -2412,29 +2361,36 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
     }
 
-    int optval;
-    socklen_t optlen = sizeof(optval);
-    if (getsockopt(fd, SOL_SOCKET, optname, &optval, &optlen) == -1) {
+    if (getsockopt(fd, SOL_SOCKET, optname, optval, &optlen) == -1) {
+        printf("Failed getsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     purc_variant_t retv;
     if (option == keywords2atoms[K_KW_type].atom) {
-        if (optval == SOCK_STREAM) {
+        PC_ASSERT(optlen == sizeof(intval));
+
+        if (intval == SOCK_STREAM) {
             retv = purc_variant_make_string_static("stream", false);
         }
-        else if (optval == SOCK_DGRAM) {
+        else if (intval == SOCK_DGRAM) {
             retv = purc_variant_make_string_static("dgram", false);
         }
         else {
             retv = purc_variant_make_string_static("unknown", false);
         }
     }
-    else {
-        retv = purc_variant_make_longint(optval);
+    else if (option == keywords2atoms[K_KW_recv_timeout].atom ||
+            option == keywords2atoms[K_KW_send_timeout].atom) {
+        PC_ASSERT(optlen == sizeof(timeval));
+
+        double tmp = (double)timeval.tv_sec;
+        tmp += timeval.tv_usec/1000000.0L;
+        retv = purc_variant_make_number(tmp);
     }
 
     return retv;
@@ -2475,32 +2431,55 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    if (!purc_variant_cast_to_longint(argv[2], &tmp_l, false)) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto error;
-    }
-
-    int optval = (int)tmp_l;
+    struct timeval timeval = {};
+    int intval = 0;
+    const void *optval = &intval;
+    socklen_t optlen = sizeof(intval);
 
     int optname = 0;
     if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        if (!dvobjs_cast_to_timeval(&timeval, argv[2])) {
+            goto error;
+        }
+
+        optval = &timeval;
+        optlen = sizeof(timeval);
         optname = SO_RCVTIMEO;
     }
     else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        if (!dvobjs_cast_to_timeval(&timeval, argv[2])) {
+            goto error;
+        }
+
+        optval = &timeval;
+        optlen = sizeof(timeval);
         optname = SO_SNDTIMEO;
     }
     else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
+        int64_t tmp_l;
+        if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+            goto error;
+        }
+
+        intval = (int)tmp_l;
         optname = SO_RCVBUF;
     }
     else if (option == keywords2atoms[K_KW_send_buffer].atom) {
+        int64_t tmp_l;
+        if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+            goto error;
+        }
+
+        intval = (int)tmp_l;
         optname = SO_SNDBUF;
     }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
     }
 
-    socklen_t optlen = sizeof(optval);
-    if (setsockopt(fd, SOL_SOCKET, optname, &optval, optlen) == -1) {
+    if (setsockopt(fd, SOL_SOCKET, optname, optval, optlen) == -1) {
+        printf("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }

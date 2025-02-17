@@ -1985,7 +1985,7 @@ out_close_fd:
 static
 struct pcdvobjs_stream *
 create_unix_socket_stream(struct purc_broken_down_url *url,
-        purc_variant_t option, const char *prot)
+        purc_variant_t option, const char *prot, const struct timeval *timeout)
 {
     int64_t flags = parse_open_option(option);
 
@@ -2047,6 +2047,15 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
         }
     }
 
+    if (timeout) {
+        socklen_t optlen = sizeof(struct timeval);
+        if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout, optlen) == -1) {
+            PC_DEBUG("Failed setsockopt(): %s\n", strerror(errno));
+            purc_set_error(purc_error_from_errno(errno));
+            goto out_close_fd;
+        }
+    }
+
     /* fill socket address structure w/server's addr */
     memset(&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
@@ -2085,8 +2094,9 @@ out_close_fd:
     return NULL;
 }
 
-int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
-        const char *host, int port, char **peer_addr, char **peer_port)
+static int inet_socket_connect(enum stream_inet_socket_family isf,
+        const char *host, int port, char **peer_addr, char **peer_port,
+        const struct timeval *timeout)
 {
     int fd = -1;
     struct addrinfo *addrinfo;
@@ -2108,7 +2118,7 @@ int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
     char s_port[10] = {0};
     if (port <= 0 || port > 65535) {
         PC_DEBUG("Bad port value: (%d)\n", port);
-        goto out;
+        goto done;
     }
     sprintf(s_port, "%d", port);
 
@@ -2116,7 +2126,7 @@ int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
     if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
         PC_DEBUG("Error while getting address info (%s:%d)\n",
                 host, port);
-        goto out;
+        goto done;
     }
 
     for (p = addrinfo; p != NULL; p = p->ai_next) {
@@ -2124,44 +2134,54 @@ int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
             continue;
         }
 
+        if (timeout) {
+            socklen_t optlen = sizeof(struct timeval);
+            if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout,
+                        optlen) == -1) {
+                PC_DEBUG ("Failed setsockopt(SO_RCVTIMEO)\n");
+                close(fd);
+                fd = -1;
+                break;
+            }
+        }
+
         if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
             close(fd);
             continue;
         }
 
-        if (*peer_addr == NULL) {
-            char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-            if (0 != getnameinfo(p->ai_addr, p->ai_addrlen,
-                        hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
-                        NI_NUMERICHOST | NI_NUMERICSERV)) {
-                PC_DEBUG ("Error while getting name info (%s:%d)\n",
-                        host, port);
-                close(fd);
-                fd = -1;
-            }
-            else {
-                *peer_addr = strdup(hbuf);
-                *peer_port = strdup(sbuf);
-            }
-        }
-
         break;
     }
-    freeaddrinfo(addrinfo);
 
-    if (p == NULL) {
+    if (fd >= 0 && *peer_addr == NULL) {
+        char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+        if (0 != getnameinfo(p->ai_addr, p->ai_addrlen,
+                    hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
+                    NI_NUMERICHOST | NI_NUMERICSERV)) {
+            PC_DEBUG("Failed getnameinfo(%s:%d)\n", host, port);
+            close(fd);
+            fd = -1;
+        }
+        else {
+            *peer_addr = strdup(hbuf);
+            *peer_port = strdup(sbuf);
+        }
+    }
+    else if (fd < 0) {
         PC_DEBUG("Failed to create socket for %s:%d\n", host, port);
-        goto out;
     }
 
-out:
+    freeaddrinfo(addrinfo);
+
+done:
     return fd;
 }
 
 static
 struct pcdvobjs_stream *
 create_inet_socket_stream(purc_atom_t schema,
-        struct purc_broken_down_url *url, purc_variant_t option)
+        struct purc_broken_down_url *url, purc_variant_t option,
+        const struct timeval *timeout)
 {
     int flags = (int)parse_open_option(option);
 
@@ -2180,8 +2200,8 @@ create_inet_socket_stream(purc_atom_t schema,
         return NULL;
     }
 
-    int fd = dvobjs_inet_socket_connect(isf, url->host, url->port,
-            &peer_addr, &peer_port);
+    int fd = inet_socket_connect(isf, url->host, url->port,
+            &peer_addr, &peer_port, timeout);
     if (fd < 0) {
         purc_set_error(purc_error_from_errno(errno));
         return NULL;
@@ -2416,6 +2436,25 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out_free_url;
     }
 
+    struct timeval tv = { };
+    const struct timeval *timeout = NULL;
+    if (nr_args > 3) {
+        if (!purc_variant_is_object(argv[3])) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out_free_url;
+        }
+
+        purc_variant_t tmp;
+        tmp = purc_variant_object_get_by_ckey(argv[3], "recv-timeout");
+        if (tmp == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out_free_url;
+        }
+
+        dvobjs_cast_to_timeval(&tv, tmp);
+        timeout = &tv;
+    }
+
     static const struct purc_native_ops basic_ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
@@ -2443,7 +2482,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             prot = purc_variant_get_string_const(argv[2]);
         }
 
-        stream = create_unix_socket_stream(url, option, prot);
+        stream = create_unix_socket_stream(url, option, prot, timeout);
 
         if (prot && stream) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
@@ -2480,7 +2519,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             prot = purc_variant_get_string_const(argv[2]);
         }
 
-        stream = create_inet_socket_stream(atom, url, option);
+        stream = create_inet_socket_stream(atom, url, option, timeout);
 
         if (prot && stream) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
@@ -2510,7 +2549,13 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (!stream) {
-        goto out_free_url;
+        if (errno == EINPROGRESS) {
+            pcutils_broken_down_url_delete(url);
+            return  purc_variant_make_null();
+        }
+        else {
+            goto out_free_url;
+        }
     }
 
     // setup a callback for `on_release` to destroy the stream automatically

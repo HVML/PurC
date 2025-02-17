@@ -134,10 +134,6 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
-int dvobjs_inet_socket_connect(enum stream_inet_socket_family isf,
-        const char *host_name, int port, char **peer_addr, char **peer_port)
-    WTF_INTERNAL;
-
 purc_variant_t
 dvobjs_create_stream_by_accepted(purc_atom_t schema,
         char *peer_addr, char *peer_port, int fd,

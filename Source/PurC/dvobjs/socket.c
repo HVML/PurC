@@ -672,7 +672,7 @@ accept_getter(void *native_entity, const char *property_name,
     if (fd < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
         return purc_variant_make_null();
     }
-    else if (fd < 0 && errno == ETIMEDOUT) {
+    else if (fd < 0 && (errno == ETIMEDOUT || errno == EINPROGRESS)) {
         return purc_variant_make_null();
     }
 

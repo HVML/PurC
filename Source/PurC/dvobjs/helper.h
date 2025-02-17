@@ -29,6 +29,8 @@
 #include "private/debug.h"
 #include "purc-variant.h"
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -61,6 +63,8 @@ char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
+
+bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
 
 #ifdef __cplusplus
 }
