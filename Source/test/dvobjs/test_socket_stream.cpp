@@ -129,7 +129,7 @@ TEST(socket, local_stream_blocked)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/local-stream.hvml", "mode=nonblock");
+    run_one_comp_test("dvobjs/socket/local-stream-blocked.hvml", NULL);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -150,5 +150,15 @@ TEST(socket, local_stream_multiple_clients)
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
     run_one_comp_test("dvobjs/socket/local-stream-multiple-clients.hvml");
+}
+
+/* using call within */
+TEST(socket, local_stream_multiple_clients_blocked)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/local-stream-multiple-clients-blocked.hvml");
 }
 
