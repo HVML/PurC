@@ -162,7 +162,7 @@ static css_error css__create_node_data(struct css_node_data **node_data)
 {
 	struct css_node_data *nd;
 
-	nd = calloc(sizeof(struct css_node_data), 1);
+	nd = calloc(1, sizeof(struct css_node_data));
 	if (nd == NULL) {
 		return CSS_NOMEM;
 	}
@@ -258,7 +258,7 @@ css_error css_select_ctx_create(css_select_ctx **result)
 	if (result == NULL)
 		return CSS_BADPARM;
 
-	c = calloc(sizeof(css_select_ctx), 1);
+	c = calloc(1, sizeof(css_select_ctx));
 	if (c == NULL)
 		return CSS_NOMEM;
 
@@ -635,7 +635,7 @@ static css_error css__create_node_bloom(
 	*node_bloom = NULL;
 
 	/* Create the node's bloom */
-	bloom = calloc(sizeof(css_bloom), CSS_BLOOM_SIZE);
+	bloom = calloc(CSS_BLOOM_SIZE, sizeof(css_bloom));
 	if (bloom == NULL) {
 		return CSS_NOMEM;
 	}

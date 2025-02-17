@@ -73,7 +73,7 @@ css_error css__computed_style_create(css_computed_style **result)
 	if (result == NULL)
 		return CSS_BADPARM;
 
-	s = calloc(sizeof(css_computed_style), 1);
+	s = calloc(1, sizeof(css_computed_style));
 	if (s == NULL)
 		return CSS_NOMEM;
 

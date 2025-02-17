@@ -847,7 +847,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
     bool test_overflow = TRUE;
 
     if (glyph_ext_info == NULL) {
-        ges = (foil_glyph_extinfo*)calloc(sizeof(foil_glyph_extinfo), nr_ucs);
+        ges = (foil_glyph_extinfo*)calloc(nr_ucs, sizeof(foil_glyph_extinfo));
         if (ges == NULL)
             goto error;
     }
@@ -856,7 +856,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         memset(ges, 0, sizeof(foil_glyph_extinfo) * nr_ucs);
     }
 
-    gis = (my_glyph_info*)calloc(sizeof(my_glyph_info), nr_ucs);
+    gis = (my_glyph_info*)calloc(nr_ucs, sizeof(my_glyph_info));
     if (gis == NULL)
         goto error;
 

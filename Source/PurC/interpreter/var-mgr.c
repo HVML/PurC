@@ -367,7 +367,7 @@ _find_named_scope_var_in_vdom(purc_coroutine_t cor,
 {
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
-        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:null");
         return PURC_VARIANT_INVALID;
     }
 
