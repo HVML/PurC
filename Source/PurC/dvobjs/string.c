@@ -1279,8 +1279,7 @@ strstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *found;
     if (caseless) {
-        /* TODO: handle case according to Unicode */
-        found = strcasestr(haystack, needle);
+        found = pcutils_strcasestr(haystack, needle);
     }
     else {
         found = strstr(haystack, needle);
