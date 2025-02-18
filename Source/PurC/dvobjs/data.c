@@ -69,9 +69,12 @@ memsize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     size_t sz;
     if (nr_args == 0) {
+        sz = purc_variant_wrapper_size();
+#if 0
         purc_variant_t v = purc_variant_make_undefined();
         sz = purc_variant_get_memory_size(v);
         purc_variant_unref(v);
+#endif
     }
     else {
         sz = purc_variant_get_memory_size(argv[0]);
