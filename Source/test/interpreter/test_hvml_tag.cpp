@@ -162,7 +162,7 @@ add_test_case(std::vector<struct TestCase*>& test_cases,
     const char* name, const char* hvml,
     const char* html, const char* html_path)
 {
-    struct TestCase* data = (struct TestCase*)calloc(sizeof(struct TestCase), 1);
+    struct TestCase* data = (struct TestCase*)calloc(1, sizeof(struct TestCase));
     data->name = strdup(name);
     data->hvml = strdup(hvml);
 

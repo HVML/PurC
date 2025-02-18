@@ -65,6 +65,7 @@ memsize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
 
     size_t sz;
     if (nr_args == 0) {
