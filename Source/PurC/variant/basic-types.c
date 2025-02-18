@@ -720,7 +720,7 @@ bool purc_variant_bsequence_append(purc_variant_t sequence,
     unsigned char *buf = NULL;
     size_t curr_bytes, sz_buf;
 
-    PCVRNT_CHECK_FAIL_RET(sequence && nr_bytes, NULL);
+    PCVRNT_CHECK_FAIL_RET(sequence && nr_bytes, false);
 
     if (IS_TYPE(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if ((sequence->flags & PCVRNT_FLAG_EXTRA_SIZE) ||
@@ -735,9 +735,12 @@ bool purc_variant_bsequence_append(purc_variant_t sequence,
             sz_buf = SZ_SPACE_IN_VARIANT;
         }
     }
+    else {
+        goto error;
+    }
 
     if (sz_buf < nr_bytes + curr_bytes) {
-        return false;
+        goto error;
     }
 
     memcpy(buf + curr_bytes, bytes, nr_bytes);
@@ -752,6 +755,9 @@ bool purc_variant_bsequence_append(purc_variant_t sequence,
 
     /* TODO: trigger an event for the change of the byte sequence. */
     return true;
+
+error:
+    return false;
 }
 
 const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,

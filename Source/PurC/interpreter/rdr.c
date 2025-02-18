@@ -1027,7 +1027,7 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
     struct pcrdr_conn *curr_conn;
 
     pcrdr_msg *result_msg = NULL;
-    pcrdr_msg *response_msg;
+    pcrdr_msg *response_msg = NULL;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
     uint64_t target_value;
     char elem[LEN_BUFF_LONGLONGINT];

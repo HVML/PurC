@@ -322,6 +322,7 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcinst *inst = pcinst_current();
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    char *type = NULL;
 
     if (!ctxt->synchronously) {
         purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -334,7 +335,6 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
         : NULL;
     const char *separator = strchr(s_to, MSG_EVENT_SEPARATOR);
-    char *type = NULL;
 
     if (!separator) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,

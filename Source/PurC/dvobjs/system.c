@@ -2392,6 +2392,11 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         tmp += timeval.tv_usec/1000000.0L;
         retv = purc_variant_make_number(tmp);
     }
+    else {
+        // never reach here.
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
 
     return retv;
 

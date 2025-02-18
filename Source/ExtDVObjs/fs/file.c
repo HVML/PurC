@@ -39,15 +39,6 @@
 /* FILE.stream is deprecated */
 #define FILE_STREAM        0
 
-static inline bool is_little_endian (void)
-{
-#if CPU(BIG_ENDIAN)
-    return false;
-#elif CPU(LITTLE_ENDIAN)
-    return true;
-#endif
-}
-
 #if 0
 static const char * pcdvobjs_file_get_prev_option (const char *data,
         size_t str_len, const char *delims, size_t *length)
@@ -610,6 +601,16 @@ failed:
 }
 
 #if defined(FILE_STREAM) && FILE_STREAM
+
+static inline bool is_little_endian (void)
+{
+#if CPU(BIG_ENDIAN)
+    return false;
+#elif CPU(LITTLE_ENDIAN)
+    return true;
+#endif
+}
+
 // for file to get '\n'
 static const char * pcdvobjs_file_get_next_option (const char *data,
         const char *delims, size_t *length)

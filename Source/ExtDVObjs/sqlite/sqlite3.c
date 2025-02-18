@@ -841,7 +841,7 @@ static inline bool is_datetime(struct affinity_type *type)
 static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
         int pos)
 {
-    purc_variant_t val;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     int col_type = sqlite3_column_type(st, pos);
     switch (col_type) {
     case SQLITE_NULL: {
@@ -862,6 +862,7 @@ static purc_variant_t sqlite_value_to_variant(sqlite3 *db, sqlite3_stmt *st,
     case SQLITE3_TEXT: {
         const char *text = (const char*)sqlite3_column_text(st, pos);
         if (text == NULL && sqlite3_errcode(db) == SQLITE_NOMEM) {
+            val = PURC_VARIANT_INVALID;
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto fatal;
         }
@@ -2038,6 +2039,7 @@ create_cursor_variant(struct dvobj_sqlite_connection *sqlite_conn)
         { SQLITE_KEY_DESCRIPTION,       cursor_description_getter,      NULL },
     };
 
+    struct dvobj_sqlite_cursor *cursor = NULL;
     purc_variant_t cursor_val = purc_dvobj_make_from_methods(methods,
             PCA_TABLESIZE(methods));
     if (cursor_val == PURC_VARIANT_INVALID) {
@@ -2050,7 +2052,7 @@ create_cursor_variant(struct dvobj_sqlite_connection *sqlite_conn)
         goto failed;
     }
 
-    struct dvobj_sqlite_cursor *cursor = create_cursor(sqlite_conn);
+    cursor = create_cursor(sqlite_conn);
     if (!cursor) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
