@@ -39,7 +39,7 @@ PCA_EXTERN_C_BEGIN
 #define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT
 #define PCVRNT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
-#define PCVRNT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
+#define PCVRNT_FLAG_STATIC_DATA   (0x01 << 2)  // make_string_static
 
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
 #define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
