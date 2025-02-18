@@ -5,6 +5,7 @@
 <hvml target="void">
     <body id='server' >
         <init as 'clientClosed' with false />
+        <init as 'got' with '' />
 
         <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', {{ $REQ.mode || 'default' }}) >
             <catch for `ANY`>
@@ -31,7 +32,6 @@
                             </inherit>
 
                             <choose on $stream.close() />
-
                             <init as 'clientClosed' at '#server' with true />
                         </observe>
 
@@ -57,7 +57,16 @@
                                     </choose>
                                 </test>
 
-                                <catch for `ANY`>
+                                <catch for `BrokenPipe`>
+                                    <inherit>
+                                        $STREAM.stdout.writelines("Server: the client has been closed .")
+                                    </inherit>
+
+                                    <choose on $stream.close() />
+                                    <init as 'clientClosed' at '#server' with true />
+                                </catch>
+
+                                <catch>
                                     <exit with "Server failed with $?.name when calling stream.readlines(1)" />
                                 </catch>
                             </choose>

@@ -75,7 +75,15 @@
                                 </choose>
                             </test>
 
-                            <catch for `ANY`>
+                            <catch for `BrokenPipe`>
+                                <inherit>
+                                    $STREAM.stdout.writelines("Server: the client closed")
+                                </inherit>
+
+                                <init as 'clientClosed' at '#server' with true />
+                            </catch>
+
+                            <catch>
                                 <exit with "Server failed with $?.name when calling stream.readlines(1)" />
                             </catch>
                         </choose>
