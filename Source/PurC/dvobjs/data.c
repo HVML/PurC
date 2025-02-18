@@ -61,17 +61,22 @@ type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-size_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+memsize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
+    size_t sz;
+    if (nr_args == 0) {
+        purc_variant_t v = purc_variant_make_undefined();
+        sz = purc_variant_get_memory_size(v);
+        purc_variant_unref(v);
+    }
+    else {
+        sz = purc_variant_get_memory_size(argv[0]);
+    }
+
+    return purc_variant_make_ulongint(sz);
 }
 
 static purc_variant_t
@@ -3321,7 +3326,7 @@ purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
         { "type",       type_getter, NULL },
-        { "size",       size_getter, NULL },
+        { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },

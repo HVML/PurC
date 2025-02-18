@@ -1198,4 +1198,18 @@ pcvar_arr_it_prev(struct arr_iterator *it)
     }
 }
 
+size_t
+pcvariant_array_children_memsize(purc_variant_t arr)
+{
+    size_t memsize = 0;
+
+    purc_variant_t v;
+    size_t idx;
+    foreach_value_in_variant_array(arr, v, idx) {
+        UNUSED_PARAM(idx);
+        memsize += purc_variant_get_memory_size(v);
+    } end_foreach;
+
+    return memsize;
+}
 

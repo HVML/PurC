@@ -3887,3 +3887,59 @@ pcvariant_is_linear_container(purc_variant_t v)
     return ((vt == PURC_VARIANT_TYPE_ARRAY) ||
               (vt == PURC_VARIANT_TYPE_SET) || (vt == PURC_VARIANT_TYPE_TUPLE));
 }
+
+size_t
+purc_variant_get_memory_size(purc_variant_t v)
+{
+    size_t memsize = sizeof(*v);
+
+    enum purc_variant_type vt = v->type;
+    switch (vt) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            break;
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            memsize += v->extra_size;
+            break;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            memsize += v->extra_size;
+            break;
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            memsize += v->extra_size;
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            memsize += v->extra_size;
+            memsize += pcvariant_array_children_memsize(v);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            memsize += v->extra_size;
+            memsize += pcvariant_object_children_memsize(v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            memsize += v->extra_size;
+            memsize += pcvariant_set_children_memsize(v);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            memsize += v->extra_size;
+            memsize += pcvariant_tuple_children_memsize(v);
+            break;
+    }
+
+    return memsize;
+}
+

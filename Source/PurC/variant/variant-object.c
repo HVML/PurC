@@ -1484,3 +1484,17 @@ out:
     return ret;
 }
 
+size_t
+pcvariant_object_children_memsize(purc_variant_t obj)
+{
+    size_t memsize = 0;
+    purc_variant_t k,v;
+
+    foreach_key_value_in_variant_object(obj, k, v) {
+        memsize += purc_variant_get_memory_size(k);
+        memsize += purc_variant_get_memory_size(v);
+    } end_foreach;
+
+    return memsize;
+}
+

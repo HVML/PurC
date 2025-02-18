@@ -494,3 +494,17 @@ pcvar_tuple_break_rue_downward(purc_variant_t tuple)
     }
 }
 
+size_t
+pcvariant_tuple_children_memsize(purc_variant_t tuple)
+{
+    size_t sz;
+    purc_variant_t *members = tuple_members(tuple, &sz);
+
+    size_t memsize = 0;
+    for (size_t n = 0; n < sz; n++) {
+        memsize += purc_variant_get_memory_size(members[n]);
+    }
+
+    return memsize;
+}
+

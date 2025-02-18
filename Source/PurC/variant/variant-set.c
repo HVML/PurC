@@ -2407,3 +2407,16 @@ out:
     return ret;
 }
 
+size_t
+pcvariant_set_children_memsize(purc_variant_t set)
+{
+    size_t memsize = 0;
+
+    purc_variant_t v;
+    foreach_value_in_variant_set(set, v) {
+        memsize += purc_variant_get_memory_size(v);
+    } end_foreach;
+
+    return memsize;
+}
+
