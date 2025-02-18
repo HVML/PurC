@@ -609,7 +609,7 @@ purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
  * @bytes: The pointer to the new byte array to be appended to the sequence.
  * @nr_bytes: The length in bytes of the new byte array.
  *
- * Appends a new byte array to the byte sequence which has a enough buffer.
+ * Append a new byte array to the byte sequence which has an enough long buffer.
  *
  * Returns: %true for success, or %false for failure.
  *
@@ -618,6 +618,23 @@ purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
 PCA_EXPORT bool
 purc_variant_bsequence_append(purc_variant_t sequence,
         const unsigned char *bytes, size_t nr_bytes);
+
+/**
+ * purc_variant_bsequence_roll:
+ *
+ * @sequence: The bsequence variant.
+ * @offset: The offset starting roll the byte sequence.
+ *
+ * Roll a byte sequence from the specified position. The left bytes starting
+ * from @offset will be copied to the head of the buffer. It will empty
+ * the byte sequence if @offset is less than 0.
+ *
+ * Returns: The number of bytes rolled actually.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT size_t
+purc_variant_bsequence_roll(purc_variant_t sequence, ssize_t offset);
 
 /**
  * purc_variant_bsequence_bytes:
