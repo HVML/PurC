@@ -488,7 +488,7 @@ static int
 local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
 {
     int                fd = -1;
-    struct sockaddr_un addr;
+    struct sockaddr_un addr = { 0 };
     socklen_t          len = sizeof(addr);
 
     len = sizeof(addr);
@@ -500,7 +500,7 @@ local_socket_accept_client(struct pcdvobjs_socket *socket, char **peer_addr)
     /* obtain the peer address */
     if (strlen(addr.sun_path) == 0) {
         char buf[PURC_LEN_UNIQUE_ID + 1];
-        purc_generate_unique_id(buf, "anonymous");
+        purc_generate_unique_id(buf, "unknown");
         *peer_addr = strdup(buf);
     }
     else {

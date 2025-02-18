@@ -1033,19 +1033,19 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
             case 's':
             case 'S':
                 if (length > 1) {          // get length
-                    strncpy ((char *)buf, head + 1, length - 1);
+                    strncpy((char *)buf, head + 1, length - 1);
                     *(buf + length - 1)= 0x00;
                     read_number = atoi((char *)buf);
 
-                    if(read_number) {
-                        buffer = malloc (read_number + 1);
+                    if (read_number) {
+                        buffer = malloc(read_number + 1);
                         if (buffer == NULL)
-                            val = purc_variant_make_string ("", false);
+                            val = purc_variant_make_string("", false);
                         else {
-                            purc_rwstream_read (rwstream, buffer, read_number);
+                            purc_rwstream_read(rwstream, buffer, read_number);
                             *(buffer + read_number) = 0x00;
                             val = purc_variant_make_string_reuse_buff (
-                                    (char *)buffer, read_number, false);
+                                    (char *)buffer, read_number + 1, false);
                         }
                     }
                     else
@@ -1056,7 +1056,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                     int j = 0;
                     size_t mem_size = BUFFER_SIZE;
 
-                    buffer = malloc (mem_size);
+                    buffer = malloc(mem_size);
                     for (i = 0, j = 0; ; i++, j++) {
                         ssize_t r = purc_rwstream_read (rwstream, buffer + i, 1);
                         if (r <= 0)
@@ -1067,11 +1067,11 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
                         if (j == 1023) {
                             j = 0;
                             mem_size += BUFFER_SIZE;
-                            buffer = realloc (buffer, mem_size);
+                            buffer = realloc(buffer, mem_size);
                         }
                     }
                     val = purc_variant_make_string_reuse_buff (
-                            (char *)buffer, i, false);
+                            (char *)buffer, mem_size, false);
                 }
                 break;
         }
@@ -1558,19 +1558,19 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
     if (line_num == 0)
         ret_var = purc_variant_make_string ("", false);
     else {
-        size_t pos = find_line_stream (rwstream, line_num);
+        size_t pos = find_line_stream(rwstream, line_num);
 
-        char * content = malloc (pos + 1);
+        char *content = malloc(pos + 1);
         if (content == NULL) {
-            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
 
-        purc_rwstream_seek (rwstream, 0L, SEEK_SET);
-        pos = purc_rwstream_read (rwstream, content, pos);
+        purc_rwstream_seek(rwstream, 0L, SEEK_SET);
+        pos = purc_rwstream_read(rwstream, content, pos);
         *(content + pos - 1) = 0x00;
 
-        ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
+        ret_var = purc_variant_make_string_reuse_buff(content, pos + 1, false);
     }
     return ret_var;
 

@@ -210,7 +210,7 @@
     collect_str(struct string_s *ss)
     {
         purc_variant_t v;
-        v = purc_variant_make_string_reuse_buff(ss->str, ss->len, true);
+        v = purc_variant_make_string_reuse_buff(ss->str, ss->len + 1, true);
         if (v == PURC_VARIANT_INVALID)
             string_s_reset(ss);
 
@@ -361,7 +361,7 @@
             return -1;
         }
 
-        purc_variant_t k = purc_variant_make_string_reuse_buff(ss, len, true);
+        purc_variant_t k = purc_variant_make_string_reuse_buff(ss, len + 1, true);
         if (k == PURC_VARIANT_INVALID) {
             free(ss);
             release_kv_s(kv);

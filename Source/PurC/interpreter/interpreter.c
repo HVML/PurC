@@ -3371,7 +3371,8 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
 
         char *ssv = pcutils_stringbuilder_build(&sb);
         if (ssv) {
-            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
+            ud->val = purc_variant_make_string_reuse_buff(ssv,
+                    strlen(ssv) + 1, true);
             PC_ASSERT(v);
         }
         pcutils_stringbuilder_reset(&sb);

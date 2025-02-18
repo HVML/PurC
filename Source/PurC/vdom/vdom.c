@@ -1548,7 +1548,7 @@ tokenwised_eval_attr_str_add(purc_variant_t ll, purc_variant_t rr)
     strcat(p, _new);
 
     bool check_encoding = true;
-    return purc_variant_make_string_reuse_buff(p, sz, check_encoding);
+    return purc_variant_make_string_reuse_buff(p, sz + 1, check_encoding);
 }
 
 static purc_variant_t

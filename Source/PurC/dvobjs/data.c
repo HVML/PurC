@@ -1225,7 +1225,7 @@ purc_dvobj_unpack_string(const unsigned char *bytes, size_t nr_bytes,
         goto failed;
     }
 
-    return purc_variant_make_string_reuse_buff(str, len, !silently);
+    return purc_variant_make_string_reuse_buff(str, len + 1, !silently);
 
 failed:
     if (silently)

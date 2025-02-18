@@ -454,7 +454,7 @@ pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
     }
 
     purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
-            strlen(p), true);
+            strlen(p) + 1, true);
     if (!event_name) {
         free(p);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

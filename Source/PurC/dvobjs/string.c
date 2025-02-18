@@ -357,7 +357,7 @@ tolower_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+    return purc_variant_make_string_reuse_buff(new_str, len_new + 1, false);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -397,7 +397,7 @@ toupper_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+    return purc_variant_make_string_reuse_buff(new_str, len_new + 1, false);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -488,7 +488,7 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    return purc_variant_make_string_reuse_buff(new_str, len, false);
+    return purc_variant_make_string_reuse_buff(new_str, len + 1, false);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -607,7 +607,7 @@ reverse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    return purc_variant_make_string_reuse_buff(new_str, length, false);
+    return purc_variant_make_string_reuse_buff(new_str, length + 1, false);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -661,7 +661,7 @@ explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         strncpy (buf, head, length + 1);
         *(buf + length)= 0x00;
-        val = purc_variant_make_string_reuse_buff (buf, length, true);
+        val = purc_variant_make_string_reuse_buff (buf, length + 1, true);
         purc_variant_array_append (ret_var, val);
         purc_variant_unref (val);
 
@@ -1225,7 +1225,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         strncpy (buf, start, length);
         buf[length] = 0x00;
-        ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
+        ret_var = purc_variant_make_string_reuse_buff (buf, length + 1, false);
     }
 
     return ret_var;
