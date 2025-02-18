@@ -199,10 +199,12 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
     }
     else {
         // clone the immutable variant
-        PC_DEBUG("Clone a variant type %s (%u): %s\n",
+        PC_DEBUG("Clone a variant type %s (%u): %s (%lu/%lu)\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
-                purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);
+                purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL,
+                (size_t)v->sz_ptr[0],
+                v->extra_size);
 
         retv = pcvariant_alloc();
         memcpy(retv, v, sizeof(*retv));
