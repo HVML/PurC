@@ -142,11 +142,11 @@ move_variant_in(struct pcinst *inst, purc_variant_t v)
             ((v->type == PURC_VARIANT_TYPE_STRING ||
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
             (v->flags & PCVRNT_FLAG_EXTRA_SIZE))) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] -= v->sz_ptr[0];
-        inst->org_vrt_heap->stat.sz_total_mem -= v->sz_ptr[0];
+        inst->org_vrt_heap->stat.sz_mem[v->type] -= v->extra_size;
+        inst->org_vrt_heap->stat.sz_total_mem -= v->extra_size;
 
-        move_heap.stat.sz_mem[v->type] += v->sz_ptr[0];
-        move_heap.stat.sz_total_mem += v->sz_ptr[0];
+        move_heap.stat.sz_mem[v->type] += v->extra_size;
+        move_heap.stat.sz_total_mem += v->extra_size;
     }
 
     inst->org_vrt_heap->stat.nr_values[v->type]--;
@@ -213,11 +213,11 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
                 (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
 
-            retv->sz_ptr[1] = (uintptr_t)malloc(v->sz_ptr[0]);
-            memcpy((void *)retv->sz_ptr[1], (void *)v->sz_ptr[1], v->sz_ptr[0]);
+            retv->sz_ptr[1] = (uintptr_t)malloc(v->extra_size);
+            memcpy((void *)retv->sz_ptr[1], (void *)v->sz_ptr[1], v->extra_size);
 
-            move_heap.stat.sz_mem[v->type] += v->sz_ptr[0];
-            move_heap.stat.sz_total_mem += v->sz_ptr[0];
+            move_heap.stat.sz_mem[v->type] += v->extra_size;
+            move_heap.stat.sz_total_mem += v->extra_size;
         }
 
         move_heap.stat.nr_values[v->type]++;
@@ -987,11 +987,11 @@ static void move_container_self_out(purc_variant_t v)
 {
     struct pcinst *inst = pcinst_current();
 
-    inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
-    inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+    inst->org_vrt_heap->stat.sz_mem[v->type] += v->extra_size;
+    inst->org_vrt_heap->stat.sz_total_mem += v->extra_size;
 
-    move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
-    move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+    move_heap.stat.sz_mem[v->type] -= v->extra_size;
+    move_heap.stat.sz_total_mem -= v->extra_size;
 
     inst->org_vrt_heap->stat.nr_values[v->type]++;
     inst->org_vrt_heap->stat.nr_total_values++;
@@ -1207,18 +1207,18 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     else if ((v->type == PURC_VARIANT_TYPE_STRING ||
                   v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
                  (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
-        inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+        inst->org_vrt_heap->stat.sz_mem[v->type] += v->extra_size;
+        inst->org_vrt_heap->stat.sz_total_mem += v->extra_size;
 
-        move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
-        move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+        move_heap.stat.sz_mem[v->type] -= v->extra_size;
+        move_heap.stat.sz_total_mem -= v->extra_size;
     }
     else if (IS_CONTAINER(v->type)) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
-        inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+        inst->org_vrt_heap->stat.sz_mem[v->type] += v->extra_size;
+        inst->org_vrt_heap->stat.sz_total_mem += v->extra_size;
 
-        move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
-        move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+        move_heap.stat.sz_mem[v->type] -= v->extra_size;
+        move_heap.stat.sz_total_mem -= v->extra_size;
 
         if (v->type == PURC_VARIANT_TYPE_ARRAY) {
             retv = move_array_descendants_out(v);

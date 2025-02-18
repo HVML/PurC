@@ -384,6 +384,15 @@ pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
 int
 pcvar_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
 
+size_t
+pcvariant_array_children_memsize(purc_variant_t arr) WTF_INTERNAL;
+size_t
+pcvariant_object_children_memsize(purc_variant_t obj) WTF_INTERNAL;
+size_t
+pcvariant_set_children_memsize(purc_variant_t set) WTF_INTERNAL;
+size_t
+pcvariant_tuple_children_memsize(purc_variant_t tuple) WTF_INTERNAL;
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

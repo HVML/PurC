@@ -103,6 +103,18 @@ PCA_EXPORT unsigned int
 purc_variant_unref(purc_variant_t value);
 
 /**
+ * purc_variant_get_memory_size:
+ *
+ * @value: A variant value to calculate.
+ *
+ * Get the memory size occupied by the specified variant.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT size_t
+purc_variant_get_memory_size(purc_variant_t value);
+
+/**
  * purc_variant_make_undefined:
  *
  * Creates a variant which represents an undefined value.

@@ -167,13 +167,13 @@ static inline int width_to_cols(int width)
     return width / FOIL_PX_GRID_CELL_W;
 }
 
+#if 0
 static inline int height_to_rows(int height)
 {
     assert(height % FOIL_PX_GRID_CELL_H == 0);
     return height / FOIL_PX_GRID_CELL_H;
 }
 
-#if 0
 static inline void
 map_rdrbox_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
 {

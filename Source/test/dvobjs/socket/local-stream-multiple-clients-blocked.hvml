@@ -16,6 +16,10 @@
             </init>
 
             <choose on $stream.writelines("Hello from $name") >
+                <inherit>
+                    $STREAM.stdout.writelines("Client $name has written a line.")
+                </inherit>
+
                 <catch for `ANY`>
                     <return with "Client $2?.name failed with $?.name when calling stream.writelines()" />
                 </catch>
@@ -55,14 +59,10 @@
 
         <init as 'clients' with {} />
 
-        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'none') >
+        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', 'default') >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
-
-            <inherit>
-                $SYS.sockopt(! $streamSocket.fd, 'recv-timeout', 3 )
-            </inherit>
 
             <iterate on ['client0', 'client1', 'client2', 'client3'] >
 
@@ -96,11 +96,23 @@
                 </observe>
             </iterate>
 
+            <inherit>
+                $SYS.sockopt(! $streamSocket.fd, 'recv-timeout', 3 )
+            </inherit>
+
+            <inherit>
+                $STREAM.stdout.writelines("Start to accept...")
+            </inherit>
+
             <iterate with $streamSocket.accept('default')>
 
                 <test with $L.not($DATA.isequal($?, null)) >
 
                     <init as 'clientName' with $?.peerAddr temp />
+
+                    <inherit>
+                        $STREAM.stdout.writelines("Accepted a connection from $clientName")
+                    </inherit>
 
                     <update on $clients to 'merge' with { $clientName : $? } />
 

@@ -686,6 +686,21 @@ accept_getter(void *native_entity, const char *property_name,
         goto error;
     }
 
+#if 0
+    int ov = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &ov, sizeof(ov)) == -1) {
+        PC_DEBUG("Failed setsockopt(SO_KEEPALIVE): %s.\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &ov, sizeof(ov)) == -1) {
+        PC_DEBUG("Failed setsockopt(SO_NOSIGPIPE): %s.\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+#endif
+
     purc_variant_t stream =
         dvobjs_create_stream_by_accepted(schema, peer_addr, peer_port, fd,
                 nr_args > 1 ? argv[1] : NULL,

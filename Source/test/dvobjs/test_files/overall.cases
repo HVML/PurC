@@ -1204,3 +1204,31 @@ positive:
     $DATA.match_properties({ "a134": 1, "a23": 2, "a34s3": 3}, '^a[123]3$', 'regexp kv-pairs')
     [ [! 'a23',  2 ] ]
 
+positive:
+    $L.gt($DATA.memsize, 0)
+    true
+
+positive:
+    $L.eq($DATA.memsize, $DATA.memsize(null))
+    true
+
+positive:
+    $L.gt($DATA.memsize([]), $DATA.memsize(null))
+    true
+
+positive:
+    $L.ge($DATA.memsize({}), $DATA.memsize(3))
+    true
+
+positive:
+    $L.ge($DATA.memsize([{}]), $DATA.memsize([]))
+    true
+
+positive:
+    $L.ge($DATA.memsize({'a': []}), $DATA.memsize({}))
+    true
+
+positive:
+    $L.gt($DATA.memsize('this is a very long text; this is a very long text; this is a very long text'), $DATA.memsize('a short text'))
+    true
+

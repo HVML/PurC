@@ -241,13 +241,14 @@ char *pcutils_strcasestr(const char *haystack, const char *needle)
     char* p = (char *)haystack;
     while (*p) {
 
-        size_t len1 = utf8_char_to_lower(lt, haystack, ucs1);
+        size_t len1 = utf8_char_to_lower(lt, p, ucs1);
         size_t len2 = utf8_char_to_lower(lt, needle, ucs2);
 
         int diff = memcmp(ucs1, ucs2, sizeof(ucs1));
         if (diff == 0) {
             const char *p1 = p + len1;
             const char *p2 = needle + len2;
+
             while (*p1 && *p2) {
                 len1 = utf8_char_to_lower(lt, p1, ucs1);
                 len2 = utf8_char_to_lower(lt, p2, ucs2);
