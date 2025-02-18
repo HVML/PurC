@@ -272,13 +272,15 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     len = end - str_utf8;
     str_utf8[len] = '\0'; /* make sure the string is null-terminated */
 
-#if 0
-    /* We keep the buffer unchanged since 0.9.22 */
-    if (len < sz_buff) {
-        /* shrink the buffer to release not used space. */
-        str_utf8 = realloc(str_utf8, len);
+    if (sz_buff <= len) {
+        PC_WARN("%s() called with a bad buffer size.\n", __func__);
+        sz_buff = len + 1;
     }
-#endif
+    else if (sz_buff > len + 1) {
+        /* shrink the buffer to release not used space. */
+        sz_buff = len + 1;
+        str_utf8 = realloc(str_utf8, sz_buff);
+    }
 
     value = pcvariant_get(PURC_VARIANT_TYPE_STRING);
 
