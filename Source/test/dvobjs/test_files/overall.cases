@@ -1221,6 +1221,14 @@ positive:
     true
 
 positive:
-    $L.gt($DATA.memsize('this is a very long text'), $DATA.memsize('a short text'))
+    $L.ge($DATA.memsize([{}]), $DATA.memsize([]))
+    true
+
+positive:
+    $L.ge($DATA.memsize({'a': []}), $DATA.memsize({}))
+    true
+
+positive:
+    $L.gt($DATA.memsize('this is a very long text; this is a very long text; this is a very long text'), $DATA.memsize('a short text'))
     true
 
