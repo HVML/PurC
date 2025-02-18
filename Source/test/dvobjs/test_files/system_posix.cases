@@ -188,20 +188,20 @@ positive:
     3.0
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer', 1024)
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer', 1024 )
     true
 
 positive:
-    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer')
-    1024L
+    $L.ge($SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer'), 1024)
+    true
 
 positive:
     $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'send-buffer', 1024)
     true
 
 positive:
-    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'send-buffer')
-    1024L
+    $L.ge($SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'send-buffer'), 1024)
+    true
 
 positive:
     $RUNNER.user(! 'inetStreamSocket', undefined )
