@@ -133,6 +133,8 @@ enum {
     K_KW_recv_buffer,
 #define _KW_send_buffer         "send-buffer"
     K_KW_send_buffer,
+#define _KW_keep_alive          "keep-alive"
+    K_KW_keep_alive,
 };
 
 static struct keyword_to_atom {
@@ -179,6 +181,7 @@ static struct keyword_to_atom {
     { _KW_send_timeout, 0 },           // "send-timeout"
     { _KW_recv_buffer, 0 },            // "recv-buffer"
     { _KW_send_buffer, 0 },            // "send-buffer"
+    { _KW_keep_alive, 0 },             // "keep-alive"
 };
 
 static int
@@ -2292,6 +2295,10 @@ purc_atom_t parse_socket_option(purc_variant_t option)
             tmp[parts_len]= '\0';
             atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
         }
+
+        if (atom == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        }
     }
 
     return atom;
@@ -2359,6 +2366,9 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (option == keywords2atoms[K_KW_send_buffer].atom) {
         optname = SO_SNDBUF;
     }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        optname = SO_KEEPALIVE;
+    }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
@@ -2392,10 +2402,14 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         tmp += timeval.tv_usec/1000000.0L;
         retv = purc_variant_make_number(tmp);
     }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        if (intval)
+            retv = purc_variant_make_boolean(true);
+        else
+            retv = purc_variant_make_boolean(false);
+    }
     else {
-        // never reach here.
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error;
+        retv = purc_variant_make_longint(intval);
     }
 
     return retv;
@@ -2461,22 +2475,29 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         optname = SO_SNDTIMEO;
     }
     else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
-        int64_t tmp_l;
-        if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
             goto error;
         }
 
-        intval = (int)tmp_l;
+        intval = (int)tmp;
         optname = SO_RCVBUF;
     }
     else if (option == keywords2atoms[K_KW_send_buffer].atom) {
-        int64_t tmp_l;
-        if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
             goto error;
         }
 
-        intval = (int)tmp_l;
+        intval = (int)tmp;
         optname = SO_SNDBUF;
+    }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        if (purc_variant_booleanize(argv[2]))
+            intval = 1;
+        else
+            intval = 0;
+        optname = SO_KEEPALIVE;
     }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);

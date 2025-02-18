@@ -111,3 +111,111 @@ negative:
     $SYS.fdflags($RUNNER.myObj.myPipe[0], 'nonblock')
     InvalidValue
 
+positive:
+    $RUNNER.user(! "myPipe", undefined )
+    true
+
+negative:
+    $SYS.sockopt()
+    ArgumentMissed
+
+negative:
+    $SYS.sockopt(null, null)
+    WrongDataType
+
+negative:
+    $SYS.sockopt('', '')
+    WrongDataType
+
+negative:
+    $SYS.sockopt(0, 'foo')
+    InvalidValue
+
+negative:
+    $SYS.sockopt(0, 'type')
+    OSFailure
+
+negative:
+    $SYS.sockopt(0, 'recv-timeout')
+    OSFailure
+
+negative:
+    $SYS.sockopt(0, 'send-timeout')
+    OSFailure
+
+negative:
+    $SYS.sockopt(0, 'recv-buffer')
+    OSFailure
+
+negative:
+    $SYS.sockopt(0, 'send-buffer')
+    OSFailure
+
+negative:
+    $SYS.sockopt(0, 'send-buffer')
+    OSFailure
+
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'type')
+    'stream'
+
+positive:
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'keep-alive', true)
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'keep-alive')
+    true
+
+positive:
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-timeout', 3)
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'recv-timeout')
+    3.0
+
+positive:
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'send-timeout', 3)
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'send-timeout')
+    3.0
+
+positive:
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer', 1024)
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer')
+    1024L
+
+positive:
+    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'send-buffer', 1024)
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetStreamSocket.fd, 'send-buffer')
+    1024L
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
+positive:
+    $RUNNER.user(! "inetDgramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    true
+
+positive:
+    $SYS.sockopt($RUNNER.myObj.inetDgramSocket.fd, 'type')
+    'dgram'
+
+positive:
+    $RUNNER.user(! 'inetDgramSocket', undefined )
+    true
+
