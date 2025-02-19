@@ -1235,7 +1235,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || v->d <= 0) {
+            if (isinf(v->d) == -1 || v->d < 0) {
                 if (force)
                     *u64 = 0;
                 else
