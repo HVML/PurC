@@ -598,9 +598,24 @@ purc_variant_make_byte_sequence_empty_ex(size_t sz_buf);
  *
  * Since: 0.9.22
  */
-PCA_EXPORT const unsigned char *
+PCA_EXPORT unsigned char *
 purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
         size_t *sz_buf);
+
+/**
+ * purc_variant_bsequence_set_bytes:
+ *
+ * @sequence: The bsequence variant.
+ * @nr_bytes: The new bytes valid in the buffer.
+ *
+ * Set the new number of valid bytes in the buffer.
+ *
+ * Returns: %true for success, or %false for failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT bool
+purc_variant_bsequence_set_bytes(purc_variant_t sequence, size_t nr_bytes);
 
 /**
  * purc_variant_bsequence_append:

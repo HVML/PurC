@@ -3506,8 +3506,22 @@ append2bytesbuffer(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    /* make sure the UTF-8 characters are intact */
+    if (flags & BBF_UTF8_CHARS) {
+        const char *start = (const char *)bytes + offset;
+        const char *end;
+        pcutils_string_check_utf8_len(start, length, NULL, &end);
+        if (end == start) {
+            length = 0;
+        }
+        else {
+            length = end - start;
+        }
+    }
+
     uint64_t nr_copied = 0;
     if (nr_curr + length <= sz_buf) {
+        /* the left space is enough */
         nr_copied = length;
     }
     else if (!(flags & BBF_TRUNCATE)) {

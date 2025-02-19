@@ -133,6 +133,8 @@ enum {
     K_KW_writelines,
 #define _KW_readbytes               "readbytes"
     K_KW_readbytes,
+#define _KW_readbytes2buffer        "readbytes2buffer"
+    K_KW_readbytes2buffer,
 #define _KW_writebytes              "writebytes"
     K_KW_writebytes,
 #define _KW_writeeof                "writeeof"
@@ -184,6 +186,7 @@ static struct keyword_to_atom {
     { _KW_readlines, 0},            // "readlines"
     { _KW_writelines, 0},           // "writelines"
     { _KW_readbytes, 0},            // "readbytes"
+    { _KW_readbytes2buffer, 0},     // "readbytes2buffer"
     { _KW_writebytes, 0},           // "writebytes"
     { _KW_writeeof, 0},             // "writeeof"
     { _KW_status, 0},               // "status"
@@ -670,8 +673,7 @@ readbytes_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    if (argv[0] != PURC_VARIANT_INVALID &&
-            !purc_variant_cast_to_ulongint(argv[0], &byte_num, false)) {
+    if (!purc_variant_cast_to_ulongint(argv[0], &byte_num, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
@@ -681,7 +683,7 @@ readbytes_getter(void *native_entity, const char *property_name,
     }
     else {
         char *content = malloc(byte_num);
-        size_t size = 0;
+        ssize_t size = 0;
 
         if (content == NULL) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -717,6 +719,84 @@ readbytes_getter(void *native_entity, const char *property_name,
 out:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_null();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+readbytes2buffer_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream = NULL;
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4r;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    unsigned char *buf;
+    size_t nr_bytes, sz_buf;
+    buf = purc_variant_bsequence_buffer(argv[0], &nr_bytes, &sz_buf);
+    if (buf == NULL) {
+
+        if (purc_variant_is_type(argv[0], PURC_VARIANT_TYPE_BSEQUENCE))
+            /* read-only */
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        else
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+
+        goto out;
+    }
+
+    uint64_t nr_to_read = 0;
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_ulongint(argv[1], &nr_to_read, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+    }
+
+    if (nr_to_read == 0) {
+        nr_to_read = sz_buf - nr_bytes;
+    }
+
+    if (nr_bytes + nr_to_read > sz_buf) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    ssize_t sz_read = 0;
+    sz_read = purc_rwstream_read(rwstream, buf + nr_bytes, nr_to_read);
+    if (sz_read > 0) {
+        purc_variant_bsequence_set_bytes(argv[0], nr_bytes + sz_read);
+    }
+    else {
+        if (sz_read == 0 && stream->type >= STREAM_TYPE_PIPE) {
+            purc_set_error(PURC_ERROR_BROKEN_PIPE);
+            goto out;
+        }
+        else if (sz_read < 0) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto out;
+            }
+        }
+    }
+
+    return purc_variant_make_longint(sz_read);
+
+out:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -1314,6 +1394,9 @@ property_getter(void *entity, const char *name)
     }
     else if (atom == keywords2atoms[K_KW_readbytes].atom) {
         return readbytes_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_readbytes2buffer].atom) {
+        return readbytes2buffer_getter;
     }
     else if (atom == keywords2atoms[K_KW_writebytes].atom) {
         return writebytes_getter;

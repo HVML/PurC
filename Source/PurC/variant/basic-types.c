@@ -689,18 +689,19 @@ purc_variant_t purc_variant_make_byte_sequence_empty_ex(size_t sz_buf)
 }
 
 /* Since 0.9.22 */
-const unsigned char *
+unsigned char *
 purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
         size_t *sz_buf)
 {
-    const unsigned char *bytes = NULL;
-
-    PCVRNT_CHECK_FAIL_RET(sequence && nr_bytes, NULL);
+    unsigned char *bytes = NULL;
 
     if (IS_TYPE(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
-        if ((sequence->flags & PCVRNT_FLAG_EXTRA_SIZE) ||
-                    (sequence->flags & PCVRNT_FLAG_STATIC_DATA)) {
-            bytes = (const unsigned char *)sequence->sz_ptr[1];
+        if (sequence->flags & PCVRNT_FLAG_STATIC_DATA) {
+            goto done;
+        }
+
+        if (sequence->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+            bytes = (unsigned char *)sequence->sz_ptr[1];
             *nr_bytes = (size_t)sequence->sz_ptr[0];
             *sz_buf = sequence->extra_size;
         }
@@ -712,7 +713,36 @@ purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
 
     }
 
+done:
     return bytes;
+}
+
+bool
+purc_variant_bsequence_set_bytes(purc_variant_t sequence, size_t nr_bytes)
+{
+    bool retv = false;
+
+    if (IS_TYPE(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
+        if (sequence->flags & PCVRNT_FLAG_STATIC_DATA) {
+            goto done;
+        }
+
+        if (sequence->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+            if (nr_bytes <= sequence->extra_size) {
+                sequence->sz_ptr[0] = (uintptr_t)nr_bytes;
+                retv = true;
+            }
+        }
+        else {
+            if (nr_bytes <= SZ_SPACE_IN_WRAPPER) {
+                sequence->size = nr_bytes;
+                retv = true;
+            }
+        }
+    }
+
+done:
+    return retv;
 }
 
 /* Since 0.9.22 */

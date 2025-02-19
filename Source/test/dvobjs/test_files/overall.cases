@@ -1305,8 +1305,12 @@ negative:
     TooLong
 
 positive:
-    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'utf8-chars')
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE5, 'utf8-chars')
     18UL
+
+positive:
+    $DATA.unpack("utf8", $RUNNER.myObj.myBuffer)
+    '中华人民共和国中华人民共和'
 
 negative:
     $DATA.rollbytesbuffer()
