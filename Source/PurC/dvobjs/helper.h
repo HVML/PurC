@@ -64,7 +64,19 @@ char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
 
-bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
+bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
+    WTF_INTERNAL;
+
+struct dvobjs_option_to_atom {
+    const char *option;
+    purc_atom_t atom;
+    int flag;
+};
+
+int dvobjs_parse_options(purc_variant_t vrt,
+        const struct dvobjs_option_to_atom *single_keywords, size_t nr_skw,
+        const struct dvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
+        int flags4null, int flags4failed) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

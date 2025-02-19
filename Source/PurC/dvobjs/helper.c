@@ -27,6 +27,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/atom-buckets.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -382,5 +383,85 @@ bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
 
 failed:
     return false;
+}
+
+int dvobjs_parse_options(purc_variant_t vrt,
+        const struct dvobjs_option_to_atom *single_options, size_t nr_sopt,
+        const struct dvobjs_option_to_atom *composite_options, size_t nr_copt,
+        int flags4null, int flags4failed)
+{
+    int flags = 0;
+
+    if (vrt == PURC_VARIANT_INVALID) {
+        flags = flags4null;
+        goto done;
+    }
+
+    purc_atom_t atom = 0;
+    const char *opts;
+    size_t opts_len;
+    opts = purc_variant_get_string_const_ex(vrt, &opts_len);
+    if (!opts) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+    opts = pcutils_trim_spaces(opts, &opts_len);
+    if (opts_len == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+    else {
+        char tmp[opts_len + 1];
+        strncpy(tmp, opts, opts_len);
+        tmp[opts_len]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+    }
+
+    /* try single options first */
+    if (single_options) {
+        for (size_t i = 0; i < nr_sopt; i++) {
+            if (atom == single_options[i].atom) {
+                flags = single_options[i].flag;
+                goto done;
+            }
+        }
+
+        if (composite_options == NULL) {
+            /* not matched single option. */
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    /* try composite options then */
+    if (composite_options) {
+        const char *opt;
+        size_t opt_len;
+        foreach_keyword(opts, opts_len, opt, opt_len) {
+            char tmp[opt_len + 1];
+            strncpy(tmp, opt, opt_len);
+            tmp[opt_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+
+            size_t i = 0;
+            for (; i < nr_copt; i++) {
+                if (atom == composite_options[i].atom) {
+                    flags |= composite_options[i].flag;
+                    break;
+                }
+            }
+
+            if (i == nr_copt) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+        }
+    }
+
+done:
+    return flags;
+
+failed:
+    return flags4failed;
 }
 
