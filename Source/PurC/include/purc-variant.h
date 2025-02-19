@@ -629,11 +629,11 @@ purc_variant_bsequence_append(purc_variant_t sequence,
  * from @offset will be copied to the head of the buffer. It will empty
  * the byte sequence if @offset is less than 0.
  *
- * Returns: The number of bytes rolled actually.
+ * Returns: The number of bytes rolled actually, or -1 for failure.
  *
  * Since: 0.9.22
  */
-PCA_EXPORT size_t
+PCA_EXPORT ssize_t
 purc_variant_bsequence_roll(purc_variant_t sequence, ssize_t offset);
 
 /**

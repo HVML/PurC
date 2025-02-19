@@ -194,7 +194,8 @@ struct purc_variant {
 
 };
 
-#define SZ_SPACE_IN_VARIANT     (sizeof(void *) * 3)
+#define SZ_SPACE_IN_WRAPPER     \
+    (MAX(sizeof(long double), sizeof(void *) * 2) + sizeof(void *))
 
 #define USE_LOOP_BUFFER_FOR_RESERVED    0
 
