@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 9UL
+# RESULT: 9L
 
 <!DOCTYPE hvml SYSTEM "v: MATH">
 <hvml target="void">
