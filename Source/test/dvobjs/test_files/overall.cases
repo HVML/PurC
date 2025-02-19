@@ -1344,3 +1344,59 @@ positive:
     $RUNNER.myObj.myBuffer
     bx11223344
 
+negative:
+    $RUNNER.enablelog()
+    ArgumentMissed
+
+negative:
+    $RUNNER.enablelog(null)
+    WrongDataType
+
+negative:
+    $RUNNER.enablelog('all', null)
+    WrongDataType
+
+negative:
+    $RUNNER.enablelog('foo', 'stderr')
+    InvalidValue
+
+negative:
+    $RUNNER.enablelog('all', 'foo')
+    InvalidValue
+
+negative:
+    $RUNNER.logmsg
+    ArgumentMissed
+
+negative:
+    $RUNNER.logmsg(null)
+    WrongDataType
+
+negative:
+    $RUNNER.logmsg('A log message', null)
+    WrongDataType
+
+negative:
+    $RUNNER.logmsg('A log message', 'foo')
+    InvalidValue
+
+positive:
+    $RUNNER.enablelog('emerg error')
+    true
+
+positive:
+    $RUNNER.logmsg('This is a log message (info level); you will not see this log message.')
+    true
+
+positive:
+    $RUNNER.logmsg('This is a log message (error level)', 'error')
+    true
+
+positive:
+    $RUNNER.enablelog('all')
+    true
+
+positive:
+    $RUNNER.logmsg('This is a log message (info level).')
+    true
+

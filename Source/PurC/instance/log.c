@@ -195,7 +195,7 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
     if (inst && inst->endpoint_atom)
         ident = purc_atom_to_string(inst->endpoint_atom);
 
-    fprintf(fp, "%s %s >> ", ident, tag);
+    fprintf(fp, "%s %s >> ", ident, tag ? tag : level_info[level].tag);
     vfprintf(fp, msg, ap);
     if (fp != stderr)
         fflush(fp);

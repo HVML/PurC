@@ -527,6 +527,27 @@ purc_log_with_tag(purc_log_level_k level, const char* tag,
     PCA_ATTRIBUTE_PRINTF(3, 0);
 
 /**
+ * Log a message with a specified tag.
+ *
+ * @param tag: the tag of the message.
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0 (changed in 0.9.12).
+ */
+PCA_ATTRIBUTE_PRINTF(3, 4)
+static inline void
+purc_log_with_tag_f(purc_log_level_k level, const char* tag,
+        const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_tag(level, tag, msg, ap);
+    va_end(ap);
+}
+
+/**
  * Log a debugging message.
  *
  * @param msg: the message or the format string.
