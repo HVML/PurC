@@ -1232,3 +1232,115 @@ positive:
     $L.gt($DATA.memsize('this is a very long text; this is a very long text; this is a very long text'), $DATA.memsize('a short text'))
     true
 
+negative:
+    $DATA.makebytesbuffer()
+    ArgumentMissed
+
+negative:
+    $DATA.makebytesbuffer(null)
+    WrongDataType
+
+positive:
+    $DATA.type($DATA.makebytesbuffer(1024))
+    'bsequence'
+
+negative:
+    $DATA.append2bytesbuffer()
+    ArgumentMissed
+
+negative:
+    $DATA.append2bytesbuffer(null)
+    ArgumentMissed
+
+negative:
+    $DATA.append2bytesbuffer(null, null)
+    WrongDataType
+
+negative:
+    $DATA.append2bytesbuffer(bx1122, null)
+    WrongDataType
+
+negative:
+    $DATA.append2bytesbuffer(bx1122, bx00, 'foo', null, null)
+    InvalidValue
+
+negative:
+    $DATA.append2bytesbuffer(bx1122, bx00, 'all', 0, null)
+    WrongDataType
+
+negative:
+    $DATA.append2bytesbuffer(bx1122, bx00, 'all', 0, 2)
+    InvalidValue
+
+positive:
+    $DATA.append2bytesbuffer(bx1122, bx00, 'all')
+    1UL
+
+positive:
+    $DATA.append2bytesbuffer(bx1122, '', 'utf8-chars', 0, 0)
+    0UL
+
+negative:
+    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁！', 'all', 0, 0)
+    TooLong
+
+negative:
+    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁！')
+    TooLong
+
+positive:
+    $RUNNER.user(! "myBuffer", $DATA.makebytesbuffer(40) )
+    true
+
+positive:
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'utf8-chars', 0, 0)
+    21UL
+
+negative:
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'all', 0, 0)
+    TooLong
+
+negative:
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD)
+    TooLong
+
+positive:
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'utf8-chars')
+    18UL
+
+negative:
+    $DATA.rollbytesbuffer()
+    ArgumentMissed
+
+negative:
+    $DATA.rollbytesbuffer(null)
+    WrongDataType
+
+negative:
+    $DATA.rollbytesbuffer(bx)
+    InvalidValue
+
+positive:
+    $DATA.rollbytesbuffer($RUNNER.myObj.myBuffer, -1)
+    0UL
+
+positive:
+    $RUNNER.myObj.myBuffer
+    bx
+
+positive:
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bx0011223344)
+    5UL
+
+negative:
+    $DATA.rollbytesbuffer($RUNNER.myObj.myBuffer, 6)
+    InvalidValue
+
+positive:
+    $DATA.rollbytesbuffer($RUNNER.myObj.myBuffer, 1)
+    4UL
+
+positive:
+    $RUNNER.myObj.myBuffer
+    bx11223344
+

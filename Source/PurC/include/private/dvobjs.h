@@ -211,7 +211,7 @@ enum {
 
 #define PURC_KW_DELIMITERS  " \t\n\v\f\r"
 
-#define for_each_keyword(options, total_len, kw, kw_len)                    \
+#define foreach_keyword(options, total_len, kw, kw_len)                     \
     for (kw_len = 0, kw = pcutils_get_next_token_len(options, total_len,    \
                 PURC_KW_DELIMITERS, &kw_len);                               \
             (kw != NULL && kw_len > 0 && kw_len < MAX_LEN_KEYWORD);         \

@@ -3326,6 +3326,265 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+makebytesbuffer(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    uint64_t sz;
+    if (!purc_variant_cast_to_ulongint(argv[0], &sz, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (sz == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    return purc_variant_make_byte_sequence_empty_ex(sz);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+enum {
+#define _KW_all                 "all"
+    K_KW_all,
+#define _KW_truncate            "truncate"
+    K_KW_truncate,
+#define _KW_utf8_chars          "utf8-chars"
+    K_KW_utf8_chars,
+};
+
+#define BBF_ALL                 0x00
+#define BBF_TRUNCATE            0x01
+#define BBF_UTF8_CHARS          0x01
+
+static struct bytesbuffer_atom {
+    const char *    keyword;
+    purc_atom_t     atom;
+} bytesbuffer_atoms [] = {
+    { _KW_all,                  0 },
+    { _KW_truncate,             0 },
+    { _KW_utf8_chars,           0 },
+};
+
+static int
+parse_bytesbuffer_options(purc_variant_t vrt)
+{
+    int flags = BBF_ALL;
+
+    if (vrt == PURC_VARIANT_INVALID) {
+        goto done;
+    }
+
+    purc_atom_t atom = 0;
+    const char *opts;
+    size_t opts_len;
+    opts = purc_variant_get_string_const_ex(vrt, &opts_len);
+    if (!opts) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+    opts = pcutils_trim_spaces(opts, &opts_len);
+    if (opts_len == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+    else {
+        char tmp[opts_len + 1];
+        strncpy(tmp, opts, opts_len);
+        tmp[opts_len]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+    }
+
+    if (atom == bytesbuffer_atoms[K_KW_all].atom) {
+        goto done;
+    }
+    else {
+
+        const char *kw;
+        size_t kw_len;
+        foreach_keyword(opts, opts_len, kw, kw_len) {
+            char tmp[kw_len + 1];
+            strncpy(tmp, kw, kw_len);
+            tmp[kw_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+
+            if (atom == bytesbuffer_atoms[K_KW_truncate].atom) {
+                flags |= BBF_TRUNCATE;
+            }
+            else if (atom == bytesbuffer_atoms[K_KW_utf8_chars].atom) {
+                flags |= BBF_UTF8_CHARS;
+            }
+            else {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+        }
+    }
+
+done:
+    return flags;
+
+failed:
+    return -1;
+}
+
+static purc_variant_t
+append2bytesbuffer(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_type(argv[0], PURC_VARIANT_TYPE_BSEQUENCE)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    size_t nr_curr, sz_buf;
+    purc_variant_bsequence_buffer(argv[0], &nr_curr, &sz_buf);
+
+    const unsigned char *bytes = NULL;
+    size_t nr_bytes;
+    if (purc_variant_is_type(argv[1], PURC_VARIANT_TYPE_BSEQUENCE)) {
+        bytes = purc_variant_get_bytes_const(argv[1], &nr_bytes);
+        PC_ASSERT(bytes != NULL);
+    }
+    else {
+        bytes = (const unsigned char *)purc_variant_get_string_const_ex(
+                argv[1], &nr_bytes);
+    }
+
+    if (bytes == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int flags = parse_bytesbuffer_options(
+            (nr_args > 2) ? argv[2] : PURC_VARIANT_INVALID);
+    if (flags < 0) {
+        PC_INFO("Bad options\n");
+        /* error will be set by parse_bytesbuffer_options() */
+        goto failed;
+    }
+
+    uint64_t offset = 0;
+    if (nr_args > 3 &&
+            !purc_variant_cast_to_ulongint(argv[3], &offset, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    uint64_t length = 0;
+    if (nr_args > 4 &&
+            !purc_variant_cast_to_ulongint(argv[4], &length, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (length == 0)
+        length = nr_bytes;
+
+    if (offset + length > nr_bytes) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    uint64_t nr_copied = 0;
+    if (nr_curr + length <= sz_buf) {
+        nr_copied = length;
+    }
+    else if (!(flags & BBF_TRUNCATE)) {
+        purc_set_error(PURC_ERROR_TOO_LONG);
+        goto failed;
+    }
+    else {
+        length = sz_buf - nr_curr;
+        if (flags & BBF_UTF8_CHARS) {
+            const char *start = (const char *)bytes + offset;
+            const char *end;
+            pcutils_string_check_utf8_len(start, length, NULL, &end);
+            if (end == start) {
+                nr_copied = 0;
+            }
+            else {
+                nr_copied = end - start;
+            }
+        }
+        else {
+            nr_copied = length;
+        }
+    }
+
+    if (nr_copied > 0 && !purc_variant_bsequence_append(argv[0],
+                bytes + offset, nr_copied))
+        goto failed;
+
+    return purc_variant_make_ulongint(nr_copied);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+rollbytesbuffer(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_type(argv[0], PURC_VARIANT_TYPE_BSEQUENCE)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int64_t offset;
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_longint(argv[1], &offset, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+    else {
+        offset = 0;
+    }
+
+    ssize_t nr_copied = purc_variant_bsequence_roll(argv[0], offset);
+    if (nr_copied < 0)
+        goto failed;
+
+    return purc_variant_make_ulongint((uint64_t)nr_copied);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -3357,6 +3616,9 @@ purc_variant_t purc_dvobj_data_new(void)
         { "isdivisible",    isdivisible_getter, NULL },
         { "match_members",      match_members_getter, NULL },
         { "match_properties",   match_properties_getter, NULL },
+        { "makebytesbuffer",    makebytesbuffer, NULL },
+        { "append2bytesbuffer", append2bytesbuffer, NULL },
+        { "rollbytesbuffer",    rollbytesbuffer, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -3372,6 +3634,14 @@ purc_variant_t purc_dvobj_data_new(void)
             crc32algo2atoms[i].atom =
                 purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
                     crc32algo2atoms[i].algo);
+        }
+    }
+
+    if (bytesbuffer_atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(bytesbuffer_atoms); i++) {
+            bytesbuffer_atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    bytesbuffer_atoms[i].keyword);
         }
     }
 

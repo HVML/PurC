@@ -3198,7 +3198,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool set_string = false;
         bool set_strict = false;
         bool set_silent = false;
-        for_each_keyword(options, total_len, keyword, kwlen) {
+        foreach_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "binary", kwlen) == 0) {
                 if (set_string) {
                     // invalid option
@@ -3395,7 +3395,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         const char *keyword;
         size_t kwlen;
-        for_each_keyword(options, total_len, keyword, kwlen) {
+        foreach_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "append", kwlen) == 0) {
                 opt_append = true;
             }
