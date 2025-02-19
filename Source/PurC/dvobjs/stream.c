@@ -307,49 +307,71 @@ readstruct_getter(void *native_entity, const char *property_name,
     const char *formats = NULL;
     size_t formats_left = 0;
 
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
     stream = get_stream(native_entity);
     rwstream = stream->stm4r;
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto failed;
     }
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+        goto failed;
     }
 
     formats = purc_variant_get_string_const_ex(argv[0], &formats_left);
     if (formats == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+        goto failed;
     }
 
     formats = pcutils_trim_spaces(formats, &formats_left);
     if (formats_left == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto failed;
     }
 
-    return purc_dvobj_read_struct(rwstream, formats, formats_left,
-            (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+    size_t nr_total_read;
+    purc_variant_t retv;
+    retv = purc_dvobj_read_struct(rwstream, formats, formats_left,
+            &nr_total_read, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
 
-out:
+    if (nr_total_read == 0) {
+        if (retv)
+            purc_variant_unref(retv);
+
+        if (stream->type >= STREAM_TYPE_PIPE) {
+            purc_set_error(PURC_ERROR_BROKEN_PIPE);
+            goto failed;
+        }
+        else if (purc_get_last_error() == PURC_ERROR_IO_FAILURE) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return purc_variant_make_null();
+            }
+            else {
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            }
+        }
+    }
+
+    return retv;
+
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
-        return purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        return purc_variant_make_null();
     }
 
+fatal:
     return PURC_VARIANT_INVALID;
 }
 
@@ -363,31 +385,25 @@ writestruct_getter(void *native_entity, const char *property_name,
 
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
-    size_t write_length = 0;
     const char *formats = NULL;
     size_t formats_left = 0;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
 
     stream = get_stream(native_entity);
     rwstream = stream->stm4w;
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto failed;
     }
 
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+        goto failed;
     }
 
     formats = purc_variant_get_string_const_ex(argv[0], &formats_left);
@@ -404,30 +420,58 @@ writestruct_getter(void *native_entity, const char *property_name,
 
     if (purc_dvobj_pack_variants(&bf, argv + 1, nr_args - 1, formats,
                 formats_left, silently)) {
-        if (bf.bytes == NULL)
-            goto out;
+        if (bf.bytes == NULL &&
+                purc_get_last_error() == PURC_ERROR_OUT_OF_MEMORY) {
+            goto fatal;
+        }
 
         goto failed;
     }
 
-    silently = true;    // fall through
-
-failed:
-    if (silently) {
-        if (bf.bytes) {
-            write_length = purc_rwstream_write(rwstream, bf.bytes, bf.nr_bytes);
-            free(bf.bytes);
-            bf.bytes = NULL;
-        }
-        return purc_variant_make_ulongint(write_length);
+    ssize_t nr_written = 0;
+    if (bf.bytes && bf.nr_bytes > 0) {
+        nr_written = purc_rwstream_write(rwstream, bf.bytes, bf.nr_bytes);
+        free(bf.bytes);
+        bf.bytes = NULL;
     }
 
-out:
+    if (nr_written == -1) {
+        switch (errno) {
+            case EPIPE:
+                purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                goto failed;
+            case EDQUOT:
+            case ENOSPC:
+                purc_set_error(PCRWSTREAM_ERROR_NO_SPACE);
+                goto failed;
+            case EPERM:
+                purc_set_error(PURC_ERROR_ACCESS_DENIED);
+                goto failed;
+            case EFBIG:
+                purc_set_error(PURC_ERROR_TOO_LARGE_ENTITY);
+                goto failed;
+            case EIO:
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            case EAGAIN:
+#if EWOULDBLOCK != EAGAIN
+            case EWOULDBLOCK:
+#endif
+            default:
+                break;
+        }
+    }
+
+    return purc_variant_make_longint(nr_written);
+
+failed:
     if (bf.bytes)
         free(bf.bytes);
 
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_ulongint(write_length);
+        return purc_variant_make_boolean(false);
+
+fatal:
     return PURC_VARIANT_INVALID;
 }
 
@@ -568,29 +612,30 @@ writelines_getter(void *native_entity, const char *property_name,
     UNUSED_PARAM(property_name);
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
-    ssize_t nr_write = 0;
     purc_variant_t data;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
+    ssize_t nr_total = 0, nr_written;
 
     stream = get_stream(native_entity);
     rwstream = stream->stm4w;
     if (rwstream == NULL) {
+        PC_ERROR("The stream (%p) is not writable.\n", stream);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto failed;
     }
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
+        goto failed;
     }
 
-    if (argv[0] == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+    const char *lt = "\n";  /* line terminator */
+    size_t sz_lt = 1;
+    if (nr_args > 1) {
+        lt = purc_variant_get_string_const_ex(argv[1], &sz_lt);
+        if (lt == NULL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
 
     for (size_t i = 0; i < nr_args; i++) {
@@ -609,45 +654,91 @@ writelines_getter(void *native_entity, const char *property_name,
                     if (!purc_variant_is_string(
                                 purc_variant_linear_container_get(data, i))) {
                         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                        goto out;
+                        goto done;
                     }
                 }
             }
             break;
         default:
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto out;
+            goto done;
         }
 
-        const char *buffer = NULL;
-        size_t buffer_size = 0;
+        const char *buf = NULL;
+        size_t sz_buf = 0;
         if (purc_variant_is_string(data)) {
-            buffer = (const char *)purc_variant_get_string_const_ex(data,
-                    &buffer_size);
-            if (buffer && buffer_size > 0) {
-                nr_write += purc_rwstream_write(rwstream, buffer, buffer_size);
-                nr_write += purc_rwstream_write(rwstream, "\n", 1);
+            buf = purc_variant_get_string_const_ex(data, &sz_buf);
+            if (buf && sz_buf > 0) {
+                nr_written = purc_rwstream_write(rwstream, buf, sz_buf);
+                if (nr_written < 0) {
+                    goto done;
+                }
+                nr_total += nr_written;
+
+                nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+                if (nr_written < 0) {
+                    goto done;
+                }
+                nr_total += nr_written;
             }
         }
         else {
             size_t sz_container = purc_variant_linear_container_get_size(data);
             for (size_t i = 0; i < sz_container; i++) {
                 purc_variant_t var = purc_variant_linear_container_get(data, i);
-                buffer = (const char *)purc_variant_get_string_const_ex(var,
-                        &buffer_size);
-                if (buffer && buffer_size > 0) {
-                    nr_write += purc_rwstream_write(rwstream, buffer, buffer_size);
-                    nr_write += purc_rwstream_write(rwstream, "\n", 1);
+                buf = purc_variant_get_string_const_ex(var, &sz_buf);
+
+                if (buf && sz_buf > 0) {
+                    nr_written = purc_rwstream_write(rwstream, buf, sz_buf);
+                    if (nr_written < 0) {
+                        goto done;
+                    }
+                    nr_total += nr_written;
+
+                    nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+                    if (nr_written < 0) {
+                        goto done;
+                    }
+                    nr_total += nr_written;
                 }
             }
         }
     }
 
-    return purc_variant_make_ulongint(nr_write);
+done:
+    if (nr_total == 0 && nr_written < 0) {
+        switch (errno) {
+            case EPIPE:
+                purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                goto failed;
+            case EDQUOT:
+            case ENOSPC:
+                purc_set_error(PCRWSTREAM_ERROR_NO_SPACE);
+                goto failed;
+            case EPERM:
+                purc_set_error(PURC_ERROR_ACCESS_DENIED);
+                goto failed;
+            case EFBIG:
+                purc_set_error(PURC_ERROR_TOO_LARGE_ENTITY);
+                goto failed;
+            case EIO:
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            case EAGAIN:
+#if EWOULDBLOCK != EAGAIN
+            case EWOULDBLOCK:
+#endif
+            default:
+                break;
+        }
+    }
 
-out:
+    return purc_variant_make_longint(nr_total);
+
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_ulongint(nr_write);
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -664,6 +755,7 @@ readbytes_getter(void *native_entity, const char *property_name,
     stream = get_stream(native_entity);
     rwstream = stream->stm4r;
     if (rwstream == NULL) {
+        PC_ERROR("The stream (%p) is not readable.\n", stream);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
@@ -733,6 +825,7 @@ readbytes2buffer_getter(void *native_entity, const char *property_name,
     stream = get_stream(native_entity);
     rwstream = stream->stm4r;
     if (rwstream == NULL) {
+        PC_ERROR("The stream (%p) is not readable.\n", stream);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
@@ -805,26 +898,22 @@ writebytes_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(property_name);
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
     purc_variant_t data;
 
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
     stream = get_stream(native_entity);
     rwstream = stream->stm4w;
     if (rwstream == NULL) {
+        PC_ERROR("The stream (%p) is not writable.\n", stream);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
+        goto failed;
     }
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
+        goto failed;
     }
     data = argv[0];
 
@@ -833,7 +922,7 @@ writebytes_getter(void *native_entity, const char *property_name,
              !purc_variant_is_string(data))
             ) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+        goto failed;
     }
 
     size_t bsize = 0;
@@ -842,19 +931,51 @@ writebytes_getter(void *native_entity, const char *property_name,
         buffer = purc_variant_get_bytes_const(data, &bsize);
     }
     else {
-        buffer = (const unsigned char *)purc_variant_get_string_const(data);
-        bsize = strlen((const char*)buffer) + 1;
+        buffer = (const unsigned char *)purc_variant_get_string_const_ex(
+                data, &bsize);
+        // bsize = bsize + 1; do not write terminating null byte.
     }
+
+    ssize_t nr_written;
     if (buffer && bsize) {
-        ssize_t nr_write = purc_rwstream_write(rwstream, buffer, bsize);
-        return purc_variant_make_ulongint(nr_write);
+        nr_written = purc_rwstream_write(rwstream, buffer, bsize);
+        if (nr_written == -1) {
+            switch (errno) {
+                case EPIPE:
+                    purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                    goto failed;
+                case EDQUOT:
+                case ENOSPC:
+                    purc_set_error(PCRWSTREAM_ERROR_NO_SPACE);
+                    goto failed;
+                case EPERM:
+                    purc_set_error(PURC_ERROR_ACCESS_DENIED);
+                    goto failed;
+                case EFBIG:
+                    purc_set_error(PURC_ERROR_TOO_LARGE_ENTITY);
+                    goto failed;
+                case EIO:
+                    purc_set_error(PURC_ERROR_IO_FAILURE);
+                    goto failed;
+                case EAGAIN:
+#if EWOULDBLOCK != EAGAIN
+                case EWOULDBLOCK:
+#endif
+                default:
+                    break;
+            }
+        }
+    }
+    else {
+        nr_written = 0;
     }
 
-    return ret_var;
+    return purc_variant_make_longint(nr_written);
 
-out:
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_ulongint(0);
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 

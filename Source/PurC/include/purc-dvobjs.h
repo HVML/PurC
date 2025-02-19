@@ -218,8 +218,8 @@ purc_dvobj_unpack_bytes(const uint8_t *bytes, size_t nr_bytes,
   * Return an empty array for invalid arguments when @silently is true,
   * or an invalid variant for any error. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_read_struct(purc_rwstream_t stream,
-        const char *formats, size_t formats_left, bool silently);
+purc_dvobj_read_struct(purc_rwstream_t stream, const char *formats,
+        size_t formats_left, size_t *nr_total_read, bool silently);
 
 /**@}*/
 

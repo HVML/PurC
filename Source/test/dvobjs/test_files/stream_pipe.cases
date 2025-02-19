@@ -9,7 +9,7 @@ positive:
 
 positive:
     $RUNNER.myObj.bcPipe.writelines(['scale=20', '2/3'])
-    13UL
+    13L
 
 positive:
     $RUNNER.myObj.bcPipe.writeeof()

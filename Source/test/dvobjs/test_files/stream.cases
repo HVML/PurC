@@ -26,11 +26,11 @@ positive:
 # $STREAM.readbytes/writebytes
 positive:
     $STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate').writebytes(bx48564d4c3A202d5f2e)
-    9UL
+    9L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate').writebytes('write string')
-    13UL
+    12L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_bytes', 'read').readbytes(10)
@@ -38,7 +38,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_bytes', 'read').readbytes(100)
-    bx777269746520737472696e6700
+    bx777269746520737472696e67
 
 positive:
     $SYS.remove('/tmp/test_stream_bytes')
@@ -48,11 +48,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate').writelines("This is the string to write")
-    28UL
+    28L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate').writelines(["This is the string to write", "Second line"])
-    40UL
+    40L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(0)
@@ -73,7 +73,7 @@ positive:
 # $STREAM.writestruct/readsruct
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate').writestruct("i16le i32le", 10, 10)
-    6UL
+    6L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le i32le")
@@ -81,7 +81,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate').writestruct("i16le:2 i32le", [10, 15], 255)
-    8UL
+    8L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le:2 i32le")
@@ -89,7 +89,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate').writestruct("i16le:2 i32le", [[10, 15], 255])
-    8UL
+    8L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le:2 i32le")
@@ -107,7 +107,7 @@ positive:
 # $STREAM.seek
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write create truncate').writelines("This is the string to write")
-    28UL
+    28L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, 'set')
@@ -148,7 +148,7 @@ positive:
 # $STREAM read string
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').writestruct('utf8:40', "This is the string to write, Second line")
-    40UL
+    40L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf8')
@@ -156,11 +156,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').writestruct('utf8:40 i16le', "This is the string to write, Second line", 10)
-    42UL
+    42L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').writestruct('utf8 i16le', "This is the string to write, Second line", 10)
-    43UL
+    43L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf8')
@@ -168,7 +168,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').writestruct('utf16:84 i16le', "This is the string to write, Second line", 99)
-    84UL
+    84L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf16')
@@ -176,7 +176,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').writestruct('utf32:165 i16le', "This is the string to write, Second line", 99)
-    166UL
+    166L
 
 positive:
     $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf32 i16le')
@@ -192,11 +192,11 @@ positive:
 
 positive:
     $STREAM.stdout.writelines('##### write to stdout #####')
-    28UL
+    28L
 
 positive:
     $STREAM.stderr.writelines('##### write to stderr #####')
-    28UL
+    28L
 
 # input 'aaa' by keyboard
 #positive:
@@ -207,39 +207,39 @@ positive:
 #  CJSONEE
 positive:
     {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }}
-    12UL
+    12L
 
 positive:
     {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }}
-    11UL
+    11L
 
 positive:
     {{ $STREAM.stderr.writelines('first line') && {{ $STREAM.stderr.writelines('second line') || $STREAM.stderr.writelines('third line') }} }}
-    12UL
+    12L
 
 positive:
     {{ $STREAM.stderr.writelines('first line') && {{ $STREAM.stderr.writelines('second line') && $STREAM.stderr.writelines('third line') }} }}
-    11UL
+    11L
 
 positive:
     {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') ; $STREAM.stderr.writelines('third line') }}
-    11UL
+    11L
 
 positive:
     {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') && $STREAM.stderr.writelines('third line') }}
-    11UL
+    11L
 
 positive:
     {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') || $STREAM.stderr.writelines('third line') }}
-    12UL
+    12L
 
 positive:
     {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} || $STREAM.stderr.writelines('third line') }}
-    12UL
+    12L
 
 positive:
     {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} && $STREAM.stderr.writelines('third line') }}
-    11UL
+    11L
 
 positive:
     {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} && "End Infos" }}
@@ -251,7 +251,7 @@ positive:
 
 positive:
     {{ {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }} || "End Infos" }}
-    11UL
+    11L
 
 negative:
     $STREAM.open()

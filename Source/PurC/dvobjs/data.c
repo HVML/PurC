@@ -1400,8 +1400,8 @@ const uint8_t *rwstream_read_string(purc_rwstream_t in, purc_rwstream_t buff,
         break;
     }
     purc_rwstream_seek(buff, 0L, SEEK_SET);
-    int read_len = 0;
-    int nr_write = 0;
+    ssize_t read_len = 0;
+    size_t nr_write = 0;
     uint32_t uc = 0;
     while ((read_len = purc_rwstream_read(in, &uc, nr_null)) > 0) {
         nr_write += purc_rwstream_write(buff, &uc, read_len);
@@ -1409,18 +1409,24 @@ const uint8_t *rwstream_read_string(purc_rwstream_t in, purc_rwstream_t buff,
             break;
         }
     }
+
+    if (read_len < 0) {
+        return NULL;
+    }
+
     if (nr_read) {
         *nr_read = nr_write;
     }
+
     return purc_rwstream_get_mem_buffer(buff, NULL);
 }
 
 purc_variant_t
-purc_dvobj_read_struct(purc_rwstream_t stream,
-        const char *formats, size_t formats_left, bool silently)
+purc_dvobj_read_struct(purc_rwstream_t stream, const char *formats,
+        size_t formats_left, size_t *nr_total_read, bool silently)
 {
     const uint8_t *bytes = NULL;
-    size_t nr_bytes = 0;
+    size_t nr_bytes = 0, nr_total = 0;
     purc_rwstream_t rws = NULL;
     purc_variant_t retv = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     purc_variant_t item = PURC_VARIANT_INVALID;
@@ -1467,6 +1473,12 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             consumed = real_info[real_id].length * quantity;
 
             bytes = rwstream_read_bytes(stream, rws, consumed, &nr_bytes);
+            if (bytes == NULL) {
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            }
+
+            nr_total += nr_bytes;
             if (consumed > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
@@ -1481,7 +1493,13 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             }
 
             bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
-            if (bytes == NULL ||  quantity > nr_bytes) {
+            if (bytes == NULL) {
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            }
+
+            nr_total += nr_bytes;
+            if (quantity > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
             }
@@ -1496,7 +1514,13 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             }
 
             bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
-            if (bytes == NULL ||  quantity > nr_bytes) {
+            if (bytes == NULL) {
+                purc_set_error(PURC_ERROR_IO_FAILURE);
+                goto failed;
+            }
+
+            nr_total += nr_bytes;
+            if (quantity > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
             }
@@ -1509,6 +1533,12 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
 
             if (quantity > 0) {
                 bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
+                if (bytes == NULL) {
+                    purc_set_error(PURC_ERROR_IO_FAILURE);
+                    goto failed;
+                }
+
+                nr_total += nr_bytes;
                 if (quantity > nr_bytes) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
@@ -1516,10 +1546,16 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             }
             else if (quantity == 0) {
                 bytes = rwstream_read_string(stream, rws, format_id, &nr_bytes);
+                if (bytes == NULL) {
+                    purc_set_error(PURC_ERROR_IO_FAILURE);
+                    goto failed;
+                }
                 if (nr_bytes == 0) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
+
+                nr_total += nr_bytes;
                 quantity = nr_bytes;
             }
 
@@ -1545,15 +1581,22 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
         rws = NULL;
     }
 
+    if (nr_total_read)
+        *nr_total_read = nr_total;
+
     /* if there is only one member, return the member instead of the array */
     if (purc_variant_array_get_size(retv) == 1) {
         item = purc_variant_ref(item);
         purc_variant_unref(retv);
         return item;
     }
+
     return retv;
 
 failed:
+    if (nr_total_read)
+        *nr_total_read = nr_total;
+
     if (silently) {
         if (rws) {
             purc_rwstream_destroy(rws);
@@ -1562,6 +1605,9 @@ failed:
     }
 
 fatal:
+    if (nr_total_read)
+        *nr_total_read = nr_total;
+
     if (item)
         purc_variant_unref(item);
     if (retv)
