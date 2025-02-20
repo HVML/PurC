@@ -1623,7 +1623,11 @@ static int get_stream_type_by_fd(int fd)
             type = STREAM_TYPE_INET;
         }
     }
-    else if (S_ISDIR(stat.st_mode) || S_ISWHT(stat.st_mode)) {
+    else if (S_ISDIR(stat.st_mode)
+#ifdef S_ISWHT
+            || S_ISWHT(stat.st_mode)
+#endif
+            ) {
         return -1;
     }
 
