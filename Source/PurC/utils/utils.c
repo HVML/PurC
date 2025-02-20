@@ -23,6 +23,7 @@
 #include "private/utils.h"
 #include "private/errors.h"
 #include "private/printbuf.h"
+#include "private/ports.h"
 #include "private/debug.h"
 
 #include <stdarg.h>
@@ -507,6 +508,38 @@ pcutils_get_prev_token(const char *data, size_t str_len,
         head = data + str_len;
 
     return head;
+}
+
+const char *
+pcutils_get_next_line_len(const char *str, size_t str_len,
+        const char *sep, size_t *length)
+{
+    if ((*str == 0) || (str_len == 0))
+        return NULL;
+
+    /* Skip the seperator if the string starts with the seperator */
+    size_t sep_len = strlen(sep);
+    if (sep_len <= str_len && strncmp(str, sep, sep_len) == 0) {
+        str += sep_len;
+        str_len -= sep_len;
+
+        if (str_len == 0)
+            return NULL;
+    }
+
+    /* Find the line seprator in the string. */
+    const char *p = strnstr(str, sep, str_len);
+    printf("strnstr(): %s for string (%s)\n", p, str);
+    if (p == NULL) {
+        *length = str_len;
+        return str;
+    }
+
+    *length = p - str;
+    if (*length == 0)
+        return NULL;
+
+    return str;
 }
 
 static const char *json_hex_chars = "0123456789abcdefABCDEF";

@@ -860,6 +860,11 @@ PCA_EXPORT const char *
 pcutils_get_next_token_len(const char *str, size_t str_len,
         const char *delims, size_t *length);
 
+/** Get the pointer of the next valid line and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_line_len(const char *str, size_t str_len,
+        const char *seperator, size_t *length);
+
 /** Escape a string for JSON */
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);

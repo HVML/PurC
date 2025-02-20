@@ -47,7 +47,11 @@ int vasprintf(char **buf, const char *fmt, va_list ap);
 bool pcutils_file_md5(const char *pathname, unsigned char *md5_buf, size_t *sz);
 
 #if !HAVE(STRERRORNAME_NP)
-const char* strerrorname_np(int errnum);
+const char *strerrorname_np(int errnum);
+#endif
+
+#if !HAVE(STRNSTR)
+char *strnstr(const char *haystack, const char *needle, size_t len);
 #endif
 
 #ifdef __cplusplus

@@ -73,6 +73,7 @@ list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
     "${PURC_DIR}/ports/strerrorname_np.c"
+    "${PURC_DIR}/ports/strnstr.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`
