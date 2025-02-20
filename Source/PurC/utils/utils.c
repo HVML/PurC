@@ -529,7 +529,6 @@ pcutils_get_next_line_len(const char *str, size_t str_len,
 
     /* Find the line seprator in the string. */
     const char *p = strnstr(str, sep, str_len);
-    printf("strnstr(): %s for string (%s)\n", p, str);
     if (p == NULL) {
         *length = str_len;
         return str;
