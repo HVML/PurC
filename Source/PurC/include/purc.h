@@ -493,8 +493,8 @@ typedef struct purc_renderer_extra_info {
     const char *page_groups;
 
     /**
-     * The keep contents flag which used to inform the renderer to
-     * preserve the page content.
+     * The keep contents option (an object variant) which used to
+     * inform the renderer to preserve the page content.
      *
      * Since: 0.9.22
      */

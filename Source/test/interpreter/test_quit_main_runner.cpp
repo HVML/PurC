@@ -138,6 +138,7 @@ static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
         "worker transitionStyle",
         toolkit_style,
         "<section></section>",
+        PURC_VARIANT_INVALID
     };
 
     purc_variant_t worker_no = purc_variant_make_number(idx);

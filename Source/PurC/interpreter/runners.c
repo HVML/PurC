@@ -126,6 +126,12 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
         extra_rdr_info.transition_style = purc_variant_get_string_const(tmp);
     }
 
+    extra_rdr_info.keep_contents =
+        purc_variant_object_get_by_ckey(msg->data, "keepContents");
+    if (extra_rdr_info.keep_contents) {
+         purc_variant_ref(extra_rdr_info.keep_contents);
+    }
+
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageGroups");
     if (tmp) {
         extra_rdr_info.page_groups = purc_variant_get_string_const(tmp);
