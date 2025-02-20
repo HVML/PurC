@@ -339,6 +339,7 @@ readstruct_getter(void *native_entity, const char *property_name,
 
     size_t nr_total_read;
     purc_variant_t retv;
+    // purc_clr_error();
     retv = purc_dvobj_read_struct(rwstream, formats, formats_left,
             &nr_total_read, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
     if (retv == PURC_VARIANT_INVALID) {
@@ -349,11 +350,7 @@ readstruct_getter(void *native_entity, const char *property_name,
         if (retv)
             purc_variant_unref(retv);
 
-        if (stream->type >= STREAM_TYPE_PIPE) {
-            purc_set_error(PURC_ERROR_BROKEN_PIPE);
-            goto failed;
-        }
-        else if (purc_get_last_error() == PURC_ERROR_IO_FAILURE) {
+        if (purc_get_last_error() == PURC_ERROR_IO_FAILURE) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 return purc_variant_make_null();
             }
@@ -361,6 +358,14 @@ readstruct_getter(void *native_entity, const char *property_name,
                 purc_set_error(PURC_ERROR_IO_FAILURE);
                 goto failed;
             }
+        }
+        else if (stream->type == STREAM_TYPE_FILE) {
+            purc_set_error(PURC_ERROR_NO_DATA);
+            goto failed;
+        }
+        else {
+            purc_set_error(PURC_ERROR_BROKEN_PIPE);
+            goto failed;
         }
     }
 
@@ -489,10 +494,17 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
     while (line_num) {
         read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);
         if (read_size == 0) {
-            if (total_read == 0 && entity->type >= STREAM_TYPE_PIPE) {
-                PC_WARN("The peer has been closed.\n");
-                purc_set_error(PURC_ERROR_BROKEN_PIPE);
-                goto failed;
+            if (total_read == 0) {
+                if (entity->type == STREAM_TYPE_FILE) {
+                    PC_WARN("Reached the EOF.\n");
+                    purc_set_error(PURC_ERROR_NO_DATA);
+                    goto failed;
+                }
+                else {
+                    PC_WARN("The peer has been closed.\n");
+                    purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                    goto failed;
+                }
             }
             break;
         }
@@ -798,6 +810,7 @@ readbytes_getter(void *native_entity, const char *property_name,
             goto out;
         }
 
+        // purc_clr_error();
         size = purc_rwstream_read(rwstream, content, byte_num);
         if (size > 0) {
             ret_var = purc_variant_make_byte_sequence_reuse_buff(content,
@@ -806,9 +819,15 @@ readbytes_getter(void *native_entity, const char *property_name,
         else {
             free(content);
 
-            if (size == 0 && stream->type >= STREAM_TYPE_PIPE) {
-                purc_set_error(PURC_ERROR_BROKEN_PIPE);
-                goto out;
+            if (size == 0) {
+                if (stream->type == STREAM_TYPE_FILE) {
+                    purc_set_error(PURC_ERROR_NO_DATA);
+                    goto out;
+                }
+                else {
+                    purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                    goto out;
+                }
             }
             else {  /* size < 0 */
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -888,9 +907,15 @@ readbytes2buffer_getter(void *native_entity, const char *property_name,
         purc_variant_bsequence_set_bytes(argv[0], nr_bytes + sz_read);
     }
     else {
-        if (sz_read == 0 && stream->type >= STREAM_TYPE_PIPE) {
-            purc_set_error(PURC_ERROR_BROKEN_PIPE);
-            goto out;
+        if (sz_read == 0) {
+            if (stream->type == STREAM_TYPE_FILE) {
+                purc_set_error(PURC_ERROR_NO_DATA);
+                goto out;
+            }
+            else {
+                purc_set_error(PURC_ERROR_BROKEN_PIPE);
+                goto out;
+            }
         }
         else if (sz_read < 0) {
             if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -1565,24 +1590,74 @@ failed:
     return NULL;
 }
 
+static bool is_fd_inet_socket(int fd)
+{
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if (getsockname(fd, (struct sockaddr *)&addr, &len) == 0 && len > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static int get_stream_type_by_fd(int fd)
+{
+    struct stat stat;
+    if (fstat(fd, &stat)) {
+        return -1;
+    }
+
+    enum pcdvobjs_stream_type type = STREAM_TYPE_FILE;
+    if (S_ISREG(stat.st_mode)) {
+        type = STREAM_TYPE_FILE;
+    }
+    else if (S_ISFIFO(stat.st_mode)) {
+        type = STREAM_TYPE_FIFO;
+    }
+    else if (S_ISSOCK(stat.st_mode)) {
+        if (!is_fd_inet_socket(fd)) {
+            type = STREAM_TYPE_UNIX;
+        }
+        else {
+            type = STREAM_TYPE_INET;
+        }
+    }
+    else if (S_ISDIR(stat.st_mode) || S_ISWHT(stat.st_mode)) {
+        return -1;
+    }
+
+    return type;
+}
+
 static
-struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
+struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stdio_type stdio)
 {
     int fd = -1;
-    switch (type) {
-    case STREAM_TYPE_FILE_STDIN:
+    switch (stdio) {
+    case STDIO_TYPE_STDIN:
         fd = dup(STDIN_FILENO);
         break;
 
-    case STREAM_TYPE_FILE_STDOUT:
+    case STDIO_TYPE_STDOUT:
         fd = dup(STDOUT_FILENO);
         break;
 
-    case STREAM_TYPE_FILE_STDERR:
+    case STDIO_TYPE_STDERR:
         fd = dup(STDERR_FILENO);
         break;
+    }
 
-    default:
+    if (fd < 0) {
+        PC_ERROR("Failed dup()\n");
+        purc_set_error(PURC_ERROR_SYS_FAULT);
+        return NULL;
+    }
+
+    int type = get_stream_type_by_fd(fd);
+    if (type == -1) {
+        purc_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
+        close(fd);
         return NULL;
     }
 
@@ -1613,19 +1688,19 @@ out:
 static inline
 struct pcdvobjs_stream *create_file_stdin_stream()
 {
-    return create_file_std_stream(STREAM_TYPE_FILE_STDIN);
+    return create_file_std_stream(STDIO_TYPE_STDIN);
 }
 
 static inline
 struct pcdvobjs_stream *create_file_stdout_stream()
 {
-    return create_file_std_stream(STREAM_TYPE_FILE_STDOUT);
+    return create_file_std_stream(STDIO_TYPE_STDOUT);
 }
 
 static inline
 struct pcdvobjs_stream *create_file_stderr_stream()
 {
-    return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
+    return create_file_std_stream(STDIO_TYPE_STDERR);
 }
 
 static
@@ -1763,17 +1838,6 @@ out_free_stream:
 
 out:
     return NULL;
-}
-
-static bool is_fd_inet_socket(int fd)
-{
-    struct sockaddr_in addr;
-    socklen_t len = sizeof(addr);
-    if (getsockname(fd, (struct sockaddr *)&addr, &len) == 0 && len > 0) {
-        return true;
-    }
-
-    return false;
 }
 
 static
@@ -2550,19 +2614,14 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
-    struct stat stat;
-    if (fstat(fd, &stat)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (S_ISREG(stat.st_mode)) {
+    int type = get_stream_type_by_fd(fd);
+    if (type == STREAM_TYPE_FILE) {
         stream = create_stream_from_fd(fd, STREAM_TYPE_FILE, option);
     }
-    else if (S_ISFIFO(stat.st_mode)) {
+    else if (type == STREAM_TYPE_FIFO) {
         stream = create_stream_from_fd(fd, STREAM_TYPE_FIFO, option);
     }
-    else if (S_ISSOCK(stat.st_mode) && !is_fd_inet_socket(fd)) {
+    else if (type == STREAM_TYPE_UNIX) {
         const char *prot = "raw";
         if (nr_args > 2) {
             prot = purc_variant_get_string_const(argv[2]);
@@ -2597,7 +2656,7 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
         }
     }
-    else if (S_ISSOCK(stat.st_mode) && is_fd_inet_socket(fd)) {
+    else if (type == STREAM_TYPE_INET) {
 
         const char *prot = "raw";
         if (nr_args > 2) {

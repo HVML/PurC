@@ -33,10 +33,13 @@
 #include "private/debug.h"
 #include "private/errors.h"
 
+enum pcdvobjs_stdio_type {
+    STDIO_TYPE_STDIN,
+    STDIO_TYPE_STDOUT,
+    STDIO_TYPE_STDERR,
+};
+
 enum pcdvobjs_stream_type {
-    STREAM_TYPE_FILE_STDIN,
-    STREAM_TYPE_FILE_STDOUT,
-    STREAM_TYPE_FILE_STDERR,
     STREAM_TYPE_FILE,
     STREAM_TYPE_PIPE,
     STREAM_TYPE_FIFO,
