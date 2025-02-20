@@ -475,9 +475,8 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
-#define NEWLINE_SEPERATOR   "\n"
 static int read_lines(struct pcdvobjs_stream *entity, int line_num,
-        purc_variant_t array)
+        purc_variant_t array, const char *line_seperator)
 {
     purc_rwstream_t stream = entity->stm4r;
     size_t total_read = 0;
@@ -510,8 +509,8 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
         total_read += read_size;
         end = (const char*)(buffer + read_size);
 
-        head = pcutils_get_next_token_len((const char*)buffer, read_size,
-                NEWLINE_SEPERATOR, &length);
+        head = pcutils_get_next_line_len((const char*)buffer, read_size,
+                line_seperator, &length);
         while (head && head < end) {
             purc_variant_t var = purc_variant_make_string_ex(head, length,
                     false);
@@ -528,8 +527,8 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcutils_get_next_token_len(head + length, end - head - length,
-                NEWLINE_SEPERATOR, &length);
+            head = pcutils_get_next_line_len(head + length, end - head - length,
+                line_seperator, &length);
         }
         if (read_size < BUFFER_SIZE)           // to the end
             break;
@@ -543,6 +542,8 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
 failed:
     return -1;
 }
+
+#define NEWLINE_SEPERATOR   "\n"
 
 static purc_variant_t
 readlines_getter(void *native_entity, const char *property_name,
@@ -581,12 +582,27 @@ readlines_getter(void *native_entity, const char *property_name,
 
     if (!purc_variant_cast_to_longint(argv[0], &line_num, false)) {
         PC_ERROR("failed purc_variant_cast_to_longint()\n");
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
 
+    const char *line_seperator = NEWLINE_SEPERATOR;
+    if (nr_args > 1) {
+        size_t len;
+        line_seperator = purc_variant_get_string_const_ex(argv[1], &len);
+        if (line_seperator == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+
+        if (len == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+    }
+
     if (line_num > 0) {
-        int ret = read_lines(stream, line_num, ret_var);
+        int ret = read_lines(stream, line_num, ret_var, line_seperator);
         if (ret != 0) {
             goto out;
         }
@@ -628,8 +644,8 @@ writelines_getter(void *native_entity, const char *property_name,
         goto failed;
     }
 
-    const char *lt = "\n";  /* line terminator */
-    size_t sz_lt = 1;
+    const char *lt = NEWLINE_SEPERATOR;
+    size_t sz_lt = sizeof(NEWLINE_SEPERATOR) - 1;
     if (nr_args > 1) {
         lt = purc_variant_get_string_const_ex(argv[1], &sz_lt);
         if (lt == NULL) {
