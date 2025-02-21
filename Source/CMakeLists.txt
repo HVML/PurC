@@ -9,6 +9,8 @@ add_subdirectory(WTF)
 
 add_subdirectory(CodeTools)
 
+add_subdirectory(ThirdParty/ebtree)
+
 add_subdirectory(PurC)
 
 add_subdirectory(ExtDVObjs)

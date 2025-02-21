@@ -182,4 +182,8 @@ if (HAVE_INT128_VALUE)
 endif ()
 
 check_type_size("uintmax_t" SIZEOF_UINTMAX_T)
+set(SIZEOF_UINTMAX_T "${SIZEOF_UINTMAX_T}")
+
+check_type_size("long" SIZEOF_LONG)
+math(EXPR BITS_PER_LONG "${SIZEOF_LONG} * 8" OUTPUT_FORMAT DECIMAL)
 
