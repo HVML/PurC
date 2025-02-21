@@ -1692,6 +1692,10 @@ static void _cleanup_instance(struct pcinst *inst)
         if (inst->conn_to_rdr == pconn) {
             inst->conn_to_rdr = NULL;
         }
+
+        if (inst->curr_conn == pconn) {
+            inst->curr_conn = NULL;
+        }
     }
 
     conns = &inst->pending_conns;

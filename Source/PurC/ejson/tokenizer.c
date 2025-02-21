@@ -1044,6 +1044,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
                 tkz_stack_push(ETT_VALUE);
                 RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
             }
+            if (token) {
+                pcejson_token_destroy(token);
+            }
         }
     }
 
