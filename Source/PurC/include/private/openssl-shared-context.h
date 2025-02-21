@@ -13,6 +13,8 @@
 #ifndef SHCTX_H
 #define SHCTX_H
 
+#include "config.h"
+
 #include <openssl/ssl.h>
 #include <stdint.h>
 #include <fcntl.h>
@@ -42,7 +44,8 @@ struct openssl_shctx_wrapper {
  * cdate is the creation date timestamp.
  */
 void openssl_shsess_set_new_cbk(struct openssl_shctx_wrapper *wrapper,
-        shsess_new_f *cb);
+        shsess_new_f *cb)
+    WTF_INTERNAL;
 
 /* Add a session into the cache, 
  * sess contains the sessionid zeros padded to SSL_MAX_SSL_SESSION_ID_LENGTH
@@ -53,14 +56,8 @@ void openssl_shsess_set_new_cbk(struct openssl_shctx_wrapper *wrapper,
  *
  * if cdate not 0, on get events session creation date will be reset to cdate */
 void openssl_shctx_sess_add(struct openssl_shctx_wrapper *wrapper,
-        const unsigned char *sess, unsigned len, time_t cdate);
-
-/* Init shared memory context if not allocated and set SSL context callbacks
- * size is the max number of stored session
- * Returns: -1 on alloc failure, size if performs context alloc, and 0 if just
- * perform callbacks registration */
-int openssl_shctx_init(struct openssl_shctx_wrapper *wrapper,
-        SSL_CTX *ctx, int size);
+        const unsigned char *sess, unsigned len, time_t cdate)
+    WTF_INTERNAL;
 
 enum {
     HELPER_RETV_OK = 0,
@@ -81,7 +78,8 @@ enum {
  * -3 for bad argument, 0 if success.
  */
 int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
-        const char *shctxid, mode_t mode, SSL_CTX *ctx, size_t size);
+        const char *shctxid, mode_t mode, SSL_CTX *ctx, size_t size)
+    WTF_INTERNAL;
 
 /* Destroy an OpenSSL shared context object: for dispatcher process.
  *
@@ -89,7 +87,8 @@ int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
  *
  * Returns: -1 on failure, 0 if success.
  */
-int openssl_shctx_destroy(struct openssl_shctx_wrapper *wrapper);
+int openssl_shctx_destroy(struct openssl_shctx_wrapper *wrapper)
+    WTF_INTERNAL;
 
 /* Attach to an OpenSSL shared context object: for worker processes.
  *
@@ -99,13 +98,15 @@ int openssl_shctx_destroy(struct openssl_shctx_wrapper *wrapper);
  * Returns: -1 on failure, 0 if success.
  */
 int openssl_shctx_attach(struct openssl_shctx_wrapper *wrapper,
-        const char *shctxid, SSL_CTX *ctx);
+        const char *shctxid, SSL_CTX *ctx)
+    WTF_INTERNAL;
 
 /* Detach from an OpenSSL shared context object: for worker processes.
  *
  * @wrapper is the pointer to the wrapper of the shared context.
  */
-int openssl_shctx_detach(struct openssl_shctx_wrapper *wrapper);
+int openssl_shctx_detach(struct openssl_shctx_wrapper *wrapper)
+    WTF_INTERNAL;
 
 #endif /* SHCTX_H */
 

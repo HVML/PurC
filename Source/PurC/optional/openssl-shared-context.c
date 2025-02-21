@@ -11,35 +11,35 @@
  * Copyright 2015-2016 Varnish Software
  * Copyright 2012 Bump Technologies, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- *    1. Redistributions of source code must retain the above copyright notice, this list of
- *       conditions and the following disclaimer.
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
  *
- *    2. Redistributions in binary form must reproduce the above copyright notice, this list
- *       of conditions and the following disclaimer in the documentation and/or other materials
- *       provided with the distribution.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in  the
+ *       documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY BUMP TECHNOLOGIES, INC. ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BUMP TECHNOLOGIES, INC. OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY BUMP TECHNOLOGIES, INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL BUMP TECHNOLOGIES, INC. OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those of the
- * authors and should not be interpreted as representing official policies, either expressed
- * or implied, of Bump Technologies, Inc.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Bump Technologies, Inc.
  */
 
-#include "config.h"
-
-#include "ebtree/ebmbtree.h"
 #include "private/openssl-shared-context.h"
+#include "ebtree/ebmbtree.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,6 +48,11 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+
+#if OS(LINUX) && HAVE(STDATOMIC_H)
+#   include <stdatomic.h>
+#   define USE_SYSCALL_FUTEX   1
+#endif
 
 #ifdef USE_SYSCALL_FUTEX
 #  include <unistd.h>
@@ -99,16 +104,21 @@ struct shared_context {
 static inline unsigned
 xchg(unsigned *ptr, unsigned x)
 {
+#if 0
     __asm volatile("lock xchgl %0,%1"
              : "=r" (x), "+m" (*ptr)
              : "0" (x)
              : "memory");
     return (x);
+#else
+    return atomic_exchange(ptr, x);
+#endif
 }
 
 static inline unsigned
 cmpxchg(unsigned *ptr, unsigned old, unsigned new)
 {
+#if 0
     unsigned ret;
 
     __asm volatile("lock cmpxchgl %2,%1"
@@ -116,11 +126,16 @@ cmpxchg(unsigned *ptr, unsigned old, unsigned new)
              : "r" (new), "0" (old)
              : "memory");
     return (ret);
+#else
+    atomic_compare_exchange_strong(ptr, &old, new);
+    return old;
+#endif
 }
 
-static inline unsigned char
+static inline unsigned
 atomic_dec(unsigned *ptr)
 {
+#if 0
     unsigned char ret;
     __asm volatile("lock decl %0\n"
              "setne %1\n"
@@ -128,6 +143,9 @@ atomic_dec(unsigned *ptr)
              :
              : "memory");
     return (ret);
+#else
+    return atomic_fetch_sub(ptr, 1);
+#endif
 }
 
 static inline void
@@ -135,14 +153,15 @@ shared_context_lock(struct openssl_shctx_wrapper* wrapper)
 {
     unsigned x;
 
-    x = cmpxchg(&wrapp->shctx->waiters, 0, 1);
+    x = cmpxchg(&wrapper->shctx->waiters, 0, 1);
     if (x) {
         if (x != 2)
-            x = xchg(&wrapp->shctx->waiters, 2);
+            x = xchg(&wrapper->shctx->waiters, 2);
 
         while (x) {
-            syscall(SYS_futex, &wrapp->shctx->waiters, FUTEX_WAIT, 2, NULL, 0, 0);
-            x = xchg(&wrapp->shctx->waiters, 2);
+            syscall(SYS_futex, &wrapper->shctx->waiters, FUTEX_WAIT,
+                    2, NULL, 0, 0);
+            x = xchg(&wrapper->shctx->waiters, 2);
         }
     }
 }
@@ -152,7 +171,8 @@ shared_context_unlock(struct openssl_shctx_wrapper* wrapper)
 {
     if (atomic_dec(&wrapper->shctx->waiters)) {
         wrapper->shctx->waiters = 0;
-        syscall(SYS_futex, &wrapper->shctx->waiters, FUTEX_WAKE, 1, NULL, 0, 0);
+        syscall(SYS_futex, &wrapper->shctx->waiters, FUTEX_WAKE,
+                1, NULL, 0, 0);
     }
 }
 
@@ -207,19 +227,19 @@ shared_context_unlock(struct openssl_shctx_wrapper* wrapper)
 
 /* Copy-with-padding Macros */
 
-#define shsess_memcpypad(dst, dlen, src, slen)            \
-    do {                            \
-        assert((slen) <= (dlen));            \
-        memcpy((dst), (src), (slen));            \
-        if ((slen) < (dlen))                \
-            memset((char *)(dst) + (slen), 0,    \
-                (dlen) - (slen));            \
+#define shsess_memcpypad(dst, dlen, src, slen)              \
+    do {                                                    \
+        assert((slen) <= (dlen));                           \
+        memcpy((dst), (src), (slen));                       \
+        if ((slen) < (dlen))                                \
+            memset((char *)(dst) + (slen), 0,               \
+                (dlen) - (slen));                           \
     } while (0)
 
-#define shsess_set_key(s, k, l)                    \
-    do {                            \
-        shsess_memcpypad((s)->key_data,            \
-            SSL_MAX_SSL_SESSION_ID_LENGTH, (k), (l));    \
+#define shsess_set_key(s, k, l)                             \
+    do {                                                    \
+        shsess_memcpypad((s)->key_data,                     \
+            SSL_MAX_SSL_SESSION_ID_LENGTH, (k), (l));       \
     } while (0)
 
 /* SSL context callbacks */
@@ -268,7 +288,11 @@ shctx_new_cb(SSL *ssl, SSL_SESSION *sess)
     memcpy(shsess->data, data, data_len);
 
     /* store creation date */
+#if OPENSSL_VERSION_NUMBER >= 0x30300000L
     shsess->c_date = SSL_SESSION_get_time_ex(sess);
+#else
+    shsess->c_date = SSL_SESSION_get_time(sess);
+#endif
 
     shsess_set_active(shsess);
 
@@ -280,13 +304,19 @@ shctx_new_cb(SSL *ssl, SSL_SESSION *sess)
 
         wrapper->shared_session_new_cbk(encsess,
             SSL_MAX_SSL_SESSION_ID_LENGTH + data_len,
-            SSL_SESSION_get_time_ex(sess));
+#if OPENSSL_VERSION_NUMBER >= 0x30300000L
+            SSL_SESSION_get_time_ex(sess)
+#else
+            SSL_SESSION_get_time(sess)
+#endif
+            );
     }
 
     return (0); /* do not increment session reference count */
 }
 
-/* SSL callback used on lookup an existing session cause none found in internal cache */
+/* SSL callback used on lookup an existing session cause none found
+   in internal cache */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static SSL_SESSION *
 shctx_get_cb(SSL *ssl, unsigned char *key, int key_len, int *do_copy)
@@ -338,8 +368,13 @@ shctx_get_cb(SSL *ssl, const unsigned char *key, int key_len, int *do_copy)
     sess = d2i_SSL_SESSION(NULL, (const unsigned char **)&p, data_len);
 
     /* reset creation date */
-    if (sess)
+    if (sess) {
+#if OPENSSL_VERSION_NUMBER >= 0x30300000L
         SSL_SESSION_set_time_ex(sess, cdate);
+#else
+        SSL_SESSION_set_time(sess, cdate);
+#endif
+    }
 
     return (sess);
 }
@@ -399,7 +434,8 @@ openssl_shctx_sess_add(struct openssl_shctx_wrapper *wrapper,
 
     /* copy ASN1 session data into cache */
     shsess->data_len = len - SSL_MAX_SSL_SESSION_ID_LENGTH;
-    memcpy(shsess->data, encsess+SSL_MAX_SSL_SESSION_ID_LENGTH, shsess->data_len);
+    memcpy(shsess->data, encsess + SSL_MAX_SSL_SESSION_ID_LENGTH,
+            shsess->data_len);
 
     shsess_set_active(shsess);
 
@@ -477,7 +513,7 @@ int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
         return HELPER_RETV_BAD_ARGS;
 
     ret = snprintf(name, sizeof(name), SHSESS_NAME_PATTERN, shctxid);
-    assert(ret < sizeof(name));
+    assert(ret > 0 && (size_t)ret < sizeof(name));
 
     strcpy(wrapper->shctxid, shctxid);
     int fd = shm_open(name, O_CREAT | O_RDWR | O_EXCL, mode);
@@ -508,7 +544,7 @@ int openssl_shctx_destroy(struct openssl_shctx_wrapper *wrapper)
     char name[NAME_MAX + 1];
     int ret = snprintf(name, sizeof(name),
             SHSESS_NAME_PATTERN, wrapper->shctxid);
-    assert(ret < sizeof(name));
+    assert(ret > 0 && (size_t)ret < sizeof(name));
     (void)ret;
 
     if (munmap(wrapper->shctx, wrapper->sz_shm) == -1)
@@ -529,11 +565,11 @@ int openssl_shctx_attach(struct openssl_shctx_wrapper *wrapper,
         return HELPER_RETV_BAD_ARGS;
 
     int ret = snprintf(name, sizeof(name), SHSESS_NAME_PATTERN, shctxid);
-    assert(ret < sizeof(name));
+    assert(ret > 0 && (size_t)ret < sizeof(name));
     (void)ret;
 
     strcpy(wrapper->shctxid, shctxid);
-    int fd = shm_open(name, O_RDWR);
+    int fd = shm_open(name, O_RDWR, 0);
     if (fd < 0)
         return HELPER_RETV_BAD_SYSCALL;
 
