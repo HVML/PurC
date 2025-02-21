@@ -41,6 +41,10 @@
  * their parameter count, it is in order to avoid register clobbering where
  * they are called.
  */
+#ifndef CONFIG_REGPARM
+#define CONFIG_REGPARM 0
+#endif
+
 #ifndef REGPRM1
 #if CONFIG_REGPARM >= 1 && __GNUC__ >= 3
 #define REGPRM1	__attribute__((regparm(1)))

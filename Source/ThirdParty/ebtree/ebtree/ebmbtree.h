@@ -130,7 +130,7 @@ static forceinline void __ebmb_delete(struct ebmb_node *ebmb)
  * lookup string keys by prefix if all keys in the tree are zero-terminated. If
  * no match is found, NULL is returned. Returns first node if <len> is zero.
  */
-static forceinline struct ebmb_node *__ebmb_lookup(struct eb_root *root, const void *x, unsigned int len)
+static forceinline struct ebmb_node *__ebmb_lookup(struct eb_root *root, const char *x, unsigned int len)
 {
 	struct ebmb_node *node;
 	eb_troot_t *troot;
@@ -377,7 +377,7 @@ __ebmb_insert(struct eb_root *root, struct ebmb_node *new, unsigned int len)
  * having a byte at the end of <x> which cannot be part of any prefix, typically
  * the trailing zero for a string. If none can be found, return NULL.
  */
-static forceinline struct ebmb_node *__ebmb_lookup_longest(struct eb_root *root, const void *x)
+static forceinline struct ebmb_node *__ebmb_lookup_longest(struct eb_root *root, const char *x)
 {
 	struct ebmb_node *node;
 	eb_troot_t *troot, *cover;
@@ -471,7 +471,7 @@ static forceinline struct ebmb_node *__ebmb_lookup_longest(struct eb_root *root,
  * having a byte at the end of <x> which cannot be part of any prefix, typically
  * the trailing zero for a string. If none can be found, return NULL.
  */
-static forceinline struct ebmb_node *__ebmb_lookup_prefix(struct eb_root *root, const void *x, unsigned int pfx)
+static forceinline struct ebmb_node *__ebmb_lookup_prefix(struct eb_root *root, const char *x, unsigned int pfx)
 {
 	struct ebmb_node *node;
 	eb_troot_t *troot;
