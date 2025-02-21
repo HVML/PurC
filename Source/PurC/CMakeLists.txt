@@ -95,12 +95,21 @@ if (ENABLE_WEBSOCKET)
     )
     list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
     )
-    list(APPEND PurC_SOURCES 
+    list(APPEND PurC_SOURCES
     )
 endif ()
 
 if (HAVE_OPENSSL)
-    list(APPEND PurC_LIBRARIES OpenSSL::SSL)
+    list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
+        "${EBTREE_INCLUDE_DIRS}"
+    )
+    list(APPEND PurC_SOURCES
+        "${PURC_DIR}/optional/openssl-shared-context.c"
+    )
+    list(APPEND PurC_LIBRARIES
+        ebtree
+        OpenSSL::SSL
+    )
 endif ()
 
 if (ENABLE_SCHEMA_LSQL)
