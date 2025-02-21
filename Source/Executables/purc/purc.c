@@ -941,6 +941,9 @@ fill_cor_rdr_info(struct my_opts *opts,
     rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
             "toolkitStyle");
 
+    rdr_info->keep_contents = purc_variant_object_get_by_ckey(rdr,
+            "keepContents");
+
     tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
     if (tmp) {
         const char *file = purc_variant_get_string_const(tmp);
