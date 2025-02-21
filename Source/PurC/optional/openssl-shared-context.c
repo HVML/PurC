@@ -501,7 +501,6 @@ int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
     SSL_CTX_sess_set_remove_cb(ctx, shctx_remove_cb);
 
     return 0;
-
 }
 
 int openssl_shctx_destroy(struct openssl_shctx_wrapper *wrapper)
