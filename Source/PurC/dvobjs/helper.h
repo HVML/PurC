@@ -37,6 +37,8 @@ extern "C" {
 
 #define STREAM_SIZE 1024
 
+char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
+
 struct pcdvobjs_logical_param {
     int result;
 
@@ -44,39 +46,11 @@ struct pcdvobjs_logical_param {
     purc_variant_t variables;
 };
 
-bool pcdvobjs_wildcard_cmp(const char *pattern,
-        const char *str) WTF_INTERNAL;
-bool pcdvobjs_regex_cmp(const char *pattern,
-        const char *str) WTF_INTERNAL;
-
-/* The following function does the batch matchs and returns the result
-   for each string as bits in a 32-bit integer. -1 for failure.
-   Note that the nr_strs should be less than 32. */
-int pcdvobjs_wildcard_cmp_ex(const char *pattern,
-        const char *strs[], int nr_strs) WTF_INTERNAL;
-int pcdvobjs_regex_cmp_ex(const char *pattern,
-        const char *strs[], int nr_strs) WTF_INTERNAL;
-int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
-        const char *events[], int nr_events) WTF_INTERNAL;
-
-char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
-
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
 
-bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
-    WTF_INTERNAL;
-
-struct dvobjs_option_to_atom {
-    const char *option;
-    purc_atom_t atom;
-    int flag;
-};
-
-int dvobjs_parse_options(purc_variant_t vrt,
-        const struct dvobjs_option_to_atom *single_keywords, size_t nr_skw,
-        const struct dvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
-        int flags4null, int flags4failed) WTF_INTERNAL;
+bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str) WTF_INTERNAL;
+bool pcdvobjs_regex_cmp(const char *pattern, const char *str) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

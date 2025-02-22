@@ -221,6 +221,46 @@ PCA_EXPORT purc_variant_t
 purc_dvobj_read_struct(purc_rwstream_t stream, const char *formats,
         size_t formats_left, size_t *nr_total_read, bool silently);
 
+/** Match the wildcard specified by @pattern
+    with multiple string candidants specified by @strs.
+    This function returns the mached strings in a 32-bit integer,
+    one bit per string; -1 on failure.
+    Note that the @nr_strs should be less than 32. */
+int pcdvobjs_wildcard_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs);
+
+/** Match the regualr expression specified by @pattern
+    with multiple string candidants specified by @strs.
+    This function returns the mached strings in a 32-bit integer,
+    one bit per string; -1 on failure.
+    Note that the @nr_strs should be less than 32. */
+int pcdvobjs_regex_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs);
+
+/** Match the event pattern specified by @main_pattern and @sub_pattern
+    with multiple event candidants specified by @events.
+    This function returns the mached events in a 32-bit integer,
+    one bit per event; -1 on failure.
+    Note that the @nr_events should be less than 32. */
+int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
+        const char *events[], int nr_events);
+
+/** Cast a number to a time value (struct timeval). */
+bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
+
+struct dvobjs_option_to_atom {
+    const char *option;
+    purc_atom_t atom;
+    int flag;
+};
+
+/** Parse options specified by @vrt according to @single_keywords
+    and @composite_keywords. */
+int dvobjs_parse_options(purc_variant_t vrt,
+        const struct dvobjs_option_to_atom *single_keywords, size_t nr_skw,
+        const struct dvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
+        int flags4null, int flags4failed);
+
 /**@}*/
 
 PCA_EXTERN_C_END
