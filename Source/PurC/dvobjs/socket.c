@@ -51,6 +51,10 @@
 #include <sys/un.h>
 #include <netdb.h>
 
+#if HAVE(OPENSSL)
+#include <openssl/err.h>
+#endif
+
 #define SOCKET_EVENT_NAME               "socket"
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
 #define SOCKET_SUB_EVENT_NEWDATAGRAM    "newDatagram"
@@ -452,6 +456,150 @@ dvobjs_socket_new(enum pcdvobjs_socket_type type,
     return socket;
 }
 
+#if HAVE(OPENSSL)
+static struct dvobjs_option_to_atom access_users_ckws[] = {
+    { "group",     0, 0060 },
+    { "other",     0, 0006 },
+};
+
+static int
+create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
+{
+    const char *ssl_cert;
+    const char *ssl_key;
+    const char *ssl_session_cache_id;
+    int cache_mode;
+    uint64_t cache_size = OPENSSL_SHCTX_CACHESZ_DEF;
+    int error = PURC_ERROR_OK;
+
+    purc_variant_t tmp;
+
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-cert");
+    ssl_cert = (tmp == NULL)? NULL : purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-key");
+    ssl_key = (tmp == NULL)? NULL : purc_variant_get_string_const(tmp);
+
+    if (ssl_cert == NULL || ssl_key == NULL) {
+        error = PURC_ERROR_INVALID_VALUE;
+        goto opt_failed;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-session-cache-id");
+    ssl_session_cache_id = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
+    if (ssl_session_cache_id) {
+        if (strlen(ssl_session_cache_id) > OPENSSL_SHCTX_ID_LEN) {
+            error = PURC_ERROR_INVALID_VALUE;
+            goto opt_failed;
+        }
+
+        tmp = purc_variant_object_get_by_ckey(opt_obj,
+                "ssl-session-cache-users");
+        cache_mode = dvobjs_parse_options(tmp, NULL, 0,
+            access_users_ckws, PCA_TABLESIZE(access_users_ckws), 0, -1);
+        if (cache_mode == -1) {
+            error = PURC_ERROR_INVALID_VALUE;
+            goto opt_failed;
+        }
+        cache_mode |= 0600;
+
+        tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-session-cache-size");
+        if ((tmp && !purc_variant_cast_to_ulongint(tmp,
+                    &cache_size, false)) ||
+                cache_size < OPENSSL_SHCTX_CACHESZ_MIN) {
+            goto opt_failed;
+        }
+    }
+
+    SSL_CTX *ctx = NULL;
+
+    /* ssl context */
+    if (!(ctx = SSL_CTX_new(SSLv23_server_method()))) {
+        PC_ERROR("Failed SSL_CTX_new(): %s\n",
+                ERR_error_string(ERR_get_error(), NULL));
+        goto ssl_failed;
+    }
+
+    /* set certificate */
+    if (!SSL_CTX_use_certificate_file(ctx, ssl_cert, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_certificate_file(%s): %s\n",
+                ssl_cert, ERR_error_string(ERR_get_error(), NULL));
+        goto ssl_failed;
+    }
+
+    /* ssl private key */
+    if (!SSL_CTX_use_PrivateKey_file(ctx, ssl_key, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_PrivateKey_file(%s): %s\n",
+                ssl_key, ERR_error_string(ERR_get_error(), NULL));
+        goto ssl_failed;
+    }
+
+    if (!SSL_CTX_check_private_key(ctx)) {
+        PC_ERROR("Failed SSL_CTX_check_private_key(): %s\n",
+                ERR_error_string(ERR_get_error(), NULL));
+        goto ssl_failed;
+    }
+
+    /* since we queued up the send data, a retry won't be the same buffer,
+     * thus we need the following flags */
+    SSL_CTX_set_mode(ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
+            SSL_MODE_ENABLE_PARTIAL_WRITE);
+
+    if (ssl_session_cache_id) {
+        socket->ssl_shctx_wrapper = calloc(1, sizeof(*socket->ssl_shctx_wrapper));
+
+        switch (openssl_shctx_create(socket->ssl_shctx_wrapper,
+                ssl_session_cache_id, (mode_t)cache_mode, ctx, cache_size)) {
+            case HELPER_RETV_BAD_SYSCALL:
+                error = purc_error_from_errno(errno);
+                break;
+            case HELPER_RETV_BAD_LIBCALL:
+                error = PURC_ERROR_BAD_STDC_CALL;
+                break;
+            case HELPER_RETV_BAD_ARGS:
+                error = PURC_ERROR_INVALID_VALUE;
+                break;
+        }
+
+        if (error) {
+            goto ssl_failed;
+        }
+    }
+
+    socket->ssl_ctx = ctx;
+    return 0;
+
+ssl_failed:
+    if (socket->ssl_shctx_wrapper) {
+        free(socket->ssl_shctx_wrapper);
+        socket->ssl_shctx_wrapper = NULL;
+    }
+
+    if (ctx) {
+        SSL_CTX_free(ctx);
+    }
+
+opt_failed:
+    purc_set_error(error);
+    return -1;
+}
+
+static void
+destroy_ssl_ctx(struct pcdvobjs_socket *socket)
+{
+    if (socket->ssl_shctx_wrapper) {
+        openssl_shctx_destroy(socket->ssl_shctx_wrapper);
+        free(socket->ssl_shctx_wrapper);
+        socket->ssl_shctx_wrapper = NULL;
+    }
+
+    if (socket->ssl_ctx) {
+        SSL_CTX_free(socket->ssl_ctx);
+        socket->ssl_ctx = NULL;
+    }
+}
+#endif  // HAVE(OPENSSL)
+
 static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
 {
     if (socket->monitor) {
@@ -460,11 +608,16 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
         socket->monitor = 0;
     }
 
+#if HAVE(OPENSSL)
+    if (socket->ssl_ctx) {
+        destroy_ssl_ctx(socket);
+    }
+#endif
+
     if (socket->fd >= 0) {
         close(socket->fd);
         socket->fd = -1;
     }
-
 }
 
 static void dvobjs_socket_delete(struct pcdvobjs_socket *socket)
@@ -626,7 +779,7 @@ accept_getter(void *native_entity, const char *property_name,
 
     PC_ASSERT(native_entity);
     struct pcdvobjs_socket *socket = cast_to_socket(native_entity);
-    PC_ASSERT(socket->type == SOCKET_TYPE_STREAM);
+    PC_ASSERT(socket->type <= SOCKET_TYPE_STREAM_MAX);
 
     int fd = -1;
     if (nr_args == 0) {
@@ -1122,12 +1275,12 @@ property_getter(void *entity, const char *name)
     }
 
     struct pcdvobjs_socket *socket = cast_to_socket(entity);
-    if (socket->type == SOCKET_TYPE_STREAM) {
+    if (socket->type <= SOCKET_TYPE_STREAM_MAX) {
         if (atom == keywords2atoms[K_KW_accept].atom) {
             return accept_getter;
         }
     }
-    else if (socket->type == SOCKET_TYPE_DGRAM) {
+    else if (socket->type >= SOCKET_TYPE_DGRAM_MIN) {
         if (atom == keywords2atoms[K_KW_sendto].atom) {
             return sendto_getter;
         }
@@ -1170,10 +1323,10 @@ socket_io_callback(int fd, int event, void *ctxt)
     }
 
     const char* sub = NULL;
-    if (socket->type == SOCKET_TYPE_STREAM) {
+    if (socket->type <= SOCKET_TYPE_STREAM_MAX) {
         sub = SOCKET_SUB_EVENT_CONNATTEMPT;
     }
-    else if (socket->type == SOCKET_TYPE_DGRAM) {
+    else if (socket->type >= SOCKET_TYPE_DGRAM_MIN) {
         sub = SOCKET_SUB_EVENT_NEWDATAGRAM;
     }
 
@@ -1214,11 +1367,11 @@ on_observe(void *native_entity, const char *event_name,
         return false;
 
     uint32_t event = 0;
-    if (socket->type == SOCKET_TYPE_STREAM &&
+    if (socket->type <= SOCKET_TYPE_STREAM_MAX &&
             (matched & MATCHED_CONNATTEMPT)) {
         event = PCRUNLOOP_IO_IN;
     }
-    else if (socket->type == SOCKET_TYPE_DGRAM &&
+    else if (socket->type >= SOCKET_TYPE_DGRAM_MIN &&
             (matched & MATCHED_NEWDATAGRAM)) {
         event = PCRUNLOOP_IO_IN;
     }
@@ -1337,7 +1490,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
     }
 
     struct pcdvobjs_socket* socket =
-        dvobjs_socket_new(SOCKET_TYPE_STREAM, url);
+        dvobjs_socket_new(SOCKET_TYPE_STREAM_LOCAL, url);
     if (!socket) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto error;
@@ -1427,8 +1580,6 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
         goto failed;
     }
 
-    freeaddrinfo(ai);
-
     /* Tell the socket to accept connections. */
     if (listen(fd, backlog) == -1) {
         PC_DEBUG("Failed listen(): %s.\n", strerror (errno));
@@ -1437,12 +1588,15 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     }
 
     struct pcdvobjs_socket* socket =
-        dvobjs_socket_new(SOCKET_TYPE_STREAM, url);
+        dvobjs_socket_new(ai->ai_family == AF_INET ?
+                    SOCKET_TYPE_STREAM_INET4 :
+                    SOCKET_TYPE_STREAM_INET6, url);
     if (!socket) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
+    freeaddrinfo(ai);
     socket->fd = fd;
     return socket;
 
@@ -1535,6 +1689,18 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error_free_url;
     }
 
+#if HAVE(OPENSSL)
+    if ((socket->type == SOCKET_TYPE_STREAM_INET4 ||
+                socket->type == SOCKET_TYPE_STREAM_INET6) &&
+            nr_args > 3 && purc_variant_is_object(argv[3])) {
+        // initilize SSL_CTX and shared context wrapper here.
+        if (create_ssl_ctx(socket, argv[3])) {
+            dvobjs_socket_delete(socket);
+            goto error;
+        }
+    }
+#endif
+
     const char *entity_name  = NATIVE_ENTITY_NAME_SOCKET ":stream";
     ret_var = purc_variant_make_native_entity(socket, &ops, entity_name);
     if (ret_var) {
@@ -1613,7 +1779,7 @@ create_local_dgram_socket(struct purc_broken_down_url *url,
     }
 
     struct pcdvobjs_socket* socket =
-        dvobjs_socket_new(SOCKET_TYPE_DGRAM, url);
+        dvobjs_socket_new(SOCKET_TYPE_DGRAM_LOCAL, url);
     if (!socket) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto error;
@@ -1698,15 +1864,15 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
         }
     }
 
-    freeaddrinfo(ai);
-
-    struct pcdvobjs_socket* socket =
-        dvobjs_socket_new(SOCKET_TYPE_DGRAM, url);
+    struct pcdvobjs_socket* socket = dvobjs_socket_new(
+            ai->ai_family == AF_INET ?
+            SOCKET_TYPE_DGRAM_INET4 : SOCKET_TYPE_DGRAM_INET6, url);
     if (!socket) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
+    freeaddrinfo(ai);
     socket->fd = fd;
     return socket;
 
@@ -1869,6 +2035,22 @@ purc_variant_t purc_dvobj_socket_new(void)
         }
     }
 
+    static struct dvobjs_option_set {
+        struct dvobjs_option_to_atom *opts;
+        size_t sz;
+    } opts_set[] = {
+        { access_users_ckws,    PCA_TABLESIZE(access_users_ckws) },
+    };
+
+    for (size_t i = 0; i < PCA_TABLESIZE(opts_set); i++) {
+        struct dvobjs_option_to_atom *opts = opts_set[i].opts;
+        if (opts[0].atom == 0) {
+            for (size_t j = 0; j < opts_set[i].sz; j++) {
+                opts[j].atom = purc_atom_from_static_string_ex(
+                        SOCKET_ATOM_BUCKET, opts[j].option);
+            }
+        }
+    }
     purc_variant_t v = purc_dvobj_make_from_methods(socket,
             PCA_TABLESIZE(socket));
     if (v == PURC_VARIANT_INVALID) {

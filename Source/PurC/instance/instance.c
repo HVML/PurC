@@ -60,6 +60,11 @@
 #   include <signal.h>
 #endif
 
+#if HAVE(OPENSSL)
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
+
 #include "generic_err_msgs.inc"
 
 #define FETCHER_MAX_CONNS        100
@@ -287,6 +292,20 @@ struct pcmodule* _pc_modules[] = {
     &_module_renderer,
 };
 
+static void cleanup_once(void)
+{
+#if HAVE(OPENSSL)
+    CRYPTO_cleanup_all_ex_data();
+    CRYPTO_set_id_callback(NULL);
+    CRYPTO_set_locking_callback(NULL);
+    ERR_free_strings();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    ERR_remove_state(0);
+#endif
+    EVP_cleanup();
+#endif
+}
+
 static bool _init_ok = false;
 static void _init_once(void)
 {
@@ -307,6 +326,15 @@ static void _init_once(void)
         perror("sigaction(SIGPIPE, SIG_IGN)");
     }
 #endif
+
+#if HAVE(OPENSSL)
+    /* TODO: Move to global initialization ?*/
+    SSL_load_error_strings();
+    /* Ciphers and message digests */
+    OpenSSL_add_ssl_algorithms();
+#endif
+
+    atexit(cleanup_once);
 
     /* call once initializers of modules */
     for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {

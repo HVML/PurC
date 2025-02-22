@@ -35,30 +35,42 @@
 #include "private/errors.h"
 
 #if HAVE(OPENSSL)
-#include <openssl/ssl.h>
+#include "private/openssl-shared-context.h"
 #endif
 
 #define DEF_BACKLOG     32
 #define NATIVE_ENTITY_NAME_SOCKET       "socket"
 
 enum pcdvobjs_socket_type {
-    SOCKET_TYPE_STREAM,
-    SOCKET_TYPE_DGRAM,
+    SOCKET_TYPE_STREAM_LOCAL,
+    SOCKET_TYPE_STREAM_INET4,
+    SOCKET_TYPE_STREAM_INET6,
+    SOCKET_TYPE_STREAM_MIN = SOCKET_TYPE_STREAM_LOCAL,
+    SOCKET_TYPE_STREAM_MAX = SOCKET_TYPE_STREAM_INET6,
+
+    SOCKET_TYPE_DGRAM_LOCAL,
+    SOCKET_TYPE_DGRAM_INET4,
+    SOCKET_TYPE_DGRAM_INET6,
+    SOCKET_TYPE_DGRAM_MIN = SOCKET_TYPE_DGRAM_LOCAL,
+    SOCKET_TYPE_DGRAM_MAX = SOCKET_TYPE_DGRAM_INET6,
 };
 
 struct pcdvobjs_socket;
 
 typedef struct pcdvobjs_socket {
-    enum pcdvobjs_socket_type type;
+    enum pcdvobjs_socket_type   type;
     struct purc_broken_down_url *url;
-    purc_variant_t observed;    /* not inc ref */
-    uintptr_t monitor;
-    int fd;
-    purc_atom_t cid;
+    purc_variant_t              observed;    /* not inc ref */
+    uintptr_t                   monitor;
+
+    int                         fd;
+    purc_atom_t                 cid;
 
 #if HAVE(OPENSSL)
-    SSL_CTX            *ssl_ctxt;   /* per-server */
+    SSL_CTX                        *ssl_ctx;
+    struct openssl_shctx_wrapper   *ssl_shctx_wrapper;
 #endif
+
 } pcdvobjs_socket;
 
 PCA_EXTERN_C_BEGIN

@@ -21,14 +21,16 @@
 
 typedef void (shsess_new_f)(unsigned char *sess, unsigned len, time_t cdate);
 
-#define OPENSSL_SHCTXID_LEN         7
+#define OPENSSL_SHCTX_ID_LEN         7
+#define OPENSSL_SHCTX_CACHESZ_MIN    4
+#define OPENSSL_SHCTX_CACHESZ_DEF    256
 
-struct shared_context;
+struct _openssl_shared_context;
 struct openssl_shctx_wrapper {
-    char shctxid[OPENSSL_SHCTXID_LEN + 1];
+    char shctxid[OPENSSL_SHCTX_ID_LEN + 1];
     int fd;
     size_t sz_shm;
-    struct shared_context *shctx;
+    struct _openssl_shared_context *shctx;
     shsess_new_f *shared_session_new_cbk;
 };
 

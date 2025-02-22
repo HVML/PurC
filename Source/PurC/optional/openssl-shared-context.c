@@ -89,7 +89,7 @@ struct shared_session {
     struct shared_session    *n;
 };
 
-struct shared_context {
+struct _openssl_shared_context {
 #ifdef USE_SYSCALL_FUTEX
     unsigned                waiters;
 #else
@@ -509,7 +509,7 @@ int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
     char name[NAME_MAX + 1];
     int ret;
 
-    if (strlen(shctxid) > OPENSSL_SHCTXID_LEN)
+    if (strlen(shctxid) > OPENSSL_SHCTX_ID_LEN)
         return HELPER_RETV_BAD_ARGS;
 
     ret = snprintf(name, sizeof(name), SHSESS_NAME_PATTERN, shctxid);
@@ -561,7 +561,7 @@ int openssl_shctx_attach(struct openssl_shctx_wrapper *wrapper,
 {
     char name[NAME_MAX + 1];
 
-    if (strlen(shctxid) > OPENSSL_SHCTXID_LEN)
+    if (strlen(shctxid) > OPENSSL_SHCTX_ID_LEN)
         return HELPER_RETV_BAD_ARGS;
 
     int ret = snprintf(name, sizeof(name), SHSESS_NAME_PATTERN, shctxid);
