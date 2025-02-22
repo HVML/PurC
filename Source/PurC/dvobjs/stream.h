@@ -97,6 +97,7 @@ struct stream_extended {
     };
 };
 
+struct pcdvobjs_socket;
 typedef struct pcdvobjs_stream {
     enum pcdvobjs_stream_type type;
     struct purc_broken_down_url *url;
@@ -118,6 +119,9 @@ typedef struct pcdvobjs_stream {
 
     struct stream_extended ext0;   /* for presentation layer */
     struct stream_extended ext1;   /* for application layer */
+
+    /* If the stream is accepted from a stream socket. */
+    struct pcdvobjs_socket  *socket;
 } pcdvobjs_stream;
 
 PCA_EXTERN_C_BEGIN
@@ -138,8 +142,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     WTF_INTERNAL;
 
 purc_variant_t
-dvobjs_create_stream_by_accepted(purc_atom_t schema,
-        char *peer_addr, char *peer_port, int fd,
+dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
+        purc_atom_t schema, char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot, purc_variant_t extra_opts)
     WTF_INTERNAL;
 

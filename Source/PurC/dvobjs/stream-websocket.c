@@ -220,10 +220,10 @@ struct stream_extended_data {
     size_t              sz_peak_used_mem;
 
     /* server-only fields */
-    pcdvobjs_socket    *server_socket;
     ws_client_info     *client_info;
 
 #if HAVE(OPENSSL)
+    SSL_CTX            *ssl_ctx;        /* if this stream acts as a client */
     SSL                *ssl;
     int                 sslstatus;      /* ssl connection status */
 #endif
@@ -256,6 +256,333 @@ struct stream_extended_data {
     size_t              sz_read_payload;    /* read size of current payload */
     char               *payload;            /* payload data */
 };
+
+static int ws_handle_reads(struct pcdvobjs_stream *stream);
+static int ws_handle_writes(struct pcdvobjs_stream *stream);
+static void cleanup_extension(struct pcdvobjs_stream *stream);
+
+/* Set the connection status for the given client and return the given
+ * bytes.
+ *
+ * The given number of bytes are returned. */
+static inline ssize_t
+ws_set_status(struct stream_extended_data *ext, int status, ssize_t bytes)
+{
+    ext->status = status;
+    return bytes;
+}
+
+static void ws_handle_read_close(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext->status & WS_CLOSING) {
+        // TODO: check if it is observed.
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
+    }
+}
+
+static void ws_handle_write_close(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext->status & WS_CLOSING) {
+        // TODO: check if it is observed.
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
+    }
+}
+
+#if HAVE(OPENSSL)
+
+/* Log result code for TLS/SSL I/O operation */
+static void
+log_return_message(int ret, int err, const char *fn)
+{
+    unsigned long e;
+
+    switch (err) {
+        case SSL_ERROR_NONE:
+            PC_INFO("SSL: %s -> SSL_ERROR_NONE\n", fn);
+            PC_INFO("SSL: TLS/SSL I/O operation completed\n");
+            break;
+        case SSL_ERROR_WANT_READ:
+            PC_INFO("SSL: %s -> SSL_ERROR_WANT_READ\n", fn);
+            PC_INFO("SSL: incomplete, data available for reading\n");
+            break;
+        case SSL_ERROR_WANT_WRITE:
+            PC_INFO("SSL: %s -> SSL_ERROR_WANT_WRITE\n", fn);
+            PC_INFO("SSL: incomplete, data available for writing\n");
+            break;
+        case SSL_ERROR_ZERO_RETURN:
+            PC_INFO("SSL: %s -> SSL_ERROR_ZERO_RETURN\n", fn);
+            PC_INFO("SSL: TLS/SSL connection has been closed\n");
+            break;
+        case SSL_ERROR_WANT_X509_LOOKUP:
+            PC_INFO("SSL: %s -> SSL_ERROR_WANT_X509_LOOKUP\n", fn);
+            break;
+        case SSL_ERROR_SYSCALL:
+            PC_INFO("SSL: %s -> SSL_ERROR_SYSCALL\n", fn);
+
+            e = ERR_get_error ();
+            if (e > 0)
+                PC_INFO("SSL: %s -> %s\n", fn, ERR_error_string (e, NULL));
+
+            /* call was not successful because a fatal error occurred either at the
+             * protocol level or a connection failure occurred. */
+            if (ret != 0) {
+                PC_INFO("SSL bogus handshake interrupt: %s\n", strerror (errno));
+                break;
+            }
+            /* call not yet finished. */
+            PC_INFO("SSL: handshake interrupted, got EOF\n");
+            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+                PC_INFO("SSL: %s -> not yet finished %s\n", fn, strerror (errno));
+            break;
+        default:
+            PC_INFO("SSL: %s -> failed fatal error code: %d\n", fn, err);
+            PC_INFO("SSL: %s\n", ERR_error_string (ERR_get_error (), NULL));
+            break;
+    }
+}
+
+/* Shut down the stream's TLS/SSL connection
+ *
+ * On fatal error, 1 is returned.
+ * If data still needs to be read/written, -1 is returned.
+ * On success, the TLS/SSL connection is closed and 0 is returned */
+static int
+shutdown_ssl(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    int ret = -1, err = 0;
+
+    /* all good */
+    if ((ret = SSL_shutdown(ext->ssl)) > 0)
+        return ws_set_status(ext, WS_CLOSING, 0);
+
+    err = SSL_get_error(ext->ssl, ret);
+    log_return_message(ret, err, "SSL_shutdown");
+
+    switch (err) {
+        case SSL_ERROR_WANT_READ:
+        case SSL_ERROR_WANT_WRITE:
+            ext->sslstatus = WS_TLS_SHUTTING;
+            break;
+        case SSL_ERROR_SYSCALL:
+            if (ret == 0) {
+                PC_INFO("SSL: SSL_shutdown, connection unexpectedly closed by peer.\n");
+                /* The shutdown is not yet finished. */
+                if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+                    ext->sslstatus = WS_TLS_SHUTTING;
+                break;
+            }
+            PC_INFO("SSL: SSL_shutdown, probably unrecoverable, forcing close.\n");
+        case SSL_ERROR_ZERO_RETURN:
+        case SSL_ERROR_WANT_X509_LOOKUP:
+        default:
+            return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, 1);
+    }
+
+    return ret;
+}
+
+/* Wait for a TLS/SSL stream to initiate a TLS/SSL handshake
+ *
+ * On fatal error, the connection is shut down.
+ * If data still needs to be read/written, -1 is returned.
+ * On success, the TLS/SSL connection is completed and 0 is returned */
+static int
+accept_ssl(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    int ret = -1, err = 0;
+
+    /* all good on TLS handshake */
+    if ((ret = SSL_accept(ext->ssl)) > 0) {
+        ext->sslstatus &= ~WS_TLS_ACCEPTING;
+        return 0;
+    }
+
+    err = SSL_get_error(ext->ssl, ret);
+    log_return_message(ret, err, "SSL_accept");
+
+    switch (err) {
+        case SSL_ERROR_WANT_READ:
+        case SSL_ERROR_WANT_WRITE:
+            ext->sslstatus = WS_TLS_ACCEPTING;
+            break;
+        case SSL_ERROR_SYSCALL:
+            /* Wait for more activity else bail out, for instance if
+               the socket is closed during the handshake. */
+            if (ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+                        errno == EINTR)) {
+                ext->sslstatus = WS_TLS_ACCEPTING;
+                break;
+            }
+            /* The peer notified that it is shutting down through a SSL "close_notify" so
+             * we shutdown too */
+        case SSL_ERROR_ZERO_RETURN:
+        case SSL_ERROR_WANT_X509_LOOKUP:
+        default:
+            ext->sslstatus &= ~WS_TLS_ACCEPTING;
+            return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, 1);
+    }
+
+    return ret;
+}
+
+/* Create a new SSL structure for a connection and perform handshake */
+static void
+handle_accept_ssl(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    /* attempt to create SSL connection if we don't have one yet */
+    if (!ext->ssl) {
+        if (!(ext->ssl = SSL_new(stream->socket->ssl_ctx))) {
+            PC_INFO("SSL: SSL_new, new SSL structure failed.\n");
+            return;
+        }
+        if (!SSL_set_fd(ext->ssl, stream->fd4r)) {
+            PC_INFO("SSL: unable to set file descriptor\n");
+            return;
+        }
+    }
+
+    /* attempt to initiate the TLS/SSL handshake */
+    if (accept_ssl(stream) == 0) {
+        PC_INFO("SSL Accepted: %d %s\n", stream->fd4r, stream->peer_addr);
+    }
+}
+
+/* Given the current status of the SSL buffer, perform that action.
+ *
+ * On error or if no SSL pending status, 1 is returned.
+ * On success, the TLS/SSL pending action is called and 0 is returned */
+static int
+handle_pending_rw_ssl(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    /* trying to write but still waiting for a successful SSL_accept */
+    if (ext->sslstatus & WS_TLS_ACCEPTING) {
+        handle_accept_ssl(stream);
+        return 0;
+    }
+    /* trying to read but still waiting for a successful SSL_read */
+    if (ext->sslstatus & WS_TLS_READING) {
+        ws_handle_reads(stream);
+        return 0;
+    }
+    /* trying to write but still waiting for a successful SSL_write */
+    if (ext->sslstatus & WS_TLS_WRITING) {
+        ws_handle_writes(stream);
+        return 0;
+    }
+    /* trying to write but still waiting for a successful SSL_shutdown */
+    if (ext->sslstatus & WS_TLS_SHUTTING) {
+        if (shutdown_ssl(stream) == 0)
+            ws_handle_read_close(stream);
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Write bytes to a TLS/SSL connection for a given stream.
+ *
+ * On error or if no write is performed <=0 is returned.
+ * On success, the number of bytes actually written to the TLS/SSL
+ * connection are returned */
+static int
+send_buffer_ssl(struct pcdvobjs_stream *stream, const char *buffer, int len)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    int bytes = 0, err = 0;
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    ERR_clear_error();
+#endif
+    if ((bytes = SSL_write(ext->ssl, buffer, len)) > 0)
+        return bytes;
+
+    err = SSL_get_error(ext->ssl, bytes);
+    log_return_message(bytes, err, "SSL_write");
+
+    switch (err) {
+        case SSL_ERROR_WANT_WRITE:
+            break;
+        case SSL_ERROR_WANT_READ:
+            ext->sslstatus = WS_TLS_WRITING;
+            break;
+        case SSL_ERROR_SYSCALL:
+            if ((bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+                            errno == EINTR)))
+                break;
+            /* The connection was shut down cleanly */
+        case SSL_ERROR_ZERO_RETURN:
+        case SSL_ERROR_WANT_X509_LOOKUP:
+        default:
+            return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+    }
+
+    return bytes;
+}
+
+/* Read data from the given stream's socket and set a connection
+ * status given the output of recv().
+ *
+ * On error, -1 is returned and the connection status is set.
+ * On success, the number of bytes read is returned. */
+static int
+read_socket_ssl(struct pcdvobjs_stream *stream, char *buffer, int size)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    int bytes = 0, done = 0, err = 0;
+
+    do {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        ERR_clear_error ();
+#endif
+
+        done = 0;
+        if ((bytes = SSL_read(ext->ssl, buffer, size)) > 0)
+            break;
+
+        err = SSL_get_error(ext->ssl, bytes);
+        log_return_message(bytes, err, "SSL_read");
+
+        switch (err) {
+            case SSL_ERROR_WANT_WRITE:
+                ext->sslstatus = WS_TLS_READING;
+                done = 1;
+                break;
+            case SSL_ERROR_WANT_READ:
+                done = 1;
+                break;
+            case SSL_ERROR_SYSCALL:
+                if ((bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+                                errno == EINTR)))
+                    break;
+            case SSL_ERROR_ZERO_RETURN:
+            case SSL_ERROR_WANT_X509_LOOKUP:
+            default:
+                return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+        }
+    } while (SSL_pending(ext->ssl) && !done);
+
+    return bytes;
+}
+
+#endif // HAVE(OPENSSL)
 
 static inline void ws_update_mem_stats(struct stream_extended_data *ext)
 {
@@ -328,6 +655,14 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         ws_clear_pending_data(ext);
         if (ext->message)
             free(ext->message);
+
+#if HAVE(OPENSSL)
+        if (ext->ssl) {
+            shutdown_ssl(stream);
+            SSL_free(ext->ssl);
+            ext->ssl = NULL;
+        }
+#endif
         free(ext);
         stream->ext0.data = NULL;
 
@@ -373,16 +708,18 @@ static bool ws_queue_data(struct pcdvobjs_stream *stream,
     return true;
 }
 
-static ssize_t ws_write(int fd, const void *buf, size_t length)
+static ssize_t
+ws_write(struct pcdvobjs_stream *stream, const void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return write(fd, buf, length);
+    return write(stream->fd4w, buf, length);
 }
 
-static ssize_t ws_read(int fd, void *buf, size_t length)
+static ssize_t
+ws_read(struct pcdvobjs_stream *stream, void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return read(fd, buf, length);
+    return read(stream->fd4r, buf, length);
 }
 
 /*
@@ -397,7 +734,7 @@ static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext0.data;
     ssize_t bytes = 0;
 
-    bytes = ws_write(stream->fd4w, buffer, len);
+    bytes = ws_write(stream, buffer, len);
     if (bytes == -1 && errno == EPIPE) {
         ext->status = WS_ERR_IO | WS_CLOSING;
         return -1;
@@ -432,7 +769,7 @@ static ssize_t ws_write_pending(struct pcdvobjs_stream *stream)
         ssize_t bytes;
         ws_pending_data *pending = (ws_pending_data *)p;
 
-        bytes = ws_write(stream->fd4w, pending->data + pending->szsent,
+        bytes = ws_write(stream, pending->data + pending->szsent,
                 pending->szdata - pending->szsent);
 
         if (bytes > 0) {
@@ -507,7 +844,7 @@ static ssize_t ws_read_socket(struct pcdvobjs_stream *stream,
     ssize_t bytes;
 
 again:
-    bytes = ws_read(stream->fd4r, buff, sz);
+    bytes = ws_read(stream, buff, sz);
     if (bytes == -1) {
         if (errno == EINTR) {
             goto again;
@@ -828,12 +1165,8 @@ static int try_to_read_frame(struct pcdvobjs_stream *stream)
     return try_to_read_payload(stream);
 }
 
-static bool
-ws_handle_reads(int fd, int event, void *ctxt)
+static int ws_handle_reads(struct pcdvobjs_stream *stream)
 {
-    (void)fd;
-    (void)event;
-    struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
     int retv;
 
@@ -993,29 +1326,28 @@ ws_handle_reads(int fd, int event, void *ctxt)
         }
     } while (true);
 
-    return true;
+    return 0;
 
 failed:
     stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
 
 closing:
-    if (ext->status & WS_CLOSING) {
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        cleanup_extension(stream);
-    }
+    ws_handle_read_close(stream);
 
-    return false;
+    return -1;
 }
 
 static bool
-ws_handle_writes(int fd, int event, void *ctxt)
+io_callback_for_read(int fd, int event, void *ctxt)
 {
     (void)fd;
     (void)event;
-    struct pcdvobjs_stream *stream = ctxt;
+    return ws_handle_reads(ctxt) == 0;
+}
+
+static int
+ws_handle_writes(struct pcdvobjs_stream *stream)
+{
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (ext->status & WS_CLOSING) {
@@ -1024,7 +1356,7 @@ ws_handle_writes(int fd, int event, void *ctxt)
                 EVENT_TYPE_CLOSE, NULL,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         cleanup_extension(stream);
-        return false;
+        return -1;
     }
 
     ws_write_pending(stream);
@@ -1036,7 +1368,15 @@ ws_handle_writes(int fd, int event, void *ctxt)
         stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
     }
 
-    return true;
+    return 0;
+}
+
+static bool
+io_callback_for_write(int fd, int event, void *ctxt)
+{
+    (void)fd;
+    (void)event;
+    return ws_handle_writes(ctxt) == 0;
 }
 
 static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, char code)
@@ -1527,7 +1867,8 @@ out:
     return ret;
 }
 
-static int ws_handshake(int fd, const char *host_name, int port)
+static int
+ws_handshake(struct pcdvobjs_stream *stream, const char *host_name, int port)
 {
     int ret = -1;
 
@@ -1550,13 +1891,13 @@ static int ws_handshake(int fd, const char *host_name, int port)
             host_name, port, ws_key);
 
     /* send to server */
-    ws_write(fd, req_headers, strlen(req_headers));
+    ws_write(stream, req_headers, strlen(req_headers));
 
     char buf[1024] = { 0 };
 
     char *p = buf;
     while (true) {
-        if (ws_read(fd, p, 1) != 1) {
+        if (ws_read(stream, p, 1) != 1) {
             PC_DEBUG ("Error receiving data during handshake\n");
             goto out;
         }
@@ -1579,7 +1920,6 @@ const struct purc_native_ops *
 dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
 {
-    (void)extra_opts;
     struct stream_extended_data *ext = NULL;
     struct stream_messaging_ops *msg_ops = NULL;
 
@@ -1590,18 +1930,28 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
-    /* do handshake first */
-    /* TODO: handle extra options: SSL, origin, and more */
-    if (ws_handshake(stream->fd4r, stream->url->host, stream->url->port) != 0) {
-        PC_ERROR("Failed websocket handshake\n");
-        purc_set_error(PURC_ERROR_CONFLICT);
-        goto failed;
-    }
-
+    /* Override the socket option to be have O_NONBLOCK */
     if (fcntl(stream->fd4r, F_SETFL,
                 fcntl(stream->fd4r, F_GETFL, 0) | O_NONBLOCK) == -1) {
         PC_ERROR("Unable to set socket as non-blocking: %s.", strerror(errno));
         purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
+
+#if HAVE(OPENSSL)
+    if (stream->socket && stream->socket->ssl_ctx) {
+        // this stream acts as the server.
+    }
+    else if (extra_opts) {
+        // this stream acts as a client.
+    }
+#endif
+
+    /* do handshake first */
+    /* TODO: handle extra options: SSL, origin, and more */
+    if (ws_handshake(stream, stream->url->host, stream->url->port) != 0) {
+        PC_ERROR("Failed websocket handshake\n");
+        purc_set_error(PURC_ERROR_CONFLICT);
         goto failed;
     }
 
@@ -1638,7 +1988,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     stream->monitor4r = purc_runloop_add_fd_monitor(
             purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
-            ws_handle_reads , stream);
+            io_callback_for_read, stream);
     if (stream->monitor4r) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         if (co) {
@@ -1652,7 +2002,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     stream->monitor4w = purc_runloop_add_fd_monitor(
             purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
-            ws_handle_writes, stream);
+            io_callback_for_write, stream);
     if (stream->monitor4w) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         if (co) {

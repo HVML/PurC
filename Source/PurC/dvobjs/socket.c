@@ -855,7 +855,8 @@ accept_getter(void *native_entity, const char *property_name,
 #endif
 
     purc_variant_t stream =
-        dvobjs_create_stream_by_accepted(schema, peer_addr, peer_port, fd,
+        dvobjs_create_stream_by_accepted(socket,
+                schema, peer_addr, peer_port, fd,
                 nr_args > 1 ? argv[1] : NULL,
                 nr_args > 2 ? argv[2] : NULL);
     if (!stream) {

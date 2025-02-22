@@ -3030,8 +3030,8 @@ purc_variant_t purc_dvobj_stream_new(void)
 }
 
 purc_variant_t
-dvobjs_create_stream_by_accepted(purc_atom_t schema,
-        char *peer_addr, char *peer_port, int fd,
+dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
+        purc_atom_t schema, char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot_v, purc_variant_t prot_opts)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -3096,6 +3096,9 @@ dvobjs_create_stream_by_accepted(purc_atom_t schema,
 
         stream = create_inet_socket_stream_from_fd(fd, peer_addr, peer_port,
                 NULL);
+
+        if (stream)
+            stream->socket = socket;
 
         if (prot && stream) {
             purc_atom_t atom;
