@@ -385,9 +385,13 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         if (stack->doc->ldc == 1 || stack->inherit) {
             /* It's the first time to expose the document */
             /* need send to all conn */
+            bool send_register = (stack->co->page_type == PCRDR_PAGE_TYPE_SELF);
             struct list_head *conns = &inst->conns;
             struct pcrdr_conn *pconn, *qconn;
             list_for_each_entry_safe(pconn, qconn, conns, ln) {
+                if (send_register) {
+                    pcintr_rdr_page_control_register(inst, pconn, stack->co);
+                }
                 pcintr_rdr_page_control_load(inst, pconn, stack->co);
             }
             purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
