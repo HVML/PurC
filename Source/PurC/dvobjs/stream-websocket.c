@@ -527,11 +527,12 @@ handle_pending_rw_ssl(struct pcdvobjs_stream *stream)
  * On error or if no write is performed <=0 is returned.
  * On success, the number of bytes actually written to the TLS/SSL
  * connection are returned */
-static int
-send_buffer_ssl(struct pcdvobjs_stream *stream, const char *buffer, int len)
+static ssize_t
+write_socket_ssl(struct pcdvobjs_stream *stream, const char *buffer, int len)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    int bytes = 0, err = 0;
+    ssize_t bytes = 0;
+    int err = 0;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     ERR_clear_error();
@@ -761,18 +762,44 @@ static bool ws_queue_data(struct pcdvobjs_stream *stream,
     return true;
 }
 
-static ssize_t
-ws_write(struct pcdvobjs_stream *stream, const void *buf, size_t length)
+static inline ssize_t
+write_socket_plain(struct pcdvobjs_stream *stream, const void *buf, size_t len)
 {
-    /* TODO : ssl support */
-    return write(stream->fd4w, buf, length);
+    return write(stream->fd4w, buf, len);
 }
 
 static ssize_t
-ws_read(struct pcdvobjs_stream *stream, void *buf, size_t length)
+ws_write(struct pcdvobjs_stream *stream, const void *buf, size_t len)
 {
-    /* TODO : ssl support */
-    return read(stream->fd4r, buf, length);
+#if HAVE(OPENSSL)
+    struct stream_extended_data *ext = stream->ext0.data;
+    if (ext->ssl)
+        return write_socket_ssl(stream, buf, len);
+    else
+        return write_socket_plain(stream, buf, len);
+#else
+    return write_socket_plain(stream, buf, len);
+#endif
+}
+
+static inline ssize_t
+read_socket_plain(struct pcdvobjs_stream *stream, void *buf, size_t len)
+{
+    return read(stream->fd4r, buf, len);
+}
+
+static ssize_t
+ws_read(struct pcdvobjs_stream *stream, void *buf, size_t len)
+{
+#if HAVE(OPENSSL)
+    struct stream_extended_data *ext = stream->ext0.data;
+    if (ext->ssl)
+        return read_socket_ssl(stream, buf, len);
+    else
+        return read_socket_plain(stream, buf, len);
+#endif
+
+    return read_socket_plain(stream, buf, len);
 }
 
 /*
@@ -1380,6 +1407,11 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
 
 static int ws_handle_reads(struct pcdvobjs_stream *stream)
 {
+#if HAVE(OPENSSL)
+    if (handle_pending_rw_ssl(stream) == 0)
+        return 0;
+#endif
+
     struct stream_extended_data *ext = stream->ext0.data;
     int retv;
 
@@ -1593,6 +1625,11 @@ io_callback_for_read(int fd, int event, void *ctxt)
 static int
 ws_handle_writes(struct pcdvobjs_stream *stream)
 {
+#if HAVE(OPENSSL)
+    if (handle_pending_rw_ssl(stream) == 0)
+        return 0;
+#endif
+
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (ext->status & WS_CLOSING) {
@@ -2264,7 +2301,11 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     }
     else {
         /* this is the server */
+#if HAVE(OPENSSL)
+        ext->sslstatus |= WS_TLS_ACCEPTING;
+#else
         ws_set_status(ext, WS_WAITING4HSREQU, 0);
+#endif
     }
 
     return &msg_entity_ops;
