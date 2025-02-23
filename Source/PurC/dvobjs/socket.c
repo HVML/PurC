@@ -579,6 +579,8 @@ ssl_failed:
         SSL_CTX_free(ctx);
     }
 
+    error = PURC_ERROR_BAD_STDC_CALL;
+
 opt_failed:
     purc_set_error(error);
     return -1;
