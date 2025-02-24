@@ -904,6 +904,10 @@ pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
             PCRDR_OPERATION_REGISTER, NULL,
             PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
             data_type, data, 0);
+    if (data) {
+        purc_variant_unref(data);
+    }
+
     if (response_msg == NULL) {
         goto failed;
     }
