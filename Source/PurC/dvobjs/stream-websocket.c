@@ -553,19 +553,8 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = -1;
 
-    size_t klen = strlen(ext->ws_key);
-    size_t mlen = strlen(WS_MAGIC_STR);
-    size_t len = klen + mlen;
-    char accept[klen + mlen + 1];
-    uint8_t digest[SHA_DIGEST_LEN] = { 0 };
-
-    memset(digest, 0, sizeof *digest);
-    memcpy(accept, ext->ws_key, klen);
-    memcpy(accept + klen, WS_MAGIC_STR, mlen + 1);
-    ws_sha1_digest(accept, len, digest);
-
-    char *encode = pcutils_b64_encode_alloc((unsigned char *)digest,
-            sizeof(digest));
+    char accept[SHA_DIGEST_LEN * 4 + 1];
+    ws_key_to_accept_encoded(ext->ws_key, accept, sizeof(accept));
 
     char *line = ext->hsbuf, *next = NULL;
 
@@ -577,11 +566,8 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
     char *ws_ext = NULL;
 
     while (line) {
-        if ((next = strstr(line, CRLF)) != NULL) {
-            len = (next - line);
-        }
-        else {
-            len = strlen(line);
+        if ((next = strstr(line, CRLF)) == NULL) {
+            break;
         }
 
         if (strncmp2ltr(line, "HTTP/", 5) == 0) {
@@ -616,8 +602,8 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
                 ws_ext = value;
         }
 
-        line = next ? (next + 2) : NULL;
-        if (next && strcmp(next, CRLF CRLF) == 0) {
+        line = next + 2;
+        if (strcmp(next, CRLF CRLF) == 0) {
             break;
         }
     }
@@ -627,7 +613,7 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
         goto out;
     }
 
-    if (ws_accept == NULL || strcmp(ws_accept, encode)) {
+    if (ws_accept == NULL || strcmp(ws_accept, accept)) {
         PC_DEBUG("Failed to verify Sec-WebSocket-Accept during handshake\n");
         goto out;
     }
@@ -661,10 +647,6 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
     }
 
 out:
-    if (encode) {
-        free(encode);
-    }
-
     free(ext->ws_key);
     ext->ws_key = NULL;
 
