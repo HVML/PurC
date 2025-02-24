@@ -121,22 +121,22 @@
 #define PING_NO_RESPONSE_SECONDS            30
 #define MAX_PINGS_TO_FORCE_CLOSING          3
 
-#define EVENT_MASK_HANDSHAKE        0x00000001
-#define EVENT_MASK_CLOSE            0x00000002
+enum {
+    K_EVENT_TYPE_MIN = 0,
+
 #define EVENT_TYPE_HANDSHAKE                "handshake"
-#define EVENT_TYPE_CLOSE                    "close"
-
-#define EVENT_MASK_MESSAGE_TEXT     0x00000010
-#define EVENT_MASK_MESSAGE_BINARY   0x00000020
+    K_EVENT_TYPE_HANDSHAKE = K_EVENT_TYPE_MIN,
 #define EVENT_TYPE_MESSAGE                  "message"
-#   define EVENT_SUBTYPE_TEXT               "text"
-#   define EVENT_SUBTYPE_BINARY             "binary"
-
-#define EVENT_MASK_ERROR_SSL        0x00000100
-#define EVENT_MASK_ERROR_WEBSOCKET  0x00000200
+    K_EVENT_TYPE_MESSAGE,
 #define EVENT_TYPE_ERROR                    "error"
-#   define EVENT_SUBTYPE_SSL                "ssl"
-#   define EVENT_SUBTYPE_WEBSOCKET          "websocket"
+    K_EVENT_TYPE_ERROR,
+#define EVENT_TYPE_CLOSE                    "close"
+    K_EVENT_TYPE_CLOSE,
+
+    K_EVENT_TYPE_MAX = K_EVENT_TYPE_CLOSE,
+};
+
+#define NR_EVENT_TYPES          (K_EVENT_TYPE_MAX - K_EVENT_TYPE_MIN + 1)
 
 /* The frame operation codes for WebSocket */
 typedef enum ws_opcode {
@@ -223,6 +223,8 @@ struct stream_extended_data {
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
 
+    purc_atom_t         event_cids[NR_EVENT_TYPES];
+
     fn_reader           reader;
     fn_writer           writer;
     cb_io               on_readable;
@@ -230,7 +232,6 @@ struct stream_extended_data {
 
     /* server-only fields */
     char               *ws_key;     // The websocket handshake key.
-    char               *subprot;    // The sub-protocol returned by server.
 
 #if HAVE(OPENSSL)
     SSL_CTX            *ssl_ctx;        /* if this stream acts as a client. */
@@ -263,10 +264,10 @@ struct stream_extended_data {
     size_t              sz_ext_payload;
     size_t              sz_read_ext_payload;
 
-    char                mask[4];
-    size_t              sz_mask;
-    size_t              sz_read_mask;
-    bool                read_mask_done;
+    /* current mask */
+    unsigned char       mask[4];
+    int                 sz_mask;
+    int                 sz_read_mask;
 
     /* fields for current reading message */
     size_t              sz_message;         /* total size of current message */
@@ -300,11 +301,6 @@ static void ws_handle_read_close(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (ext->status & WS_CLOSING) {
-        // TODO: check if it is observed.
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         cleanup_extension(stream);
     }
 }
@@ -314,22 +310,34 @@ static void ws_handle_write_close(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (ext->status & WS_CLOSING) {
-        // TODO: check if it is observed.
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         cleanup_extension(stream);
     }
 }
 
-static void ws_sha1_digest(const char *s, int len, unsigned char *digest)
+static void
+ws_sha1_digest(const char *s, int len, unsigned char *digest)
 {
     pcutils_sha1_ctxt sha;
 
     pcutils_sha1_begin(&sha);
     pcutils_sha1_hash(&sha, (uint8_t *) s, len);
     pcutils_sha1_end(&sha, digest);
+}
+
+static void
+ws_key_to_accept_encoded(const char *key, char *encoded, size_t sz)
+{
+    size_t klen = strlen(key);
+    size_t mlen = strlen(WS_MAGIC_STR);
+    size_t len = klen + mlen;
+    char accept[klen + mlen + 1];
+    uint8_t digest[SHA_DIGEST_LEN] = { 0 };
+
+    memset(digest, 0, sizeof *digest);
+    memcpy(accept, key, klen);
+    memcpy(accept + klen, WS_MAGIC_STR, mlen + 1);
+    ws_sha1_digest(accept, len, digest);
+    pcutils_b64_encode((unsigned char *)digest, sizeof(digest), encoded, sz);
 }
 
 /* Make a string uppercase.
@@ -384,6 +392,24 @@ error:
     return path;
 }
 
+#define MAKE_STRING_PROPERTY(obj, cstr, name)                           \
+    if (cstr) {                                                         \
+        purc_variant_t tmp = purc_variant_make_string(cstr, true);      \
+        if (tmp) {                                                      \
+            purc_variant_object_set_by_static_ckey(obj, name, tmp);     \
+            purc_variant_unref(tmp);                                    \
+        }                                                               \
+    }
+
+#define MAKE_NUMBER_PROPERTY(obj, number, name)                         \
+    do {                                                                \
+        purc_variant_t tmp = purc_variant_make_number(number);          \
+        if (tmp) {                                                      \
+            purc_variant_object_set_by_static_ckey(obj, name, tmp);     \
+            purc_variant_unref(tmp);                                    \
+        }                                                               \
+    } while (0)
+
 static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
@@ -406,7 +432,7 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 
     while (line) {
         size_t len;
-        if ((next = strstr(line, "\r\n")) != NULL) {
+        if ((next = strstr(line, CRLF)) != NULL) {
             len = (next - line);
         }
         else {
@@ -426,37 +452,37 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 
             *value = '\0';
             value += 1;
-            char *end = strstr(value, "\r\n");
+            char *end = strstr(value, CRLF);
             if (end == NULL) {
                 break;
             }
             *end = '\0';
 
             char *key = line;
-            if (strcasecmp("Host", key) == 0)
+            if (strcasecmp("Host:", key) == 0)
                 host = value;
-            else if (strcasecmp("Origin", key) == 0)
+            else if (strcasecmp("Origin:", key) == 0)
                 origin = value;
-            else if (strcasecmp("Upgrade", key) == 0)
+            else if (strcasecmp("Upgrade:", key) == 0)
                 upgrade = value;
-            else if (strcasecmp("Connection", key) == 0)
+            else if (strcasecmp("Connection:", key) == 0)
                 connection = value;
-            else if (strcasecmp("User-Agent", key) == 0)
+            else if (strcasecmp("User-Agent:", key) == 0)
                 agent = value;
-            else if (strcasecmp("Referer", key) == 0)
+            else if (strcasecmp("Referer:", key) == 0)
                 referer = value;
-            else if (strcasecmp("Sec-WebSocket-Key", key) == 0)
+            else if (strcasecmp("Sec-WebSocket-Key:", key) == 0)
                 ws_key = value;
-            else if (strcasecmp("Sec-WebSocket-Version", key) == 0)
+            else if (strcasecmp("Sec-WebSocket-Version:", key) == 0)
                 ws_ver = value;
-            else if (strcasecmp("Sec-WebSocket-Protocol", key) == 0)
+            else if (strcasecmp("Sec-WebSocket-Protocol:", key) == 0)
                 ws_protocol = value;
-            else if (strcasecmp("Sec-WebSocket-Extensions", key) == 0)
+            else if (strcasecmp("Sec-WebSocket-Extensions:", key) == 0)
                 ws_extensions = value;
         }
 
         line = next ? (next + 2) : NULL;
-        if (next && strcmp(next, "\r\n\r\n") == 0) {
+        if (next && strcmp(next, CRLF CRLF) == 0) {
             break;
         }
     }
@@ -490,11 +516,33 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
         return -1;
     }
 
-    // TODO: Post `handshake` event here.
-    (void)agent;
-    (void)referer;
-    (void)ws_protocol;
-    (void)ws_extensions;
+    if (ext->event_cids[K_EVENT_TYPE_HANDSHAKE]) {
+        purc_variant_t obj = purc_variant_make_object_0();
+        if (obj) {
+            MAKE_STRING_PROPERTY(obj, path,         "Path");
+            MAKE_STRING_PROPERTY(obj, method,       "Method");
+            MAKE_STRING_PROPERTY(obj, protocol,     "Protocol");
+            MAKE_STRING_PROPERTY(obj, host,         "Host");
+            MAKE_STRING_PROPERTY(obj, origin,       "Origin");
+            MAKE_STRING_PROPERTY(obj, upgrade,      "Upgrade");
+            MAKE_STRING_PROPERTY(obj, connection,   "Connection");
+            MAKE_STRING_PROPERTY(obj, agent,        "User-Agent");
+            MAKE_STRING_PROPERTY(obj, referer,      "Referer");
+            MAKE_STRING_PROPERTY(obj, ws_key,       "Sec-WebSocket-Key");
+            MAKE_STRING_PROPERTY(obj, ws_ver,       "Sec-WebSocket-Version");
+            MAKE_STRING_PROPERTY(obj, ws_protocol,  "Sec-WebSocket-Protocol");
+            MAKE_STRING_PROPERTY(obj, ws_extensions,"Sec-WebSocket-Extensions");
+        }
+
+        pcintr_coroutine_post_event(ext->event_cids[K_EVENT_TYPE_HANDSHAKE],
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_HANDSHAKE, NULL,
+                obj, PURC_VARIANT_INVALID);
+    }
+
+    if (ext->ws_key)
+        free(ext->ws_key);
+    /* keep this for send_handshake_resp() */
     ext->ws_key = strdup(ws_key);
 
     return 0;
@@ -520,14 +568,16 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
             sizeof(digest));
 
     char *line = ext->hsbuf, *next = NULL;
-    bool valid_status = false;
-    bool valid_accept = false;
-    bool valid_upgrade = false;
-    bool valid_connection = false;
 
     int status = 0;
+    char *upgrade = NULL;
+    char *connection = NULL;
+    char *ws_accept = NULL;
+    char *ws_prot = NULL;
+    char *ws_ext = NULL;
+
     while (line) {
-        if ((next = strstr(line, "\r\n")) != NULL) {
+        if ((next = strstr(line, CRLF)) != NULL) {
             len = (next - line);
         }
         else {
@@ -538,77 +588,85 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
             /* check HTTP status code only. */
             char *p = strchr(line, ' ');
             status = atoi(p + 1);
-            if (status != 101) {
-                goto out;
-            }
-            valid_status = true;
         }
         else {
-            char *p = strchr(line, ' ');
-            if (p) {
-                *p = '\0';
+            char *value = strchr(line, ' ');
+            if (value == NULL) {
+                break;
             }
 
-            if (strcmp(line, "Upgrade:") == 0 &&
-                    strcasecmp(p + 1, "websocket") == 0) {
-                valid_upgrade = true;
+            *value = '\0';
+            value += 1;
+            char *end = strstr(value, CRLF);
+            if (end == NULL) {
+                break;
             }
-            else if (strcmp(line, "Connection:") == 0 &&
-                    strcasecmp(p + 1, "upgrade") == 0) {
-                valid_connection = true;
-            }
-            else if (strcmp(line, "Sec-WebSocket-Accept:") == 0 &&
-                    strcmp(p + 1, encode) == 0) {
-                valid_accept = true;
-            }
-            else if (strcmp(line, "Sec-WebSocket-Protocol:") == 0) {
-                char *start = p + 1;
-                char *end = strstr(start, "\r\n");
-                if (end) {
-                    ext->subprot = strndup(start, end - start);
-                }
-            }
+            end = '\0';
+
+            char *key = line;
+            if (strcmp(key, "Upgrade:") == 0)
+                upgrade = value;
+            else if (strcmp(key, "Connection:") == 0)
+                connection = value;
+            else if (strcmp(key, "Sec-WebSocket-Accept:") == 0)
+                ws_accept = value;
+            else if (strcmp(key, "Sec-WebSocket-Protocol:") == 0)
+                ws_prot = value;
+            else if (strcmp(key, "Sec-WebSocket-Extensions:") == 0)
+                ws_ext = value;
         }
 
         line = next ? (next + 2) : NULL;
-        if (next && strcmp(next, "\r\n\r\n") == 0) {
+        if (next && strcmp(next, CRLF CRLF) == 0) {
             break;
         }
     }
 
-    if (!valid_status) {
+    if (status != 101) {
         PC_DEBUG("Bad HTTP status during handshake: %d\n", status);
         goto out;
     }
 
-    if (!valid_accept) {
+    if (ws_accept == NULL || strcmp(ws_accept, encode)) {
         PC_DEBUG("Failed to verify Sec-WebSocket-Accept during handshake\n");
         goto out;
     }
 
-    if (!valid_upgrade) {
+    if (upgrade == NULL || strcasecmp(upgrade, "websocket")) {
         PC_DEBUG("No 'upgrade' header found during handshake\n");
         goto out;
     }
 
-    if (!valid_connection) {
+    if (connection == NULL || strcasecmp(connection, "upgrade")) {
         PC_DEBUG("Not 'connection` header found during handshake\n");
         goto out;
     }
 
     ret = 0;
 
-out:
-    // TODO: post `handshake` event here.
+    if (ext->event_cids[K_EVENT_TYPE_HANDSHAKE]) {
+        purc_variant_t obj = purc_variant_make_object_0();
+        if (obj) {
+            MAKE_NUMBER_PROPERTY(obj, status,       "Status");
+            MAKE_STRING_PROPERTY(obj, upgrade,      "Upgrade");
+            MAKE_STRING_PROPERTY(obj, connection,   "Connection");
+            MAKE_STRING_PROPERTY(obj, ws_prot,      "Sec-WebSocket-Protocol");
+            MAKE_STRING_PROPERTY(obj, ws_ext,       "Sec-WebSocket-Extensions");
+        }
 
+        pcintr_coroutine_post_event(ext->event_cids[K_EVENT_TYPE_HANDSHAKE],
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_HANDSHAKE, NULL,
+                obj, PURC_VARIANT_INVALID);
+    }
+
+out:
     if (encode) {
         free(encode);
     }
 
     free(ext->ws_key);
     ext->ws_key = NULL;
-    free(ext->hsbuf);
-    ext->hsbuf = NULL;
 
     return ret;
 }
@@ -652,12 +710,15 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
     ext->hsbuf[ext->sz_read_hsbuf] = 0; /* set terminating null byte */
 
     if (ext->sz_read_hsbuf >= 4 &&
-            strcmp(ext->hsbuf + ext->sz_read_hsbuf - 4, "\r\n\r\n") == 0) {
+            strcmp(ext->hsbuf + ext->sz_read_hsbuf - 4, CRLF CRLF) == 0) {
         return READ_WHOLE;
     }
 
     return READ_SOME;
 }
+
+static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
+        const char *buffer, size_t len);
 
 /* Handle the handshake request from a client. */
 static int
@@ -682,8 +743,12 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
         ext->status &= ~WS_WAITING4HSREQU;
         ext->on_readable = ws_handle_reads; /* switch to normal mode */
         if (ws_verify_handshake_request(stream)) {
+            ws_write_data(stream, WS_BAD_REQUEST_STR,
+                    sizeof(WS_BAD_REQUEST_STR) - 1);
             ext->status = WS_ERR_MSG | WS_CLOSING;
         }
+        free(ext->hsbuf);
+        ext->hsbuf = NULL;
         break;
     }
 
@@ -715,6 +780,8 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
         if (ws_verify_handshake_response(stream)) {
             ext->status = WS_ERR_SRV | WS_CLOSING;
         }
+        free(ext->hsbuf);
+        ext->hsbuf = NULL;
         break;
     }
 
@@ -1032,10 +1099,12 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (stream->ext0.data) {
-        pcintr_coroutine_post_event(stream->cid,
+        if (ext->event_cids[K_EVENT_TYPE_CLOSE]) {
+            pcintr_coroutine_post_event(ext->event_cids[K_EVENT_TYPE_CLOSE],
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_CLOSE, NULL,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
 
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -1058,11 +1127,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         }
         stream->fd4r = -1;
         stream->fd4w = -1;
-
-        if (ext->subprot) {
-            free(ext->subprot);
-            ext->subprot = NULL;
-        }
 
         if (ext->ws_key) {
             free(ext->ws_key);
@@ -1299,9 +1363,10 @@ again:
     return bytes;
 }
 
-static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin, int opcode,
-        const void *data, ssize_t sz)
+static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
+        int opcode, const void *data, ssize_t sz)
 {
+    struct stream_extended_data *ext = stream->ext0.data;
     int ret = PCRDR_ERROR_IO;
     int mask_int = 0;
     size_t size = sz;
@@ -1310,6 +1375,7 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin, int opcod
     size_t nr_buf = 0;
     ws_frame_header header;
     unsigned char mask[4] = { 0 };
+    int sz_mask;
 
     if (sz <= 0) {
         PC_DEBUG ("Invalid data size %ld.\n", sz);
@@ -1319,26 +1385,33 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin, int opcod
     header.fin = fin;
     header.rsv = 0;
     header.op = opcode;
-    header.mask = 1; /* client must 1 */
+    if (ext->role == WS_ROLE_CLIENT) {
+        header.mask = 1; /* client must be 1 */
 
-    srand(time(NULL));
-    mask_int = rand();
-    memcpy(mask, &mask_int, 4);
+        srandom(time(NULL));
+        mask_int = random();
+        memcpy(mask, &mask_int, 4);
+        sz_mask = 4;
+    }
+    else {
+        header.mask = 0; /* server must be 0 */
+        sz_mask = 0;
+    }
 
     size = sz;
     if (size > 0xffff) {
         /* header(16b) + Extended payload length(64b) + mask(32b) + data */
-        nr_buf = 2 + 8 + 4 + sz;
+        nr_buf = 2 + 8 + sz_mask + sz;
         header.sz_payload = 127;
     }
     else if (size > 125) {
         /* header(16b) + Extended payload length(16b) + mask(32b) + data */
-        nr_buf = 2 + 2 + 4 + sz;
+        nr_buf = 2 + 2 + sz_mask + sz;
         header.sz_payload = 126;
     }
     else {
         /* header(16b) + data + mask(32b) */
-        nr_buf = 2 + 4 + sz;
+        nr_buf = 2 + sz_mask + sz;
         header.sz_payload = sz;
     }
 
@@ -1363,16 +1436,20 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin, int opcod
         p = p + 2;
     }
 
-    /* mask */
-    memcpy(p, &mask, 4);
+    if (sz_mask) {
+        /* mask */
+        memcpy(p, &mask, 4);
+    }
 
     /* payload */
-    p = p + 4;
+    p = p + sz_mask;
     memcpy(p, data, sz);
 
-    /* mask payload */
-    for (ssize_t i = 0; i < sz; i++) {
-        p[i] ^= mask[i % 4] & 0xff;
+    if (sz_mask) {
+        /* mask payload */
+        for (ssize_t i = 0; i < sz; i++) {
+            p[i] ^= mask[i % 4] & 0xff;
+        }
     }
 
     ws_write_sock(stream, buf, nr_buf);
@@ -1407,7 +1484,15 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
             header->op = buf[0] & 0x0F;
             header->mask = buf[1] & 0x80;
             header->sz_payload = buf[1] & 0x7F;
-            ext->read_mask_done = false;
+
+            if (header->mask) {
+                ext->sz_mask = 4;
+                ext->sz_read_mask = 0;
+            }
+            else {
+                ext->sz_mask = 0;
+                ext->sz_read_mask = 0;
+            }
 
             switch (header->sz_payload) {
             case 127:
@@ -1508,8 +1593,6 @@ static int try_to_read_mask(struct pcdvobjs_stream *stream)
     if (n > 0) {
         ext->sz_read_mask += n;
         if (ext->sz_read_mask == ext->sz_mask) {
-            ext->sz_read_mask = 0;
-            ext->read_mask_done = true;
             return READ_WHOLE;
         }
         ext->status |= WS_READING;
@@ -1528,6 +1611,19 @@ static int try_to_read_mask(struct pcdvobjs_stream *stream)
     return READ_SOME;
 }
 
+/* Unmask the payload given the current frame's masking key. */
+static void
+ws_unmask_payload(char *buf, size_t len, size_t offset,
+        const unsigned char mask[])
+{
+    size_t i, j = 0;
+
+    /* unmask data */
+    for (i = offset; i < len; ++i, ++j) {
+        buf[i] ^= mask[j % 4];
+    }
+}
+
 static int try_to_read_payload(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
@@ -1539,6 +1635,10 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     n = ws_read_socket(stream, buf + ext->sz_read_payload,
             ext->sz_payload - ext->sz_read_payload);
     if (n > 0) {
+        if (ext->sz_mask) {
+            ws_unmask_payload(buf, ext->sz_read_payload, n, ext->mask);
+        }
+
         ext->sz_read_payload += n;
         if (ext->sz_read_payload == ext->sz_payload) {
             ext->sz_read_payload = 0;
@@ -1589,7 +1689,7 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
     }
 
     /* read mask */
-    if (header->mask && !ext->read_mask_done) {
+    if (header->mask && ext->sz_read_mask < ext->sz_mask) {
         retv = try_to_read_mask(stream);
         if (retv != READ_WHOLE) {
             return retv;
@@ -1912,11 +2012,6 @@ failed:
 static int send_data(struct pcdvobjs_stream *stream,
         bool text_or_binary, const char *data, size_t sz)
 {
-    /* TODO */
-    (void) stream;
-    (void) text_or_binary;
-    (void) data;
-    (void) sz;
     struct stream_extended_data *ext = stream->ext0.data;
 
     if (ext == NULL) {
@@ -1942,7 +2037,7 @@ static int send_data(struct pcdvobjs_stream *stream,
         do {
             if (left == sz) {
                 fin = 0;
-                opcode = WS_OPCODE_TEXT;
+                opcode = text_or_binary ? WS_OPCODE_TEXT : WS_OPCODE_BIN;
                 sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
                 left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
             }
@@ -1964,7 +2059,8 @@ static int send_data(struct pcdvobjs_stream *stream,
         } while (left > 0);
     }
     else {
-        ws_send_data_frame(stream, 1, WS_OPCODE_TEXT, data, sz);
+        ws_send_data_frame(stream, 1,
+                text_or_binary ? WS_OPCODE_TEXT : WS_OPCODE_BIN, data, sz);
     }
 
     if (ext->status & WS_ERR_ANY) {
@@ -1999,7 +2095,7 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
 
     pcintr_coroutine_post_event(stream->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-            EVENT_TYPE_ERROR, EVENT_SUBTYPE_WEBSOCKET,
+            EVENT_TYPE_ERROR, NULL,
             data, PURC_VARIANT_INVALID);
     return 0;
 }
@@ -2016,7 +2112,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             data = purc_variant_make_string(buf, true);
             pcintr_coroutine_post_event(stream->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                    EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_TEXT,
+                    EVENT_TYPE_MESSAGE, NULL,
                     data, PURC_VARIANT_INVALID);
             break;
 
@@ -2025,7 +2121,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             data = purc_variant_make_byte_sequence(buf, len);
             pcintr_coroutine_post_event(stream->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                    EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_BINARY,
+                    EVENT_TYPE_MESSAGE, NULL,
                     data, PURC_VARIANT_INVALID);
             break;
 
@@ -2037,10 +2133,6 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             break;
 
         case MT_CLOSE:
-            pcintr_coroutine_post_event(stream->cid,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                    EVENT_TYPE_CLOSE, NULL,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
             cleanup_extension(stream);
             break;
     }
@@ -2055,31 +2147,85 @@ send_handshake_resp(void *entity, const char *property_name,
 {
     UNUSED_PARAM(property_name);
     struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+    struct pcutils_mystring mystr;
+
+    pcutils_mystring_init(&mystr);
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    bool text_or_binary = true;
-    const void *data = NULL;
-    size_t len;
-    if (purc_variant_is_string(argv[0])) {
-        data = purc_variant_get_string_const_ex(argv[0], &len);
-    }
-    else if (purc_variant_is_bsequence(argv[0])) {
-        text_or_binary = false;
-        data = purc_variant_get_bytes_const(argv[0], &len);
-    }
-
-    if (data == NULL) {
+    int status;
+    if (!purc_variant_cast_to_int32(argv[0], &status, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    int retv;
-    if ((retv = send_data(stream, text_or_binary, data, len))) {
-        purc_set_error(retv);
+    const char *response = NULL;
+    switch (status) {
+    case 101:
+        break;
+    case 400:
+        response = WS_BAD_REQUEST_STR;
+        break;
+    case 503:
+        response = WS_TOO_BUSY_STR;
+        break;
+    case 505:
+    default:
+        response = WS_INTERNAL_ERROR_STR;
+        break;
+    }
+
+    size_t len;
+    if (response) {
+        len = strlen(response);
+        goto done;
+    }
+
+    char accept[SHA_DIGEST_LEN * 4 + 1];
+    ws_key_to_accept_encoded(ext->ws_key, accept, sizeof(accept));
+
+    pcutils_mystring_append_string(&mystr, WS_SWITCH_PROTO_STR);
+    pcutils_mystring_append_string(&mystr, CRLF);
+    pcutils_mystring_append_string(&mystr, "Upgrade: ");
+    pcutils_mystring_append_string(&mystr, "websocket");
+    pcutils_mystring_append_string(&mystr, CRLF);
+
+    pcutils_mystring_append_string(&mystr, "Connection: ");
+    pcutils_mystring_append_string(&mystr, "upgrade");
+    pcutils_mystring_append_string(&mystr, CRLF);
+
+    pcutils_mystring_append_string(&mystr, "Sec-WebSocket-Accept: ");
+    pcutils_mystring_append_string(&mystr, accept);
+
+    const char *subprot = NULL;
+    if (nr_args > 1 && (subprot = purc_variant_get_string_const(argv[1]))) {
+        pcutils_mystring_append_string(&mystr, CRLF);
+        pcutils_mystring_append_string(&mystr, "Sec-WebSocket-Protocol: ");
+        pcutils_mystring_append_string(&mystr, subprot);
+    }
+
+    const char *exts = NULL;
+    if (nr_args > 2 && (exts = purc_variant_get_string_const(argv[2]))) {
+        pcutils_mystring_append_string(&mystr, CRLF);
+        pcutils_mystring_append_string(&mystr, "Sec-WebSocket-Extensions: ");
+        pcutils_mystring_append_string(&mystr, exts);
+    }
+
+    pcutils_mystring_append_string(&mystr, CRLF CRLF);
+    pcutils_mystring_done(&mystr);
+    response = mystr.buff;
+    len = mystr.nr_bytes - 1;
+
+done:
+    ssize_t nr_bytes = ws_write_data(stream, response, len);
+    pcutils_mystring_free(&mystr);
+
+    if (nr_bytes < 0) {
+        purc_set_error(PURC_ERROR_IO_FAILURE);
         goto failed;
     }
 
@@ -2195,12 +2341,43 @@ failed:
     return NULL;
 }
 
+static const char *websocket_events[] = {
+#define EVENT_MASK_HANDSHAKE    (0x01 << K_EVENT_TYPE_HANDSHAKE)
+    EVENT_TYPE_HANDSHAKE,
+#define EVENT_MASK_MESSAGE      (0x01 << K_EVENT_TYPE_MESSAGE)
+    EVENT_TYPE_MESSAGE,
+#define EVENT_MASK_ERROR        (0x01 << K_EVENT_TYPE_ERROR)
+    EVENT_TYPE_ERROR,
+#define EVENT_MASK_CLOSE        (0x01 << K_EVENT_TYPE_CLOSE)
+    EVENT_TYPE_CLOSE,
+};
+
 static bool on_observe(void *entity, const char *event_name,
         const char *event_subname)
 {
-    (void)entity;
-    (void)event_name;
-    (void)event_subname;
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)entity;
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    if (co == NULL)
+        return false;
+
+    int matched = pcdvobjs_match_events(event_name, event_subname,
+            websocket_events, PCA_TABLESIZE(websocket_events));
+    if (matched == -1)
+        return false;
+
+    struct stream_extended_data *ext = stream->ext0.data;
+    if ((matched & EVENT_MASK_HANDSHAKE)) {
+        ext->event_cids[K_EVENT_TYPE_HANDSHAKE] = co->cid;
+    }
+    if ((matched & EVENT_MASK_MESSAGE)) {
+        ext->event_cids[K_EVENT_TYPE_MESSAGE] = co->cid;
+    }
+    if ((matched & EVENT_MASK_ERROR)) {
+        ext->event_cids[K_EVENT_TYPE_ERROR] = co->cid;
+    }
+    if ((matched & EVENT_MASK_CLOSE)) {
+        ext->event_cids[K_EVENT_TYPE_CLOSE] = co->cid;
+    }
 
     return true;
 }
@@ -2208,9 +2385,29 @@ static bool on_observe(void *entity, const char *event_name,
 static bool on_forget(void *entity, const char *event_name,
         const char *event_subname)
 {
-    (void)entity;
-    (void)event_name;
-    (void)event_subname;
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)entity;
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    if (co == NULL)
+        return false;
+
+    int matched = pcdvobjs_match_events(event_name, event_subname,
+            websocket_events, PCA_TABLESIZE(websocket_events));
+    if (matched == -1)
+        return false;
+
+    struct stream_extended_data *ext = stream->ext0.data;
+    if ((matched & EVENT_MASK_HANDSHAKE)) {
+        ext->event_cids[K_EVENT_TYPE_HANDSHAKE] = 0;
+    }
+    if ((matched & EVENT_MASK_MESSAGE)) {
+        ext->event_cids[K_EVENT_TYPE_MESSAGE] = 0;
+    }
+    if ((matched & EVENT_MASK_ERROR)) {
+        ext->event_cids[K_EVENT_TYPE_ERROR] = 0;
+    }
+    if ((matched & EVENT_MASK_CLOSE)) {
+        ext->event_cids[K_EVENT_TYPE_CLOSE] = 0;
+    }
 
     return true;
 }
@@ -2279,17 +2476,17 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
 
     char *req_headers = NULL;
     int n = asprintf(&req_headers,
-            "GET %s HTTP/1.1\r\n"
-            "Upgrade: websocket\r\n"
-            "Connection: Upgrade\r\n"
-            "Host: %s\r\n"
-            "Origin: %s\r\n"
-            "User-Agent: %s\r\n"
-            "Referer: %s\r\n"
-            "Sec-WebSocket-Extensions: %s\r\n"
-            "Sec-WebSocket-Protocol: %s\r\n"
-            "Sec-WebSocket-Key: %s\r\n"
-            "Sec-WebSocket-Version: 13\r\n\r\n",
+            "GET %s HTTP/1.1" CRLF
+            "Upgrade: websocket" CRLF
+            "Connection: Upgrade" CRLF
+            "Host: %s" CRLF
+            "Origin: %s" CRLF
+            "User-Agent: %s" CRLF
+            "Referer: %s:" CRLF
+            "Sec-WebSocket-Extensions: %s" CRLF
+            "Sec-WebSocket-Protocol: %s" CRLF
+            "Sec-WebSocket-Key: %s" CRLF
+            "Sec-WebSocket-Version: 13" CRLF CRLF,
             path, host, origin, useragent, referer,
             extensions, subprotocols, ext->ws_key);
 
