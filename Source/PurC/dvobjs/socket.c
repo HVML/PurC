@@ -475,12 +475,13 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     purc_variant_t tmp;
 
     tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-cert");
-    ssl_cert = (tmp == NULL)? NULL : purc_variant_get_string_const(tmp);
+    ssl_cert = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-key");
-    ssl_key = (tmp == NULL)? NULL : purc_variant_get_string_const(tmp);
+    ssl_key = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     if (ssl_cert == NULL || ssl_key == NULL) {
+        PC_ERROR("Bad SSL certification or key\n");
         error = PURC_ERROR_INVALID_VALUE;
         goto opt_failed;
     }
@@ -507,6 +508,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         if ((tmp && !purc_variant_cast_to_ulongint(tmp,
                     &cache_size, false)) ||
                 cache_size < OPENSSL_SHCTX_CACHESZ_MIN) {
+            error = PURC_ERROR_INVALID_VALUE;
             goto opt_failed;
         }
     }
@@ -1648,6 +1650,11 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int backlog = (int)tmp_l;
 
+    if (nr_args > 3 && !purc_variant_is_object(argv[3])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
     struct purc_broken_down_url *url = (struct purc_broken_down_url*)
         calloc(1, sizeof(struct purc_broken_down_url));
     if (!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
@@ -1694,12 +1701,13 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 #if HAVE(OPENSSL)
     if ((socket->type == SOCKET_TYPE_STREAM_INET4 ||
-                socket->type == SOCKET_TYPE_STREAM_INET6) &&
-            nr_args > 3 && purc_variant_is_object(argv[3])) {
-        // initilize SSL_CTX and shared context wrapper here.
-        if (create_ssl_ctx(socket, argv[3])) {
-            dvobjs_socket_delete(socket);
-            goto error;
+                socket->type == SOCKET_TYPE_STREAM_INET6)) {
+        if (nr_args > 3) {
+            // initilize SSL_CTX and shared context wrapper here.
+            if (create_ssl_ctx(socket, argv[3])) {
+                dvobjs_socket_delete(socket);
+                goto error;
+            }
         }
     }
 #endif
