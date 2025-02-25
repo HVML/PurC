@@ -58,6 +58,12 @@ TEST(dvobjs, socket_inet_dgram)
     tester.run_testcases_in_file("socket_inet_dgram");
 }
 
+TEST(dvobjs, socket_inet_websocket)
+{
+    TestDVObj tester;
+    tester.run_testcases_in_file("socket_inet_websocket");
+}
+
 #else
 
 TEST(dvobjs, foo)

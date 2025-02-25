@@ -1,0 +1,13 @@
+# test cases for websocket
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    true
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket')
+    InvalidValue
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
