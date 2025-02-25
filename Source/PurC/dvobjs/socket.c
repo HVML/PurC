@@ -827,9 +827,11 @@ accept_getter(void *native_entity, const char *property_name,
     }
 
     if (fd < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
+        PC_ERROR("Failed accept(): %s\n", strerror(errno));
         return purc_variant_make_null();
     }
     else if (fd < 0 && (errno == ETIMEDOUT || errno == EINPROGRESS)) {
+        PC_ERROR("Failed accept(): %s\n", strerror(errno));
         return purc_variant_make_null();
     }
 

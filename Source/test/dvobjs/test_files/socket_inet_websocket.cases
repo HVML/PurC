@@ -63,3 +63,47 @@ positive:
     $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'test', 'ssl-session-cache-users': 'group', 'ssl-session-cache-size': 32 }))
     'native'
 
+positive:
+    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none') )
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}))
+    true
+
+positive:
+    $RUNNER.myObj.cliStreamSocket.send('Hello')
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt' }) )
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', { 'secure': true }) )
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}) )
+    true
+
+positive:
+    $RUNNER.myObj.cliStreamSocket.send('Hello')
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', undefiend)
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', undefiend)
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', undefiend)
+    true
+

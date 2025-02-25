@@ -2603,8 +2603,6 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     stream->stm4w = NULL;
     stream->stm4r = NULL;
 
-    PC_INFO("This stream is extended by Layer 0 protocol: websocket\n");
-
     if (stream->socket == NULL) {
         bool secure = false;
         purc_variant_t tmp;
@@ -2754,6 +2752,9 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         ws_set_status(ext, WS_WAITING4HSREQU, 0);
 #endif
     }
+
+    PC_INFO("This stream is extended by Layer 0 prot: websocket; role(%d)\n",
+            ext->role);
 
     assert(ext->reader);
     assert(ext->writer);
