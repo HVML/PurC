@@ -2656,9 +2656,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             }
             else {
                 /* This is a client process. */
-                int r;
-                while ((r = SSL_connect(ext->ssl)) == -1);
-
+                int r = SSL_connect(ext->ssl);
                 if (r == 0) {
                     PC_ERROR("Failed SSL_connect(): %s.\n",
                             ERR_error_string(ERR_get_error(), NULL));
