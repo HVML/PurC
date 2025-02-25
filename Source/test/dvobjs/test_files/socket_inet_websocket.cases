@@ -103,9 +103,9 @@ positive:
     $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}) )
     true
 
-positive:
+negative:
     $RUNNER.myObj.cliStreamSocket.send('Hello')
-    true
+    NotReady
 
 positive:
     $RUNNER.user(! 'srvStreamSocket', undefined)
