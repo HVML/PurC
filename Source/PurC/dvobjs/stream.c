@@ -2874,12 +2874,12 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (!stream) {
+        /* url has been freed in dvobjs_stream_delete() */
         if (errno == EINPROGRESS) {
-            pcutils_broken_down_url_delete(url);
-            return  purc_variant_make_null();
+            return purc_variant_make_null();
         }
         else {
-            goto out_free_url;
+            goto out;
         }
     }
 
