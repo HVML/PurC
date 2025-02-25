@@ -587,7 +587,7 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
             if (end == NULL) {
                 break;
             }
-            end = '\0';
+            *end = '\0';
 
             char *key = line;
             if (strcmp(key, "Upgrade:") == 0)
@@ -2131,6 +2131,7 @@ send_handshake_resp(void *entity, const char *property_name,
     struct pcdvobjs_stream *stream = entity;
     struct stream_extended_data *ext = stream->ext0.data;
     struct pcutils_mystring mystr;
+    ssize_t nr_bytes;
 
     pcutils_mystring_init(&mystr);
 
@@ -2203,7 +2204,7 @@ send_handshake_resp(void *entity, const char *property_name,
     len = mystr.nr_bytes - 1;
 
 done:
-    ssize_t nr_bytes = ws_write_data(stream, response, len);
+    nr_bytes = ws_write_data(stream, response, len);
     pcutils_mystring_free(&mystr);
 
     if (nr_bytes < 0) {
@@ -2416,7 +2417,7 @@ static const struct purc_native_ops msg_entity_ops = {
 // Mozilla/5.0 (<system-information>) <platform> (<platform-details>) <extensions>
 #if OS(LINUX)
 #   define USER_AGENT  "Mozilla/5.0 (Linux) Foil/Chouniu PurC/0.9.22"
-#elif OS(MAC)
+#elif OS(MAC_OS_X)
 #   define USER_AGENT  "Mozilla/5.0 (macOS) Foil/Chouniu PurC/0.9.22"
 #else
 #   define USER_AGENT  "Mozilla/5.0 (Unknown) Foil/Chouniu PurC/0.9.22"
