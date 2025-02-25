@@ -2765,19 +2765,16 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const struct timeval *timeout = NULL;
     if (nr_args > 3) {
         if (!purc_variant_is_object(argv[3])) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto out_free_url;
         }
 
         purc_variant_t tmp;
         tmp = purc_variant_object_get_by_ckey(argv[3], "recv-timeout");
-        if (tmp == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto out_free_url;
+        if (tmp) {
+            dvobjs_cast_to_timeval(&tv, tmp);
+            timeout = &tv;
         }
-
-        dvobjs_cast_to_timeval(&tv, tmp);
-        timeout = &tv;
     }
 
     static const struct purc_native_ops basic_ops = {

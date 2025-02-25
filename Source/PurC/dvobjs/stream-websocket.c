@@ -2426,7 +2426,7 @@ static const struct purc_native_ops msg_entity_ops = {
 #define DEFINE_STRING_VAR_FROM_OBJECT(name, alternative)        \
     const char *name;                                           \
     tmp = purc_variant_object_get_by_ckey(extra_opts, #name);   \
-    name = (tmp != PURC_VARIANT_INVALID) ? alternative :        \
+    name = (tmp == PURC_VARIANT_INVALID) ? alternative :        \
         purc_variant_get_string_const(tmp);                     \
     if (name == NULL) {                                         \
         purc_set_error(PURC_ERROR_INVALID_VALUE);               \
@@ -2514,9 +2514,13 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     }
 
     if (stream->socket == NULL && extra_opts == PURC_VARIANT_INVALID) {
-        // this stream acts as a client.
         PC_ERROR("No any WebSocket options given.\n");
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+    else if (!purc_variant_is_object(extra_opts)) {
+        PC_ERROR("Not an object for websocket options.\n");
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
@@ -2605,7 +2609,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         bool secure = false;
         purc_variant_t tmp;
         tmp = purc_variant_object_get_by_ckey(extra_opts, "secure");
-        secure = tmp != PURC_VARIANT_INVALID ? false :
+        secure = tmp == PURC_VARIANT_INVALID ? false :
             purc_variant_booleanize(tmp);
 
         if (secure) {

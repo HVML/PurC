@@ -5,7 +5,19 @@ positive:
 
 negative:
     $STREAM.open('inet4://localhost:8080', 'default', 'websocket')
+    ArgumentMissed
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket', null)
+    WrongDataType
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket', {})
     InvalidValue
+
+positive:
+    $DATA.type($STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
+    'native'
 
 positive:
     $RUNNER.user(! 'inetStreamSocket', undefined )
