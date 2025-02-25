@@ -70,14 +70,16 @@
                     $STREAM.stdout.writelines("Calling commWithServer for $?")
                 </inherit>
 
-                <init as 'clientName' with "$?" />
+                <init as 'clientName' with $? />
 
                 <call on $commWithServer within $clientName with { name: $clientName, schema: $REQ.schema } as $clientName concurrently asynchronously />
                 <observe on ${$clientName} for 'callState:success'>
+                    $clientName
+
                     <inherit>
                         $STREAM.stdout.writelines("Client returns: $?")
                     </inherit>
-                    <update on $got at ".$clientName" with $? />
+                    <update on $got at ".$_observedContent" with $? />
                     <update on $got at '.success' with $DATA.arith('+', $got['success'], 1) />
                 </observe>
 
@@ -108,7 +110,7 @@
 
                 <test with $L.not($DATA.isequal($?, null)) >
 
-                    <init as 'clientName' with $?.peerAddr temp />
+                    <init as 'clientName' with "$?.peerAddr:$?.peerPort" temp />
 
                     <inherit>
                         $STREAM.stdout.writelines("Accepted a connection from $clientName")

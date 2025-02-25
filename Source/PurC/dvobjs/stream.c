@@ -485,7 +485,7 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
 {
     purc_rwstream_t stream = entity->stm4r;
     size_t total_read = 0;
-    unsigned char buffer[BUFFER_SIZE];
+    unsigned char buffer[BUFFER_SIZE + 1];
     ssize_t read_size = 0;
     size_t length = 0;
     const char *head = NULL;
@@ -516,6 +516,9 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
                 purc_set_error(PURC_ERROR_IO_FAILURE);
                 goto failed;
             }
+        }
+        else {
+            buffer[read_size] = '\0';// terminating null byte.
         }
 
         total_read += read_size;
