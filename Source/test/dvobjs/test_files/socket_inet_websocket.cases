@@ -80,6 +80,18 @@ positive:
     true
 
 positive:
+    $RUNNER.user(! 'srvStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', undefined)
+    true
+
+positive:
     $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt' }) )
     true
 
@@ -96,14 +108,14 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'srvStreamSocket', undefiend)
+    $RUNNER.user(! 'srvStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'cliStreamSocket', undefiend)
+    $RUNNER.user(! 'cliStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', undefiend)
+    $RUNNER.user(! 'srvListenSocket', undefined)
     true
 

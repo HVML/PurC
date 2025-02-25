@@ -2474,6 +2474,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
 
         if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
             close(fd);
+            fd = -1;
             continue;
         }
 
