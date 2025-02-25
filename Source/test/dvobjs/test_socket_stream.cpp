@@ -162,3 +162,63 @@ TEST(socket, local_stream_multiple_clients_blocked)
     run_one_comp_test("dvobjs/socket/local-stream-multiple-clients-blocked.hvml");
 }
 
+/* using call within */
+TEST(socket, inet_stream_multiple_clients)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet");
+}
+
+/* using call within */
+TEST(socket, inet4_stream_multiple_clients)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet4");
+}
+
+/* using call within */
+TEST(socket, inet6_stream_multiple_clients)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet6");
+}
+
+/* using call within */
+TEST(socket, inet_stream_multiple_clients_blocked)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet");
+}
+
+/* using call within */
+TEST(socket, inet4_stream_multiple_clients_blocked)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet4");
+}
+
+/* using call within */
+TEST(socket, inet6_stream_multiple_clients_blocked)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet6");
+}
+
