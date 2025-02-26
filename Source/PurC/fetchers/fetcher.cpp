@@ -37,13 +37,16 @@
 #define FETCHER_MAX_CONNS        100
 #define FETCHER_CACHE_QUOTA      10240
 
-static Lock s_fetcher_lock;
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
 
 static struct pcfetcher* get_fetcher(void)
 {
-    return s_remote_fetcher ? s_remote_fetcher : s_local_fetcher;
+    struct pcinst *inst = pcinst_current();
+    if (inst->enable_remote_fetcher && s_remote_fetcher) {
+        return s_remote_fetcher;
+    }
+    return s_local_fetcher;
 }
 
 bool pcfetcher_is_init(void)
@@ -422,39 +425,43 @@ struct pcmodule _module_fetcher_local = {
     .cleanup_instance       = _local_cleanup_instance,
 };
 
+static void _remote_cleanup_once(void)
+{
+#if ENABLE(REMOTE_FETCHER)                /* { */
+    if (s_remote_fetcher) {
+        s_remote_fetcher->term(s_remote_fetcher);
+        s_remote_fetcher = NULL;
+    }
+#endif                                    /* } */
+}
+
 static int _remote_init_once(void)
 {
+#if ENABLE(REMOTE_FETCHER)                /* { */
+    if (!s_remote_fetcher) {
+        s_remote_fetcher = pcfetcher_remote_init(FETCHER_MAX_CONNS,
+                FETCHER_CACHE_QUOTA);
+        if (!s_remote_fetcher) {
+            return PURC_ERROR_OUT_OF_MEMORY;
+        }
+
+        atexit(_remote_cleanup_once);
+    }
+#endif
     return 0;
 }
 
 static int _remote_init_instance(struct pcinst* curr_inst,
         const purc_instance_extra_info* extra_info)
 {
-    UNUSED_PARAM(extra_info);
-
-#if ENABLE(REMOTE_FETCHER)                /* { */
-    auto locker = holdLock(s_fetcher_lock);
-    if (curr_inst->enable_remote_fetcher && !s_remote_fetcher) {
-        s_remote_fetcher = pcfetcher_remote_init(curr_inst->max_conns,
-                curr_inst->cache_quota);
-        if (!s_remote_fetcher)
-            return PURC_ERROR_OUT_OF_MEMORY;
-    }
-#else
     UNUSED_PARAM(curr_inst);
-#endif                                    /* } */
-
+    UNUSED_PARAM(extra_info);
     return 0;
 }
 
 static void _remote_cleanup_instance(struct pcinst* curr_inst)
 {
     UNUSED_PARAM(curr_inst);
-
-    if (s_remote_fetcher) {
-        s_remote_fetcher->term(s_remote_fetcher);
-        s_remote_fetcher = NULL;
-    }
 }
 
 struct pcmodule _module_fetcher_remote = {
