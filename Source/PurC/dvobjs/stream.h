@@ -71,7 +71,7 @@ enum stream_inet_socket_family {
 };
 
 struct stream_messaging_ops {
-    int (*send_data)(struct pcdvobjs_stream *stream,
+    int (*send_message)(struct pcdvobjs_stream *stream,
             bool text_or_bin, const char *text, size_t len);
     int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
     void (*mark_closing)(struct pcdvobjs_stream *stream);

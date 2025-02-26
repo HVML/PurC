@@ -783,7 +783,7 @@ failed:
  *
  * return zero on success; none-zero on error.
  */
-static int send_data(struct pcdvobjs_stream *stream,
+static int send_message(struct pcdvobjs_stream *stream,
         bool text_or_binary, const char *data, size_t sz)
 {
     struct stream_extended_data *ext = stream->ext0.data;
@@ -953,7 +953,7 @@ send_getter(void *entity, const char *property_name,
     }
 
     int retv;
-    if ((retv = send_data(stream, text_or_binary, data, len))) {
+    if ((retv = send_message(stream, text_or_binary, data, len))) {
         purc_set_error(retv);
         goto failed;
     }
@@ -1097,7 +1097,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
     msg_ops = calloc(1, sizeof(*msg_ops));
 
     if (msg_ops) {
-        msg_ops->send_data = send_data;
+        msg_ops->send_message = send_message;
         msg_ops->on_error = on_error;
         msg_ops->mark_closing = mark_closing;
 

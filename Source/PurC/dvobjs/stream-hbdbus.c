@@ -430,7 +430,7 @@ call_procedure(pcdvobjs_stream *stream,
         goto failed;
     }
 
-    retv = call_super(stream, send_data, stream, true, buff, n);
+    retv = call_super(stream, send_message, stream, true, buff, n);
     free(buff);
     if (retv == 0) {
         struct calling_procedure_info cpi;
@@ -884,7 +884,7 @@ static int fire_event(pcdvobjs_stream *stream,
         goto failed;
     }
 
-    retv = call_super(stream, send_data, stream, true, packet_buff, n);
+    retv = call_super(stream, send_message, stream, true, packet_buff, n);
     free(packet_buff);
     if (retv) {
         PC_ERROR("Failed to send text message to HBDBus server.\n");
@@ -1471,7 +1471,7 @@ static int send_result(pcdvobjs_stream *stream, const char* result_id,
         goto failed;
     }
 
-    retv = call_super(stream, send_data, stream, true, buf, n);
+    retv = call_super(stream, send_message, stream, true, buf, n);
     free(buf);
     if (retv) {
         goto failed_sending;
@@ -1919,7 +1919,7 @@ static int send_auth_info(pcdvobjs_stream *stream, const char* ch_code)
         goto failed;
     }
 
-    if (call_super(stream, send_data, stream, true, buff, n)) {
+    if (call_super(stream, send_message, stream, true, buff, n)) {
         PC_ERROR("Failed to send text message to HBDBus server.\n");
         set_error(ext, FAILEDWRITE);
         goto failed;
@@ -2311,7 +2311,7 @@ done:
         set_error(ext, TOOSMALLBUFFER);
     }
     else {
-        if (call_super(stream, send_data, stream, true, packet_buff, n)) {
+        if (call_super(stream, send_message, stream, true, packet_buff, n)) {
             set_error(ext, FAILEDWRITE);
         }
         else
