@@ -843,7 +843,7 @@ ssize_t purc_variant_bsequence_roll(purc_variant_t sequence, ssize_t offset)
     else {
         nr_copied = curr_bytes - offset;
         if (offset != 0) {
-            memcpy(buf, buf + offset, nr_copied);
+            memmove(buf, buf + offset, nr_copied);
 
             if (sequence->flags & PCVRNT_FLAG_EXTRA_SIZE) {
                 sequence->sz_ptr[0] = nr_copied;
