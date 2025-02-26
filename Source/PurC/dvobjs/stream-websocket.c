@@ -167,11 +167,11 @@ typedef struct ws_client_info
 
 /* The frame header for WebSocket */
 typedef struct ws_frame_header {
-    unsigned int fin;
-    unsigned int rsv;
-    unsigned int op;
-    unsigned int mask;
-    unsigned int sz_payload;
+    uint8_t fin;
+    uint8_t rsv;
+    uint8_t op;
+    uint8_t mask;
+    uint8_t sz_payload;
     uint64_t sz_ext_payload;
 } ws_frame_header;
 
@@ -228,6 +228,7 @@ struct stream_extended_data {
     /* the time last got data from the peer */
     struct timespec     last_live_ts;
 
+    size_t              max_sz_payload;
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
 
@@ -248,14 +249,13 @@ struct stream_extended_data {
                        *ssl_shctx_wrapper;
     int                 sslstatus;      /* ssl connection status. */
 #endif
-    int                 events;         /* the events observed. */
 
     /* fields for pending data to write */
     size_t              sz_pending;
     struct list_head    pending;
 
     /* buffer for handshake. */
-#define SZ_HSBUF_INC                1024
+#define SZ_HSBUF_INC                256
 #define SZ_HSBUF_MAX                8192
     char               *hsbuf;      /* the pointer to the handshake buffer */
     size_t              sz_hsbuf;   /* the current size of handshake buffer */
@@ -1623,6 +1623,83 @@ out:
     return ret;
 }
 
+/*
+ * Send a control frame with the payload length less than 126.
+ */
+static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, int opcode,
+        const char *payload, size_t sz_payload)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    char buf[2 + 4 + 126];
+    int sz_mask;
+    int mask_int;
+    const uint8_t *mask = (uint8_t *)&mask_int;
+
+    if (payload == NULL || sz_payload > 125) {
+        PC_WARN("Too long payload for a control frame: %zu; truncated\n",
+                sz_payload);
+        sz_payload = 0;     // force to ignore.
+    }
+
+    buf[0] = 0x80 | (uint8_t)opcode;
+    if (ext->role == WS_ROLE_CLIENT) {
+        srandom(time(NULL));
+        mask_int = random();
+        memcpy(buf + 2, &mask_int, 4);
+        buf[1] = 0x80 | (uint8_t)sz_payload;
+        sz_mask = 4;
+    }
+    else {
+        // no mask
+        buf[1] = (sz_payload & 0x7f);
+        sz_mask = 0;
+    }
+
+    if (sz_payload) {
+        char *p = buf + 2;
+        if (sz_mask) {
+            /* mask */
+            memcpy(p, &mask_int, 4);
+            p += sz_mask;
+
+            /* mask payload */
+            for (size_t i = 0; i < sz_payload; i++) {
+                p[i] = payload[i] ^ (mask[i % 4] & 0xff);
+            }
+        }
+        else {
+            memcpy(p, payload, sz_payload);
+        }
+    }
+
+    if (ws_write_or_queue(stream, buf, 2 + sz_mask + sz_payload) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
+ * Send a CLOSE message to the peer.
+ *
+ * return zero on success; none-zero on error.
+ */
+static int ws_notify_to_close(struct pcdvobjs_stream *stream,
+        uint16_t err_code, const char *err_msg)
+{
+    unsigned int len;
+    unsigned short code_be;
+    char buf[128] = { 0 };
+
+    len = 2;
+    code_be = htobe16(err_code);
+    memcpy(buf, &code_be, 2);
+    if (err_msg)
+        len += snprintf(buf + 2, sizeof(buf) - 4, "%s", err_msg);
+
+    return ws_send_ctrl_frame(stream, WS_OPCODE_CLOSE, buf, len);
+}
+
 /* Tries to read a frame header. */
 static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
 {
@@ -1671,9 +1748,11 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
                 ext->sz_payload = header->sz_ext_payload;
                 ext->payload = malloc(ext->sz_payload + 1);
                 if (ext->payload == NULL) {
-                    PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
-                            (unsigned)ext->sz_payload);
-                    ext->status = WS_ERR_IO | WS_CLOSING;
+                    PC_ERROR("Failed to allocate memory for payload (%zu)\n",
+                            ext->sz_payload);
+                    ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                            "Out of memory");
+                    ext->status = WS_ERR_OOM | WS_CLOSING;
                     return READ_ERROR;
                 }
                 ext->sz_read_payload = 0;
@@ -1686,6 +1765,8 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
     else if (n < 0) {
         PC_ERROR("Failed to read frame header from WebSocket: %s\n",
                 strerror(errno));
+        ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                "Unable to read header");
         return READ_ERROR;
     }
     else {
@@ -1722,13 +1803,22 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
                 memcpy(&v, ext->ext_payload_buf, 8);
                 header->sz_ext_payload = be64toh(v);
             }
+
+            if (header->sz_ext_payload > ext->max_sz_payload) {
+                ws_notify_to_close(stream, WS_CLOSE_TOO_LARGE,
+                        "Frame is too big");
+                ext->status = WS_ERR_MSG | WS_CLOSING;
+                return READ_ERROR;
+            }
+
             return READ_WHOLE;
         }
         ext->status |= WS_READING;
     }
     else if (n < 0) {
-        PC_ERROR("Failed to read frame ext_payload from WebSocket: %s\n",
-                strerror(errno));
+        PC_ERROR("Failed to read ext frame payload length from WebSocket\n");
+        ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                "Unable to read ext payload length");
         return READ_ERROR;
     }
     else {
@@ -1757,8 +1847,9 @@ static int try_to_read_mask(struct pcdvobjs_stream *stream)
         ext->status |= WS_READING;
     }
     else if (n < 0) {
-        PC_ERROR("Failed to read frame mask from WebSocket: %s\n",
-                strerror(errno));
+        PC_ERROR("Failed to read frame mask from WebSocket.\n");
+        ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                "Unable to read mask");
         return READ_ERROR;
     }
     else {
@@ -1807,6 +1898,8 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     else if (n < 0) {
         PC_ERROR("Failed to read frame payload from WebSocket: %s\n",
                 strerror(errno));
+        ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                "Unable to read payload");
         return READ_ERROR;
     }
     else {
@@ -1821,7 +1914,6 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
  * Tries to read a frame payload. */
 static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
 {
-    (void) stream;
     struct stream_extended_data *ext = stream->ext0.data;
     ws_frame_header *header = &ext->header;
     int retv;
@@ -1836,8 +1928,9 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
         ext->sz_payload = header->sz_ext_payload;
         ext->payload = malloc(ext->sz_payload + 1);
         if (ext->payload == NULL) {
-            PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
-                    (unsigned)ext->sz_payload);
+            PC_ERROR("Failed to allocate memory for payload (%zu)\n",
+                    ext->sz_payload);
+            ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED, "Out of memory.");
             ext->status = WS_ERR_IO | WS_CLOSING;
             return READ_ERROR;
         }
@@ -1855,6 +1948,28 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
 
     /* read websocket payload */
     return try_to_read_payload(stream);
+}
+
+static int ws_validate_ctrl_frame(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    /* RFC states that Control frames themselves MUST NOT be fragmented. */
+    if (!ext->header.fin) {
+        goto failed;
+    }
+
+    /* Control frames are only allowed to have payload up to and
+     * including 125 octets */
+    if (ext->header.sz_payload > 125) {
+        goto failed;
+    }
+
+    return 0;
+
+failed:
+    ws_notify_to_close(stream, WS_CLOSE_PROTO_ERR, NULL);
+    ext->status = WS_ERR_MSG | WS_CLOSING;
+    return -1;
 }
 
 static int ws_handle_reads(struct pcdvobjs_stream *stream)
@@ -1889,16 +2004,24 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 
             switch (ext->header.op) {
             case WS_OPCODE_PING:
+                if (ws_validate_ctrl_frame(stream))
+                    goto failed;
+
                 ext->msg_type = MT_PING;
                 ext->status |= WS_WAITING4PAYLOAD;
                 break;
 
             case WS_OPCODE_PONG:
+                if (ws_validate_ctrl_frame(stream))
+                    goto failed;
+
                 ext->msg_type = MT_PONG;
                 ext->status |= WS_WAITING4PAYLOAD;
                 break;
 
             case WS_OPCODE_CLOSE:
+                if (ws_validate_ctrl_frame(stream))
+                    goto failed;
                 ext->msg_type = MT_CLOSE;
                 ext->status |= WS_WAITING4PAYLOAD;
                 break;
@@ -1919,6 +2042,8 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 
             default:
                 PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
+                ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                        "Unknown frame opcode");
                 ext->status = WS_ERR_MSG | WS_CLOSING;
                 goto failed;
                 break;
@@ -1950,8 +2075,10 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 }
 
                 if (ext->message == NULL) {
-                    PC_ERROR("failed to allocate memory for packet (size: %u)\n",
-                            (unsigned)ext->sz_message);
+                    PC_ERROR("failed to allocate memory for payload (%zu)\n",
+                            ext->sz_message);
+                    ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
+                            "Out of memory");
                     ext->status = WS_ERR_IO | WS_CLOSING;
                     goto failed;
                 }
@@ -1973,21 +2100,33 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 /* whole message */
                 switch (ext->header.op) {
                 case WS_OPCODE_PING:
-                    retv = stream->ext0.msg_ops->on_message(stream, MT_PING, NULL, 0);
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_PING,
+                            NULL, 0);
                     break;
 
                 case WS_OPCODE_PONG:
-                    retv = stream->ext0.msg_ops->on_message(stream, MT_PONG, NULL, 0);
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_PONG,
+                            NULL, 0);
                     break;
 
                 case WS_OPCODE_CLOSE:
-                    retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE, NULL, 0);
+                    /* TODO: payload of CLOSE message */
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE,
+                            NULL, 0);
                     ext->status = WS_CLOSING;
                     break;
 
                 case WS_OPCODE_TEXT:
                     ext->message[ext->sz_message] = 0;
                     ext->sz_message++;
+                    if (!pcutils_string_check_utf8_len(ext->message,
+                            ext->sz_message, NULL, NULL)) {
+                        PC_ERROR("Got an invalid UTF-8 text message.\n");
+                        ws_notify_to_close(stream, WS_CLOSE_INVALID_UTF8, NULL);
+                        ext->status = WS_ERR_MSG | WS_CLOSING;
+                        goto failed;
+                    }
+
                     PC_INFO("Got a text payload: %s\n", ext->message);
 
                     retv = stream->ext0.msg_ops->on_message(stream,
@@ -2080,60 +2219,6 @@ io_callback_for_write(int fd, int event, void *ctxt)
     return ext->on_writable(stream);
 }
 
-/*
- * Send a control frame with the payload length less than 126.
- */
-static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, int opcode,
-        const char *payload, size_t sz_payload)
-{
-    struct stream_extended_data *ext = stream->ext0.data;
-    char buf[2 + 4 + 126];
-    int sz_mask;
-    int mask_int;
-    const uint8_t *mask = (uint8_t *)&mask_int;
-
-    if (payload == NULL || sz_payload > 126) {
-        sz_payload = 0;     // force to ignore.
-    }
-
-    buf[0] = 0x80 | (uint8_t)opcode;
-    if (ext->role == WS_ROLE_CLIENT) {
-        srandom(time(NULL));
-        mask_int = random();
-        memcpy(buf + 2, &mask_int, 4);
-        buf[1] = 0x80 | (uint8_t)sz_payload;
-        sz_mask = 4;
-    }
-    else {
-        // no mask
-        buf[1] = (sz_payload & 0x7f);
-        sz_mask = 0;
-    }
-
-    if (sz_payload) {
-        char *p = buf + 2;
-        if (sz_mask) {
-            /* mask */
-            memcpy(p, &mask_int, 4);
-            p += sz_mask;
-
-            /* mask payload */
-            for (size_t i = 0; i < sz_payload; i++) {
-                p[i] ^= payload[i] ^ (mask[i % 4] & 0xff);
-            }
-        }
-        else {
-            memcpy(p, payload, sz_payload);
-        }
-    }
-
-    if (ws_write_or_queue(stream, buf, 2 + sz_mask + sz_payload) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
 #if 0
 /*
  * Send a PING message to the peer.
@@ -2154,27 +2239,6 @@ static int ws_ping_peer(struct pcdvobjs_stream *stream)
 static int ws_pong_peer(struct pcdvobjs_stream *stream)
 {
     return ws_send_ctrl_frame(stream, WS_OPCODE_PONG, NULL, 0);
-}
-
-/*
- * Send a CLOSE message to the peer.
- *
- * return zero on success; none-zero on error.
- */
-static int ws_notify_to_close(struct pcdvobjs_stream *stream,
-        uint16_t err_code, const char *err_msg)
-{
-    unsigned int len;
-    unsigned short code_be;
-    char buf[128] = { 0 };
-
-    len = 2;
-    code_be = htobe16(err_code);
-    memcpy(buf, &code_be, 2);
-    if (err_msg)
-        len += snprintf(buf + 2, sizeof(buf) - 4, "%s", err_msg);
-
-    return ws_send_ctrl_frame(stream, WS_OPCODE_CLOSE, buf, len);
 }
 
 static void mark_closing(struct pcdvobjs_stream *stream)
@@ -2333,7 +2397,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     switch (type) {
         case MT_TEXT:
             // fire a `message` event
-            data = purc_variant_make_string(buf, true);
+            data = purc_variant_make_string(buf, false);
             pcintr_coroutine_post_event(target,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     EVENT_TYPE_MESSAGE, NULL,
@@ -2692,6 +2756,14 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
+    purc_variant_t tmp;
+    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxpayloadsize");
+    uint64_t max_sz_payload = 0;
+    if (tmp && !purc_variant_cast_to_ulongint(tmp, &max_sz_payload, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
     /* Override the socket option to be have O_NONBLOCK */
     if (fcntl(stream->fd4r, F_SETFL,
                 fcntl(stream->fd4r, F_GETFL, 0) | O_NONBLOCK) == -1) {
@@ -2705,6 +2777,11 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
+
+    if (max_sz_payload == 0)
+        ext->max_sz_payload = MAX_INMEM_MESSAGE_SIZE;
+    else
+        ext->max_sz_payload = max_sz_payload;
 
     list_head_init(&ext->pending);
     ext->sz_header = sizeof(ext->header_buf);
@@ -2769,7 +2846,6 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     if (stream->socket == NULL) {
         bool secure = false;
-        purc_variant_t tmp;
         tmp = purc_variant_object_get_by_ckey(extra_opts, "secure");
         secure = tmp == PURC_VARIANT_INVALID ? false :
             purc_variant_booleanize(tmp);
