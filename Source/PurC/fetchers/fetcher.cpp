@@ -34,6 +34,9 @@
 
 #include <unistd.h>
 
+#define FETCHER_MAX_CONNS        100
+#define FETCHER_CACHE_QUOTA      10240
+
 static Lock s_fetcher_lock;
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
@@ -378,32 +381,36 @@ String pcfetcher_build_uri(const char *base_url,  const char *url)
     return result;
 }
 
+static void _local_cleanup_once(void)
+{
+    if (s_local_fetcher) {
+        s_local_fetcher->term(s_local_fetcher);
+        s_local_fetcher = NULL;
+    }
+}
+
 static int _local_init_once(void)
 {
+    if (!s_local_fetcher) {
+        s_local_fetcher = pcfetcher_local_init(FETCHER_MAX_CONNS,
+                FETCHER_CACHE_QUOTA);
+
+        atexit(_local_cleanup_once);
+    }
     return 0;
 }
 
 static int _local_init_instance(struct pcinst* curr_inst,
         const purc_instance_extra_info* extra_info)
 {
+    UNUSED_PARAM(curr_inst);
     UNUSED_PARAM(extra_info);
-    auto locker = holdLock(s_fetcher_lock);
-    if (!s_local_fetcher) {
-        s_local_fetcher = pcfetcher_local_init(curr_inst->max_conns,
-                curr_inst->cache_quota);
-    }
-
     return 0;
 }
 
 static void _local_cleanup_instance(struct pcinst* curr_inst)
 {
     UNUSED_PARAM(curr_inst);
-
-    if (s_local_fetcher) {
-        s_local_fetcher->term(s_local_fetcher);
-        s_local_fetcher = NULL;
-    }
 }
 
 struct pcmodule _module_fetcher_local = {
