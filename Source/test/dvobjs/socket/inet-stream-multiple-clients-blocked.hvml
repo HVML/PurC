@@ -8,6 +8,8 @@
 <hvml target="void">
     <body>
 
+        $STREAM.stdout.writelines("Testing for $DATA.serialize($REQ)")
+
         <define as 'commWithServer' >
             <init as 'stream' with $STREAM.open("$schema://localhost:7788", 'nameless read write cloexec') temp >
                 <catch for `ANY`>

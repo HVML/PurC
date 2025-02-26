@@ -187,6 +187,7 @@ if (COMPILER_IS_GCC_OR_CLANG)
     # Also, it's not possible to use the normal prepend/append macros for
     # -fsanitize=* flags, because check_cxx_compiler_flag will report it's
     # unsupported, because it causes the build to fail if not used when linking.
+
     if (ENABLE_SANITIZERS)
         if (MSVC AND WTF_CPU_X86_64)
             find_library(CLANG_ASAN_LIBRARY clang_rt.asan_dynamic_runtime_thunk-x86_64 ${CLANG_LIB_PATH})
@@ -240,7 +241,6 @@ endif ()
 if (UNIX AND NOT APPLE AND NOT ENABLED_COMPILER_SANITIZERS)
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined ${CMAKE_SHARED_LINKER_FLAGS}")
 endif ()
-
 
 # CODE_GENERATOR_PREPROCESSOR_WITH_LINEMARKERS only matters with GCC >= 4.7.0.  Since this
 # version, -P does not output empty lines, which currently breaks make_names.pl in

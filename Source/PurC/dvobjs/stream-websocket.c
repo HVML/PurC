@@ -35,6 +35,7 @@
 #include "private/dvobjs.h"
 #include "private/list.h"
 #include "private/interpreter.h"
+#include "private/timer.h"
 
 #include <errno.h>
 
@@ -227,6 +228,7 @@ struct stream_extended_data {
 
     /* the time last got data from the peer */
     struct timespec     last_live_ts;
+    pcintr_timer_t      ping_timer;
 
     size_t              max_sz_payload;
     size_t              sz_used_mem;
@@ -2176,10 +2178,21 @@ closing:
 static bool
 io_callback_for_read(int fd, int event, void *ctxt)
 {
-    (void)fd;
-    (void)event;
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
+
+    if ((event & PCRUNLOOP_IO_HUP) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
+        PC_ERROR("Got hang up event on fd (%d).\n", fd);
+        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
+        return false;
+    }
+
+    if ((event & PCRUNLOOP_IO_ERR) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
+        PC_ERROR("Got error event on fd (%d).\n", fd);
+        stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
+        return false;
+    }
+
     return ext->on_readable(stream);
 }
 
@@ -2360,16 +2373,14 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
 
         tmp = purc_variant_make_number(errcode);
         if (tmp) {
-            purc_variant_object_set_by_static_ckey(data, "errCode",
-                    tmp);
+            purc_variant_object_set_by_static_ckey(data, "errCode", tmp);
             purc_variant_unref(tmp);
         }
 
         tmp = purc_variant_make_string_static(
             purc_get_error_message(errcode), false);
         if (tmp) {
-            purc_variant_object_set_by_static_ckey(data, "errMsg",
-                    tmp);
+            purc_variant_object_set_by_static_ckey(data, "errMsg", tmp);
             purc_variant_unref(tmp);
         }
     }
@@ -2809,8 +2820,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co) {
-        stream->monitor4r = purc_runloop_add_fd_monitor(
-                purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
+        stream->monitor4r = purc_runloop_add_fd_monitor(co, stream->fd4r,
+                PCRUNLOOP_IO_IN | PCRUNLOOP_IO_HUP | PCRUNLOOP_IO_ERR,
                 io_callback_for_read, stream);
         if (stream->monitor4r) {
             stream->cid = co->cid;
@@ -2820,8 +2831,9 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             goto failed;
         }
 
-        stream->monitor4w = purc_runloop_add_fd_monitor(
-                purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
+        stream->monitor4w = purc_runloop_add_fd_monitor(co, stream->fd4w,
+                // macOS not allow to poll HUP and OUT at the same time.
+                PCRUNLOOP_IO_OUT | PCRUNLOOP_IO_ERR,
                 io_callback_for_write, stream);
         if (stream->monitor4w) {
             stream->cid = co->cid;

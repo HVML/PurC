@@ -1479,7 +1479,8 @@ on_observe(void *native_entity, const char *event_name,
 
     if (matched & MATCHED_HANGUP) {
         ioevents4r |= PCRUNLOOP_IO_HUP;
-        ioevents4w |= PCRUNLOOP_IO_HUP;
+        // macOS not allow to poll HUP and OUT at the same time.
+        // ioevents4w |= PCRUNLOOP_IO_HUP;
     }
 
     if (matched & MATCHED_ERROR) {

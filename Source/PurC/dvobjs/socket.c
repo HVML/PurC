@@ -679,7 +679,7 @@ inet_socket_accept_client(struct pcdvobjs_socket *socket,
     socklen_t len = sizeof(addr);
 
     if ((fd = accept(socket->fd, (struct sockaddr *)&addr, &len)) < 0) {
-        PC_DEBUG("Failed accept(): %s\n", strerror(errno));
+        PC_ERROR("Failed accept(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -687,7 +687,7 @@ inet_socket_accept_client(struct pcdvobjs_socket *socket,
     char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
     if (0 != getnameinfo((struct sockaddr *)&addr, len, hbuf, sizeof(hbuf),
                 sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV)) {
-        PC_DEBUG("Failed getnameinfo(): %s\n", strerror(errno));
+        PC_ERROR("Failed getnameinfo(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
 
         close(fd);
@@ -827,11 +827,9 @@ accept_getter(void *native_entity, const char *property_name,
     }
 
     if (fd < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-        PC_ERROR("Failed accept(): %s\n", strerror(errno));
         return purc_variant_make_null();
     }
     else if (fd < 0 && (errno == ETIMEDOUT || errno == EINPROGRESS)) {
-        PC_ERROR("Failed accept(): %s\n", strerror(errno));
         return purc_variant_make_null();
     }
 
@@ -848,13 +846,13 @@ accept_getter(void *native_entity, const char *property_name,
 #if 0
     int ov = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &ov, sizeof(ov)) == -1) {
-        PC_DEBUG("Failed setsockopt(SO_KEEPALIVE): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(SO_KEEPALIVE): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &ov, sizeof(ov)) == -1) {
-        PC_DEBUG("Failed setsockopt(SO_NOSIGPIPE): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(SO_NOSIGPIPE): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -901,7 +899,7 @@ struct addrinfo *get_network_address(enum stream_inet_socket_family isf,
 
     char port[10] = {0};
     if (url->port == 0 || url->port > 65535) {
-        PC_DEBUG("Bad port value: (%d)\n", url->port);
+        PC_ERROR("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -909,7 +907,7 @@ struct addrinfo *get_network_address(enum stream_inet_socket_family isf,
 
     hints.ai_socktype = SOCK_DGRAM;
     if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
-        PC_DEBUG("Error while getting address info (%s:%d)\n",
+        PC_ERROR("Error while getting address info (%s:%d)\n",
                 url->host, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
@@ -1195,7 +1193,7 @@ recvfrom_getter(void *native_entity, const char *property_name,
             if (0 != getnameinfo((struct sockaddr *)&src_addr, addrlen,
                         hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
                         NI_NUMERICHOST | NI_NUMERICSERV)) {
-                PC_DEBUG("Failed getnameinfo(): %s\n", strerror(errno));
+                PC_ERROR("Failed getnameinfo(): %s\n", strerror(errno));
                 flags |= _O_NOSOURCE;
             }
             else {
@@ -1447,19 +1445,19 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* create a Unix domain stream socket */
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        PC_DEBUG("Failed socket(): %s\n", strerror(errno));
+        PC_ERROR("Failed socket(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if ((flags & O_NONBLOCK) && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-        PC_DEBUG("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
+        PC_ERROR("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if ((flags & O_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
-        PC_DEBUG("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
+        PC_ERROR("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -1476,14 +1474,14 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* bind the name to the descriptor */
     if (bind(fd, (struct sockaddr *)&unix_addr, len) < 0) {
-        PC_DEBUG("Failed bind(%s): %s\n", url->path, strerror(errno));
+        PC_ERROR("Failed bind(%s): %s\n", url->path, strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     if (flags & _O_GLOBAL) {
         if (chmod(url->path, 0666) < 0) {
-            PC_DEBUG("Failed chmod(0666): %s\n", strerror(errno));
+            PC_ERROR("Failed chmod(0666): %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto error;
         }
@@ -1491,7 +1489,7 @@ create_local_stream_socket(struct purc_broken_down_url *url,
 
     /* tell kernel we're a server */
     if (listen(fd, backlog) < 0) {
-        PC_DEBUG("Failed listen(): %s\n", strerror(errno));
+        PC_ERROR("Failed listen(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -1534,7 +1532,7 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
 
     char port[10] = {0};
     if (url->port > 65535) {    /* 0 is acceptable for a stream socket */
-        PC_DEBUG("Bad port value: (%d)\n", url->port);
+        PC_ERROR("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -1543,14 +1541,14 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_STREAM;
     if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
-        PC_DEBUG("Error while getting address info (%s:%d)\n",
+        PC_ERROR("Error while getting address info (%s:%d)\n",
                 url->host, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if ((fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1) {
-        PC_DEBUG("Failed socket(%s:%d)\n", url->host, url->port);
+        PC_ERROR("Failed socket(%s:%d)\n", url->host, url->port);
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1561,13 +1559,13 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     }
 
     if ((flags & O_NONBLOCK) && fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-        PC_DEBUG("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
+        PC_ERROR("Failed fcntl(O_NONBLOCK): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 
     if ((flags & O_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
-        PC_DEBUG("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
+        PC_ERROR("Failed fcntl(FD_CLOEXEC): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1575,21 +1573,21 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
     /* Options */
     int ov = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ov, sizeof(ov)) == -1) {
-        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 
     /* Bind the socket to the address. */
     if (bind(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
-        PC_DEBUG("Failed bind(): %s.\n", strerror(errno));
+        PC_ERROR("Failed bind(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 
     /* Tell the socket to accept connections. */
     if (listen(fd, backlog) == -1) {
-        PC_DEBUG("Failed listen(): %s.\n", strerror (errno));
+        PC_ERROR("Failed listen(): %s.\n", strerror (errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1745,7 +1743,7 @@ create_local_dgram_socket(struct purc_broken_down_url *url,
 
     /* create a Unix domain dgram socket */
     if ((fd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0) {
-        PC_DEBUG("Failed socket(): %s\n", strerror(errno));
+        PC_ERROR("Failed socket(): %s\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -1777,14 +1775,14 @@ create_local_dgram_socket(struct purc_broken_down_url *url,
 
         /* bind the name to the descriptor */
         if (bind(fd, (struct sockaddr *)&unix_addr, len) < 0) {
-            PC_DEBUG("Failed bind(%s): %s\n", url->path, strerror(errno));
+            PC_ERROR("Failed bind(%s): %s\n", url->path, strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto error;
         }
 
         if (flags & _O_GLOBAL) {
             if (chmod(url->path, 0666) < 0) {
-                PC_DEBUG("Failed chmod(): %s\n", strerror(errno));
+                PC_ERROR("Failed chmod(): %s\n", strerror(errno));
                 purc_set_error(purc_error_from_errno(errno));
                 goto error;
             }
@@ -1829,7 +1827,7 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
 
     char port[10] = {0};
     if (url->port > 65535) {    /* 0 is acceptable for dgram socket. */
-        PC_DEBUG("Bad port value: (%d)\n", url->port);
+        PC_ERROR("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -1838,14 +1836,14 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_DGRAM;
     if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
-        PC_DEBUG("Error while getting address info (%s:%d)\n",
+        PC_ERROR("Error while getting address info (%s:%d)\n",
                 url->host, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if ((fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1) {
-        PC_DEBUG("Failed to create socket for %s:%d\n", url->host, url->port);
+        PC_ERROR("Failed to create socket for %s:%d\n", url->host, url->port);
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1863,7 +1861,7 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
     /* FIXME: different manners amony OSes.
     int ov = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ov, sizeof(ov)) == -1) {
-        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     } */
@@ -1871,7 +1869,7 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
     if (!(flags & _O_NAMELESS)) {
         /* Bind the socket to the address. */
         if (bind(fd, ai->ai_addr, ai->ai_addrlen) != 0) {
-            PC_DEBUG("Failed bind(): %s.\n", strerror(errno));
+            PC_ERROR("Failed bind(): %s.\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto failed;
         }
