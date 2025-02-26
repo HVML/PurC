@@ -425,15 +425,15 @@ struct pcmodule _module_fetcher_local = {
     .cleanup_instance       = _local_cleanup_instance,
 };
 
+#if ENABLE(REMOTE_FETCHER)                /* { */
 static void _remote_cleanup_once(void)
 {
-#if ENABLE(REMOTE_FETCHER)                /* { */
     if (s_remote_fetcher) {
         s_remote_fetcher->term(s_remote_fetcher);
         s_remote_fetcher = NULL;
     }
-#endif                                    /* } */
 }
+#endif                                    /* } */
 
 static int _remote_init_once(void)
 {
