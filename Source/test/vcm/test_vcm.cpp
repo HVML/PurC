@@ -54,7 +54,7 @@ TEST(vcm, basic)
     ASSERT_NE(vcm, nullptr);
     pcvcm_node_destroy(vcm);
 
-    vcm = pcvcm_node_new_byte_sequence("12\034", 5);
+    vcm = pcvcm_node_new_byte_sequence("12\034", 3);
     ASSERT_NE(vcm, nullptr);
     pcvcm_node_destroy(vcm);
 }
@@ -80,7 +80,7 @@ TEST(vcm, object)
     struct pcvcm_node *v6 = pcvcm_node_new_longdouble(1.23e23);
 
     struct pcvcm_node *k7 = pcvcm_node_new_string("k7");
-    struct pcvcm_node *v7 = pcvcm_node_new_byte_sequence("12\034", 5);
+    struct pcvcm_node *v7 = pcvcm_node_new_byte_sequence("12\034", 3);
 
     struct pcvcm_node* nodes[] = {
         k1, v1,
@@ -124,7 +124,7 @@ TEST(vcm, array)
     struct pcvcm_node *v6 = pcvcm_node_new_longdouble(1.23e23);
 
     struct pcvcm_node *k7 = pcvcm_node_new_string("k7");
-    struct pcvcm_node *v7 = pcvcm_node_new_byte_sequence("12\034", 5);
+    struct pcvcm_node *v7 = pcvcm_node_new_byte_sequence("12\034", 3);
 
     struct pcvcm_node *vo = pcvcm_node_new_object(0, NULL);
 
