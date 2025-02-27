@@ -194,11 +194,14 @@ typedef struct ws_frame_header {
 #define WS_TLS_CONNECTING       0x01000000
 
 #define WS_ERR_ANY              0x00000FFF
-#define WS_ERR_OOM              0x00000101
-#define WS_ERR_IO               0x00000102
-#define WS_ERR_SRV              0x00000104
-#define WS_ERR_MSG              0x00000108
-#define WS_ERR_LTNR             0x00000110      /* Long time no response */
+
+enum {
+    WS_ERR_OOM      = 0x00000101,
+    WS_ERR_IO       = 0x00000102,
+    WS_ERR_SRV      = 0x00000104,
+    WS_ERR_MSG      = 0x00000108,
+    WS_ERR_LTNR     = 0x00000110,   /* Long time no response */
+};
 
 typedef struct ws_pending_data {
     struct list_head list;
@@ -311,18 +314,38 @@ ws_set_status(struct stream_extended_data *ext, int status, ssize_t bytes)
     return bytes;
 }
 
-static void ws_handle_read_close(struct pcdvobjs_stream *stream)
+static inline void ws_update_mem_stats(struct stream_extended_data *ext)
 {
-    struct stream_extended_data *ext = stream->ext0.data;
-
-    if (ext->status & WS_CLOSING) {
-        cleanup_extension(stream);
-    }
+    ext->sz_used_mem = ext->sz_pending + ext->sz_message;
+    if (ext->sz_used_mem > ext->sz_peak_used_mem)
+        ext->sz_peak_used_mem = ext->sz_used_mem;
 }
 
-static void ws_handle_write_close(struct pcdvobjs_stream *stream)
+static int ws_status_to_pcerr(struct stream_extended_data *ext)
+{
+    switch (ext->status & WS_ERR_ANY) {
+        case WS_ERR_OOM:
+            return PURC_ERROR_OUT_OF_MEMORY;
+        case WS_ERR_IO:
+            return PURC_ERROR_IO_FAILURE;
+        case WS_ERR_MSG:
+            return PURC_ERROR_NOT_DESIRED_ENTITY;
+        case WS_ERR_SRV:
+            return PURC_ERROR_CONNECTION_ABORTED;
+        case WS_ERR_LTNR:
+            return PURC_ERROR_TIMEOUT;
+    }
+
+    return PURC_ERROR_OK;
+}
+
+static void ws_handle_rwerr_close(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext->status & WS_ERR_ANY) {
+        stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
+    }
 
     if (ext->status & WS_CLOSING) {
         cleanup_extension(stream);
@@ -695,9 +718,6 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         ext->sz_hsbuf += SZ_HSBUF_INC;
     }
 
-    PC_DEBUG("handshake data: sz_hsbuf: %zu; sz_read_hsbuf: (%zu)\n",
-            ext->sz_hsbuf, ext->sz_read_hsbuf);
-
     ssize_t nr_bytes;
     nr_bytes = ws_read_data(stream, ext->hsbuf + ext->sz_read_hsbuf,
             SZ_HSBUF_INC - 1);
@@ -719,6 +739,15 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
     return READ_SOME;
 }
 
+static void
+reset_handshake_buffer(struct stream_extended_data *ext)
+{
+    free(ext->hsbuf);
+    ext->hsbuf = NULL;
+    ext->sz_hsbuf = 0;
+    ext->sz_read_hsbuf = 0;
+}
+
 /* Handle the handshake request from a client. */
 static int
 ws_handle_handshake_request(struct pcdvobjs_stream *stream)
@@ -726,14 +755,22 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     assert(ext->status & WS_WAITING4HSREQU);
 
-    PC_DEBUG("in %s\n", __func__);
-
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
     case READ_NONE:
+        break;
     case READ_SOME:
+        if (ext->sz_read_hsbuf >= 4 &&
+                strncasecmp2ltr(ext->hsbuf, "GET ", 4) != 0) {
+            /* Send the Bad request response to the client. */
+            ws_write_data(stream, WS_BAD_REQUEST_STR,
+                    sizeof(WS_BAD_REQUEST_STR) - 1);
+            reset_handshake_buffer(ext);
+            ext->status = WS_ERR_MSG | WS_CLOSING;
+            retv = -1;
+        }
         break;
 
     case READ_ERROR:
@@ -750,12 +787,14 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
             ws_write_data(stream, WS_BAD_REQUEST_STR,
                     sizeof(WS_BAD_REQUEST_STR) - 1);
             ext->status = WS_ERR_MSG | WS_CLOSING;
+            retv = -1;
         }
-        free(ext->hsbuf);
-        ext->hsbuf = NULL;
+        reset_handshake_buffer(ext);
         break;
     }
 
+    if (retv)
+        ws_handle_rwerr_close(stream);
     return retv;
 }
 
@@ -766,19 +805,28 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     assert(ext->status & WS_WAITING4HSRESP);
 
-    PC_DEBUG("in %s\n", __func__);
-
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
     case READ_NONE:
+        break;
     case READ_SOME:
+        if (ext->sz_read_hsbuf > 5 &&
+                strncmp2ltr(ext->hsbuf, "HTTP/", 5) != 0) {
+            reset_handshake_buffer(ext);
+            ext->status = WS_ERR_SRV | WS_CLOSING;
+            retv = -1;
+        }
         break;
 
     case READ_ERROR:
-    case READ_OOM:
         ext->status = WS_ERR_IO | WS_CLOSING;
+        retv = -1;
+        break;
+
+    case READ_OOM:
+        ext->status = WS_ERR_OOM | WS_CLOSING;
         retv = -1;
         break;
 
@@ -787,12 +835,14 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
         ext->on_readable = ws_handle_reads; /* switch to normal mode */
         if (ws_verify_handshake_response(stream)) {
             ext->status = WS_ERR_SRV | WS_CLOSING;
+            retv = -1;
         }
-        free(ext->hsbuf);
-        ext->hsbuf = NULL;
+        reset_handshake_buffer(ext);
         break;
     }
 
+    if (retv)
+        ws_handle_rwerr_close(stream);
     return retv;
 }
 
@@ -1039,6 +1089,9 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
         ret = ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
     }
 
+    if (ret)
+        ws_handle_rwerr_close(stream);
+
     return ret;
 }
 
@@ -1093,6 +1146,9 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
         ret = ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
     }
 
+    if (ret)
+        ws_handle_rwerr_close(stream);
+
     return ret;
 }
 
@@ -1129,7 +1185,7 @@ handle_pending_rw_ssl(struct pcdvobjs_stream *stream)
     /* trying to write but still waiting for a successful SSL_shutdown */
     if (ext->sslstatus & WS_TLS_SHUTTING) {
         if (shutdown_ssl(stream) == 0)
-            ws_handle_read_close(stream);
+            ws_handle_rwerr_close(stream);
         return 0;
     }
 
@@ -1227,31 +1283,6 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
 
 #endif // HAVE(OPENSSL)
 
-static inline void ws_update_mem_stats(struct stream_extended_data *ext)
-{
-    ext->sz_used_mem = ext->sz_pending + ext->sz_message;
-    if (ext->sz_used_mem > ext->sz_peak_used_mem)
-        ext->sz_peak_used_mem = ext->sz_used_mem;
-}
-
-static int ws_status_to_pcerr(struct stream_extended_data *ext)
-{
-    if (ext->status & WS_ERR_OOM) {
-        return PURC_ERROR_OUT_OF_MEMORY;
-    }
-    else if (ext->status & WS_ERR_IO) {
-        return PURC_ERROR_BROKEN_PIPE;
-    }
-    else if (ext->status & WS_ERR_MSG) {
-        return PURC_ERROR_NOT_DESIRED_ENTITY;
-    }
-    else if (ext->status & WS_ERR_SRV) {
-        return PURC_ERROR_CONNECTION_REFUSED;
-    }
-
-    return PURC_ERROR_OK;
-}
-
 /* Clear pending data. */
 static void ws_clear_pending_data(struct stream_extended_data *ext)
 {
@@ -1277,6 +1308,7 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
             ext->ping_timer = NULL;
         }
 
+#if 0
         purc_atom_t target = ext->event_cids[K_EVENT_TYPE_CLOSE];
         if (target != 0) {
             pcintr_coroutine_post_event(target,
@@ -1284,6 +1316,7 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
                 EVENT_TYPE_CLOSE, NULL,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         }
+#endif
 
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -1345,7 +1378,8 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
             ext->ssl_ctx = NULL;
         }
 #endif
-        free(ext);
+
+        free(stream->ext0.data);
         stream->ext0.data = NULL;
 
         free(stream->ext0.msg_ops);
@@ -1566,7 +1600,7 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
     int sz_mask;
 
     if (sz <= 0) {
-        PC_DEBUG ("Invalid data size %ld.\n", sz);
+        PC_WARN("Invalid data size %zd.\n", sz);
         goto out;
     }
 
@@ -2013,7 +2047,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 
     do {
         if (ext->status & WS_CLOSING) {
-            goto closing;
+            goto failed;
         }
 
         if (!(ext->status & WS_WAITING4PAYLOAD)) {
@@ -2192,11 +2226,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
     return 0;
 
 failed:
-    stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
-
-closing:
-    ws_handle_read_close(stream);
-
+    ws_handle_rwerr_close(stream);
     return -1;
 }
 
@@ -2205,8 +2235,6 @@ io_callback_for_read(int fd, int event, void *ctxt)
 {
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
-
-    PC_DEBUG("Got a readable io event.\n");
 
     if ((event & PCRUNLOOP_IO_HUP) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
         PC_ERROR("Got hang up event on fd (%d).\n", fd);
@@ -2221,7 +2249,7 @@ io_callback_for_read(int fd, int event, void *ctxt)
     }
 
     assert(ext->on_readable);
-    return ext->on_readable(stream);
+    return ext->on_readable(stream) == 0;
 }
 
 static int
@@ -2234,17 +2262,13 @@ ws_handle_writes(struct pcdvobjs_stream *stream)
 
     struct stream_extended_data *ext = stream->ext0.data;
     if (ext->status & WS_CLOSING) {
-        ws_handle_write_close(stream);
+        ws_handle_rwerr_close(stream);
         return -1;
     }
 
     ws_write_pending(stream);
     if (list_empty(&ext->pending)) {
         ext->status &= ~WS_SENDING;
-    }
-
-    if (ext->status & WS_ERR_ANY) {
-        stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
     }
 
     return 0;
@@ -2269,7 +2293,7 @@ io_callback_for_write(int fd, int event, void *ctxt)
     }
 
     assert(ext->on_writable);
-    return ext->on_writable(stream);
+    return (ext->on_writable(stream) == 0);
 }
 
 /*
@@ -2440,8 +2464,6 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     struct pcdvobjs_stream *stream = data;
     struct stream_extended_data *ext = stream->ext0.data;
 
-    PC_DEBUG("in function %s()\n", __func__);
-
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
@@ -2450,7 +2472,7 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
             ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
         }
         ext->status = WS_ERR_LTNR | WS_CLOSING;
-        cleanup_extension(stream);
+        ws_handle_rwerr_close(stream);
     }
     else if (elapsed > PING_NO_RESPONSE_SECONDS) {
         if (ext->on_readable == ws_handle_reads) {
