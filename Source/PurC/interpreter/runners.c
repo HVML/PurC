@@ -159,7 +159,7 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 }
 
-static void shutdown_instance(purc_atom_t requester,
+static int shutdown_instance(purc_atom_t requester,
         const pcrdr_msg *msg, pcrdr_msg *response)
 {
     purc_atom_t self_atom;
@@ -183,7 +183,7 @@ static void shutdown_instance(purc_atom_t requester,
                 (strcmp(rqst_app_name, PCRUN_INSTMGR_APP_NAME) &&
                 strcmp(self_app_name, rqst_app_name))) {
             // not allowed
-            return;
+            return -1;
         }
     }
 
@@ -199,11 +199,6 @@ static void shutdown_instance(purc_atom_t requester,
         inst->intr_heap->keep_alive = 0;
     }
 
-    if (inst->intr_heap->keep_alive == 0 && list_empty(&inst->intr_heap->crtns)
-            && list_empty(&inst->intr_heap->stopped_crtns)) {
-        purc_runloop_stop(inst->running_loop);
-    }
-
     response->type = PCRDR_MSG_TYPE_RESPONSE;
     response->requestId = purc_variant_ref(msg->requestId);
     response->sourceURI = purc_variant_make_string(self_ept, false);
@@ -211,6 +206,7 @@ static void shutdown_instance(purc_atom_t requester,
     response->resultValue = 0;
     response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
     response->data = PURC_VARIANT_INVALID;
+    return 0;
 }
 
 /*
@@ -271,6 +267,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     PC_DEBUG("%s got `%s` request from %s\n",
             purc_get_endpoint(NULL), op, source_uri);
 
+    int ok_to_shutdown = -1;
     if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
         if (strcmp(op, PCRUN_OPERATION_createCoroutine) == 0) {
             create_coroutine(msg, response);
@@ -285,7 +282,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             purc_log_warn("Not implemented operation: %s\n", op);
         }
         else if (strcmp(op, PCRUN_OPERATION_shutdownInstance) == 0) {
-            shutdown_instance(requester, msg, response);
+            ok_to_shutdown = shutdown_instance(requester, msg, response);
         }
         else {
             struct pcinst *inst = pcinst_current();
@@ -334,6 +331,14 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     }
 
     pcrdr_release_message(response);
+
+    struct pcinst *inst = pcinst_current();
+    if (ok_to_shutdown == 0 && inst->intr_heap->keep_alive == 0 &&
+            list_empty(&inst->intr_heap->crtns) &&
+            list_empty(&inst->intr_heap->stopped_crtns)) {
+        purc_runloop_stop(inst->running_loop);
+    }
+
 }
 
 pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
@@ -1083,20 +1088,23 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
 
     pcrdr_msg *request_msg = pcrdr_make_request_message(
             PCRDR_MSG_TARGET_INSTANCE, inst,
-            PCRUN_OPERATION_shutdownInstance, NULL,
+            PCRUN_OPERATION_shutdownInstance, PCRDR_REQUESTID_NORETURN,
             purc_get_endpoint(NULL),
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
             NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
-    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
     size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
     if (n == 0) {
         purc_log_warn("Failed to send request message\n");
-        return PCRDR_SC_OK;
+        return -1;
     }
 
+#if 1
+    return PCRDR_SC_OK;
+#else
+    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
@@ -1116,6 +1124,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
     }
 
     return retv;
+#endif
 }
 
 purc_atom_t

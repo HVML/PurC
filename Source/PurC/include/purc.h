@@ -966,10 +966,11 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
  * @inst: The atom representing the target PurC instance differs
  *  from the current instance.
  *
- * Asks the specified instance to shutdown. This function send a
- * `shutdownInstance` request to the target instance.
+ * Ask the specified instance to shutdown. This function send a
+ * `shutdownInstance` request to the target instance without
+ * waiting for the response.
  *
- * Returns: The return code of the request; -1 on failure to send the request.
+ * Returns: The return code of the request; -1 on failure to post the request.
  *
  * Since 0.2.0
  */
@@ -997,7 +998,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst);
  *         When %NULL is given, use the first `body` element as the entry.
  * @request: The variant which will be used as the request data.
  *
- * Creates a new coroutine to run the specified vDOM in the specific instances.
+ * Create a new coroutine to run the specified vDOM in the specific instances.
  * If success, the new coroutine will be in READY state.
  *
  * Returns: The atom representing the new coroutine in the PurC instance,
@@ -1023,7 +1024,7 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
  *      from the current instance.
  * @msg: A pointer to a pcrdr_msg structure which represents the event.
  *
- * Posts an event message to a target instance.
+ * Post an event message to a target instance.
  *
  * Returns: -1 for error; zero means everything is ok.
  *

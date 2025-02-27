@@ -48,6 +48,7 @@
 
 #include "hvml-attr.h"
 
+#include <unistd.h>
 #include <dlfcn.h>
 #include <pthread.h>
 #include <stdarg.h>
