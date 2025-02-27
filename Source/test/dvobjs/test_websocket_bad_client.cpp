@@ -31,7 +31,7 @@
 #include <gtest/gtest.h>
 
 /* using load within */
-TEST(websocket, bad_client_raw)
+TEST(websocket, plain_server_raw_client)
 {
     PurCInstance purc(false);
 
@@ -42,6 +42,29 @@ TEST(websocket, bad_client_raw)
     assert(client_inst != 0);
 
     run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=false&client=raw");
+
+    purc_inst_ask_to_shutdown(client_inst);
+
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(client_inst)) {
+        purc_log_info("Wait for termination of client instance...\n");
+        sleep(1);
+        seconds++;
+        ASSERT_LT(seconds, 10);
+    }
+}
+
+TEST(websocket, ssl_server_raw_client)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    purc_atom_t client_inst = purc_inst_create_or_get(APP_NAME,
+            "client", client_cond_handler, NULL);
+    assert(client_inst != 0);
+
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=raw");
 
     purc_inst_ask_to_shutdown(client_inst);
 

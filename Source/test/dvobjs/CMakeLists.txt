@@ -548,3 +548,31 @@ PURC_COMPUTE_SOURCES(test_socket_stream)
 PURC_FRAMEWORK(test_socket_stream)
 GTEST_DISCOVER_TESTS(test_socket_stream DISCOVERY_TIMEOUT 10)
 
+# test_websocket_bad_client
+PURC_EXECUTABLE_DECLARE(test_websocket_bad_client)
+
+list(APPEND test_websocket_bad_client_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_websocket_bad_client)
+
+set(test_websocket_bad_client_SOURCES
+    test_websocket_bad_client.cpp
+    ../tools.cpp
+)
+
+set(test_websocket_bad_client_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_websocket_bad_client)
+PURC_FRAMEWORK(test_websocket_bad_client)
+GTEST_DISCOVER_TESTS(test_websocket_bad_client DISCOVERY_TIMEOUT 10)
+

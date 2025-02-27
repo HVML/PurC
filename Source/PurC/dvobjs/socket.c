@@ -481,9 +481,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     ssl_key = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     if (ssl_cert == NULL || ssl_key == NULL) {
-        PC_ERROR("Bad SSL certification or key\n");
-        error = PURC_ERROR_INVALID_VALUE;
-        goto opt_failed;
+        PC_WARN("Missing SSL certification or key; skip SSL.\n");
+        goto skip;
     }
 
     tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-session-cache-id");
@@ -569,6 +568,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     }
 
     socket->ssl_ctx = ctx;
+skip:
     return 0;
 
 ssl_failed:
@@ -897,13 +897,13 @@ struct addrinfo *get_network_address(enum stream_inet_socket_family isf,
             break;
     }
 
-    char port[10] = {0};
     if (url->port == 0 || url->port > 65535) {
         PC_ERROR("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
-    sprintf(port, "%d", url->port);
+    char port[8] = {0};
+    snprintf(port, sizeof(port), "%d", url->port);
 
     hints.ai_socktype = SOCK_DGRAM;
     if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
@@ -1530,13 +1530,13 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
             break;
     }
 
-    char port[10] = {0};
     if (url->port > 65535) {    /* 0 is acceptable for a stream socket */
-        PC_ERROR("Bad port value: (%d)\n", url->port);
+        PC_ERROR("Bad port value: (%u)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
-    sprintf(port, "%d", url->port);
+    char port[8] = {0};
+    snprintf(port, sizeof(port), "%u", url->port);
 
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_STREAM;
@@ -1825,13 +1825,13 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
             break;
     }
 
-    char port[10] = {0};
     if (url->port > 65535) {    /* 0 is acceptable for dgram socket. */
         PC_ERROR("Bad port value: (%d)\n", url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
-    sprintf(port, "%d", url->port);
+    char port[8] = {0};
+    snprintf(port, sizeof(port), "%u", url->port);
 
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_DGRAM;

@@ -1535,6 +1535,7 @@ on_release(void *native_entity)
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
+    struct pcdvobjs_stream *stream = entity;
     UNUSED_PARAM(entity);
 
     if (name == NULL) {
@@ -1543,6 +1544,22 @@ property_getter(void *entity, const char *name)
 
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
     if (atom == 0) {
+        goto failed;
+    }
+
+    if (atom == keywords2atoms[K_KW_fd].atom) {
+        return fd_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_peer_addr].atom) {
+        return peer_addr_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_peer_port].atom) {
+        return peer_port_getter;
+    }
+
+    /* the following properties are not available if the entity
+       has been extended */
+    if (stream->ext0.signature[0]) {
         goto failed;
     }
 
@@ -1578,15 +1595,6 @@ property_getter(void *entity, const char *name)
     }
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
-    }
-    else if (atom == keywords2atoms[K_KW_fd].atom) {
-        return fd_getter;
-    }
-    else if (atom == keywords2atoms[K_KW_peer_addr].atom) {
-        return peer_addr_getter;
-    }
-    else if (atom == keywords2atoms[K_KW_peer_port].atom) {
-        return peer_port_getter;
     }
 
 failed:
@@ -2099,10 +2107,10 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     do {
         argv = realloc(argv, sizeof(char *) * (nr_args + 1));
 
-        char buff[12];
+        char buff[16];
         bool ret;
 
-        sprintf(buff, "ARG%u", nr_args);
+        snprintf(buff, sizeof(buff), "ARG%u", nr_args);
         ret = pcutils_url_get_query_value_alloc(url, buff, &argv[nr_args]);
         if (!ret) {
             if (nr_args == 0) {
@@ -2356,8 +2364,8 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
         memset(&unix_addr, 0, sizeof(unix_addr));
         unix_addr.sun_family = AF_UNIX;
         /* On Linux sun_path is 108 bytes in size */
-        sprintf(unix_addr.sun_path, "%s%s-%05d", US_CLI_PATH,
-                socket_path, getpid());
+        snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path),
+                "%s%s-%05d", US_CLI_PATH, socket_path, getpid());
         len = sizeof(unix_addr.sun_family);
         len += strlen(unix_addr.sun_path) + 1;
 
@@ -2443,12 +2451,13 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
             break;
     }
 
-    char s_port[10] = {0};
     if (port <= 0 || port > 65535) {
         PC_DEBUG("Bad port value: (%d)\n", port);
         goto done;
     }
-    sprintf(s_port, "%d", port);
+
+    char s_port[8] = {0};
+    snprintf(s_port, sizeof(s_port), "%d", port);
 
     hints.ai_socktype = SOCK_STREAM;
     if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
@@ -3133,7 +3142,6 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
-
     if (stream) {
         // setup a callback for `on_release` to destroy the stream automatically
         ret_var = purc_variant_make_native_entity(stream, ops, entity_name);
@@ -3141,6 +3149,9 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
             stream->observed = ret_var;
         }
     }
+
+    PC_INFO("Extended result: (stream: %p, ops: %p, retv: %p)\n",
+            stream, ops, ret_var);
 
     return ret_var;
 }

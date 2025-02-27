@@ -23,6 +23,7 @@
  */
 
 #define _GNU_SOURCE
+#undef NDEBUG /* Remove before push */
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
@@ -694,6 +695,9 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         ext->sz_hsbuf += SZ_HSBUF_INC;
     }
 
+    PC_DEBUG("handshake data: sz_hsbuf: %zu; sz_read_hsbuf: (%zu)\n",
+            ext->sz_hsbuf, ext->sz_read_hsbuf);
+
     ssize_t nr_bytes;
     nr_bytes = ws_read_data(stream, ext->hsbuf + ext->sz_read_hsbuf,
             SZ_HSBUF_INC - 1);
@@ -715,14 +719,16 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
     return READ_SOME;
 }
 
-static void ws_start_ping_timer(struct pcdvobjs_stream *stream);
-
 /* Handle the handshake request from a client. */
 static int
 ws_handle_handshake_request(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     assert(ext->status & WS_WAITING4HSREQU);
+
+    PC_DEBUG("in %s\n", __func__);
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
@@ -745,10 +751,6 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
                     sizeof(WS_BAD_REQUEST_STR) - 1);
             ext->status = WS_ERR_MSG | WS_CLOSING;
         }
-        else {
-            ws_start_ping_timer(stream);
-        }
-
         free(ext->hsbuf);
         ext->hsbuf = NULL;
         break;
@@ -763,6 +765,10 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     assert(ext->status & WS_WAITING4HSRESP);
+
+    PC_DEBUG("in %s\n", __func__);
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
@@ -782,12 +788,8 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
         if (ws_verify_handshake_response(stream)) {
             ext->status = WS_ERR_SRV | WS_CLOSING;
         }
-        else {
-            ws_start_ping_timer(stream);
-        }
         free(ext->hsbuf);
         ext->hsbuf = NULL;
-
         break;
     }
 
@@ -910,7 +912,7 @@ log_return_message_ssl(int ret, int err, const char *fn)
         case SSL_ERROR_SYSCALL:
             PC_INFO("SSL: %s -> SSL_ERROR_SYSCALL\n", fn);
 
-            e = ERR_get_error ();
+            e = ERR_get_error();
             if (e > 0)
                 PC_INFO("SSL: %s -> %s\n", fn, ERR_error_string(e, NULL));
 
@@ -985,6 +987,8 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = -1, err = 0;
 
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
     /* all good on TLS handshake */
     if ((ret = SSL_connect(ext->ssl)) > 0) {
         ext->sslstatus &= ~WS_TLS_CONNECTING;
@@ -1048,6 +1052,8 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = -1, err = 0;
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     /* all good on TLS handshake */
     if ((ret = SSL_accept(ext->ssl)) > 0) {
@@ -1322,7 +1328,8 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
 
 #if HAVE(OPENSSL)
         if (ext->ssl) {
-            shutdown_ssl(stream);
+            if (ext->sslstatus)
+                shutdown_ssl(stream);
             SSL_free(ext->ssl);
             ext->ssl = NULL;
         }
@@ -2199,6 +2206,8 @@ io_callback_for_read(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
+    PC_DEBUG("Got a readable io event.\n");
+
     if ((event & PCRUNLOOP_IO_HUP) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
         PC_ERROR("Got hang up event on fd (%d).\n", fd);
         stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
@@ -2211,6 +2220,7 @@ io_callback_for_read(int fd, int event, void *ctxt)
         return false;
     }
 
+    assert(ext->on_readable);
     return ext->on_readable(stream);
 }
 
@@ -2258,6 +2268,7 @@ io_callback_for_write(int fd, int event, void *ctxt)
         return false;
     }
 
+    assert(ext->on_writable);
     return ext->on_writable(stream);
 }
 
@@ -2279,47 +2290,6 @@ static inline int ws_ping_peer(struct pcdvobjs_stream *stream)
 static inline int ws_pong_peer(struct pcdvobjs_stream *stream)
 {
     return ws_send_ctrl_frame(stream, WS_OPCODE_PONG, NULL, 0);
-}
-
-static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
-{
-    (void)id;
-    (void)timer;
-
-    struct pcdvobjs_stream *stream = data;
-    struct stream_extended_data *ext = stream->ext0.data;
-
-    assert(timer == ext->ping_timer);
-
-    double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    if (elapsed > MAX_NORESP_TO_FORCE_CLOSING) {
-        ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
-        ext->status = WS_ERR_LTNR | WS_CLOSING;
-        cleanup_extension(stream);
-    }
-    else if (elapsed > PING_NO_RESPONSE_SECONDS) {
-        ws_ping_peer(stream);
-    }
-}
-
-static void ws_start_ping_timer(struct pcdvobjs_stream *stream)
-{
-    struct stream_extended_data *ext = stream->ext0.data;
-
-    assert(ext->ping_timer == NULL);
-
-    purc_runloop_t runloop = purc_runloop_get_current();
-    if (runloop) {
-        ext->ping_timer = pcintr_timer_create(runloop, NULL,
-            on_ping_timer, stream);
-        if (ext->ping_timer == NULL) {
-            PC_WARN("Failed to create PING timer\n");
-        }
-        else {
-            pcintr_timer_set_interval(ext->ping_timer, PING_TIMER_INTERVAL);
-            pcintr_timer_start(ext->ping_timer);
-        }
-    }
 }
 
 static void mark_closing(struct pcdvobjs_stream *stream)
@@ -2460,6 +2430,55 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
 
 done:
     return 0;
+}
+
+static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
+{
+    (void)id;
+    (void)timer;
+
+    struct pcdvobjs_stream *stream = data;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    PC_DEBUG("in function %s()\n", __func__);
+
+    assert(timer == ext->ping_timer);
+
+    double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
+    if (elapsed > MAX_NORESP_TO_FORCE_CLOSING) {
+        if (ext->on_readable == ws_handle_reads) {
+            ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
+        }
+        ext->status = WS_ERR_LTNR | WS_CLOSING;
+        cleanup_extension(stream);
+    }
+    else if (elapsed > PING_NO_RESPONSE_SECONDS) {
+        if (ext->on_readable == ws_handle_reads) {
+            ws_ping_peer(stream);
+        }
+    }
+}
+
+static void ws_start_ping_timer(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    assert(ext->ping_timer == NULL);
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
+    purc_runloop_t runloop = purc_runloop_get_current();
+    if (runloop) {
+        ext->ping_timer = pcintr_timer_create(runloop, NULL,
+            on_ping_timer, stream);
+        if (ext->ping_timer == NULL) {
+            PC_WARN("Failed to create PING timer\n");
+        }
+        else {
+            pcintr_timer_set_interval(ext->ping_timer, PING_TIMER_INTERVAL);
+            pcintr_timer_start(ext->ping_timer);
+        }
+    }
 }
 
 static int on_message(struct pcdvobjs_stream *stream, int type,
@@ -2709,7 +2728,12 @@ property_getter(void *entity, const char *name)
         method = send_handshake_resp;
     }
     else {
-        goto failed;
+        const struct purc_native_ops *super_ops = stream->ext0.super_ops;
+        if (super_ops->property_getter)
+            method = super_ops->property_getter(entity, name);
+
+        if (method == NULL)
+            goto failed;
     }
 
     /* override the getters of parent */
@@ -2765,6 +2789,8 @@ static bool on_forget(void *entity, const char *event_name,
         const char *event_subname)
 {
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)entity;
+    assert(stream);
+
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co == NULL)
         return false;
@@ -2775,17 +2801,19 @@ static bool on_forget(void *entity, const char *event_name,
         return false;
 
     struct stream_extended_data *ext = stream->ext0.data;
-    if ((matched & EVENT_MASK_HANDSHAKE)) {
-        ext->event_cids[K_EVENT_TYPE_HANDSHAKE] = 0;
-    }
-    if ((matched & EVENT_MASK_MESSAGE)) {
-        ext->event_cids[K_EVENT_TYPE_MESSAGE] = 0;
-    }
-    if ((matched & EVENT_MASK_ERROR)) {
-        ext->event_cids[K_EVENT_TYPE_ERROR] = 0;
-    }
-    if ((matched & EVENT_MASK_CLOSE)) {
-        ext->event_cids[K_EVENT_TYPE_CLOSE] = 0;
+    if (ext) {
+        if ((matched & EVENT_MASK_HANDSHAKE)) {
+            ext->event_cids[K_EVENT_TYPE_HANDSHAKE] = 0;
+        }
+        if ((matched & EVENT_MASK_MESSAGE)) {
+            ext->event_cids[K_EVENT_TYPE_MESSAGE] = 0;
+        }
+        if ((matched & EVENT_MASK_ERROR)) {
+            ext->event_cids[K_EVENT_TYPE_ERROR] = 0;
+        }
+        if ((matched & EVENT_MASK_CLOSE)) {
+            ext->event_cids[K_EVENT_TYPE_CLOSE] = 0;
+        }
     }
 
     return true;
@@ -2829,7 +2857,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
-    else if (!purc_variant_is_object(extra_opts)) {
+    else if (extra_opts != PURC_VARIANT_INVALID &&
+            !purc_variant_is_object(extra_opts)) {
         PC_ERROR("Not an object for websocket options.\n");
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
@@ -2888,7 +2917,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co) {
-        stream->monitor4r = purc_runloop_add_fd_monitor(co, stream->fd4r,
+        stream->monitor4r = purc_runloop_add_fd_monitor(
+                purc_runloop_get_current(), stream->fd4r,
                 PCRUNLOOP_IO_IN | PCRUNLOOP_IO_HUP | PCRUNLOOP_IO_ERR,
                 io_callback_for_read, stream);
         if (stream->monitor4r) {
@@ -2899,7 +2929,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             goto failed;
         }
 
-        stream->monitor4w = purc_runloop_add_fd_monitor(co, stream->fd4w,
+        stream->monitor4w = purc_runloop_add_fd_monitor(
+                purc_runloop_get_current(), stream->fd4w,
                 // macOS not allow to poll HUP and OUT at the same time.
                 PCRUNLOOP_IO_OUT | PCRUNLOOP_IO_ERR,
                 io_callback_for_write, stream);
@@ -3066,7 +3097,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         else {
             ext->reader = read_socket_plain;
             ext->writer = write_socket_plain;
-            ext->on_readable = ws_handle_reads;
+            ext->on_readable = ws_handle_handshake_request;
             ext->on_writable = ws_handle_writes;
             ext->status = WS_WAITING4HSREQU;
         }
@@ -3079,6 +3110,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 #endif
     }
 
+    ws_start_ping_timer(stream);
+
     PC_INFO("This stream is extended by Layer 0 prot: websocket; role(%d)\n",
             ext->role);
 
@@ -3086,6 +3119,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     assert(ext->writer);
     assert(ext->on_readable);
     assert(ext->on_writable);
+
     return &msg_entity_ops;
 
 failed:

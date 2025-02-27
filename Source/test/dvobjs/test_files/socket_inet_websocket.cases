@@ -32,8 +32,8 @@ negative:
     WrongDataType
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, {})
-    InvalidValue
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, {'ssl-key': 'foobar.key', 'ssl-cert': 'foobar.crt' })
+    OSFailure
 
 #'ssl-session-cache-id':       < string: `Use the external SSL session cache to enable sharing the sessions between processes.` >
 #'ssl-session-cache-users':    < ['group || other'] | undefined: `Specify the extra users who can access the shared SSL session cache except the owner.` >

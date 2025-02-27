@@ -193,7 +193,7 @@ if (COMPILER_IS_GCC_OR_CLANG)
             find_library(CLANG_ASAN_LIBRARY clang_rt.asan_dynamic_runtime_thunk-x86_64 ${CLANG_LIB_PATH})
             find_library(CLANG_ASAN_RT_LIBRARY clang_rt.asan_dynamic-x86_64 PATHS ${CLANG_LIB_PATH})
             set(SANITIZER_LINK_FLAGS "\"${CLANG_ASAN_LIBRARY}\" \"${CLANG_ASAN_RT_LIBRARY}\"")
-        else ()
+        elseif (UNIX AND NOT APPLE)
             set(SANITIZER_LINK_FLAGS "-lpthread")
         endif ()
 
