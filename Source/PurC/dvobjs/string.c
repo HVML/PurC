@@ -865,8 +865,8 @@ format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else
         format = purc_variant_get_string_const (argv[0]);
 
-    char buffer[16];
-    int start = 0;
+    char buff[32];
+    int start = 0, len;
     int i = 0;
     int j = 1;
     int64_t i64 = 0;
@@ -877,95 +877,95 @@ format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     while (*(format + i) != 0x00) {
         if (*(format + i) == '%') {
             switch (*(format + i + 1)) {
-                case 0x00:
-                    break;
-                case '%':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    purc_rwstream_write (rwstream, "%", 1);
-                    i++;
-                    start = i + 1;
-                    break;
-                case 'd':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    purc_variant_cast_to_longint (argv[j], &i64, false);
-                    sprintf (buffer, "%lld", (long long int)i64);
-                    purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
-                case 'o':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%llo", (long long unsigned)u64);
-                    purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
-                case 'u':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%llu", (long long unsigned)u64);
-                    purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
-                case 'x':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                    sprintf (buffer, "%llx", (long long unsigned)u64);
-                    purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
-                case 'f':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    purc_variant_cast_to_number (argv[j], &number, false);
-                    sprintf (buffer, "%lf", number);
-                    purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
-                case 's':
-                    purc_rwstream_write (rwstream, format + start, i - start);
-                    if (argv[j] == PURC_VARIANT_INVALID) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    if (!purc_variant_is_string (argv[0])) {
-                        purc_rwstream_destroy (rwstream);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    temp_str = purc_variant_get_string_const (argv[j]);
-                    purc_rwstream_write (rwstream, temp_str, strlen (temp_str));
-                    i++;
-                    j++;
-                    start = i + 1;
-                    break;
+            case 0x00:
+                break;
+            case '%':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                purc_rwstream_write (rwstream, "%", 1);
+                i++;
+                start = i + 1;
+                break;
+            case 'd':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                purc_variant_cast_to_longint (argv[j], &i64, false);
+                len = snprintf(buff, sizeof(buff), "%lld", (long long int)i64);
+                purc_rwstream_write (rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+            case 'o':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                purc_variant_cast_to_ulongint (argv[j], &u64, false);
+                len = snprintf(buff, sizeof(buff), "%llo", (long long unsigned)u64);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+            case 'u':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                purc_variant_cast_to_ulongint (argv[j], &u64, false);
+                len = snprintf(buff, sizeof(buff), "%llu", (long long unsigned)u64);
+                purc_rwstream_write (rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+            case 'x':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                purc_variant_cast_to_ulongint (argv[j], &u64, false);
+                len = snprintf(buff, sizeof(buff), "%llx", (long long unsigned)u64);
+                purc_rwstream_write (rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+            case 'f':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                purc_variant_cast_to_number (argv[j], &number, false);
+                len = snprintf(buff, sizeof(buff), "%lf", number);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+            case 's':
+                purc_rwstream_write (rwstream, format + start, i - start);
+                if (argv[j] == PURC_VARIANT_INVALID) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                if (!purc_variant_is_string (argv[0])) {
+                    purc_rwstream_destroy (rwstream);
+                    return PURC_VARIANT_INVALID;
+                }
+                temp_str = purc_variant_get_string_const (argv[j]);
+                purc_rwstream_write (rwstream, temp_str, strlen (temp_str));
+                i++;
+                j++;
+                start = i + 1;
+                break;
             }
         }
         i++;
