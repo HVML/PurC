@@ -30,21 +30,6 @@
 
 #include <gtest/gtest.h>
 
-static const char *cond_names[] = {
-    "PURC_COND_STARTED",
-    "PURC_COND_STOPPED",
-    "PURC_COND_NOCOR",
-    "PURC_COND_IDLE",
-    "PURC_COND_COR_CREATED",
-    "PURC_COND_COR_ONE_RUN",
-    "PURC_COND_COR_EXITED",
-    "PURC_COND_COR_TERMINATED",
-    "PURC_COND_COR_DESTROYED",
-    "PURC_COND_UNK_REQUEST",
-    "PURC_COND_UNK_EVENT",
-    "PURC_COND_SHUTDOWN_ASKED",
-};
-
 TEST(socket, local_stream_default)
 {
     PurCInstance purc(false);
