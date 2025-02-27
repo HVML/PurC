@@ -92,6 +92,9 @@ go_comp_test(const char *files);
 void
 run_one_comp_test(const char *file, const char *query = NULL);
 
+int
+client_cond_handler(purc_cond_k event, void *arg, void *data);
+
 PCA_EXTERN_C_END
 
 #endif /* PURC_TEST_INTR_TOOLS_H */
