@@ -908,15 +908,17 @@ pcintr_post_event_by_ctype(purc_atom_t rid, purc_atom_t cid,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
+
+    int len;
     if (event_sub_type) {
-        sprintf(p, "%s:%s", event_type, event_sub_type);
+        len = snprintf(p, n, "%s:%s", event_type, event_sub_type);
     }
     else {
-        sprintf(p, "%s", event_type);
+        len = snprintf(p, n, "%s", event_type);
     }
 
     purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
-            strlen(p) + 1, true);
+            len + 1, true);
     if (!event_name) {
         free(p);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

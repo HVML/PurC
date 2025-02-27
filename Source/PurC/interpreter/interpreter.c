@@ -1762,22 +1762,15 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     PC_ASSERT(inst && inst == heap->owner);
     PC_ASSERT(inst->runner_name);
 
-    size_t len = PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4;
-    char *p = (char*)malloc(len);
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
+    char buff[PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4];
 
     unsigned long id = pcintr_gen_crtn_id();
-
-    sprintf(p, "%s/%ld", inst->endpoint_name, id);
-    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
+    snprintf(buff, sizeof(buff), "%s/%ld", inst->endpoint_name, id);
+    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, buff);
     if (pcutils_map_get_size(heap->token_crtn_map) == 0) {
         coroutine->is_main = 1;
     }
-    sprintf(coroutine->token, "%ld", id);
-    free(p);
+    snprintf(coroutine->token, sizeof(coroutine->token), "%ld", id);
 
     return 0;
 }

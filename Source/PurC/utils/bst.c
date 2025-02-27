@@ -464,7 +464,7 @@ pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
     callback((unsigned char *) "<left ", 6, ctx);
 
     if (entry->left) {
-        buff_len = sprintf(buff, PCHTML_FORMAT_Z, entry->left->size);
+        buff_len = snprintf(buff, sizeof(buff), PCHTML_FORMAT_Z, entry->left->size);
         callback((unsigned char *) buff, buff_len, ctx);
 
         callback((unsigned char *) ">\n", 2, ctx);
@@ -487,7 +487,7 @@ pcutils_bst_serialize_entry(pcutils_bst_entry_t *entry,
     callback((unsigned char *) "<right ", 7, ctx);
 
     if (entry->right) {
-        buff_len = sprintf(buff, PCHTML_FORMAT_Z, entry->right->size);
+        buff_len = snprintf(buff, sizeof(buff), PCHTML_FORMAT_Z, entry->right->size);
         callback((unsigned char *) buff, buff_len, ctx);
 
         callback((unsigned char *) ">\n", 2, ctx);

@@ -628,7 +628,8 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     memset (&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
     /* On Linux sun_path is 108 bytes in size */
-    sprintf (unix_addr.sun_path, "%s%s-%05d", CLI_PATH, peer_name, getpid());
+    snprintf (unix_addr.sun_path, sizeof (unix_addr.sun_path),
+            "%s%s-%05d", CLI_PATH, peer_name, getpid());
     len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path) + 1;
 
     unlink (unix_addr.sun_path);        /* in case it already exists */
@@ -960,8 +961,8 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
         return -1;
     }
 
-    char s_port[11];
-    sprintf(s_port, "%d", port);
+    char s_port[16];
+    snprintf(s_port, sizeof(s_port), "%d", port);
     if ((fd = ws_open_connection(host_name, s_port)) < 0) {
         PC_WARN("ws_open_connection failed %s:%s\n", host_name, s_port);
         goto error;

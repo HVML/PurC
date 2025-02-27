@@ -693,15 +693,16 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
                 &sz_buff, false);
 
-        char path[PATH_MAX + 1];
-        sprintf(path, "/tmp/%s_%s.html", inst->app_name, inst->runner_name);
+        char path[NAME_MAX + 10];
+        snprintf(path, sizeof(path), "/tmp/%s_%s.html",
+                inst->app_name, inst->runner_name);
 
         FILE *fp = fopen(path, "w");
         fwrite(p, 1, sz_content, fp);
         fclose(fp);
 
-        char url[2 * PATH_MAX + 1];
-        sprintf(url, "hvml://localhost/_filesystem/_file/-%s", path);
+        char url[NAME_MAX + 64];
+        snprintf(url, sizeof(url), "hvml://localhost/_filesystem/_file/-%s", path);
 
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
         req_data = purc_variant_make_string(url, false);

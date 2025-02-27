@@ -813,20 +813,21 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         goto out;
     }
     as = purc_variant_get_string_const(as_var);
-    foot = (char*)malloc(strlen(callTemplateFoot) + strlen(as) + 1);
+    size_t sz_foot = strlen(callTemplateFoot) + strlen(as) + 1;
+    foot = (char*)malloc(sz_foot);
     if (!foot) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-
-    sprintf(foot, callTemplateFoot, as);
+    snprintf(foot, sz_foot, callTemplateFoot, as);
 
     //FIXME: generate DOCTYPE
     doctype = &stack->vdom->doctype;
     if (doctype) {
-        char *doc = (char *)malloc(
-                strlen(doctypeTemplate) + strlen(doctype->system_info) + 1);
-        sprintf(doc, doctypeTemplate, doctype->system_info);
+        size_t doc_len = strlen(doctypeTemplate) +
+            strlen(doctype->system_info) + 1;
+        char *doc = (char *)malloc(doc_len);
+        snprintf(doc, doc_len, doctypeTemplate, doctype->system_info);
         purc_rwstream_write(rws, doc, strlen(doc));
         free(doc);
     }
