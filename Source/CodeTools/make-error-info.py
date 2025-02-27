@@ -178,7 +178,7 @@ def scan_src_file(fsrc):
 
 def make_snake_name(prefix, name):
     name = prefix + '_' + re.sub(r'([a-z])([A-Z])', r'\1_\2', name)
-    return name.upper().replace("_OSFAILURE", "_OS_FAILURE").replace("IOFAILURE", "IO_FAILURE").replace("HVMLATTR", "HVML_ATTR").replace("HVMLCONTENT", "HVML_CONTENT").replace("HVMLTAG", "HVML_TAG")
+    return name.upper().replace("_OSFAILURE", "_OS_FAILURE").replace("IOFAILURE", "IO_FAILURE").replace("TLSFAILURE", "TLS_FAILURE").replace("HVMLATTR", "HVML_ATTR").replace("HVMLCONTENT", "HVML_CONTENT").replace("HVMLTAG", "HVML_TAG")
 
 def make_error_code(prefix, name):
     return make_snake_name(prefix, name)

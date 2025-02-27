@@ -141,6 +141,8 @@ static struct const_str_atom _except_names[] = {
     { "TooEarly", 0 },
     { "UnavailableLegally", 0 },
     { "UnmetPrecondition", 0 },
+    { "ProtocolViolation", 0 },
+    { "TLSFailure", 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */

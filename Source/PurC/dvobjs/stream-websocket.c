@@ -1,6 +1,6 @@
 /*
  * @file stream-websocket.c
- *
+ * @author Xue Shuming, Vincent Wei
  * @date 2023/10/12
  * @brief The implementation of `websocket` protocol for stream object.
  *
@@ -23,7 +23,7 @@
  */
 
 #define _GNU_SOURCE
-#undef NDEBUG /* Remove before push */
+#undef NDEBUG /* TODO: Remove this before merging to main branch. */
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
@@ -159,8 +159,6 @@ typedef enum ws_opcode {
     WS_OPCODE_PONG = 0x0A,
 } ws_opcode;
 
-#define WS_MAX_HEAD_SZ        8192 /* a reasonable size for request headers */
-
 /* WS Client Info */
 typedef struct ws_client_info
 {
@@ -195,12 +193,13 @@ typedef struct ws_frame_header {
 
 #define WS_ERR_ANY              0x00000FFF
 
-enum {
-    WS_ERR_OOM      = 0x00000101,
-    WS_ERR_IO       = 0x00000102,
-    WS_ERR_SRV      = 0x00000104,
-    WS_ERR_MSG      = 0x00000108,
-    WS_ERR_LTNR     = 0x00000110,   /* Long time no response */
+enum ws_error_code {
+    WS_ERR_OOM      = 0x00000001,
+    WS_ERR_SSL      = 0x00000002,   /* Long time no response */
+    WS_ERR_IO       = 0x00000003,
+    WS_ERR_SRV      = 0x00000004,
+    WS_ERR_MSG      = 0x00000005,
+    WS_ERR_LTNR     = 0x00000006,   /* Long time no response */
 };
 
 typedef struct ws_pending_data {
@@ -263,8 +262,8 @@ struct stream_extended_data {
     struct list_head    pending;
 
     /* buffer for handshake. */
-#define SZ_HSBUF_INC                256
-#define SZ_HSBUF_MAX                8192
+#define SZ_HSBUF_INC        256
+#define SZ_HSBUF_MAX        8192    /* a reasonable size for request headers */
     char               *hsbuf;      /* the pointer to the handshake buffer */
     size_t              sz_hsbuf;   /* the current size of handshake buffer */
     size_t              sz_read_hsbuf;  /* read bytes in handshake buffer. */
@@ -323,13 +322,16 @@ static inline void ws_update_mem_stats(struct stream_extended_data *ext)
 
 static int ws_status_to_pcerr(struct stream_extended_data *ext)
 {
-    switch (ext->status & WS_ERR_ANY) {
+    enum ws_error_code code = (enum ws_error_code)(ext->status & WS_ERR_ANY);
+    switch (code) {
         case WS_ERR_OOM:
             return PURC_ERROR_OUT_OF_MEMORY;
+        case WS_ERR_SSL:
+            return PURC_ERROR_TLS_FAILURE;
         case WS_ERR_IO:
             return PURC_ERROR_IO_FAILURE;
         case WS_ERR_MSG:
-            return PURC_ERROR_NOT_DESIRED_ENTITY;
+            return PURC_ERROR_PROTOCOL_VIOLATION;
         case WS_ERR_SRV:
             return PURC_ERROR_CONNECTION_ABORTED;
         case WS_ERR_LTNR:

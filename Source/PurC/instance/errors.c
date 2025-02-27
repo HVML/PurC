@@ -183,7 +183,11 @@ static const char *except_messages[] = {
     /* PURC_EXCEPT_UNAVAILABLE_LEGALLY */
     "UnavailableLegally",
     /* PURC_EXCEPT_UNMET_PRECONDITION */
-    "UnmetPrecondition"
+    "UnmetPrecondition",
+    /* PURC_EXCEPT_PROTOCOL_VIOLATION */
+    "ProtocolViolation",
+    /* PURC_EXCEPT_TLS_FAILURE */
+    "TLSFailure",
 };
 
 
