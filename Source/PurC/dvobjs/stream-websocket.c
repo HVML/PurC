@@ -573,12 +573,14 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
             MAKE_STRING_PROPERTY(obj, ws_ver,       "Sec-WebSocket-Version");
             MAKE_STRING_PROPERTY(obj, ws_protocol,  "Sec-WebSocket-Protocol");
             MAKE_STRING_PROPERTY(obj, ws_extensions,"Sec-WebSocket-Extensions");
-        }
 
-        pcintr_coroutine_post_event(target,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_HANDSHAKE, NULL,
-                obj, PURC_VARIANT_INVALID);
+            pcintr_coroutine_post_event(target,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_HANDSHAKE, NULL,
+                    obj, PURC_VARIANT_INVALID);
+
+            purc_variant_unref(obj);
+        }
     }
 
     if (ext->ws_key)
@@ -680,12 +682,14 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
             MAKE_STRING_PROPERTY(obj, connection,   "Connection");
             MAKE_STRING_PROPERTY(obj, ws_prot,      "Sec-WebSocket-Protocol");
             MAKE_STRING_PROPERTY(obj, ws_ext,       "Sec-WebSocket-Extensions");
-        }
 
-        pcintr_coroutine_post_event(target,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_HANDSHAKE, NULL,
-                obj, PURC_VARIANT_INVALID);
+            pcintr_coroutine_post_event(target,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_HANDSHAKE, NULL,
+                    obj, PURC_VARIANT_INVALID);
+
+            purc_variant_unref(obj);
+        }
     }
 
 out:
@@ -2447,12 +2451,14 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
             purc_variant_object_set_by_static_ckey(data, "errMsg", tmp);
             purc_variant_unref(tmp);
         }
-    }
 
-    pcintr_coroutine_post_event(target,
-            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-            EVENT_TYPE_ERROR, NULL,
-            data, PURC_VARIANT_INVALID);
+        pcintr_coroutine_post_event(target,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_ERROR, NULL,
+                data, PURC_VARIANT_INVALID);
+
+        purc_variant_unref(data);
+    }
 
 done:
     return 0;
@@ -2520,19 +2526,11 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
         case MT_TEXT:
             // fire a `message` event
             data = purc_variant_make_string(buf, false);
-            pcintr_coroutine_post_event(target,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                    EVENT_TYPE_MESSAGE, NULL,
-                    data, PURC_VARIANT_INVALID);
             break;
 
         case MT_BINARY:
             // fire a `message` event
             data = purc_variant_make_byte_sequence(buf, len);
-            pcintr_coroutine_post_event(target,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                    EVENT_TYPE_MESSAGE, NULL,
-                    data, PURC_VARIANT_INVALID);
             break;
 
         case MT_PING:
@@ -2546,6 +2544,14 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
         case MT_CLOSE:
             cleanup_extension(stream);
             break;
+    }
+
+    if (data) {
+        pcintr_coroutine_post_event(target,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_MESSAGE, NULL,
+                data, PURC_VARIANT_INVALID);
+        purc_variant_unref(data);
     }
 
 done:
