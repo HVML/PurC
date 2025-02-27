@@ -325,10 +325,11 @@ failed:
 static char* generate_unique_rid(const char* name)
 {
     static atomic_ullong atomic_accumulator;
-    char *buf = malloc(strlen(name) + 5); // name-xxx
+    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
+    char *buf = malloc(buf_len); // name-xxx
 
     unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
-    sprintf(buf, "%s-%03lld", name, accumulator);
+    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
     return buf;
 }
 
@@ -336,9 +337,10 @@ static char* generate_unique_rid(const char* name)
 
 static char* generate_unique_rid(const char* name)
 {
-    static atomic_ullong atomic_accumulator;
-    char *buf = malloc(strlen(name) + 5); // name-xxx
-    sprintf(buf, "%s-%03lld", name, accumulator);
+    static unsigned long long accumulator;
+    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
+    char *buf = malloc(buf_len); // name-xxx
+    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
     accumulator++;
     return buf;
 }
