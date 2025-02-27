@@ -158,7 +158,7 @@ AccessDenied
     flags: None
     msg: "Access denied"
 
-IoFailure
+IOFailure
     except: IOFailure
     flags: None
     msg: "IO Failure"
@@ -308,8 +308,8 @@ ProtocolViolation
     flags: None
     msg: "Protocol violation"
 
-TlsFailure
+TLSFailure
     except: TLSFailure
     flags: None
-    msg: "TLS failure"
+    msg: "TLS (Transport Layer Security) failure"
 
