@@ -175,8 +175,7 @@ typedef struct ws_frame_header {
     uint8_t rsv;
     uint8_t op;
     uint8_t mask;
-    uint8_t sz_payload;
-    uint64_t sz_ext_payload;
+    size_t  sz_payload;
 } ws_frame_header;
 
 #define WS_OK                   0x00000000
@@ -286,10 +285,10 @@ struct stream_extended_data {
     size_t              sz_header;
     size_t              sz_read_header;
 
-    /* current frame payload */
-    char                ext_payload_buf[9];
-    size_t              sz_ext_payload;
-    size_t              sz_read_ext_payload;
+    /* current frame payload length */
+    char                ext_paylen_buf[8];
+    uint8_t             sz_ext_paylen;
+    uint8_t             sz_read_ext_paylen;
 
     /* current mask */
     unsigned char       mask[4];
@@ -735,32 +734,38 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
-        if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
-            return READ_OOM;
+    ssize_t nr_total = 0;
+    do {
+        if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
+            if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
+                return READ_OOM;
+            }
+
+            ext->hsbuf = realloc(ext->hsbuf, ext->sz_hsbuf + SZ_HSBUF_INC);
+            if (ext->hsbuf == NULL)
+                return READ_OOM;
+
+            ext->sz_hsbuf += SZ_HSBUF_INC;
         }
 
-        ext->hsbuf = realloc(ext->hsbuf, ext->sz_hsbuf + SZ_HSBUF_INC);
-        if (ext->hsbuf == NULL)
-            return READ_OOM;
+        ssize_t nr_one_read;
+        nr_one_read = ws_read_data(stream, ext->hsbuf + ext->sz_read_hsbuf,
+                SZ_HSBUF_INC - 1);
+        if (nr_one_read == -1) {
+            return READ_ERROR;
+        }
 
-        ext->sz_hsbuf += SZ_HSBUF_INC;
-    }
+        ext->sz_read_hsbuf += nr_one_read;
+        nr_total += nr_one_read;
+        PC_DEBUG("handshake buffer info: sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_total(%zd)\n",
+                ext->sz_hsbuf, ext->sz_read_hsbuf, nr_total);
 
-    ssize_t nr_bytes;
-    nr_bytes = ws_read_data(stream, ext->hsbuf + ext->sz_read_hsbuf,
-            SZ_HSBUF_INC - 1);
-    PC_DEBUG("handshake buffer info: sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_bytes(%zu)\n",
-            ext->sz_hsbuf, ext->sz_read_hsbuf, nr_bytes);
+#if HAVE(OPENSSL)
+    } while (ext->ssl ? SSL_pending(ext->ssl): 0);
+#else
+    } while (0);
+#endif
 
-    if (nr_bytes == 0) {
-        return READ_NONE;
-    }
-    else if (nr_bytes == -1) {
-        return READ_ERROR;
-    }
-
-    ext->sz_read_hsbuf += nr_bytes;
     ext->hsbuf[ext->sz_read_hsbuf] = 0; /* set terminating null byte */
 
     if (ext->sz_read_hsbuf >= 4 &&
@@ -788,6 +793,8 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
     assert(ext->status & WS_WAITING4HSREQU);
 
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
+    PC_DEBUG("Time to read handshake request.\n");
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
@@ -839,6 +846,8 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     assert(ext->status & WS_WAITING4HSRESP);
 
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
+    PC_DEBUG("Time to read handshake response.\n");
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
@@ -912,6 +921,8 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     DEFINE_STRING_VAR_FROM_OBJECT(referer, "https://hvml.fmsoft.cn/");
     DEFINE_STRING_VAR_FROM_OBJECT(extensions, "");
     DEFINE_STRING_VAR_FROM_OBJECT(subprotocols, "");
+
+    purc_clr_error();   /* XXX: a work-around to clear error */
 
     /* generate Sec-WebSocket-Key */
     srandom(time(NULL));
@@ -1306,6 +1317,7 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
                 done = 1;
                 break;
             case SSL_ERROR_WANT_READ:
+                PC_DEBUG("More data need to read\n");
                 done = 1;
                 break;
             case SSL_ERROR_SYSCALL:
@@ -1738,7 +1750,7 @@ static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, int opcode,
     int mask_int;
     const uint8_t *mask = (uint8_t *)&mask_int;
 
-    if (payload == NULL || sz_payload > 125) {
+    if (payload != NULL && sz_payload > 125) {
         PC_WARN("Too long payload for a control frame: %zu; truncated\n",
                 sz_payload);
         sz_payload = 0;     // force to ignore.
@@ -1837,18 +1849,18 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
 
             switch (header->sz_payload) {
             case 127:
-                memset(ext->ext_payload_buf, 0, sizeof(ext->ext_payload_buf));
-                ext->sz_ext_payload = sizeof(uint64_t);
-                ext->sz_read_ext_payload = 0;
+                memset(ext->ext_paylen_buf, 0, sizeof(ext->ext_paylen_buf));
+                ext->sz_ext_paylen = (uint8_t)sizeof(uint64_t);
+                ext->sz_read_ext_paylen = 0;
                 break;
             case 126:
-                memset(ext->ext_payload_buf, 0, sizeof(ext->ext_payload_buf));
-                ext->sz_ext_payload = sizeof(uint16_t);
-                ext->sz_read_ext_payload = 0;
+                memset(ext->ext_paylen_buf, 0, sizeof(ext->ext_paylen_buf));
+                ext->sz_ext_paylen = (uint8_t)sizeof(uint16_t);
+                ext->sz_read_ext_paylen = 0;
                 break;
             default:
-                header->sz_ext_payload = header->sz_payload;
-                ext->sz_payload = header->sz_ext_payload;
+                ext->sz_ext_paylen = 0;
+                ext->sz_payload = header->sz_payload;
                 ext->payload = malloc(ext->sz_payload + 1);
                 if (ext->payload == NULL) {
                     PC_ERROR("Failed to allocate memory for payload (%zu)\n",
@@ -1887,27 +1899,33 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
     ws_frame_header *header = &ext->header;
     ssize_t n;
 
-    char *buf = (char *)ext->ext_payload_buf;
-    assert(ext->sz_ext_payload > ext->sz_read_ext_payload);
+    char *buf = (char *)ext->ext_paylen_buf;
+    PC_DEBUG("sz_ext_paylen: %d, sz_read_ext_paylen: %d\n",
+            (int)ext->sz_ext_paylen, (int)ext->sz_read_ext_paylen);
+    assert(ext->sz_ext_paylen > ext->sz_read_ext_paylen);
 
-    n = ws_read_data(stream, buf + ext->sz_read_ext_payload,
-            ext->sz_ext_payload - ext->sz_read_ext_payload);
+    n = ws_read_data(stream, buf + ext->sz_read_ext_paylen,
+            ext->sz_ext_paylen - ext->sz_read_ext_paylen);
     if (n > 0) {
-        ext->sz_read_ext_payload += n;
-        if (ext->sz_read_ext_payload == ext->sz_ext_payload) {
-            ext->sz_read_ext_payload = 0;
-            if (ext->sz_ext_payload == sizeof(uint16_t)) {
+        ext->sz_read_ext_paylen += n;
+        if (ext->sz_read_ext_paylen == ext->sz_ext_paylen) {
+            ext->sz_read_ext_paylen = 0;
+            if (ext->sz_ext_paylen == sizeof(uint16_t)) {
                 uint16_t v;
-                memcpy(&v, ext->ext_payload_buf, 2);
-                header->sz_ext_payload = be16toh(v);
+                memcpy(&v, ext->ext_paylen_buf, 2);
+                header->sz_payload = be16toh(v);
             }
-            else if (ext->sz_ext_payload == sizeof(uint64_t)) {
+            else if (ext->sz_ext_paylen == sizeof(uint64_t)) {
                 uint64_t v;
-                memcpy(&v, ext->ext_payload_buf, 8);
-                header->sz_ext_payload = be64toh(v);
+                memcpy(&v, ext->ext_paylen_buf, 8);
+                header->sz_payload = be64toh(v);
+            }
+            else {
+                // never be here.
+                assert(0);
             }
 
-            if (header->sz_ext_payload > ext->maxmessagesize) {
+            if (header->sz_payload > ext->maxmessagesize) {
                 ws_notify_to_close(stream, WS_CLOSE_TOO_LARGE,
                         "Frame is too big");
                 ext->status = WS_ERR_MSG | WS_CLOSING;
@@ -1982,7 +2000,9 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     ssize_t n;
 
     char *buf = (char *)ext->payload;
-    assert(ext->sz_payload > ext->sz_read_payload);
+    PC_DEBUG("sz_payload: %zu, sz_read_payload: %zu\n",
+            ext->sz_payload, ext->sz_read_payload);
+    assert(ext->sz_payload >= ext->sz_read_payload);
 
     n = ws_read_data(stream, buf + ext->sz_read_payload,
             ext->sz_payload - ext->sz_read_payload);
@@ -2022,13 +2042,13 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
     int retv;
 
     /* read extended payload length */
-    if (header->sz_ext_payload == 0) {
+    if (ext->sz_ext_paylen != 0) {
         retv = try_to_read_ext_payload_length(stream);
         if (retv != READ_WHOLE) {
             return retv;
         }
 
-        ext->sz_payload = header->sz_ext_payload;
+        ext->sz_payload = ext->header.sz_payload;
         ext->payload = malloc(ext->sz_payload + 1);
         if (ext->payload == NULL) {
             PC_ERROR("Failed to allocate memory for payload (%zu)\n",
@@ -2050,7 +2070,7 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
     }
 
     /* read websocket payload */
-    return try_to_read_payload(stream);
+    return ext->sz_payload ? try_to_read_payload(stream) : 0;
 }
 
 static int ws_validate_ctrl_frame(struct pcdvobjs_stream *stream)
