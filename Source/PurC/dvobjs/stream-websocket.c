@@ -922,8 +922,6 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     DEFINE_STRING_VAR_FROM_OBJECT(extensions, "");
     DEFINE_STRING_VAR_FROM_OBJECT(subprotocols, "");
 
-    purc_clr_error();   /* XXX: a work-around to clear error */
-
     /* generate Sec-WebSocket-Key */
     srandom(time(NULL));
     char key[WS_KEY_LEN];
