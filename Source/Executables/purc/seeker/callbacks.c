@@ -802,7 +802,7 @@ validate_page(pcmcth_session *sess, pcmcth_page *page, int *retv)
 
 static pcmcth_udom *
 load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
-        uint64_t crtn, char *buff, int *retv)
+        uint64_t crtn, char *buff, size_t sz_buff, int *retv)
 {
     page = validate_page(sess, page, retv);
     if (page == NULL)
@@ -819,7 +819,7 @@ load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
         suppressed = purc_page_ostack_register(page->ostack, owner);
         if (suppressed.corh) {
             if (suppressed.sess == sess) {
-                sprintf(buff,
+                snprintf(buff, sz_buff, 
                         "%llx", (unsigned long long int)suppressed.corh);
             }
             else {

@@ -195,7 +195,7 @@ typedef struct ws_frame_header {
 
 enum ws_error_code {
     WS_ERR_OOM      = 0x00000001,
-    WS_ERR_SSL      = 0x00000002,   /* Long time no response */
+    WS_ERR_SSL      = 0x00000002,
     WS_ERR_IO       = 0x00000003,
     WS_ERR_SRV      = 0x00000004,
     WS_ERR_MSG      = 0x00000005,

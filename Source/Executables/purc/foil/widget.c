@@ -323,7 +323,7 @@ static const char *escaped_fgc[] = {
 };
 
 static unsigned char *
-escape_bgc(char *buf, const struct pcmcth_page *page, int bgc)
+escape_bgc(char *buf, size_t sz_buf, const struct pcmcth_page *page, int bgc)
 {
     if (bgc & FOIL_DEFCLR_MASK) {
         strcpy(buf, escaped_bgc[0]);
@@ -331,15 +331,16 @@ escape_bgc(char *buf, const struct pcmcth_page *page, int bgc)
     else {
         switch (page->color_mode) {
         case FOIL_TTY_COLOR_STD_16C:
-            strcpy(buf, escaped_bgc[bgc + 1]);
+            strncpy(buf, escaped_bgc[bgc + 1], sz_buf);
+            buf[sz_buf - 1] = 0;    /* force to null-terminated */
             break;
 
         case FOIL_TTY_COLOR_XTERM_256C:
-            sprintf(buf, "\033[48;5;%dm", bgc);
+            snprintf(buf, sz_buf, "\033[48;5;%dm", bgc);
             break;
 
         case FOIL_TTY_COLOR_TRUE_COLOR:
-            sprintf(buf, "\033[48;2;%d;%d;%dm",
+            snprintf(buf, sz_buf, "\033[48;2;%d;%d;%dm",
                         (int)((uint8_t)((uint32_t)bgc >> 16)),
                         (int)((uint8_t)((uint32_t)bgc >> 8)),
                         (int)((uint8_t)((uint32_t)bgc)));
@@ -355,7 +356,7 @@ escape_bgc(char *buf, const struct pcmcth_page *page, int bgc)
 }
 
 static unsigned char *
-escape_fgc(char *buf, const struct pcmcth_page *page, int fgc)
+escape_fgc(char *buf, size_t sz_buf, const struct pcmcth_page *page, int fgc)
 {
     if (fgc & FOIL_DEFCLR_MASK) {
         strcpy(buf, escaped_fgc[0]);
@@ -363,16 +364,17 @@ escape_fgc(char *buf, const struct pcmcth_page *page, int fgc)
     else {
         switch (page->color_mode) {
         case FOIL_TTY_COLOR_STD_16C:
-            strcpy(buf, escaped_fgc[fgc + 1]);
+            strncpy(buf, escaped_fgc[fgc + 1], sz_buf);
+            buf[sz_buf - 1] = 0;    /* force to null-terminated */
             break;
 
 
         case FOIL_TTY_COLOR_XTERM_256C:
-            sprintf(buf, "\033[38;5;%dm", fgc);
+            snprintf(buf, sz_buf, "\033[38;5;%dm", fgc);
             break;
 
         case FOIL_TTY_COLOR_TRUE_COLOR:
-            sprintf(buf, "\033[38;2;%d;%d;%dm",
+            snprintf(buf, sz_buf, "\033[38;2;%d;%d;%dm",
                         (int)((uint8_t)((uint32_t)fgc >> 16)),
                         (int)((uint8_t)((uint32_t)fgc >> 8)),
                         (int)((uint8_t)((uint32_t)fgc)));
@@ -406,9 +408,9 @@ make_escape_string_line_mode(const struct pcmcth_page *page,
 
         if (i == 0) {
             pcutils_mystring_append_mchar(&mystr,
-                    escape_bgc(buf, page, cell->bgc), 0);
+                    escape_bgc(buf, sizeof(buf), page, cell->bgc), 0);
             pcutils_mystring_append_mchar(&mystr,
-                    escape_fgc(buf, page, cell->fgc), 0);
+                    escape_fgc(buf, sizeof(buf), page, cell->fgc), 0);
 
             old_bgc = cell->bgc;
             old_fgc = cell->fgc;
@@ -416,13 +418,13 @@ make_escape_string_line_mode(const struct pcmcth_page *page,
         else {
             if (old_bgc != cell->bgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        escape_bgc(buf, page, cell->bgc), 0);
+                        escape_bgc(buf, sizeof(buf), page, cell->bgc), 0);
                 old_bgc = cell->bgc;
             }
 
             if (old_fgc != cell->fgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        escape_fgc(buf, page, cell->fgc), 0);
+                        escape_fgc(buf, sizeof(buf), page, cell->fgc), 0);
                 old_fgc = cell->fgc;
             }
         }
