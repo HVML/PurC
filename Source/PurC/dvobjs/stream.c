@@ -3150,7 +3150,7 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
         }
     }
 
-    PC_INFO("Extended result: (stream: %p, ops: %p, retv: %p)\n",
+    PC_DEBUG("Extended result: (stream: %p, ops: %p, retv: %p)\n",
             stream, ops, ret_var);
 
     return ret_var;

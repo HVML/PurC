@@ -126,30 +126,30 @@
 
     <body id="raw">
 
-        <include with $logMsg on 'The raw client is running...' />
+        <include with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default') >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'The raw client has connected to the server.' />
+            <include with $logMsg on 'Client has connected to the server.' />
 
             <inherit>
-                $cliStreamSocket.writelines('Hello from a raw client socket')
+                $cliStreamSocket.writelines('Hello')
 
-                <include with $logMsg on 'The raw client has wrotten a line to the server.' />
+                <include with $logMsg on 'Client has wrotten a line to the server.' />
 
                 <catch for `ANY`>
                     <exit with "Client failed with $?.name when calling stream.writelines()" />
                 </catch>
             </inherit>
 
-            <include with $logMsg on 'The raw client try to read one line from the server.' />
+            <include with $logMsg on 'Client try to read one line from the server.' />
 
             <choose on $cliStreamSocket.readlines(1) >
 
-                <include with $logMsg on 'The raw client has got one line from the server and going to exit:' />
+                <include with $logMsg on 'Client has got one line from the server and going to exit:' />
                 <include with $logMsg on $?[0] />
 
                 <choose on $cliStreamSocket.close() >
@@ -170,23 +170,49 @@
 
     </body>
 
-    <!-- long time no response -->
+    <!-- long time no response client -->
     <body id="ltnr">
 
-        <include with $logMsg on 'The raw client is running...' />
+        <include with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default') >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'The raw client has connected to the server.' />
+            <include with $logMsg on 'Client has connected to the server.' />
         </init>
 
         <sleep for '10s' />
 
         <inherit>
             $cliStreamSocket.close()
+        </inherit>
+
+        <exit with 'Bye' />
+    </body>
+
+    <!-- long time no response but secure client -->
+    <body id="sltnr">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+        </init>
+
+        <sleep for '5s' silently />
+
+        <inherit>
+            $cliStreamSocket.close()
+
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+            </catch>
         </inherit>
 
         <exit with 'Bye' />

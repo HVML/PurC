@@ -485,6 +485,7 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
     while (line) {
         size_t len;
         if ((next = strstr(line, CRLF)) != NULL) {
+            next[0] = next[1] = 0;
             len = (next - line);
         }
         else {
@@ -504,11 +505,13 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 
             *value = '\0';
             value += 1;
+#if 0
             char *end = strstr(value, CRLF);
             if (end == NULL) {
                 break;
             }
             *end = '\0';
+#endif
 
             char *key = line;
             if (strcasecmp("Host:", key) == 0)
@@ -539,6 +542,13 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
         }
     }
 
+    PC_DEBUG("parsed request: method(%s), path(%s), protocol(%s)\n",
+            method, path, protocol);
+    PC_DEBUG("parsed request: host(%s), upgrade(%s), connection(%s)\n",
+            host, upgrade, connection);
+    PC_DEBUG("parsed request: origin(%s), ws_key(%s), ws_ver(%s)\n",
+            origin, ws_key, ws_ver);
+
     if (path == NULL || host == NULL || upgrade == NULL || connection == NULL ||
             origin == NULL || ws_key == NULL || ws_ver == NULL) {
         // Bad request.
@@ -546,12 +556,13 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
         return -1;
     }
 
-    if (pcdvobj_url_decode_in_place(path, strlen(path), PURC_K_KW_rfc3986)) {
+    if (strchr(path, '%') &&
+            pcdvobj_url_decode_in_place(path, strlen(path), PURC_K_KW_rfc3986)) {
         PC_ERROR("Failed to decode path (%s)\n", path);
         return -1;
     }
 
-    if (strcasecmp(upgrade, "websocekt")) {
+    if (strcasecmp(upgrade, "websocket")) {
         PC_ERROR("Bad upgrade in handshake request headers: %s\n", upgrade);
         return -1;
     }
@@ -724,7 +735,7 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    if (ext->sz_read_hsbuf == ext->sz_hsbuf) {
+    if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
         if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
             return READ_OOM;
         }
@@ -739,6 +750,9 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
     ssize_t nr_bytes;
     nr_bytes = ws_read_data(stream, ext->hsbuf + ext->sz_read_hsbuf,
             SZ_HSBUF_INC - 1);
+    PC_DEBUG("handshake buffer info: sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_bytes(%zu)\n",
+            ext->sz_hsbuf, ext->sz_read_hsbuf, nr_bytes);
+
     if (nr_bytes == 0) {
         return READ_NONE;
     }
@@ -793,13 +807,14 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
 
     case READ_ERROR:
     case READ_OOM:
-        ext->status = WS_ERR_IO | WS_CLOSING;
+        ext->status = WS_ERR_OOM | WS_CLOSING;
         retv = -1;
         break;
 
     case READ_WHOLE:
         ext->status &= ~WS_WAITING4HSREQU;
         ext->on_readable = ws_handle_reads; /* switch to regular rw mode. */
+        PC_DEBUG("Got handshake request:\n%s", ext->hsbuf);
         if (ws_verify_handshake_request(stream)) {
             /* Send the Bad request response to the client. */
             ws_write_data(stream, WS_BAD_REQUEST_STR,
@@ -839,7 +854,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
         break;
 
     case READ_ERROR:
-        ext->status = WS_ERR_IO | WS_CLOSING;
+        ext->status |= WS_CLOSING;
         retv = -1;
         break;
 
@@ -851,6 +866,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     case READ_WHOLE:
         ext->status &= ~WS_WAITING4HSRESP;
         ext->on_readable = ws_handle_reads; /* switch to normal mode */
+        PC_DEBUG("Got handshake response:\n%s", ext->hsbuf);
         if (ws_verify_handshake_response(stream)) {
             ext->status = WS_ERR_SRV | WS_CLOSING;
             retv = -1;
@@ -933,7 +949,7 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     if (ws_write_data(stream, req_headers, n) <= 0) {
         PC_ERROR("Failed ws_write_sock(): no any bytes send to the server .\n");
         purc_set_error(PURC_ERROR_IO_FAILURE);
-        ext->status = WS_ERR_IO | WS_CLOSING;
+        ext->status |= WS_CLOSING;
     }
     else {
         ext->status = WS_WAITING4HSRESP;
@@ -1038,7 +1054,7 @@ shutdown_ssl(struct pcdvobjs_stream *stream)
     case SSL_ERROR_ZERO_RETURN:
     case SSL_ERROR_WANT_X509_LOOKUP:
     default:
-        return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, 1);
+        return ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, 1);
     }
 
     return ret;
@@ -1070,7 +1086,7 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
 
         if (r != 0) {
             PC_ERROR("Failed ws_client_handshake(): %s\n", stream->peer_addr);
-            ret = ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+            ret = ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, -1);
         }
         else {
             ext->on_readable = ws_handle_handshake_response;
@@ -1107,7 +1123,7 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
     case SSL_ERROR_WANT_X509_LOOKUP:
     default:
         ext->sslstatus &= ~WS_TLS_CONNECTING;
-        ret = ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+        ret = ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, -1);
     }
 
     if (ret)
@@ -1135,6 +1151,7 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
 
         /* Now wait for the handshake request from client. */
         ext->on_readable = ws_handle_handshake_request;
+        ext->status = WS_WAITING4HSREQU;
         PC_INFO("SSL Accepted: %d %s\n", stream->fd4r, stream->peer_addr);
         return 0;
     }
@@ -1167,7 +1184,7 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
     case SSL_ERROR_WANT_X509_LOOKUP:
     default:
         ext->sslstatus &= ~WS_TLS_ACCEPTING;
-        ret = ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+        ret = ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, -1);
     }
 
     if (ret)
@@ -1225,17 +1242,18 @@ static ssize_t
 write_socket_ssl(struct pcdvobjs_stream *stream, const void *buffer, size_t len)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    ssize_t bytes = 0;
-    int err = 0;
+    size_t wrotten = 0;
+    int ret, err = 0;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     ERR_clear_error();
 #endif
-    if ((bytes = SSL_write(ext->ssl, buffer, len)) > 0)
-        return bytes;
 
-    err = SSL_get_error(ext->ssl, bytes);
-    log_return_message_ssl(bytes, err, "SSL_write");
+    if ((ret = SSL_write_ex(ext->ssl, buffer, len, &wrotten)) > 0)
+        return wrotten;
+
+    err = SSL_get_error(ext->ssl, ret);
+    log_return_message_ssl(ret, err, "SSL_write");
 
     switch (err) {
         case SSL_ERROR_WANT_WRITE:
@@ -1244,7 +1262,7 @@ write_socket_ssl(struct pcdvobjs_stream *stream, const void *buffer, size_t len)
             ext->sslstatus = WS_TLS_WRITING;
             break;
         case SSL_ERROR_SYSCALL:
-            if ((bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+            if ((ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
                             errno == EINTR)))
                 break;
             /* The connection was shut down cleanly */
@@ -1252,10 +1270,10 @@ write_socket_ssl(struct pcdvobjs_stream *stream, const void *buffer, size_t len)
         case SSL_ERROR_ZERO_RETURN:
         case SSL_ERROR_WANT_X509_LOOKUP:
         default:
-            return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+            return ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, -1);
     }
 
-    return bytes;
+    return wrotten;
 }
 
 /* Read data from a TLS/SSL connection for a given stream and set a connection
@@ -1267,8 +1285,8 @@ static ssize_t
 read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    ssize_t bytes = 0;
-    int done = 0, err = 0;
+    size_t read_bytes = 0;
+    int ret, done = 0, err = 0;
 
     do {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -1276,11 +1294,11 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
 #endif
 
         done = 0;
-        if ((bytes = SSL_read(ext->ssl, buffer, size)) > 0)
+        if ((ret = SSL_read_ex(ext->ssl, buffer, size, &read_bytes)) > 0)
             break;
 
-        err = SSL_get_error(ext->ssl, bytes);
-        log_return_message_ssl(bytes, err, "SSL_read");
+        err = SSL_get_error(ext->ssl, ret);
+        log_return_message_ssl(ret, err, "SSL_read");
 
         switch (err) {
             case SSL_ERROR_WANT_WRITE:
@@ -1291,18 +1309,18 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
                 done = 1;
                 break;
             case SSL_ERROR_SYSCALL:
-                if ((bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+                if ((ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
                                 errno == EINTR)))
                     break;
                 // fallthrough
             case SSL_ERROR_ZERO_RETURN:
             case SSL_ERROR_WANT_X509_LOOKUP:
             default:
-                return ws_set_status(ext, WS_ERR_IO | WS_CLOSING, -1);
+                return ws_set_status(ext, WS_ERR_SSL | WS_CLOSING, -1);
         }
     } while (SSL_pending(ext->ssl) && !done);
 
-    return bytes;
+    return read_bytes;
 }
 
 #endif // HAVE(OPENSSL)
@@ -1465,6 +1483,10 @@ write_socket_plain(struct pcdvobjs_stream *stream, const void *buf, size_t len)
         /* Reset bytes to be 0 */
         bytes = 0;
     }
+    else if (bytes == -1) {
+        struct stream_extended_data *ext = stream->ext0.data;
+        ext->status = WS_ERR_IO | WS_CLOSING;
+    }
 
     /* Return bytes for other situations. */
     return bytes;
@@ -1488,6 +1510,10 @@ read_socket_plain(struct pcdvobjs_stream *stream, void *buf, size_t len)
         /* Reset bytes to be 0 */
         return 0;
     }
+    else if (bytes == -1) {
+        struct stream_extended_data *ext = stream->ext0.data;
+        ext->status = WS_ERR_IO | WS_CLOSING;
+    }
 
     /* Return bytes for other situations. */
     return bytes;
@@ -1504,12 +1530,7 @@ static ssize_t ws_read_data(struct pcdvobjs_stream *stream,
         void *buff, size_t sz)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    ssize_t bytes = ext->reader(stream, buff, sz);
-    if (bytes == -1) {
-        ext->status = WS_ERR_IO | WS_CLOSING;
-    }
-
-    return bytes;
+    return ext->reader(stream, buff, sz);
 }
 
 /*
@@ -1524,10 +1545,7 @@ static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext0.data;
 
     ssize_t bytes = ext->writer(stream, buffer, len);
-    if (bytes == -1) {
-        ext->status = WS_ERR_IO | WS_CLOSING;
-    }
-    else if ((size_t)bytes < len) {
+    if (bytes > 0 && (size_t)bytes < len) {
         /* did not send all of it... buffer it for a later attempt */
         ws_queue_data(stream, buffer + bytes, len - bytes);
     }
@@ -2016,7 +2034,7 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
             PC_ERROR("Failed to allocate memory for payload (%zu)\n",
                     ext->sz_payload);
             ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED, "Out of memory.");
-            ext->status = WS_ERR_IO | WS_CLOSING;
+            ext->status |= WS_CLOSING;
             return READ_ERROR;
         }
 
@@ -2083,7 +2101,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 continue;
             }
             else if (retv == READ_ERROR) {
-                ext->status = WS_ERR_IO | WS_CLOSING;
+                ext->status |= WS_CLOSING;
                 goto failed;
             }
 
@@ -2145,7 +2163,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 continue;
             }
             else if (retv == READ_ERROR) {
-                ext->status = WS_ERR_IO | WS_CLOSING;
+                ext->status |= WS_CLOSING;
                 goto failed;
             }
             else if (retv == READ_WHOLE) {
@@ -2164,7 +2182,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                             ext->sz_message);
                     ws_notify_to_close(stream, WS_CLOSE_UNEXPECTED,
                             "Out of memory");
-                    ext->status = WS_ERR_IO | WS_CLOSING;
+                    ext->status |= WS_CLOSING;
                     goto failed;
                 }
 
@@ -3125,10 +3143,9 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             /* this is a server-side worker process. */
             if (purc_variant_booleanize(tmp)) {
                 ext->role = WS_ROLE_SERVER_WORKER_WOHS;
-                ext->status |= WS_WAITING4HSREQU;
-
                 ext->on_readable = ws_handle_handshake_request;
                 ext->on_writable = ws_handle_writes;
+                ext->status = WS_WAITING4HSREQU;
             }
             else {
                 ext->role = WS_ROLE_SERVER_WORKER;
@@ -3197,7 +3214,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         ext->writer = write_socket_plain;
         ext->on_readable = ws_handle_handshake_request;
         ext->on_writable = ws_handle_writes;
-        ws_set_status(ext, WS_WAITING4HSREQU, 0);
+        ext->status = WS_WAITING4HSREQU;
 #endif
     }
 
