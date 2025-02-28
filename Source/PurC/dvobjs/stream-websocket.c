@@ -120,9 +120,12 @@
 /* 512 KiB throttle threshold per stream */
 #define SOCK_THROTTLE_THLD          (1024 * 512)
 
-#define PING_TIMER_INTERVAL                 (10 * 1000)  // 10 seconds
-#define PING_NO_RESPONSE_SECONDS            30
-#define MAX_NORESP_TO_FORCE_CLOSING         90
+#define MIN_PING_TIMER_INTERVAL             (1 * 1000)      // 1 seconds
+
+#define MIN_NO_RESPONSE_TIME_TO_PING        3
+#define NO_RESPONSE_TIME_TO_PING            30
+#define MIN_NO_RESPONSE_TIME_TO_CLOSE       6
+#define NO_RESPONSE_TIME_TO_CLOSE           90
 
 #define WS_CLOSE_NORMAL                     1000
 #define WS_CLOSE_GOING_AWAY                 1001
@@ -190,6 +193,9 @@ typedef struct ws_frame_header {
 #define WS_TLS_WRITING          0x00400000
 #define WS_TLS_SHUTTING         0x00800000
 #define WS_TLS_CONNECTING       0x01000000
+#define WS_TLS_WANT_READ        0x10000000
+#define WS_TLS_WANT_WRITE       0x20000000
+#define WS_TLS_WANT_RW          0x30000000
 
 #define WS_ERR_ANY              0x00000FFF
 
@@ -235,7 +241,13 @@ struct stream_extended_data {
     struct timespec     last_live_ts;
     pcintr_timer_t      ping_timer;
 
-    size_t              max_sz_payload;
+    /* configuration */
+    size_t              maxmessagesize;
+    /* The maximum no response seconds to send a PING message. */
+    uint32_t            noresptimetoping;
+    /* The maximum no response seconds to close the socket. */
+    uint32_t            noresptimetoclose;
+
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
 
@@ -1043,11 +1055,11 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = -1, err = 0;
 
-    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+    // clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     /* all good on TLS handshake */
     if ((ret = SSL_connect(ext->ssl)) > 0) {
-        ext->sslstatus &= ~WS_TLS_CONNECTING;
+        ext->sslstatus &= ~(WS_TLS_CONNECTING | WS_TLS_WANT_RW);
 
         assert(ext->prot_opts);
 
@@ -1072,8 +1084,11 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
 
     switch (err) {
     case SSL_ERROR_WANT_READ:
+        ext->sslstatus = WS_TLS_WANT_READ | WS_TLS_CONNECTING;
+        ret = 0;
+        break;
     case SSL_ERROR_WANT_WRITE:
-        ext->sslstatus = WS_TLS_CONNECTING;
+        ext->sslstatus = WS_TLS_WANT_WRITE | WS_TLS_CONNECTING;
         ret = 0;
         break;
     case SSL_ERROR_SYSCALL:
@@ -1081,7 +1096,7 @@ handle_connect_ssl(struct pcdvobjs_stream *stream)
            the socket is closed during the handshake. */
         if (ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
                     errno == EINTR)) {
-            ext->sslstatus = WS_TLS_CONNECTING;
+            ext->sslstatus = WS_TLS_WANT_RW | WS_TLS_CONNECTING;
             ret = 0;
             break;
         }
@@ -1112,11 +1127,11 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = -1, err = 0;
 
-    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+    // clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     /* all good on TLS handshake */
     if ((ret = SSL_accept(ext->ssl)) > 0) {
-        ext->sslstatus &= ~WS_TLS_ACCEPTING;
+        ext->sslstatus &= ~(WS_TLS_ACCEPTING | WS_TLS_WANT_RW);
 
         /* Now wait for the handshake request from client. */
         ext->on_readable = ws_handle_handshake_request;
@@ -1129,8 +1144,11 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
 
     switch (err) {
     case SSL_ERROR_WANT_READ:
+        ext->sslstatus = WS_TLS_WANT_READ | WS_TLS_ACCEPTING;
+        ret = 0;
+        break;
     case SSL_ERROR_WANT_WRITE:
-        ext->sslstatus = WS_TLS_ACCEPTING;
+        ext->sslstatus = WS_TLS_WANT_WRITE | WS_TLS_ACCEPTING;
         ret = 0;
         break;
     case SSL_ERROR_SYSCALL:
@@ -1138,7 +1156,7 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
            the socket is closed during the handshake. */
         if (ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
                     errno == EINTR)) {
-            ext->sslstatus = WS_TLS_ACCEPTING;
+            ext->sslstatus = WS_TLS_WANT_RW | WS_TLS_ACCEPTING;
             ret = 0;
             break;
         }
@@ -1163,16 +1181,16 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
  * On error or if no SSL pending status, 1 is returned.
  * On success, the TLS/SSL pending action is called and 0 is returned */
 static int
-handle_pending_rw_ssl(struct pcdvobjs_stream *stream)
+handle_pending_rw_ssl(struct pcdvobjs_stream *stream, int rwflag)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    if (ext->sslstatus & WS_TLS_CONNECTING) {
+    if (ext->sslstatus & WS_TLS_CONNECTING && ext->sslstatus & rwflag) {
         PC_INFO("SSL still in connecting.\n");
         handle_connect_ssl(stream);
         return 0;
     }
-    if (ext->sslstatus & WS_TLS_ACCEPTING) {
+    if (ext->sslstatus & WS_TLS_ACCEPTING && ext->sslstatus & rwflag) {
         PC_INFO("SSL still in accepting.\n");
         handle_accept_ssl(stream);
         return 0;
@@ -1871,7 +1889,7 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
                 header->sz_ext_payload = be64toh(v);
             }
 
-            if (header->sz_ext_payload > ext->max_sz_payload) {
+            if (header->sz_ext_payload > ext->maxmessagesize) {
                 ws_notify_to_close(stream, WS_CLOSE_TOO_LARGE,
                         "Frame is too big");
                 ext->status = WS_ERR_MSG | WS_CLOSING;
@@ -2042,7 +2060,7 @@ failed:
 static int ws_handle_reads(struct pcdvobjs_stream *stream)
 {
 #if HAVE(OPENSSL)
-    if (handle_pending_rw_ssl(stream) == 0)
+    if (handle_pending_rw_ssl(stream, WS_TLS_WANT_READ) == 0)
         return 0;
 #endif
 
@@ -2261,12 +2279,13 @@ io_callback_for_read(int fd, int event, void *ctxt)
 static int
 ws_handle_writes(struct pcdvobjs_stream *stream)
 {
+    struct stream_extended_data *ext = stream->ext0.data;
+
 #if HAVE(OPENSSL)
-    if (handle_pending_rw_ssl(stream) == 0)
+    if (handle_pending_rw_ssl(stream, WS_TLS_WANT_WRITE) == 0)
         return 0;
 #endif
 
-    struct stream_extended_data *ext = stream->ext0.data;
     if (ext->status & WS_CLOSING) {
         ws_handle_rwerr_close(stream);
         return -1;
@@ -2374,7 +2393,7 @@ static int send_message(struct pcdvobjs_stream *stream,
     }
 #endif
 
-    if (sz > MAX_INMEM_MESSAGE_SIZE) {
+    if (sz > ext->maxmessagesize) {
         return PURC_ERROR_TOO_LARGE_ENTITY;
     }
 
@@ -2475,14 +2494,16 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    if (elapsed > MAX_NORESP_TO_FORCE_CLOSING) {
+    PC_DEBUG("ping timer elapsed: %f\n", elapsed);
+
+    if (elapsed > ext->noresptimetoclose) {
         if (ext->on_readable == ws_handle_reads) {
             ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
         }
         ext->status = WS_ERR_LTNR | WS_CLOSING;
         ws_handle_rwerr_close(stream);
     }
-    else if (elapsed > PING_NO_RESPONSE_SECONDS) {
+    else if (elapsed > ext->noresptimetoping) {
         if (ext->on_readable == ws_handle_reads) {
             ws_ping_peer(stream);
         }
@@ -2505,7 +2526,10 @@ static void ws_start_ping_timer(struct pcdvobjs_stream *stream)
             PC_WARN("Failed to create PING timer\n");
         }
         else {
-            pcintr_timer_set_interval(ext->ping_timer, PING_TIMER_INTERVAL);
+            uint32_t interval = ext->noresptimetoping / 3;
+            if (interval < MIN_PING_TIMER_INTERVAL)
+                interval = MIN_PING_TIMER_INTERVAL;
+            pcintr_timer_set_interval(ext->ping_timer, interval);
             pcintr_timer_start(ext->ping_timer);
         }
     }
@@ -2895,9 +2919,23 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     }
 
     purc_variant_t tmp;
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxpayloadsize");
-    uint64_t max_sz_payload = 0;
-    if (tmp && !purc_variant_cast_to_ulongint(tmp, &max_sz_payload, false)) {
+    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxmessagesize");
+    uint64_t maxmessagesize = 0;
+    if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoping");
+    uint32_t noresptimetoping = 0;
+    if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoping, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoclose");
+    uint32_t noresptimetoclose = 0;
+    if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoclose, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
@@ -2916,10 +2954,32 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
-    if (max_sz_payload == 0)
-        ext->max_sz_payload = MAX_INMEM_MESSAGE_SIZE;
+    if (maxmessagesize == 0)
+        ext->maxmessagesize = MAX_INMEM_MESSAGE_SIZE;
+    else if (maxmessagesize <= MAX_FRAME_PAYLOAD_SIZE)
+        ext->maxmessagesize = MAX_FRAME_PAYLOAD_SIZE;
     else
-        ext->max_sz_payload = max_sz_payload;
+        ext->maxmessagesize = maxmessagesize;
+
+    if (noresptimetoping == 0)
+        ext->noresptimetoping = NO_RESPONSE_TIME_TO_PING;
+    else if (noresptimetoping < MIN_NO_RESPONSE_TIME_TO_PING)
+        ext->noresptimetoping = MIN_NO_RESPONSE_TIME_TO_PING;
+    else
+        ext->noresptimetoping = noresptimetoping;
+
+    if (noresptimetoclose == 0)
+        ext->noresptimetoclose = NO_RESPONSE_TIME_TO_CLOSE;
+    else if (noresptimetoclose < MIN_NO_RESPONSE_TIME_TO_CLOSE)
+        ext->noresptimetoclose = MIN_NO_RESPONSE_TIME_TO_CLOSE;
+    else
+        ext->noresptimetoclose = noresptimetoclose;
+
+    PC_DEBUG("Configuration: maxmessagesize(%zu/%llu), noresptimetoping(%u/%u), "
+            "noresptimetoclose(%u/%u)\n",
+            ext->maxmessagesize, maxmessagesize,
+            ext->noresptimetoping, noresptimetoping,
+            ext->noresptimetoclose, noresptimetoclose);
 
     list_head_init(&ext->pending);
     ext->sz_header = sizeof(ext->header_buf);
@@ -3046,7 +3106,6 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
                     goto failed;
                 }
             }
-
 #else
             PC_ERROR("`secure` is true, but OpenSSL not enabled.\n");
             purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -3090,8 +3149,10 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             ext->status |= WS_WAITING4HSRESP;
 
 #if HAVE(OPENSSL)
-            if (ext->prot_opts)
+            if (ext->prot_opts) {
                 ext->on_readable = handle_connect_ssl;
+                // ext->sslstatus = WS_TLS_CONNECTING | WS_TLS_WANT_RW;
+            }
             else
 #endif
                 ext->on_readable = ws_handle_handshake_response;
@@ -3122,7 +3183,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             ext->writer = write_socket_ssl;
             ext->on_readable = handle_accept_ssl;
             ext->on_writable = ws_handle_writes;
-            ext->sslstatus |= WS_TLS_ACCEPTING;
+            ext->sslstatus = WS_TLS_ACCEPTING | WS_TLS_WANT_RW;
         }
         else {
             ext->reader = read_socket_plain;
