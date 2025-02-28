@@ -28,7 +28,7 @@
         </test>
 
         <init as 'wsSettings' with {} />
-        <test with $L.streq('caseless', $REQ.client, 'ltnr') >
+        <test with $STR.contains($REQ.client, 'ltnr') >
             <update on $wsSettings to 'merge'>
                 {
                     'noresptimetoping': 3,
@@ -90,6 +90,7 @@
                     {{
                         $STREAM.stdout.writelines("Got handshake event from `$_observedContent`; payload:");
                         $STREAM.stdout.writelines($DATA.serialize($?));
+                        $_observedOn.send_handshake_resp(101);
                     }}
                     </inherit>
                 </observe>
@@ -216,6 +217,40 @@
         </inherit>
 
         <exit with 'Bye' />
+    </body>
+
+    <!-- long time no response after handshake but secure client -->
+    <body id="sltnrafterhandshake">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+        </init>
+
+        <observe on $cliStreamSocket for 'handshake'>
+            <include with $logMsg on 'Got handkshake:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <sleep for '5s' />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                $cliStreamSocket.close()
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
     </body>
 </hvml>
 
