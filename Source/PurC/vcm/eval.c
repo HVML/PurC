@@ -646,6 +646,7 @@ out:
             (ctxt->err != PURC_ERROR_AGAIN) &&
             (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) &&
             !has_fatal_error(err)) {
+        purc_clr_error();
         result = purc_variant_make_undefined();
     }
 
@@ -869,10 +870,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     }
 
     err = purc_get_last_error();
-    if (result && err) {
-        purc_clr_error();
-    }
-    else if (!result && silently) {
+    if (!result && silently) {
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
             result = PURC_VARIANT_INVALID;
         }
