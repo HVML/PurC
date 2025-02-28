@@ -192,17 +192,20 @@ static int shutdown_instance(purc_atom_t requester,
     if (inst->intr_heap->cond_handler) {
         if (inst->intr_heap->cond_handler(PURC_COND_SHUTDOWN_ASKED,
                 (void*)msg, NULL) == 0) {
-            inst->intr_heap->keep_alive = 0;
+            inst->keep_alive = 0;
+        }
+        else {
+            inst->keep_alive = 1;
         }
     }
     else {
-        inst->intr_heap->keep_alive = 0;
+        inst->keep_alive = 0;
     }
 
     response->type = PCRDR_MSG_TYPE_RESPONSE;
     response->requestId = purc_variant_ref(msg->requestId);
     response->sourceURI = purc_variant_make_string(self_ept, false);
-    response->retCode = PCRDR_SC_OK;
+    response->retCode = inst->keep_alive ? PCRDR_SC_FORBIDDEN : PCRDR_SC_OK;
     response->resultValue = 0;
     response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
     response->data = PURC_VARIANT_INVALID;
@@ -333,7 +336,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     pcrdr_release_message(response);
 
     struct pcinst *inst = pcinst_current();
-    if (ok_to_shutdown == 0 && inst->intr_heap->keep_alive == 0 &&
+    if (ok_to_shutdown == 0 && inst->keep_alive == 0 &&
             list_empty(&inst->intr_heap->crtns) &&
             list_empty(&inst->intr_heap->stopped_crtns)) {
         purc_runloop_stop(inst->running_loop);
@@ -437,6 +440,11 @@ static void create_instance(struct instmgr_info *mgr_info,
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
         info.renderer_comm = (purc_rdrcomm_k)u64;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(request->data, "keepAlive");
+    if (tmp && purc_variant_is_boolean(tmp)) {
+        info.keep_alive = purc_variant_booleanize(tmp);
     }
 
     tmp = purc_variant_object_get_by_ckey(request->data, "allowSwitchingRdr");
@@ -835,6 +843,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     if (extra_info) {
         tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_comm);
         purc_variant_object_set_by_static_ckey(data, "rendererProt", tmp);
+        purc_variant_unref(tmp);
+
+        tmp = purc_variant_make_boolean(extra_info->keep_alive);
+        purc_variant_object_set_by_static_ckey(data, "keepAlive", tmp);
         purc_variant_unref(tmp);
 
         tmp = purc_variant_make_boolean(extra_info->allow_switching_rdr);

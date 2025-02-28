@@ -1583,9 +1583,8 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcutils_map_erase(heap->token_crtn_map, co->token);
     coroutine_destroy(co);
 
-    if (heap->keep_alive == 0 && list_empty(&heap->crtns)
-            && list_empty(&heap->stopped_crtns))
-    {
+    if (inst->keep_alive == 0 && list_empty(&heap->crtns)
+            && list_empty(&heap->stopped_crtns)) {
         purc_runloop_stop(inst->running_loop);
     }
 
@@ -2119,7 +2118,6 @@ purc_run(purc_cond_handler handler)
         return -1;
     }
 
-    heap->keep_alive = 0;
     heap->cond_handler = handler;
     g_purc_run_monotonic_ms = pcutils_get_monotoic_time_ms();
     purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);

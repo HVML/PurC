@@ -149,8 +149,10 @@ struct pcintr_heap {
     pcintr_timer_t     *event_timer;    // 10ms
 
     purc_cond_handler   cond_handler;
-    unsigned int        keep_alive:1;
     double              timestamp;
+
+    // move to instance since 0.9.22.
+    // unsigned int        keep_alive:1;
 };
 
 struct pcintr_stack_frame;

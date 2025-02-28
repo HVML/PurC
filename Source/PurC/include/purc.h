@@ -63,7 +63,8 @@ typedef struct purc_instance_extra_info {
      *      The renderer runs as a server and uses socket
      *      (local socket or WebSocket) as the communication method.
      *  - PURC_RDRCOMM_HBDBUS:
-     *      The renderer runs as a HBDBus endpoint and uses HBDBus.
+     *      The renderer runs as a HBDBus endpoint and uses HBDBus
+     *      (reserved for future).
      */
     purc_rdrcomm_k  renderer_comm;
 
@@ -104,14 +105,22 @@ typedef struct purc_instance_extra_info {
     const char      *workspace_layout;
 
     /**
-     * Whether allow switching the renderer (Since 0.9.18).
+     * Whether allow switching the renderer.
+     * Since: 0.9.18
      */
     unsigned int    allow_switching_rdr:1;
 
     /**
      * Whether allow scaling by density.
+     * Since: 0.9.18
      */
     unsigned int    allow_scaling_by_density:1;
+
+    /**
+     * Whether keep the instance alive until asked to shutdown.
+     * Since: 0.9.22
+     */
+    unsigned int    keep_alive:1;
 
 } purc_instance_extra_info;
 
@@ -966,11 +975,11 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
  * @inst: The atom representing the target PurC instance differs
  *  from the current instance.
  *
- * Ask the specified instance to shutdown. This function send a
+ * Ask the specified instance to shutdown. This function posts a
  * `shutdownInstance` request to the target instance without
  * waiting for the response.
  *
- * Returns: The return code of the request; -1 on failure to post the request.
+ * Returns: 0 for success; -1 on failure to post the request.
  *
  * Since 0.2.0
  */
