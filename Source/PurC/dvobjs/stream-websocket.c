@@ -1497,8 +1497,15 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         }
 
         ws_clear_pending_data(ext);
-        if (ext->message)
+        if (ext->message) {
             free(ext->message);
+            ext->message = NULL;
+        }
+
+        if (ext->payload) {
+            free(ext->payload);
+            ext->payload = NULL;
+        }
 
 #if HAVE(OPENSSL)
         if (ext->ssl) {
@@ -1732,20 +1739,14 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
     struct stream_extended_data *ext = stream->ext0.data;
     int ret = 0;
     int mask_int = 0;
-    char *buf = NULL;
-    char *p = NULL;
+    char buf[14];
     size_t sz_buf = 0;
+    char *p = NULL;
     ws_frame_header header;
     unsigned char mask[4] = { 0 };
     int sz_mask;
 
-    if (sz <= 0) {
-        PC_WARN("Invalid data size %zd.\n", sz);
-        goto out;
-    }
-
-    if (opcode == WS_OPCODE_TEXT)
-        PC_DEBUG("Sending data frame: `%s` (%zu)\n", (const char*)data, sz);
+    assert(sz >= 0);
 
     header.fin = fin;
     header.rsv = 0;
@@ -1764,22 +1765,21 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
     }
 
     if (sz > 0xffff) {
-        /* header(16b) + Extended payload length(64b) + mask(32b) + data */
-        sz_buf = 2 + 8 + sz_mask + sz;
+        /* header(16b) + Extended payload length(64b) + mask(32b) */
+        sz_buf = 2 + 8 + sz_mask;
         header.sz_payload = 127;
     }
     else if (sz > 125) {
-        /* header(16b) + Extended payload length(16b) + mask(32b) + data */
-        sz_buf = 2 + 2 + sz_mask + sz;
+        /* header(16b) + Extended payload length(16b) + mask(32b) */
+        sz_buf = 2 + 2 + sz_mask;
         header.sz_payload = 126;
     }
     else {
-        /* header(16b) + data + mask(32b) */
-        sz_buf = 2 + sz_mask + sz;
+        /* header(16b) + mask(32b) */
+        sz_buf = 2 + sz_mask;
         header.sz_payload = sz;
     }
 
-    buf = malloc(sz_buf + 1);
     buf[0] = 0;
     if (fin) {
         buf[0] |= 0x80;
@@ -1806,25 +1806,45 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
     if (sz_mask) {
         /* mask */
         memcpy(p, &mask, 4);
-        p = p + sz_mask;
     }
 
-    /* payload */
-    memcpy(p, data, sz);
+    char *payload = NULL;
+    if (ws_write_or_queue(stream, buf, sz_buf) < 0) {
+        ret = -1;
+        goto failed;
+    }
 
     if (sz_mask) {
+        /* payload */
+        payload = malloc(sz);
+        if (payload == NULL) {
+            ext->status = WS_ERR_OOM | WS_CLOSING;
+            goto failed;
+        }
+
+        memcpy(payload, data, sz);
+
         /* mask payload */
         for (ssize_t i = 0; i < sz; i++) {
-            p[i] ^= mask[i % 4] & 0xff;
+            payload[i] ^= mask[i % 4] & 0xff;
         }
     }
+    else {
+        /* If mask is not required */
+        payload = (char *)data;
+    }
 
-    if (ws_write_or_queue(stream, buf, sz_buf) < 0)
+    if (ws_write_or_queue(stream, payload, sz) < 0) {
         ret = -1;
+        goto failed;
+    }
 
-out:
-    if (buf) {
-        free(buf);
+    /* everything is ok */
+    ret = 0;
+
+failed:
+    if (payload && payload != data) {
+        free(payload);
     }
     return ret;
 }
@@ -2144,7 +2164,7 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
         }
 
         ext->sz_payload = ext->header.sz_payload;
-        ext->payload = malloc(ext->sz_payload + 1);
+        ext->payload = malloc(ext->sz_payload);
         if (ext->payload == NULL) {
             PC_ERROR("Failed to allocate memory for payload (%zu)\n",
                     ext->sz_payload);
@@ -2284,12 +2304,12 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
             else if (retv == READ_WHOLE) {
                 if (!ext->message) {
                     ext->sz_message = ext->sz_payload;
-                    ext->message = malloc(ext->sz_message + 1);
+                    ext->message = malloc(ext->sz_message);
                     ext->sz_read_message = 0;
                 }
                 else {
                     ext->sz_message += ext->sz_payload;
-                    ext->message = realloc(ext->message, ext->sz_message + 1);
+                    ext->message = realloc(ext->message, ext->sz_message);
                 }
 
                 if (ext->message == NULL) {
@@ -2305,7 +2325,6 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                         ext->sz_payload);
                 ext->sz_read_message += ext->sz_payload;
                 free(ext->payload);
-
                 ext->payload = NULL;
                 ext->sz_payload = 0;
                 ext->sz_read_payload = 0;
@@ -2316,25 +2335,27 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 }
 
                 /* whole message */
-                switch (ext->header.op) {
-                case WS_OPCODE_PING:
+                switch (ext->msg_type) {
+                case MT_PING:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_PING,
-                            NULL, 0);
+                            ext->message, ext->sz_message);
+                    goto done_msg;
                     break;
 
-                case WS_OPCODE_PONG:
+                case MT_PONG:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_PONG,
-                            NULL, 0);
+                            ext->message, ext->sz_message);
+                    goto done_msg;
                     break;
 
-                case WS_OPCODE_CLOSE:
-                    /* TODO: payload of CLOSE message */
+                case MT_CLOSE:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE,
-                            NULL, 0);
+                            ext->message, ext->sz_message);
                     ext->status = WS_CLOSING;
+                    goto done_msg;
                     break;
 
-                case WS_OPCODE_TEXT:
+                case MT_TEXT:
                     if (!pcutils_string_check_utf8_len(ext->message,
                             ext->sz_message, NULL, NULL)) {
                         PC_ERROR("Got an invalid UTF-8 text message: %s (%zu).\n",
@@ -2346,28 +2367,18 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 
                     retv = stream->ext0.msg_ops->on_message(stream,
                             ext->msg_type, ext->message, ext->sz_message);
-                    free(ext->message);
-                    ext->message = NULL;
-                    ext->sz_message = 0;
-                    ext->sz_read_payload = 0;
-                    ext->sz_read_message = 0;
-                    ws_update_mem_stats(ext);
+                    goto done_msg;
                     break;
 
-                case WS_OPCODE_BIN:
+                case MT_BINARY:
                     retv = stream->ext0.msg_ops->on_message(stream,
                             ext->msg_type, ext->message, ext->sz_message);
-                    free(ext->message);
-                    ext->message = NULL;
-                    ext->sz_message = 0;
-                    ext->sz_read_payload = 0;
-                    ext->sz_read_message = 0;
-                    ws_update_mem_stats(ext);
+                    goto done_msg;
                     break;
 
                 default:
                     /* never reach here */
-                    PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
+                    PC_ERROR("Unknown message type: %d\n", ext->msg_type);
                     ext->status = WS_ERR_MSG | WS_CLOSING;
                     goto failed;
                     break;
@@ -2382,6 +2393,15 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 failed:
     ws_handle_rwerr_close(stream);
     return -1;
+
+done_msg:
+    free(ext->message);
+    ext->message = NULL;
+    ext->sz_message = 0;
+    ext->sz_read_payload = 0;
+    ext->sz_read_message = 0;
+    ws_update_mem_stats(ext);
+    return retv;
 }
 
 static bool
@@ -2665,6 +2685,37 @@ static void ws_start_ping_timer(struct pcdvobjs_stream *stream)
     }
 }
 
+static purc_variant_t
+make_payload_object_for_ctrl_op(const char *buf, size_t len)
+{
+    purc_variant_t payload = PURC_VARIANT_INVALID;
+
+    if (buf && len > 2) {
+        payload = purc_variant_make_object_0();
+        if (payload) {
+            unsigned short code;
+            memcpy(&code, buf, 2);
+            code = be16toh(code);
+
+            purc_variant_t tmp;
+            tmp = purc_variant_make_number(code);
+            if (tmp) {
+                purc_variant_object_set_by_static_ckey(payload, "code", tmp);
+                purc_variant_unref(tmp);
+            }
+
+            tmp = purc_variant_make_string_ex(buf + 2, len - 2, true);
+            tmp = (!tmp) ? purc_variant_make_string_static("", false) : tmp;
+            if (tmp) {
+                purc_variant_object_set_by_static_ckey(payload, "postscript", tmp);
+                purc_variant_unref(tmp);
+            }
+        }
+    }
+
+    return payload;
+}
+
 static int on_message(struct pcdvobjs_stream *stream, int type,
         const char *buf, size_t len)
 {
@@ -2690,17 +2741,11 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             break;
 
         case MT_PONG:
-            // TODO: update the alive timestamp
             break;
 
         case MT_CLOSE:
             // fire a `close` event
-            if (buf) {
-                data = purc_variant_make_string_ex(buf, len, false);
-            }
-            else {
-                data = purc_variant_make_string_static("Peer closed", false);
-            }
+            data = make_payload_object_for_ctrl_op(buf, len);
             event = EVENT_TYPE_CLOSE;
             target = ext->event_cids[K_EVENT_TYPE_CLOSE];
             break;
