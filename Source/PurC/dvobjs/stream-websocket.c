@@ -2672,10 +2672,8 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     struct stream_extended_data *ext = stream->ext0.data;
 
     purc_atom_t target = ext->event_cids[K_EVENT_TYPE_MESSAGE];
-    if (target == 0)
-        goto done;
-
     purc_variant_t data = PURC_VARIANT_INVALID;
+    const char *event = EVENT_TYPE_MESSAGE;
     switch (type) {
         case MT_TEXT:
             // fire a `message` event
@@ -2696,19 +2694,28 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             break;
 
         case MT_CLOSE:
-            cleanup_extension(stream);
+            // fire a `close` event
+            if (buf) {
+                data = purc_variant_make_string_ex(buf, len, false);
+            }
+            else {
+                data = purc_variant_make_string_static("Peer closed", false);
+            }
+            event = EVENT_TYPE_CLOSE;
+            target = ext->event_cids[K_EVENT_TYPE_CLOSE];
             break;
     }
 
     if (data) {
-        pcintr_coroutine_post_event(target,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_MESSAGE, NULL,
-                data, PURC_VARIANT_INVALID);
+        PC_DEBUG("Fire event: `%s`\n", event);
+        if (target)
+            pcintr_coroutine_post_event(target,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    event, NULL,
+                    data, PURC_VARIANT_INVALID);
         purc_variant_unref(data);
     }
 
-done:
     return retv;
 }
 
@@ -2880,6 +2887,7 @@ close_getter(void *entity, const char *property_name,
         goto failed;
     }
 
+    ws_notify_to_close(stream, WS_CLOSE_NORMAL, "Bye");
     cleanup_extension(stream);
     return purc_variant_make_boolean(true);
 
