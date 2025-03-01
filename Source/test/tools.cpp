@@ -340,37 +340,6 @@ comp_add_sample(struct comp_sample_data *sample, purc_variant_t request)
     return 0;
 }
 
-static int
-comp_read_file(char *buf, size_t nr, const char *file)
-{
-    FILE *f = fopen(file, "r");
-    if (!f) {
-        ADD_FAILURE()
-            << "Failed to open file [" << file << "]" << std::endl;
-        return -1;
-    }
-
-    size_t n = fread(buf, 1, nr, f);
-    if (ferror(f)) {
-        ADD_FAILURE()
-            << "Failed read file [" << file << "]" << std::endl;
-        fclose(f);
-        return -1;
-    }
-
-    fclose(f);
-
-    if (n == sizeof(buf)) {
-        ADD_FAILURE()
-            << "Too small buffer to read file [" << file << "]" << std::endl;
-        return -1;
-    }
-
-    buf[n] = '\0';
-
-    return n;
-}
-
 static purc_variant_t
 comp_eval_expected_result(const char *code)
 {
@@ -438,16 +407,16 @@ comp_process_file(const char *file, purc_variant_t request)
 {
     std::cout << std::endl << "Running " << file << std::endl;
 
-    char buf[8192];
-    int n = comp_read_file(buf, sizeof(buf), file);
-    if (n == -1)
+    size_t n;
+    char *buf = purc_load_file_contents(file, &n);
+    if (buf == NULL)
         return -1;
 
     struct comp_sample_data *sample =
         (struct comp_sample_data *)calloc(1, sizeof(*sample));
 
     sample->file = strdup(file);
-    sample->input_hvml = strdup(buf);
+    sample->input_hvml = buf;
     sample->expected_result = comp_eval_expected_result(buf);
 
     return comp_add_sample(sample, request);
