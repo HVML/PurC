@@ -60,7 +60,7 @@ void dump_sheet(css_stylesheet *sheet, char *buf, size_t *buflen)
 			break;
 		default:
 		{
-			int written = sprintf(buf, "Unhandled rule type %d\n",
+			int written = snprintf(buf, *buflen, "Unhandled rule type %d\n",
 				rule->type);
 
 			*buflen -= written;
@@ -102,7 +102,7 @@ void dump_rule_charset(css_rule_charset *s, char **buf, size_t *buflen)
 {
 	char *ptr = *buf;
 
-	ptr += sprintf(ptr, "| @charset(");
+	ptr += snprintf(ptr, *buflen, "| @charset(");
 	dump_string(s->encoding, &ptr);
 	*ptr++ = ')';
 	*ptr++ = '\n';
@@ -115,7 +115,7 @@ void dump_rule_import(css_rule_import *s, char **buf, size_t *buflen)
 {
 	char *ptr = *buf;
 
-	ptr += sprintf(ptr, "| @import url(\"%.*s\")",
+	ptr += snprintf(ptr, *buflen, "| @import url(\"%.*s\")",
                        (int) lwc_string_length(s->url), lwc_string_data(s->url));
 
 	/** \todo media list */
@@ -131,7 +131,7 @@ void dump_rule_media(css_rule_media *s, char **buf, size_t *buflen)
 	char *ptr = *buf;
 	css_rule *rule;
 
-	ptr += sprintf(ptr, "| @media ");
+	ptr += snprintf(ptr, *buflen, "| @media ");
 
 	/* \todo media list */
 
@@ -151,7 +151,7 @@ void dump_rule_page(css_rule_page *s, char **buf, size_t *buflen)
 {
 	char *ptr = *buf;
 
-	ptr += sprintf(ptr, "| @page ");
+	ptr += snprintf(ptr, *buflen, "| @page ");
 
 	if (s->selector != NULL)
 		dump_selector_list(s->selector, &ptr);
@@ -169,7 +169,7 @@ void dump_rule_font_face(css_rule_font_face *s, char **buf, size_t *buflen)
 {
 	char *ptr = *buf;
 
-	ptr += sprintf(ptr, "| @font-face ");
+	ptr += snprintf(ptr, *buflen, "| @font-face ");
 
 	if (s->font_face != NULL) {
 		dump_font_face(s->font_face, &ptr);
@@ -226,10 +226,13 @@ void dump_selector(css_selector *selector, char **ptr)
 	}
 }
 
+#define sprintfltr(buf, ltr) \
+    snprintf(buf, sizeof(ltr ""), ltr)
+
 void dump_selector_detail(css_selector_detail *detail, char **ptr)
 {
 	if (detail->negate)
-		*ptr += sprintf(*ptr, ":not(");
+		*ptr += sprintfltr(*ptr, ":not(");
 
 	switch (detail->type) {
 	case CSS_SELECTOR_ELEMENT:
@@ -266,7 +269,7 @@ void dump_selector_detail(css_selector_detail *detail, char **ptr)
 				*ptr += 1;
 			}
 		} else {
-			*ptr += sprintf(*ptr, "(%dn+%d)",
+			*ptr += snprintf(*ptr, 256, "(%dn+%d)",
 					detail->value.nth.a,
 					detail->value.nth.b);
 		}
@@ -358,7 +361,7 @@ void dump_selector_detail(css_selector_detail *detail, char **ptr)
 	}
 
 	if (detail->negate)
-		*ptr += sprintf(*ptr, ")");
+		*ptr += sprintfltr(*ptr, ")");
 }
 
 /**
@@ -550,7 +553,7 @@ static void dump_css_fixed(css_fixed f, char **ptr)
 static void dump_number(css_fixed val, char **ptr)
 {
 	if (INTTOFIX(FIXTOINT(val)) == val)
-		*ptr += sprintf(*ptr, "%d", FIXTOINT(val));
+		*ptr += snprintf(*ptr, 16, "%d", FIXTOINT(val));
 	else
 		dump_css_fixed(val, ptr);
 }
@@ -561,91 +564,91 @@ static void dump_unit(css_fixed val, uint32_t unit, char **ptr)
 
 	switch (unit) {
 	case UNIT_PX:
-		*ptr += sprintf(*ptr, "px");
+		*ptr += sprintfltr(*ptr, "px");
 		break;
 	case UNIT_EX:
-		*ptr += sprintf(*ptr, "ex");
+		*ptr += sprintfltr(*ptr, "ex");
 		break;
 	case UNIT_EM:
-		*ptr += sprintf(*ptr, "em");
+		*ptr += sprintfltr(*ptr, "em");
 		break;
 	case UNIT_IN:
-		*ptr += sprintf(*ptr, "in");
+		*ptr += sprintfltr(*ptr, "in");
 		break;
 	case UNIT_CM:
-		*ptr += sprintf(*ptr, "cm");
+		*ptr += sprintfltr(*ptr, "cm");
 		break;
 	case UNIT_MM:
-		*ptr += sprintf(*ptr, "mm");
+		*ptr += sprintfltr(*ptr, "mm");
 		break;
 	case UNIT_PT:
-		*ptr += sprintf(*ptr, "pt");
+		*ptr += sprintfltr(*ptr, "pt");
 		break;
 	case UNIT_PC:
-		*ptr += sprintf(*ptr, "pc");
+		*ptr += sprintfltr(*ptr, "pc");
 		break;
 	case UNIT_CAP:
-		*ptr += sprintf(*ptr, "cap");
+		*ptr += sprintfltr(*ptr, "cap");
 		break;
 	case UNIT_CH:
-		*ptr += sprintf(*ptr, "ch");
+		*ptr += sprintfltr(*ptr, "ch");
 		break;
 	case UNIT_IC:
-		*ptr += sprintf(*ptr, "ic");
+		*ptr += sprintfltr(*ptr, "ic");
 		break;
 	case UNIT_REM:
-		*ptr += sprintf(*ptr, "rem");
+		*ptr += sprintfltr(*ptr, "rem");
 		break;
 	case UNIT_LH:
-		*ptr += sprintf(*ptr, "lh");
+		*ptr += sprintfltr(*ptr, "lh");
 		break;
 	case UNIT_RLH:
-		*ptr += sprintf(*ptr, "rlh");
+		*ptr += sprintfltr(*ptr, "rlh");
 		break;
 	case UNIT_VH:
-		*ptr += sprintf(*ptr, "vh");
+		*ptr += sprintfltr(*ptr, "vh");
 		break;
 	case UNIT_VW:
-		*ptr += sprintf(*ptr, "vw");
+		*ptr += sprintfltr(*ptr, "vw");
 		break;
 	case UNIT_VI:
-		*ptr += sprintf(*ptr, "vi");
+		*ptr += sprintfltr(*ptr, "vi");
 		break;
 	case UNIT_VB:
-		*ptr += sprintf(*ptr, "vb");
+		*ptr += sprintfltr(*ptr, "vb");
 		break;
 	case UNIT_VMIN:
-		*ptr += sprintf(*ptr, "vmin");
+		*ptr += sprintfltr(*ptr, "vmin");
 		break;
 	case UNIT_VMAX:
-		*ptr += sprintf(*ptr, "vmax");
+		*ptr += sprintfltr(*ptr, "vmax");
 		break;
 	case UNIT_Q:
-		*ptr += sprintf(*ptr, "q");
+		*ptr += sprintfltr(*ptr, "q");
 		break;
 	case UNIT_PCT:
-		*ptr += sprintf(*ptr, "%%");
+		*ptr += sprintfltr(*ptr, "%%");
 		break;
 	case UNIT_DEG:
-		*ptr += sprintf(*ptr, "deg");
+		*ptr += sprintfltr(*ptr, "deg");
 		break;
 	case UNIT_GRAD:
-		*ptr += sprintf(*ptr, "grad");
+		*ptr += sprintfltr(*ptr, "grad");
 		break;
 	case UNIT_RAD:
-		*ptr += sprintf(*ptr, "rad");
+		*ptr += sprintfltr(*ptr, "rad");
 		break;
 	case UNIT_MS:
-		*ptr += sprintf(*ptr, "ms");
+		*ptr += sprintfltr(*ptr, "ms");
 		break;
 	case UNIT_S:
-		*ptr += sprintf(*ptr, "s");
+		*ptr += sprintfltr(*ptr, "s");
 		break;
 	case UNIT_HZ:
-		*ptr += sprintf(*ptr, "Hz");
+		*ptr += sprintfltr(*ptr, "Hz");
 		break;
 	case UNIT_KHZ:
-		*ptr += sprintf(*ptr, "kHz");
+		*ptr += sprintfltr(*ptr, "kHz");
 		break;
 	}
 }
@@ -653,65 +656,65 @@ static void dump_unit(css_fixed val, uint32_t unit, char **ptr)
 static void dump_counter(lwc_string *name, uint32_t value,
 		char **ptr)
 {
-	*ptr += sprintf(*ptr, "counter(%.*s",
+	*ptr += snprintf(*ptr, 1024, "counter(%.*s",
                         (int) lwc_string_length(name), lwc_string_data(name));
 
 	value >>= CONTENT_COUNTER_STYLE_SHIFT;
 
 	switch (value) {
 	case LIST_STYLE_TYPE_DISC:
-		*ptr += sprintf(*ptr, ", disc");
+		*ptr += sprintfltr(*ptr, ", disc");
 		break;
 	case LIST_STYLE_TYPE_CIRCLE:
-		*ptr += sprintf(*ptr, ", circle");
+		*ptr += sprintfltr(*ptr, ", circle");
 		break;
 	case LIST_STYLE_TYPE_SQUARE:
-		*ptr += sprintf(*ptr, ", square");
+		*ptr += sprintfltr(*ptr, ", square");
 		break;
 	case LIST_STYLE_TYPE_DECIMAL:
 		break;
 	case LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-		*ptr += sprintf(*ptr, ", decimal-leading-zero");
+		*ptr += sprintfltr(*ptr, ", decimal-leading-zero");
 		break;
 	case LIST_STYLE_TYPE_LOWER_ROMAN:
-		*ptr += sprintf(*ptr, ", lower-roman");
+		*ptr += sprintfltr(*ptr, ", lower-roman");
 		break;
 	case LIST_STYLE_TYPE_UPPER_ROMAN:
-		*ptr += sprintf(*ptr, ", upper-roman");
+		*ptr += sprintfltr(*ptr, ", upper-roman");
 		break;
 	case LIST_STYLE_TYPE_LOWER_GREEK:
-		*ptr += sprintf(*ptr, ", lower-greek");
+		*ptr += sprintfltr(*ptr, ", lower-greek");
 		break;
 	case LIST_STYLE_TYPE_LOWER_LATIN:
-		*ptr += sprintf(*ptr, ", lower-latin");
+		*ptr += sprintfltr(*ptr, ", lower-latin");
 		break;
 	case LIST_STYLE_TYPE_UPPER_LATIN:
-		*ptr += sprintf(*ptr, ", upper-latin");
+		*ptr += sprintfltr(*ptr, ", upper-latin");
 		break;
 	case LIST_STYLE_TYPE_ARMENIAN:
-		*ptr += sprintf(*ptr, ", armenian");
+		*ptr += sprintfltr(*ptr, ", armenian");
 		break;
 	case LIST_STYLE_TYPE_GEORGIAN:
-		*ptr += sprintf(*ptr, ", georgian");
+		*ptr += sprintfltr(*ptr, ", georgian");
 		break;
 	case LIST_STYLE_TYPE_LOWER_ALPHA:
-		*ptr += sprintf(*ptr, ", lower-alpha");
+		*ptr += sprintfltr(*ptr, ", lower-alpha");
 		break;
 	case LIST_STYLE_TYPE_UPPER_ALPHA:
-		*ptr += sprintf(*ptr, ", upper-alpha");
+		*ptr += sprintfltr(*ptr, ", upper-alpha");
 		break;
 	case LIST_STYLE_TYPE_NONE:
-		*ptr += sprintf(*ptr, ", none");
+		*ptr += sprintfltr(*ptr, ", none");
 		break;
 	}
 
-	*ptr += sprintf(*ptr, ")");
+	*ptr += sprintfltr(*ptr, ")");
 }
 
 static void dump_counters(lwc_string *name, lwc_string *separator,
 		uint32_t value, char **ptr)
 {
-	*ptr += sprintf(*ptr, "counter(%.*s, %.*s",
+	*ptr += snprintf(*ptr, 1024, "counter(%.*s, %.*s",
 			(int) lwc_string_length(name),
                         lwc_string_data(name),
 			(int) lwc_string_length(separator),
@@ -721,52 +724,52 @@ static void dump_counters(lwc_string *name, lwc_string *separator,
 
 	switch (value) {
 	case LIST_STYLE_TYPE_DISC:
-		*ptr += sprintf(*ptr, ", disc");
+		*ptr += sprintfltr(*ptr, ", disc");
 		break;
 	case LIST_STYLE_TYPE_CIRCLE:
-		*ptr += sprintf(*ptr, ", circle");
+		*ptr += sprintfltr(*ptr, ", circle");
 		break;
 	case LIST_STYLE_TYPE_SQUARE:
-		*ptr += sprintf(*ptr, ", square");
+		*ptr += sprintfltr(*ptr, ", square");
 		break;
 	case LIST_STYLE_TYPE_DECIMAL:
 		break;
 	case LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-		*ptr += sprintf(*ptr, ", decimal-leading-zero");
+		*ptr += sprintfltr(*ptr, ", decimal-leading-zero");
 		break;
 	case LIST_STYLE_TYPE_LOWER_ROMAN:
-		*ptr += sprintf(*ptr, ", lower-roman");
+		*ptr += sprintfltr(*ptr, ", lower-roman");
 		break;
 	case LIST_STYLE_TYPE_UPPER_ROMAN:
-		*ptr += sprintf(*ptr, ", upper-roman");
+		*ptr += sprintfltr(*ptr, ", upper-roman");
 		break;
 	case LIST_STYLE_TYPE_LOWER_GREEK:
-		*ptr += sprintf(*ptr, ", lower-greek");
+		*ptr += sprintfltr(*ptr, ", lower-greek");
 		break;
 	case LIST_STYLE_TYPE_LOWER_LATIN:
-		*ptr += sprintf(*ptr, ", lower-latin");
+		*ptr += sprintfltr(*ptr, ", lower-latin");
 		break;
 	case LIST_STYLE_TYPE_UPPER_LATIN:
-		*ptr += sprintf(*ptr, ", upper-latin");
+		*ptr += sprintfltr(*ptr, ", upper-latin");
 		break;
 	case LIST_STYLE_TYPE_ARMENIAN:
-		*ptr += sprintf(*ptr, ", armenian");
+		*ptr += sprintfltr(*ptr, ", armenian");
 		break;
 	case LIST_STYLE_TYPE_GEORGIAN:
-		*ptr += sprintf(*ptr, ", georgian");
+		*ptr += sprintfltr(*ptr, ", georgian");
 		break;
 	case LIST_STYLE_TYPE_LOWER_ALPHA:
-		*ptr += sprintf(*ptr, ", lower-alpha");
+		*ptr += sprintfltr(*ptr, ", lower-alpha");
 		break;
 	case LIST_STYLE_TYPE_UPPER_ALPHA:
-		*ptr += sprintf(*ptr, ", upper-alpha");
+		*ptr += sprintfltr(*ptr, ", upper-alpha");
 		break;
 	case LIST_STYLE_TYPE_NONE:
-		*ptr += sprintf(*ptr, ", none");
+		*ptr += sprintfltr(*ptr, ", none");
 		break;
 	}
 
-	*ptr += sprintf(*ptr, ")");
+	*ptr += sprintfltr(*ptr, ")");
 }
 
 void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
@@ -793,10 +796,10 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 		*((*ptr)++) = '|';
 		for (i = 0; i < depth; i++)
 			*((*ptr)++) = ' ';
-		*ptr += sprintf(*ptr, "%s: ", opcode_names[op]);
+		*ptr += snprintf(*ptr, 1024, "%s: ", opcode_names[op]);
 
 		if (isInherit(opv)) {
-			*ptr += sprintf(*ptr, "inherit");
+			*ptr += sprintfltr(*ptr, "inherit");
 		} else {
 			value = getValue(opv);
 
@@ -804,66 +807,66 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_ALIGN_CONTENT:
 				switch (value) {
 				case ALIGN_CONTENT_STRETCH:
-					*ptr += sprintf(*ptr, "stretch");
+					*ptr += sprintfltr(*ptr, "stretch");
 					break;
 				case ALIGN_CONTENT_FLEX_START:
-					*ptr += sprintf(*ptr, "flex-start");
+					*ptr += sprintfltr(*ptr, "flex-start");
 					break;
 				case ALIGN_CONTENT_FLEX_END:
-					*ptr += sprintf(*ptr, "flex-end");
+					*ptr += sprintfltr(*ptr, "flex-end");
 					break;
 				case ALIGN_CONTENT_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case ALIGN_CONTENT_SPACE_BETWEEN:
-					*ptr += sprintf(*ptr, "space-between");
+					*ptr += sprintfltr(*ptr, "space-between");
 					break;
 				case ALIGN_CONTENT_SPACE_AROUND:
-					*ptr += sprintf(*ptr, "space-around");
+					*ptr += sprintfltr(*ptr, "space-around");
 					break;
 				case ALIGN_CONTENT_SPACE_EVENLY:
-					*ptr += sprintf(*ptr, "space-evenly");
+					*ptr += sprintfltr(*ptr, "space-evenly");
 					break;
 				}
 				break;
 			case CSS_PROP_ALIGN_ITEMS:
 				switch (value) {
 				case ALIGN_ITEMS_STRETCH:
-					*ptr += sprintf(*ptr, "stretch");
+					*ptr += sprintfltr(*ptr, "stretch");
 					break;
 				case ALIGN_ITEMS_FLEX_START:
-					*ptr += sprintf(*ptr, "flex-start");
+					*ptr += sprintfltr(*ptr, "flex-start");
 					break;
 				case ALIGN_ITEMS_FLEX_END:
-					*ptr += sprintf(*ptr, "flex-end");
+					*ptr += sprintfltr(*ptr, "flex-end");
 					break;
 				case ALIGN_ITEMS_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case ALIGN_ITEMS_BASELINE:
-					*ptr += sprintf(*ptr, "baseline");
+					*ptr += sprintfltr(*ptr, "baseline");
 					break;
 				}
 				break;
 			case CSS_PROP_ALIGN_SELF:
 				switch (value) {
 				case ALIGN_SELF_STRETCH:
-					*ptr += sprintf(*ptr, "stretch");
+					*ptr += sprintfltr(*ptr, "stretch");
 					break;
 				case ALIGN_SELF_FLEX_START:
-					*ptr += sprintf(*ptr, "flex-start");
+					*ptr += sprintfltr(*ptr, "flex-start");
 					break;
 				case ALIGN_SELF_FLEX_END:
-					*ptr += sprintf(*ptr, "flex-end");
+					*ptr += sprintfltr(*ptr, "flex-end");
 					break;
 				case ALIGN_SELF_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case ALIGN_SELF_BASELINE:
-					*ptr += sprintf(*ptr, "baseline");
+					*ptr += sprintfltr(*ptr, "baseline");
 					break;
 				case ALIGN_SELF_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
@@ -880,49 +883,49 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case AZIMUTH_LEFTWARDS:
-					*ptr += sprintf(*ptr, "leftwards");
+					*ptr += sprintfltr(*ptr, "leftwards");
 					break;
 				case AZIMUTH_RIGHTWARDS:
-					*ptr += sprintf(*ptr, "rightwards");
+					*ptr += sprintfltr(*ptr, "rightwards");
 					break;
 				case AZIMUTH_LEFT_SIDE:
-					*ptr += sprintf(*ptr, "left-side");
+					*ptr += sprintfltr(*ptr, "left-side");
 					break;
 				case AZIMUTH_FAR_LEFT:
-					*ptr += sprintf(*ptr, "far-left");
+					*ptr += sprintfltr(*ptr, "far-left");
 					break;
 				case AZIMUTH_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case AZIMUTH_CENTER_LEFT:
-					*ptr += sprintf(*ptr, "center-left");
+					*ptr += sprintfltr(*ptr, "center-left");
 					break;
 				case AZIMUTH_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case AZIMUTH_CENTER_RIGHT:
-					*ptr += sprintf(*ptr, "center-right");
+					*ptr += sprintfltr(*ptr, "center-right");
 					break;
 				case AZIMUTH_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case AZIMUTH_FAR_RIGHT:
-					*ptr += sprintf(*ptr, "far-right");
+					*ptr += sprintfltr(*ptr, "far-right");
 					break;
 				case AZIMUTH_RIGHT_SIDE:
-					*ptr += sprintf(*ptr, "right-side");
+					*ptr += sprintfltr(*ptr, "right-side");
 					break;
 				}
 				if (value & AZIMUTH_BEHIND)
-					*ptr += sprintf(*ptr, " behind");
+					*ptr += sprintfltr(*ptr, " behind");
 				break;
 			case CSS_PROP_BACKGROUND_ATTACHMENT:
 				switch (value) {
 				case BACKGROUND_ATTACHMENT_FIXED:
-					*ptr += sprintf(*ptr, "fixed");
+					*ptr += sprintfltr(*ptr, "fixed");
 					break;
 				case BACKGROUND_ATTACHMENT_SCROLL:
-					*ptr += sprintf(*ptr, "scroll");
+					*ptr += sprintfltr(*ptr, "scroll");
 					break;
 				}
 				break;
@@ -944,17 +947,17 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case BACKGROUND_COLOR_TRANSPARENT:
-					*ptr += sprintf(*ptr, "transparent");
+					*ptr += sprintfltr(*ptr, "transparent");
 					break;
 				case BACKGROUND_COLOR_CURRENT_COLOR:
-					*ptr += sprintf(*ptr, "currentColor");
+					*ptr += sprintfltr(*ptr, "currentColor");
 					break;
 				case BACKGROUND_COLOR_SET:
 				{
 					uint32_t colour =
 						*((uint32_t *) bytecode);
 					ADVANCE(sizeof(colour));
-					*ptr += sprintf(*ptr, "#%08x", colour);
+					*ptr += snprintf(*ptr, 32, "#%08x", colour);
 				}
 					break;
 				}
@@ -984,7 +987,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case BACKGROUND_IMAGE_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case BACKGROUND_IMAGE_URI:
 				{
@@ -994,7 +997,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 								  snum,
 								  &he);
 					ADVANCE(sizeof(snum));
-					*ptr += sprintf(*ptr, "url('%.*s')",
+					*ptr += snprintf(*ptr, 1024, "url('%.*s')",
 							(int) lwc_string_length(he),
 							lwc_string_data(he));
 				}
@@ -1014,16 +1017,16 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case BACKGROUND_POSITION_HORZ_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case BACKGROUND_POSITION_HORZ_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case BACKGROUND_POSITION_HORZ_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				}
-				*ptr += sprintf(*ptr, " ");
+				*ptr += sprintfltr(*ptr, " ");
 				switch (value & 0x0f) {
 				case BACKGROUND_POSITION_VERT_SET:
 				{
@@ -1036,39 +1039,39 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case BACKGROUND_POSITION_VERT_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case BACKGROUND_POSITION_VERT_BOTTOM:
-					*ptr += sprintf(*ptr, "bottom");
+					*ptr += sprintfltr(*ptr, "bottom");
 					break;
 				case BACKGROUND_POSITION_VERT_TOP:
-					*ptr += sprintf(*ptr, "top");
+					*ptr += sprintfltr(*ptr, "top");
 					break;
 				}
 				break;
 			case CSS_PROP_BACKGROUND_REPEAT:
 				switch (value) {
 				case BACKGROUND_REPEAT_NO_REPEAT:
-					*ptr += sprintf(*ptr, "no-repeat");
+					*ptr += sprintfltr(*ptr, "no-repeat");
 					break;
 				case BACKGROUND_REPEAT_REPEAT_X:
-					*ptr += sprintf(*ptr, "repeat-x");
+					*ptr += sprintfltr(*ptr, "repeat-x");
 					break;
 				case BACKGROUND_REPEAT_REPEAT_Y:
-					*ptr += sprintf(*ptr, "repeat-y");
+					*ptr += sprintfltr(*ptr, "repeat-y");
 					break;
 				case BACKGROUND_REPEAT_REPEAT:
-					*ptr += sprintf(*ptr, "repeat");
+					*ptr += sprintfltr(*ptr, "repeat");
 					break;
 				}
 				break;
 			case CSS_PROP_BORDER_COLLAPSE:
 				switch (value) {
 				case BORDER_COLLAPSE_SEPARATE:
-					*ptr += sprintf(*ptr, "separate");
+					*ptr += sprintfltr(*ptr, "separate");
 					break;
 				case BORDER_COLLAPSE_COLLAPSE:
-					*ptr += sprintf(*ptr, "collapse");
+					*ptr += sprintfltr(*ptr, "collapse");
 					break;
 				}
 				break;
@@ -1095,10 +1098,10 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_BOX_SIZING:
 				switch (value) {
 				case BOX_SIZING_CONTENT_BOX:
-					*ptr += sprintf(*ptr, "content-box");
+					*ptr += sprintfltr(*ptr, "content-box");
 					break;
 				case BOX_SIZING_BORDER_BOX:
-					*ptr += sprintf(*ptr, "border-box");
+					*ptr += sprintfltr(*ptr, "border-box");
 					break;
 				}
 				break;
@@ -1171,34 +1174,34 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case BORDER_STYLE_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case BORDER_STYLE_HIDDEN:
-					*ptr += sprintf(*ptr, "hidden");
+					*ptr += sprintfltr(*ptr, "hidden");
 					break;
 				case BORDER_STYLE_DOTTED:
-					*ptr += sprintf(*ptr, "dotted");
+					*ptr += sprintfltr(*ptr, "dotted");
 					break;
 				case BORDER_STYLE_DASHED:
-					*ptr += sprintf(*ptr, "dashed");
+					*ptr += sprintfltr(*ptr, "dashed");
 					break;
 				case BORDER_STYLE_SOLID:
-					*ptr += sprintf(*ptr, "solid");
+					*ptr += sprintfltr(*ptr, "solid");
 					break;
 				case BORDER_STYLE_DOUBLE:
-					*ptr += sprintf(*ptr, "double");
+					*ptr += sprintfltr(*ptr, "double");
 					break;
 				case BORDER_STYLE_GROOVE:
-					*ptr += sprintf(*ptr, "groove");
+					*ptr += sprintfltr(*ptr, "groove");
 					break;
 				case BORDER_STYLE_RIDGE:
-					*ptr += sprintf(*ptr, "ridge");
+					*ptr += sprintfltr(*ptr, "ridge");
 					break;
 				case BORDER_STYLE_INSET:
-					*ptr += sprintf(*ptr, "inset");
+					*ptr += sprintfltr(*ptr, "inset");
 					break;
 				case BORDER_STYLE_OUTSET:
-					*ptr += sprintf(*ptr, "outset");
+					*ptr += sprintfltr(*ptr, "outset");
 					break;
 				}
 				break;
@@ -1233,13 +1236,13 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case BORDER_WIDTH_THIN:
-					*ptr += sprintf(*ptr, "thin");
+					*ptr += sprintfltr(*ptr, "thin");
 					break;
 				case BORDER_WIDTH_MEDIUM:
-					*ptr += sprintf(*ptr, "medium");
+					*ptr += sprintfltr(*ptr, "medium");
 					break;
 				case BORDER_WIDTH_THICK:
-					*ptr += sprintf(*ptr, "thick");
+					*ptr += sprintfltr(*ptr, "thick");
 					break;
 				}
 				break;
@@ -1297,7 +1300,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case BOTTOM_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
@@ -1333,82 +1336,82 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case BREAK_AFTER_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case BREAK_AFTER_ALWAYS:
-					*ptr += sprintf(*ptr, "always");
+					*ptr += sprintfltr(*ptr, "always");
 					break;
 				case BREAK_AFTER_AVOID:
-					*ptr += sprintf(*ptr, "avoid");
+					*ptr += sprintfltr(*ptr, "avoid");
 					break;
 				case BREAK_AFTER_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case BREAK_AFTER_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case BREAK_AFTER_PAGE:
-					*ptr += sprintf(*ptr, "page");
+					*ptr += sprintfltr(*ptr, "page");
 					break;
 				case BREAK_AFTER_COLUMN:
-					*ptr += sprintf(*ptr, "column");
+					*ptr += sprintfltr(*ptr, "column");
 					break;
 				case BREAK_AFTER_AVOID_PAGE:
-					*ptr += sprintf(*ptr, "avoid-page");
+					*ptr += sprintfltr(*ptr, "avoid-page");
 					break;
 				case BREAK_AFTER_AVOID_COLUMN:
-					*ptr += sprintf(*ptr, "avoid-column");
+					*ptr += sprintfltr(*ptr, "avoid-column");
 					break;
 				}
 				break;
 			case CSS_PROP_BREAK_INSIDE:
 				switch (value) {
 				case BREAK_INSIDE_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case BREAK_INSIDE_AVOID:
-					*ptr += sprintf(*ptr, "avoid");
+					*ptr += sprintfltr(*ptr, "avoid");
 					break;
 				case BREAK_INSIDE_AVOID_PAGE:
-					*ptr += sprintf(*ptr, "avoid-page");
+					*ptr += sprintfltr(*ptr, "avoid-page");
 					break;
 				case BREAK_INSIDE_AVOID_COLUMN:
-					*ptr += sprintf(*ptr, "avoid-column");
+					*ptr += sprintfltr(*ptr, "avoid-column");
 					break;
 				}
 				break;
 			case CSS_PROP_CAPTION_SIDE:
 				switch (value) {
 				case CAPTION_SIDE_TOP:
-					*ptr += sprintf(*ptr, "top");
+					*ptr += sprintfltr(*ptr, "top");
 					break;
 				case CAPTION_SIDE_BOTTOM:
-					*ptr += sprintf(*ptr, "bottom");
+					*ptr += sprintfltr(*ptr, "bottom");
 					break;
 				}
 				break;
 			case CSS_PROP_CLEAR:
 				switch (value) {
 				case CLEAR_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case CLEAR_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case CLEAR_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case CLEAR_BOTH:
-					*ptr += sprintf(*ptr, "both");
+					*ptr += sprintfltr(*ptr, "both");
 					break;
 				}
 				break;
 			case CSS_PROP_CLIP:
 				if ((value & CLIP_SHAPE_MASK) ==
 						CLIP_SHAPE_RECT) {
-					*ptr += sprintf(*ptr, "rect(");
+					*ptr += sprintfltr(*ptr, "rect(");
 					if (value & CLIP_RECT_TOP_AUTO) {
-						*ptr += sprintf(*ptr, "auto");
+						*ptr += sprintfltr(*ptr, "auto");
 					} else {
 						uint32_t unit;
 						css_fixed val =
@@ -1418,9 +1421,9 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						ADVANCE(sizeof(unit));
 						dump_unit(val, unit, ptr);
 					}
-					*ptr += sprintf(*ptr, ", ");
+					*ptr += sprintfltr(*ptr, ", ");
 					if (value & CLIP_RECT_RIGHT_AUTO) {
-						*ptr += sprintf(*ptr, "auto");
+						*ptr += sprintfltr(*ptr, "auto");
 					} else {
 						uint32_t unit;
 						css_fixed val =
@@ -1430,9 +1433,9 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						ADVANCE(sizeof(unit));
 						dump_unit(val, unit, ptr);
 					}
-					*ptr += sprintf(*ptr, ", ");
+					*ptr += sprintfltr(*ptr, ", ");
 					if (value & CLIP_RECT_BOTTOM_AUTO) {
-						*ptr += sprintf(*ptr, "auto");
+						*ptr += sprintfltr(*ptr, "auto");
 					} else {
 						uint32_t unit;
 						css_fixed val =
@@ -1442,9 +1445,9 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						ADVANCE(sizeof(unit));
 						dump_unit(val, unit, ptr);
 					}
-					*ptr += sprintf(*ptr, ", ");
+					*ptr += sprintfltr(*ptr, ", ");
 					if (value & CLIP_RECT_LEFT_AUTO) {
-						*ptr += sprintf(*ptr, "auto");
+						*ptr += sprintfltr(*ptr, "auto");
 					} else {
 						uint32_t unit;
 						css_fixed val =
@@ -1454,24 +1457,24 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						ADVANCE(sizeof(unit));
 						dump_unit(val, unit, ptr);
 					}
-					*ptr += sprintf(*ptr, ")");
+					*ptr += sprintfltr(*ptr, ")");
 				} else
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 				break;
 			case CSS_PROP_COLOR:
 				switch (value) {
 				case COLOR_TRANSPARENT:
-					*ptr += sprintf(*ptr, "transparent");
+					*ptr += sprintfltr(*ptr, "transparent");
 					break;
 				case COLOR_CURRENT_COLOR:
-					*ptr += sprintf(*ptr, "currentColor");
+					*ptr += sprintfltr(*ptr, "currentColor");
 					break;
 				case COLOR_SET:
 				{
 					uint32_t colour =
 						*((uint32_t *) bytecode);
 					ADVANCE(sizeof(colour));
-					*ptr += sprintf(*ptr, "#%08x", colour);
+					*ptr += snprintf(*ptr, 32, "#%08x", colour);
 				}
 					break;
 				}
@@ -1486,17 +1489,17 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case COLUMN_COUNT_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
 			case CSS_PROP_COLUMN_FILL:
 				switch (value) {
 				case COLUMN_FILL_BALANCE:
-					*ptr += sprintf(*ptr, "balance");
+					*ptr += sprintfltr(*ptr, "balance");
 					break;
 				case COLUMN_FILL_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
@@ -1513,26 +1516,26 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case COLUMN_GAP_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				}
 				break;
 			case CSS_PROP_COLUMN_SPAN:
 				switch (value) {
 				case COLUMN_SPAN_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case COLUMN_SPAN_ALL:
-					*ptr += sprintf(*ptr, "all");
+					*ptr += sprintfltr(*ptr, "all");
 					break;
 				}
 				break;
 			case CSS_PROP_CONTENT:
 				if (value == CONTENT_NORMAL) {
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				} else if (value == CONTENT_NONE) {
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 
@@ -1567,34 +1570,34 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					case CONTENT_STRING:
 						css__stylesheet_string_get(style->sheet, snum, &he);
 						if (value == CONTENT_URI)
-							*ptr += sprintf(*ptr, "url(");
+							*ptr += sprintfltr(*ptr, "url(");
 						if (value == CONTENT_ATTR)
-							*ptr += sprintf(*ptr, "attr(");
+							*ptr += sprintfltr(*ptr, "attr(");
 						if (value != CONTENT_STRING)
 							end = ")";
 
 						ADVANCE(sizeof(snum));
 
-						*ptr += sprintf(*ptr, "'%.*s'%s",
+						*ptr += snprintf(*ptr, 1024, "'%.*s'%s",
                                                                 (int) lwc_string_length(he),
                                                                 lwc_string_data(he),
 							end);
 						break;
 
 					case CONTENT_OPEN_QUOTE:
-						*ptr += sprintf(*ptr, "open-quote");
+						*ptr += sprintfltr(*ptr, "open-quote");
 						break;
 
 					case CONTENT_CLOSE_QUOTE:
-						*ptr += sprintf(*ptr, "close-quote");
+						*ptr += sprintfltr(*ptr, "close-quote");
 						break;
 
 					case CONTENT_NO_OPEN_QUOTE:
-						*ptr += sprintf(*ptr, "no-open-quote");
+						*ptr += sprintfltr(*ptr, "no-open-quote");
 						break;
 
 					case CONTENT_NO_CLOSE_QUOTE:
-						*ptr += sprintf(*ptr, "no-close-quote");
+						*ptr += sprintfltr(*ptr, "no-close-quote");
 						break;
 					}
 
@@ -1602,7 +1605,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					ADVANCE(sizeof(value));
 
 					if (value != CONTENT_NORMAL)
-						*ptr += sprintf(*ptr, " ");
+						*ptr += sprintfltr(*ptr, " ");
 				}
 				break;
 			case CSS_PROP_COUNTER_INCREMENT:
@@ -1623,7 +1626,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 								  snum,
 								  &he);
 						ADVANCE(sizeof(snum));
-						*ptr += sprintf(*ptr, "%.*s ",
+						*ptr += snprintf(*ptr, 1024, "%.*s ",
                                                                 (int)lwc_string_length(he),
                                                                 lwc_string_data(he));
 						val = *((css_fixed *) bytecode);
@@ -1635,12 +1638,11 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 						if (value !=
 							COUNTER_INCREMENT_NONE)
-							*ptr += sprintf(*ptr,
-									" ");
+							*ptr += sprintfltr(*ptr, " ");
 					}
 					break;
 				case COUNTER_INCREMENT_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
@@ -1651,7 +1653,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 								  snum,
 								  &he);
 					ADVANCE(sizeof(snum));
-					*ptr += sprintf(*ptr, "url('%.*s'), ",
+					*ptr += snprintf(*ptr, 1024, "url('%.*s'), ",
 							(int) lwc_string_length(he),
 							lwc_string_data(he));
 
@@ -1661,123 +1663,123 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case CURSOR_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case CURSOR_CROSSHAIR:
-					*ptr += sprintf(*ptr, "crosshair");
+					*ptr += sprintfltr(*ptr, "crosshair");
 					break;
 				case CURSOR_DEFAULT:
-					*ptr += sprintf(*ptr, "default");
+					*ptr += sprintfltr(*ptr, "default");
 					break;
 				case CURSOR_POINTER:
-					*ptr += sprintf(*ptr, "pointer");
+					*ptr += sprintfltr(*ptr, "pointer");
 					break;
 				case CURSOR_MOVE:
-					*ptr += sprintf(*ptr, "move");
+					*ptr += sprintfltr(*ptr, "move");
 					break;
 				case CURSOR_E_RESIZE:
-					*ptr += sprintf(*ptr, "e-resize");
+					*ptr += sprintfltr(*ptr, "e-resize");
 					break;
 				case CURSOR_NE_RESIZE:
-					*ptr += sprintf(*ptr, "ne-resize");
+					*ptr += sprintfltr(*ptr, "ne-resize");
 					break;
 				case CURSOR_NW_RESIZE:
-					*ptr += sprintf(*ptr, "nw-resize");
+					*ptr += sprintfltr(*ptr, "nw-resize");
 					break;
 				case CURSOR_N_RESIZE:
-					*ptr += sprintf(*ptr, "n-resize");
+					*ptr += sprintfltr(*ptr, "n-resize");
 					break;
 				case CURSOR_SE_RESIZE:
-					*ptr += sprintf(*ptr, "se-resize");
+					*ptr += sprintfltr(*ptr, "se-resize");
 					break;
 				case CURSOR_SW_RESIZE:
-					*ptr += sprintf(*ptr, "sw-resize");
+					*ptr += sprintfltr(*ptr, "sw-resize");
 					break;
 				case CURSOR_S_RESIZE:
-					*ptr += sprintf(*ptr, "s-resize");
+					*ptr += sprintfltr(*ptr, "s-resize");
 					break;
 				case CURSOR_W_RESIZE:
-					*ptr += sprintf(*ptr, "w-resize");
+					*ptr += sprintfltr(*ptr, "w-resize");
 					break;
 				case CURSOR_TEXT:
-					*ptr += sprintf(*ptr, "text");
+					*ptr += sprintfltr(*ptr, "text");
 					break;
 				case CURSOR_WAIT:
-					*ptr += sprintf(*ptr, "wait");
+					*ptr += sprintfltr(*ptr, "wait");
 					break;
 				case CURSOR_HELP:
-					*ptr += sprintf(*ptr, "help");
+					*ptr += sprintfltr(*ptr, "help");
 					break;
 				case CURSOR_PROGRESS:
-					*ptr += sprintf(*ptr, "progress");
+					*ptr += sprintfltr(*ptr, "progress");
 					break;
 				}
 				break;
 			case CSS_PROP_DIRECTION:
 				switch (value) {
 				case DIRECTION_LTR:
-					*ptr += sprintf(*ptr, "ltr");
+					*ptr += sprintfltr(*ptr, "ltr");
 					break;
 				case DIRECTION_RTL:
-					*ptr += sprintf(*ptr, "rtl");
+					*ptr += sprintfltr(*ptr, "rtl");
 					break;
 				}
 				break;
 			case CSS_PROP_DISPLAY:
 				switch (value) {
 				case DISPLAY_INLINE:
-					*ptr += sprintf(*ptr, "inline");
+					*ptr += sprintfltr(*ptr, "inline");
 					break;
 				case DISPLAY_BLOCK:
-					*ptr += sprintf(*ptr, "block");
+					*ptr += sprintfltr(*ptr, "block");
 					break;
 				case DISPLAY_LIST_ITEM:
-					*ptr += sprintf(*ptr, "list-item");
+					*ptr += sprintfltr(*ptr, "list-item");
 					break;
 				case DISPLAY_RUN_IN:
-					*ptr += sprintf(*ptr, "run-in");
+					*ptr += sprintfltr(*ptr, "run-in");
 					break;
 				case DISPLAY_INLINE_BLOCK:
-					*ptr += sprintf(*ptr, "inline-block");
+					*ptr += sprintfltr(*ptr, "inline-block");
 					break;
 				case DISPLAY_TABLE:
-					*ptr += sprintf(*ptr, "table");
+					*ptr += sprintfltr(*ptr, "table");
 					break;
 				case DISPLAY_INLINE_TABLE:
-					*ptr += sprintf(*ptr, "inline-table");
+					*ptr += sprintfltr(*ptr, "inline-table");
 					break;
 				case DISPLAY_TABLE_ROW_GROUP:
-					*ptr += sprintf(*ptr, "table-row-group");
+					*ptr += sprintfltr(*ptr, "table-row-group");
 					break;
 				case DISPLAY_TABLE_HEADER_GROUP:
-					*ptr += sprintf(*ptr, "table-header-group");
+					*ptr += sprintfltr(*ptr, "table-header-group");
 					break;
 				case DISPLAY_TABLE_FOOTER_GROUP:
-					*ptr += sprintf(*ptr, "table-footer-group");
+					*ptr += sprintfltr(*ptr, "table-footer-group");
 					break;
 				case DISPLAY_TABLE_ROW:
-					*ptr += sprintf(*ptr, "table-row");
+					*ptr += sprintfltr(*ptr, "table-row");
 					break;
 				case DISPLAY_TABLE_COLUMN_GROUP:
-					*ptr += sprintf(*ptr, "table-column-group");
+					*ptr += sprintfltr(*ptr, "table-column-group");
 					break;
 				case DISPLAY_TABLE_COLUMN:
-					*ptr += sprintf(*ptr, "table-column");
+					*ptr += sprintfltr(*ptr, "table-column");
 					break;
 				case DISPLAY_TABLE_CELL:
-					*ptr += sprintf(*ptr, "table-cell");
+					*ptr += sprintfltr(*ptr, "table-cell");
 					break;
 				case DISPLAY_TABLE_CAPTION:
-					*ptr += sprintf(*ptr, "table-caption");
+					*ptr += sprintfltr(*ptr, "table-caption");
 					break;
 				case DISPLAY_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case DISPLAY_FLEX:
-					*ptr += sprintf(*ptr, "flex");
+					*ptr += sprintfltr(*ptr, "flex");
 					break;
 				case DISPLAY_INLINE_FLEX:
-					*ptr += sprintf(*ptr, "inline-flex");
+					*ptr += sprintfltr(*ptr, "inline-flex");
 					break;
 				}
 				break;
@@ -1794,39 +1796,39 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case ELEVATION_BELOW:
-					*ptr += sprintf(*ptr, "below");
+					*ptr += sprintfltr(*ptr, "below");
 					break;
 				case ELEVATION_LEVEL:
-					*ptr += sprintf(*ptr, "level");
+					*ptr += sprintfltr(*ptr, "level");
 					break;
 				case ELEVATION_ABOVE:
-					*ptr += sprintf(*ptr, "above");
+					*ptr += sprintfltr(*ptr, "above");
 					break;
 				case ELEVATION_HIGHER:
-					*ptr += sprintf(*ptr, "higher");
+					*ptr += sprintfltr(*ptr, "higher");
 					break;
 				case ELEVATION_LOWER:
-					*ptr += sprintf(*ptr, "lower");
+					*ptr += sprintfltr(*ptr, "lower");
 					break;
 				}
 				break;
 			case CSS_PROP_EMPTY_CELLS:
 				switch (value) {
 				case EMPTY_CELLS_SHOW:
-					*ptr += sprintf(*ptr, "show");
+					*ptr += sprintfltr(*ptr, "show");
 					break;
 				case EMPTY_CELLS_HIDE:
-					*ptr += sprintf(*ptr, "hide");
+					*ptr += sprintfltr(*ptr, "hide");
 					break;
 				}
 				break;
 			case CSS_PROP_FLEX_BASIS:
 				switch (value) {
 				case FLEX_BASIS_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case FLEX_BASIS_CONTENT:
-					*ptr += sprintf(*ptr, "content");
+					*ptr += sprintfltr(*ptr, "content");
 					break;
 				case FLEX_BASIS_SET:
 				{
@@ -1843,16 +1845,16 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_FLEX_DIRECTION:
 				switch (value) {
 				case FLEX_DIRECTION_ROW:
-					*ptr += sprintf(*ptr, "row");
+					*ptr += sprintfltr(*ptr, "row");
 					break;
 				case FLEX_DIRECTION_COLUMN:
-					*ptr += sprintf(*ptr, "column");
+					*ptr += sprintfltr(*ptr, "column");
 					break;
 				case FLEX_DIRECTION_ROW_REVERSE:
-					*ptr += sprintf(*ptr, "row-reverse");
+					*ptr += sprintfltr(*ptr, "row-reverse");
 					break;
 				case FLEX_DIRECTION_COLUMN_REVERSE:
-					*ptr += sprintf(*ptr, "column-reverse");
+					*ptr += sprintfltr(*ptr, "column-reverse");
 					break;
 				}
 				break;
@@ -1881,26 +1883,26 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_FLEX_WRAP:
 				switch (value) {
 				case FLEX_WRAP_NOWRAP:
-					*ptr += sprintf(*ptr, "nowrap");
+					*ptr += sprintfltr(*ptr, "nowrap");
 					break;
 				case FLEX_WRAP_WRAP:
-					*ptr += sprintf(*ptr, "wrap");
+					*ptr += sprintfltr(*ptr, "wrap");
 					break;
 				case FLEX_WRAP_WRAP_REVERSE:
-					*ptr += sprintf(*ptr, "wrap-reverse");
+					*ptr += sprintfltr(*ptr, "wrap-reverse");
 					break;
 				}
 				break;
 			case CSS_PROP_FLOAT:
 				switch (value) {
 				case FLOAT_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case FLOAT_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case FLOAT_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
@@ -1914,25 +1916,25 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						lwc_string *he;
 						css__stylesheet_string_get(style->sheet, snum, &he);
 						ADVANCE(sizeof(snum));
-						*ptr += sprintf(*ptr, "'%.*s'",
+						*ptr += snprintf(*ptr, 1024, "'%.*s'",
                                                                 (int) lwc_string_length(he),
                                                                 lwc_string_data(he));
 					}
 						break;
 					case FONT_FAMILY_SERIF:
-						*ptr += sprintf(*ptr, "serif");
+						*ptr += sprintfltr(*ptr, "serif");
 						break;
 					case FONT_FAMILY_SANS_SERIF:
-						*ptr += sprintf(*ptr, "sans-serif");
+						*ptr += sprintfltr(*ptr, "sans-serif");
 						break;
 					case FONT_FAMILY_CURSIVE:
-						*ptr += sprintf(*ptr, "cursive");
+						*ptr += sprintfltr(*ptr, "cursive");
 						break;
 					case FONT_FAMILY_FANTASY:
-						*ptr += sprintf(*ptr, "fantasy");
+						*ptr += sprintfltr(*ptr, "fantasy");
 						break;
 					case FONT_FAMILY_MONOSPACE:
-						*ptr += sprintf(*ptr, "monospace");
+						*ptr += sprintfltr(*ptr, "monospace");
 						break;
 					}
 
@@ -1940,7 +1942,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					ADVANCE(sizeof(value));
 
 					if (value != FONT_FAMILY_END)
-						*ptr += sprintf(*ptr, ", ");
+						*ptr += sprintfltr(*ptr, ", ");
 				}
 				break;
 			case CSS_PROP_FONT_SIZE:
@@ -1956,119 +1958,119 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case FONT_SIZE_XX_SMALL:
-					*ptr += sprintf(*ptr, "xx-small");
+					*ptr += sprintfltr(*ptr, "xx-small");
 					break;
 				case FONT_SIZE_X_SMALL:
-					*ptr += sprintf(*ptr, "x-small");
+					*ptr += sprintfltr(*ptr, "x-small");
 					break;
 				case FONT_SIZE_SMALL:
-					*ptr += sprintf(*ptr, "small");
+					*ptr += sprintfltr(*ptr, "small");
 					break;
 				case FONT_SIZE_MEDIUM:
-					*ptr += sprintf(*ptr, "medium");
+					*ptr += sprintfltr(*ptr, "medium");
 					break;
 				case FONT_SIZE_LARGE:
-					*ptr += sprintf(*ptr, "large");
+					*ptr += sprintfltr(*ptr, "large");
 					break;
 				case FONT_SIZE_X_LARGE:
-					*ptr += sprintf(*ptr, "x-large");
+					*ptr += sprintfltr(*ptr, "x-large");
 					break;
 				case FONT_SIZE_XX_LARGE:
-					*ptr += sprintf(*ptr, "xx-large");
+					*ptr += sprintfltr(*ptr, "xx-large");
 					break;
 				case FONT_SIZE_LARGER:
-					*ptr += sprintf(*ptr, "larger");
+					*ptr += sprintfltr(*ptr, "larger");
 					break;
 				case FONT_SIZE_SMALLER:
-					*ptr += sprintf(*ptr, "smaller");
+					*ptr += sprintfltr(*ptr, "smaller");
 					break;
 				}
 				break;
 			case CSS_PROP_FONT_STYLE:
 				switch (value) {
 				case FONT_STYLE_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case FONT_STYLE_ITALIC:
-					*ptr += sprintf(*ptr, "italic");
+					*ptr += sprintfltr(*ptr, "italic");
 					break;
 				case FONT_STYLE_OBLIQUE:
-					*ptr += sprintf(*ptr, "oblique");
+					*ptr += sprintfltr(*ptr, "oblique");
 					break;
 				}
 				break;
 			case CSS_PROP_FONT_VARIANT:
 				switch (value) {
 				case FONT_VARIANT_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case FONT_VARIANT_SMALL_CAPS:
-					*ptr += sprintf(*ptr, "small-caps");
+					*ptr += sprintfltr(*ptr, "small-caps");
 					break;
 				}
 				break;
 			case CSS_PROP_FONT_WEIGHT:
 				switch (value) {
 				case FONT_WEIGHT_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case FONT_WEIGHT_BOLD:
-					*ptr += sprintf(*ptr, "bold");
+					*ptr += sprintfltr(*ptr, "bold");
 					break;
 				case FONT_WEIGHT_BOLDER:
-					*ptr += sprintf(*ptr, "bolder");
+					*ptr += sprintfltr(*ptr, "bolder");
 					break;
 				case FONT_WEIGHT_LIGHTER:
-					*ptr += sprintf(*ptr, "lighter");
+					*ptr += sprintfltr(*ptr, "lighter");
 					break;
 				case FONT_WEIGHT_100:
-					*ptr += sprintf(*ptr, "100");
+					*ptr += sprintfltr(*ptr, "100");
 					break;
 				case FONT_WEIGHT_200:
-					*ptr += sprintf(*ptr, "200");
+					*ptr += sprintfltr(*ptr, "200");
 					break;
 				case FONT_WEIGHT_300:
-					*ptr += sprintf(*ptr, "300");
+					*ptr += sprintfltr(*ptr, "300");
 					break;
 				case FONT_WEIGHT_400:
-					*ptr += sprintf(*ptr, "400");
+					*ptr += sprintfltr(*ptr, "400");
 					break;
 				case FONT_WEIGHT_500:
-					*ptr += sprintf(*ptr, "500");
+					*ptr += sprintfltr(*ptr, "500");
 					break;
 				case FONT_WEIGHT_600:
-					*ptr += sprintf(*ptr, "600");
+					*ptr += sprintfltr(*ptr, "600");
 					break;
 				case FONT_WEIGHT_700:
-					*ptr += sprintf(*ptr, "700");
+					*ptr += sprintfltr(*ptr, "700");
 					break;
 				case FONT_WEIGHT_800:
-					*ptr += sprintf(*ptr, "800");
+					*ptr += sprintfltr(*ptr, "800");
 					break;
 				case FONT_WEIGHT_900:
-					*ptr += sprintf(*ptr, "900");
+					*ptr += sprintfltr(*ptr, "900");
 					break;
 				}
 				break;
 			case CSS_PROP_JUSTIFY_CONTENT:
 				switch (value) {
 				case JUSTIFY_CONTENT_FLEX_START:
-					*ptr += sprintf(*ptr, "flex-start");
+					*ptr += sprintfltr(*ptr, "flex-start");
 					break;
 				case JUSTIFY_CONTENT_FLEX_END:
-					*ptr += sprintf(*ptr, "flex-end");
+					*ptr += sprintfltr(*ptr, "flex-end");
 					break;
 				case JUSTIFY_CONTENT_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case JUSTIFY_CONTENT_SPACE_BETWEEN:
-					*ptr += sprintf(*ptr, "space-between");
+					*ptr += sprintfltr(*ptr, "space-between");
 					break;
 				case JUSTIFY_CONTENT_SPACE_AROUND:
-					*ptr += sprintf(*ptr, "space-around");
+					*ptr += sprintfltr(*ptr, "space-around");
 					break;
 				case JUSTIFY_CONTENT_SPACE_EVENLY:
-					*ptr += sprintf(*ptr, "space-evenly");
+					*ptr += sprintfltr(*ptr, "space-evenly");
 					break;
 				}
 				break;
@@ -2094,7 +2096,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case LETTER_SPACING_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				}
 				break;
@@ -2118,66 +2120,66 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case LINE_HEIGHT_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				}
 				break;
 			case CSS_PROP_LIST_STYLE_POSITION:
 				switch (value) {
 				case LIST_STYLE_POSITION_INSIDE:
-					*ptr += sprintf(*ptr, "inside");
+					*ptr += sprintfltr(*ptr, "inside");
 					break;
 				case LIST_STYLE_POSITION_OUTSIDE:
-					*ptr += sprintf(*ptr, "outside");
+					*ptr += sprintfltr(*ptr, "outside");
 					break;
 				}
 				break;
 			case CSS_PROP_LIST_STYLE_TYPE:
 				switch (value) {
 				case LIST_STYLE_TYPE_DISC:
-					*ptr += sprintf(*ptr, "disc");
+					*ptr += sprintfltr(*ptr, "disc");
 					break;
 				case LIST_STYLE_TYPE_CIRCLE:
-					*ptr += sprintf(*ptr, "circle");
+					*ptr += sprintfltr(*ptr, "circle");
 					break;
 				case LIST_STYLE_TYPE_SQUARE:
-					*ptr += sprintf(*ptr, "square");
+					*ptr += sprintfltr(*ptr, "square");
 					break;
 				case LIST_STYLE_TYPE_DECIMAL:
-					*ptr += sprintf(*ptr, "decimal");
+					*ptr += sprintfltr(*ptr, "decimal");
 					break;
 				case LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-					*ptr += sprintf(*ptr, "decimal-leading-zero");
+					*ptr += sprintfltr(*ptr, "decimal-leading-zero");
 					break;
 				case LIST_STYLE_TYPE_LOWER_ROMAN:
-					*ptr += sprintf(*ptr, "lower-roman");
+					*ptr += sprintfltr(*ptr, "lower-roman");
 					break;
 				case LIST_STYLE_TYPE_UPPER_ROMAN:
-					*ptr += sprintf(*ptr, "upper-roman");
+					*ptr += sprintfltr(*ptr, "upper-roman");
 					break;
 				case LIST_STYLE_TYPE_LOWER_GREEK:
-					*ptr += sprintf(*ptr, "lower-greek");
+					*ptr += sprintfltr(*ptr, "lower-greek");
 					break;
 				case LIST_STYLE_TYPE_LOWER_LATIN:
-					*ptr += sprintf(*ptr, "lower-latin");
+					*ptr += sprintfltr(*ptr, "lower-latin");
 					break;
 				case LIST_STYLE_TYPE_UPPER_LATIN:
-					*ptr += sprintf(*ptr, "upper-latin");
+					*ptr += sprintfltr(*ptr, "upper-latin");
 					break;
 				case LIST_STYLE_TYPE_ARMENIAN:
-					*ptr += sprintf(*ptr, "armenian");
+					*ptr += sprintfltr(*ptr, "armenian");
 					break;
 				case LIST_STYLE_TYPE_GEORGIAN:
-					*ptr += sprintf(*ptr, "georgian");
+					*ptr += sprintfltr(*ptr, "georgian");
 					break;
 				case LIST_STYLE_TYPE_LOWER_ALPHA:
-					*ptr += sprintf(*ptr, "lower-alpha");
+					*ptr += sprintfltr(*ptr, "lower-alpha");
 					break;
 				case LIST_STYLE_TYPE_UPPER_ALPHA:
-					*ptr += sprintf(*ptr, "upper-alpha");
+					*ptr += sprintfltr(*ptr, "upper-alpha");
 					break;
 				case LIST_STYLE_TYPE_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
@@ -2202,7 +2204,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case MAX_HEIGHT_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
@@ -2227,7 +2229,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case MIN_HEIGHT_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
@@ -2314,21 +2316,21 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_OUTLINE_COLOR:
 				switch (value) {
 				case OUTLINE_COLOR_TRANSPARENT:
-					*ptr += sprintf(*ptr, "transparent");
+					*ptr += sprintfltr(*ptr, "transparent");
 					break;
 				case OUTLINE_COLOR_CURRENT_COLOR:
-					*ptr += sprintf(*ptr, "currentColor");
+					*ptr += sprintfltr(*ptr, "currentColor");
 					break;
 				case OUTLINE_COLOR_SET:
 				{
 					uint32_t colour =
 						*((uint32_t *) bytecode);
 					ADVANCE(sizeof(colour));
-					*ptr += sprintf(*ptr, "#%08x", colour);
+					*ptr += snprintf(*ptr, 32, "#%08x", colour);
 				}
 					break;
 				case OUTLINE_COLOR_INVERT:
-					*ptr += sprintf(*ptr, "invert");
+					*ptr += sprintfltr(*ptr, "invert");
 					break;
 				}
 				break;
@@ -2336,16 +2338,16 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 			case CSS_PROP_OVERFLOW_Y:
 				switch (value) {
 				case OVERFLOW_VISIBLE:
-					*ptr += sprintf(*ptr, "visible");
+					*ptr += sprintfltr(*ptr, "visible");
 					break;
 				case OVERFLOW_HIDDEN:
-					*ptr += sprintf(*ptr, "hidden");
+					*ptr += sprintfltr(*ptr, "hidden");
 					break;
 				case OVERFLOW_SCROLL:
-					*ptr += sprintf(*ptr, "scroll");
+					*ptr += sprintfltr(*ptr, "scroll");
 					break;
 				case OVERFLOW_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
@@ -2369,29 +2371,29 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 				switch (value) {
 				case PAGE_BREAK_AFTER_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case PAGE_BREAK_AFTER_ALWAYS:
-					*ptr += sprintf(*ptr, "always");
+					*ptr += sprintfltr(*ptr, "always");
 					break;
 				case PAGE_BREAK_AFTER_AVOID:
-					*ptr += sprintf(*ptr, "avoid");
+					*ptr += sprintfltr(*ptr, "avoid");
 					break;
 				case PAGE_BREAK_AFTER_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case PAGE_BREAK_AFTER_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				}
 				break;
 			case CSS_PROP_PAGE_BREAK_INSIDE:
 				switch (value) {
 				case PAGE_BREAK_INSIDE_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case PAGE_BREAK_INSIDE_AVOID:
-					*ptr += sprintf(*ptr, "avoid");
+					*ptr += sprintfltr(*ptr, "avoid");
 					break;
 				}
 				break;
@@ -2408,19 +2410,19 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case PITCH_X_LOW:
-					*ptr += sprintf(*ptr, "x-low");
+					*ptr += sprintfltr(*ptr, "x-low");
 					break;
 				case PITCH_LOW:
-					*ptr += sprintf(*ptr, "low");
+					*ptr += sprintfltr(*ptr, "low");
 					break;
 				case PITCH_MEDIUM:
-					*ptr += sprintf(*ptr, "medium");
+					*ptr += sprintfltr(*ptr, "medium");
 					break;
 				case PITCH_HIGH:
-					*ptr += sprintf(*ptr, "high");
+					*ptr += sprintfltr(*ptr, "high");
 					break;
 				case PITCH_X_HIGH:
-					*ptr += sprintf(*ptr, "x-high");
+					*ptr += sprintfltr(*ptr, "x-high");
 					break;
 				}
 				break;
@@ -2432,37 +2434,37 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					lwc_string *he;
 					css__stylesheet_string_get(style->sheet, snum, &he);
 					ADVANCE(sizeof(snum));
-					*ptr += sprintf(*ptr, "'%.*s'",
+					*ptr += snprintf(*ptr, 1024, "'%.*s'",
                                                         (int) lwc_string_length(he),
                                                         lwc_string_data(he));
 				}
 					break;
 				case PLAY_DURING_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case PLAY_DURING_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 
 				if (value & PLAY_DURING_MIX)
-					*ptr += sprintf(*ptr, " mix");
+					*ptr += sprintfltr(*ptr, " mix");
 				if (value & PLAY_DURING_REPEAT)
-					*ptr += sprintf(*ptr, " repeat");
+					*ptr += sprintfltr(*ptr, " repeat");
 				break;
 			case CSS_PROP_POSITION:
 				switch (value) {
 				case POSITION_STATIC:
-					*ptr += sprintf(*ptr, "static");
+					*ptr += sprintfltr(*ptr, "static");
 					break;
 				case POSITION_RELATIVE:
-					*ptr += sprintf(*ptr, "relative");
+					*ptr += sprintfltr(*ptr, "relative");
 					break;
 				case POSITION_ABSOLUTE:
-					*ptr += sprintf(*ptr, "absolute");
+					*ptr += sprintfltr(*ptr, "absolute");
 					break;
 				case POSITION_FIXED:
-					*ptr += sprintf(*ptr, "fixed");
+					*ptr += sprintfltr(*ptr, "fixed");
 					break;
 				}
 				break;
@@ -2474,13 +2476,13 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						lwc_string *he;
 						css__stylesheet_string_get(style->sheet, snum, &he);
 						ADVANCE(sizeof(snum));
-						*ptr += sprintf(*ptr, " '%.*s' ",
+						*ptr += snprintf(*ptr, 1024, " '%.*s' ",
                                                                 (int) lwc_string_length(he),
                                                                 lwc_string_data(he));
 
 						css__stylesheet_string_get(style->sheet, snum, &he);
 						ADVANCE(sizeof(he));
-						*ptr += sprintf(*ptr, " '%.*s' ",
+						*ptr += snprintf(*ptr, 1024, " '%.*s' ",
                                                                 (int) lwc_string_length(he),
                                                                 lwc_string_data(he));
 
@@ -2489,50 +2491,50 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					}
 					break;
 				case QUOTES_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
 			case CSS_PROP_SPEAK_HEADER:
 				switch (value) {
 				case SPEAK_HEADER_ONCE:
-					*ptr += sprintf(*ptr, "once");
+					*ptr += sprintfltr(*ptr, "once");
 					break;
 				case SPEAK_HEADER_ALWAYS:
-					*ptr += sprintf(*ptr, "always");
+					*ptr += sprintfltr(*ptr, "always");
 					break;
 				}
 				break;
 			case CSS_PROP_SPEAK_NUMERAL:
 				switch (value) {
 				case SPEAK_NUMERAL_DIGITS:
-					*ptr += sprintf(*ptr, "digits");
+					*ptr += sprintfltr(*ptr, "digits");
 					break;
 				case SPEAK_NUMERAL_CONTINUOUS:
-					*ptr += sprintf(*ptr, "continuous");
+					*ptr += sprintfltr(*ptr, "continuous");
 					break;
 				}
 				break;
 			case CSS_PROP_SPEAK_PUNCTUATION:
 				switch (value) {
 				case SPEAK_PUNCTUATION_CODE:
-					*ptr += sprintf(*ptr, "code");
+					*ptr += sprintfltr(*ptr, "code");
 					break;
 				case SPEAK_PUNCTUATION_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
 			case CSS_PROP_SPEAK:
 				switch (value) {
 				case SPEAK_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case SPEAK_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				case SPEAK_SPELL_OUT:
-					*ptr += sprintf(*ptr, "spell-out");
+					*ptr += sprintfltr(*ptr, "spell-out");
 					break;
 				}
 				break;
@@ -2546,102 +2548,102 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case SPEECH_RATE_X_SLOW:
-					*ptr += sprintf(*ptr, "x-slow");
+					*ptr += sprintfltr(*ptr, "x-slow");
 					break;
 				case SPEECH_RATE_SLOW:
-					*ptr += sprintf(*ptr, "slow");
+					*ptr += sprintfltr(*ptr, "slow");
 					break;
 				case SPEECH_RATE_MEDIUM:
-					*ptr += sprintf(*ptr, "medium");
+					*ptr += sprintfltr(*ptr, "medium");
 					break;
 				case SPEECH_RATE_FAST:
-					*ptr += sprintf(*ptr, "fast");
+					*ptr += sprintfltr(*ptr, "fast");
 					break;
 				case SPEECH_RATE_X_FAST:
-					*ptr += sprintf(*ptr, "x-fast");
+					*ptr += sprintfltr(*ptr, "x-fast");
 					break;
 				case SPEECH_RATE_FASTER:
-					*ptr += sprintf(*ptr, "faster");
+					*ptr += sprintfltr(*ptr, "faster");
 					break;
 				case SPEECH_RATE_SLOWER:
-					*ptr += sprintf(*ptr, "slower");
+					*ptr += sprintfltr(*ptr, "slower");
 					break;
 				}
 				break;
 			case CSS_PROP_TABLE_LAYOUT:
 				switch (value) {
 				case TABLE_LAYOUT_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				case TABLE_LAYOUT_FIXED:
-					*ptr += sprintf(*ptr, "fixed");
+					*ptr += sprintfltr(*ptr, "fixed");
 					break;
 				}
 				break;
 			case CSS_PROP_TEXT_ALIGN:
 				switch (value) {
 				case TEXT_ALIGN_LEFT:
-					*ptr += sprintf(*ptr, "left");
+					*ptr += sprintfltr(*ptr, "left");
 					break;
 				case TEXT_ALIGN_RIGHT:
-					*ptr += sprintf(*ptr, "right");
+					*ptr += sprintfltr(*ptr, "right");
 					break;
 				case TEXT_ALIGN_CENTER:
-					*ptr += sprintf(*ptr, "center");
+					*ptr += sprintfltr(*ptr, "center");
 					break;
 				case TEXT_ALIGN_JUSTIFY:
-					*ptr += sprintf(*ptr, "justify");
+					*ptr += sprintfltr(*ptr, "justify");
 					break;
 				case TEXT_ALIGN_LIBCSS_LEFT:
-					*ptr += sprintf(*ptr, "-libcss-left");
+					*ptr += sprintfltr(*ptr, "-libcss-left");
 					break;
 				case TEXT_ALIGN_LIBCSS_CENTER:
-					*ptr += sprintf(*ptr, "-libcss-center");
+					*ptr += sprintfltr(*ptr, "-libcss-center");
 					break;
 				case TEXT_ALIGN_LIBCSS_RIGHT:
-					*ptr += sprintf(*ptr, "-libcss-right");
+					*ptr += sprintfltr(*ptr, "-libcss-right");
 					break;
 				}
 				break;
 			case CSS_PROP_TEXT_DECORATION:
 				if (value == TEXT_DECORATION_NONE)
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 
 				if (value & TEXT_DECORATION_UNDERLINE)
-					*ptr += sprintf(*ptr, " underline");
+					*ptr += sprintfltr(*ptr, " underline");
 				if (value & TEXT_DECORATION_OVERLINE)
-					*ptr += sprintf(*ptr, " overline");
+					*ptr += sprintfltr(*ptr, " overline");
 				if (value & TEXT_DECORATION_LINE_THROUGH)
-					*ptr += sprintf(*ptr, " line-through");
+					*ptr += sprintfltr(*ptr, " line-through");
 				if (value & TEXT_DECORATION_BLINK)
-					*ptr += sprintf(*ptr, " blink");
+					*ptr += sprintfltr(*ptr, " blink");
 				break;
 			case CSS_PROP_TEXT_TRANSFORM:
 				switch (value) {
 				case TEXT_TRANSFORM_CAPITALIZE:
-					*ptr += sprintf(*ptr, "capitalize");
+					*ptr += sprintfltr(*ptr, "capitalize");
 					break;
 				case TEXT_TRANSFORM_UPPERCASE:
-					*ptr += sprintf(*ptr, "uppercase");
+					*ptr += sprintfltr(*ptr, "uppercase");
 					break;
 				case TEXT_TRANSFORM_LOWERCASE:
-					*ptr += sprintf(*ptr, "lowercase");
+					*ptr += sprintfltr(*ptr, "lowercase");
 					break;
 				case TEXT_TRANSFORM_NONE:
-					*ptr += sprintf(*ptr, "none");
+					*ptr += sprintfltr(*ptr, "none");
 					break;
 				}
 				break;
 			case CSS_PROP_UNICODE_BIDI:
 				switch (value) {
 				case UNICODE_BIDI_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case UNICODE_BIDI_EMBED:
-					*ptr += sprintf(*ptr, "embed");
+					*ptr += sprintfltr(*ptr, "embed");
 					break;
 				case UNICODE_BIDI_BIDI_OVERRIDE:
-					*ptr += sprintf(*ptr, "bidi-override");
+					*ptr += sprintfltr(*ptr, "bidi-override");
 					break;
 				}
 				break;
@@ -2658,41 +2660,41 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case VERTICAL_ALIGN_BASELINE:
-					*ptr += sprintf(*ptr, "baseline");
+					*ptr += sprintfltr(*ptr, "baseline");
 					break;
 				case VERTICAL_ALIGN_SUB:
-					*ptr += sprintf(*ptr, "sub");
+					*ptr += sprintfltr(*ptr, "sub");
 					break;
 				case VERTICAL_ALIGN_SUPER:
-					*ptr += sprintf(*ptr, "super");
+					*ptr += sprintfltr(*ptr, "super");
 					break;
 				case VERTICAL_ALIGN_TOP:
-					*ptr += sprintf(*ptr, "top");
+					*ptr += sprintfltr(*ptr, "top");
 					break;
 				case VERTICAL_ALIGN_TEXT_TOP:
-					*ptr += sprintf(*ptr, "text-top");
+					*ptr += sprintfltr(*ptr, "text-top");
 					break;
 				case VERTICAL_ALIGN_MIDDLE:
-					*ptr += sprintf(*ptr, "middle");
+					*ptr += sprintfltr(*ptr, "middle");
 					break;
 				case VERTICAL_ALIGN_BOTTOM:
-					*ptr += sprintf(*ptr, "bottom");
+					*ptr += sprintfltr(*ptr, "bottom");
 					break;
 				case VERTICAL_ALIGN_TEXT_BOTTOM:
-					*ptr += sprintf(*ptr, "text-bottom");
+					*ptr += sprintfltr(*ptr, "text-bottom");
 					break;
 				}
 				break;
 			case CSS_PROP_VISIBILITY:
 				switch (value) {
 				case VISIBILITY_VISIBLE:
-					*ptr += sprintf(*ptr, "visible");
+					*ptr += sprintfltr(*ptr, "visible");
 					break;
 				case VISIBILITY_HIDDEN:
-					*ptr += sprintf(*ptr, "hidden");
+					*ptr += sprintfltr(*ptr, "hidden");
 					break;
 				case VISIBILITY_COLLAPSE:
-					*ptr += sprintf(*ptr, "collapse");
+					*ptr += sprintfltr(*ptr, "collapse");
 					break;
 				}
 				break;
@@ -2706,19 +2708,19 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 						lwc_string *he;
 						css__stylesheet_string_get(style->sheet, snum, &he);
 						ADVANCE(sizeof(snum));
-						*ptr += sprintf(*ptr, "'%.*s'",
+						*ptr += snprintf(*ptr, 1024, "'%.*s'",
                                                                 (int) lwc_string_length(he),
                                                                 lwc_string_data(he));
 					}
 						break;
 					case VOICE_FAMILY_MALE:
-						*ptr += sprintf(*ptr, "male");
+						*ptr += sprintfltr(*ptr, "male");
 						break;
 					case VOICE_FAMILY_FEMALE:
-						*ptr += sprintf(*ptr, "female");
+						*ptr += sprintfltr(*ptr, "female");
 						break;
 					case VOICE_FAMILY_CHILD:
-						*ptr += sprintf(*ptr, "child");
+						*ptr += sprintfltr(*ptr, "child");
 						break;
 					}
 
@@ -2726,7 +2728,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 					ADVANCE(sizeof(value));
 
 					if (value != VOICE_FAMILY_END)
-						*ptr += sprintf(*ptr, ", ");
+						*ptr += sprintfltr(*ptr, ", ");
 				}
 				break;
 			case CSS_PROP_VOLUME:
@@ -2749,54 +2751,54 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case VOLUME_SILENT:
-					*ptr += sprintf(*ptr, "silent");
+					*ptr += sprintfltr(*ptr, "silent");
 					break;
 				case VOLUME_X_SOFT:
-					*ptr += sprintf(*ptr, "x-soft");
+					*ptr += sprintfltr(*ptr, "x-soft");
 					break;
 				case VOLUME_SOFT:
-					*ptr += sprintf(*ptr, "soft");
+					*ptr += sprintfltr(*ptr, "soft");
 					break;
 				case VOLUME_MEDIUM:
-					*ptr += sprintf(*ptr, "medium");
+					*ptr += sprintfltr(*ptr, "medium");
 					break;
 				case VOLUME_LOUD:
-					*ptr += sprintf(*ptr, "loud");
+					*ptr += sprintfltr(*ptr, "loud");
 					break;
 				case VOLUME_X_LOUD:
-					*ptr += sprintf(*ptr, "x-loud");
+					*ptr += sprintfltr(*ptr, "x-loud");
 					break;
 				}
 				break;
 			case CSS_PROP_WHITE_SPACE:
 				switch (value) {
 				case WHITE_SPACE_NORMAL:
-					*ptr += sprintf(*ptr, "normal");
+					*ptr += sprintfltr(*ptr, "normal");
 					break;
 				case WHITE_SPACE_PRE:
-					*ptr += sprintf(*ptr, "pre");
+					*ptr += sprintfltr(*ptr, "pre");
 					break;
 				case WHITE_SPACE_NOWRAP:
-					*ptr += sprintf(*ptr, "nowrap");
+					*ptr += sprintfltr(*ptr, "nowrap");
 					break;
 				case WHITE_SPACE_PRE_WRAP:
-					*ptr += sprintf(*ptr, "pre-wrap");
+					*ptr += sprintfltr(*ptr, "pre-wrap");
 					break;
 				case WHITE_SPACE_PRE_LINE:
-					*ptr += sprintf(*ptr, "pre-line");
+					*ptr += sprintfltr(*ptr, "pre-line");
 					break;
 				}
 				break;
 			case CSS_PROP_WRITING_MODE:
 				switch (value) {
 				case WRITING_MODE_HORIZONTAL_TB:
-					*ptr += sprintf(*ptr, "horizontal-tb");
+					*ptr += sprintfltr(*ptr, "horizontal-tb");
 					break;
 				case WRITING_MODE_VERTICAL_RL:
-					*ptr += sprintf(*ptr, "vertical-rl");
+					*ptr += sprintfltr(*ptr, "vertical-rl");
 					break;
 				case WRITING_MODE_VERTICAL_LR:
-					*ptr += sprintf(*ptr, "vertical-lr");
+					*ptr += sprintfltr(*ptr, "vertical-lr");
 					break;
 				}
 				break;
@@ -2810,20 +2812,20 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 				}
 					break;
 				case Z_INDEX_AUTO:
-					*ptr += sprintf(*ptr, "auto");
+					*ptr += sprintfltr(*ptr, "auto");
 					break;
 				}
 				break;
 			default:
-				*ptr += sprintf(*ptr, "Unknown opcode %x", op);
+				*ptr += snprintf(*ptr, 64, "Unknown opcode %x", op);
 				return;
 			}
 		}
 
 		if (isImportant(opv))
-			*ptr += sprintf(*ptr, " !important");
+			*ptr += sprintfltr(*ptr, " !important");
 
-		*ptr += sprintf(*ptr, "\n");
+		*ptr += sprintfltr(*ptr, "\n");
 	}
 
 #undef ADVANCE
@@ -2832,7 +2834,7 @@ void dump_bytecode(css_style *style, char **ptr, uint32_t depth)
 
 void dump_string(lwc_string *string, char **ptr)
 {
-	*ptr += sprintf(*ptr, "%.*s",
+	*ptr += snprintf(*ptr, 1024, "%.*s",
                         (int) lwc_string_length(string),
                         lwc_string_data(string));
 }
@@ -2843,69 +2845,69 @@ void dump_font_face(css_font_face *font_face, char **ptr)
 
 	if (font_face->font_family != NULL) {
 		*(*ptr)++ = '\n';
-		*ptr += sprintf(*ptr, "|  font-family: %.*s",
+		*ptr += snprintf(*ptr, 1024, "|  font-family: %.*s",
 				(int) lwc_string_length(font_face->font_family),
 				lwc_string_data(font_face->font_family));
 	}
 
-	*ptr += sprintf(*ptr, "\n|  font-style: ");
+	*ptr += sprintfltr(*ptr, "\n|  font-style: ");
 	style = css_font_face_font_style(font_face);
 	switch (style) {
 	case CSS_FONT_STYLE_INHERIT:
-		*ptr += sprintf(*ptr, "unspecified");
+		*ptr += sprintfltr(*ptr, "unspecified");
 		break;
 	case CSS_FONT_STYLE_NORMAL:
-		*ptr += sprintf(*ptr, "normal");
+		*ptr += sprintfltr(*ptr, "normal");
 		break;
 	case CSS_FONT_STYLE_ITALIC:
-		*ptr += sprintf(*ptr, "italic");
+		*ptr += sprintfltr(*ptr, "italic");
 		break;
 	case CSS_FONT_STYLE_OBLIQUE:
-		*ptr += sprintf(*ptr, "oblique");
+		*ptr += sprintfltr(*ptr, "oblique");
 		break;
 	}
 
-	*ptr += sprintf(*ptr, "\n|  font-weight: ");
+	*ptr += sprintfltr(*ptr, "\n|  font-weight: ");
 	weight = css_font_face_font_weight(font_face);
 	switch (weight) {
 	case CSS_FONT_WEIGHT_INHERIT:
-		*ptr += sprintf(*ptr, "unspecified");
+		*ptr += sprintfltr(*ptr, "unspecified");
 		break;
 	case CSS_FONT_WEIGHT_NORMAL:
-		*ptr += sprintf(*ptr, "normal");
+		*ptr += sprintfltr(*ptr, "normal");
 		break;
 	case CSS_FONT_WEIGHT_BOLD:
-		*ptr += sprintf(*ptr, "bold");
+		*ptr += sprintfltr(*ptr, "bold");
 		break;
 	case CSS_FONT_WEIGHT_100:
-		*ptr += sprintf(*ptr, "100");
+		*ptr += sprintfltr(*ptr, "100");
 		break;
 	case CSS_FONT_WEIGHT_200:
-		*ptr += sprintf(*ptr, "200");
+		*ptr += sprintfltr(*ptr, "200");
 		break;
 	case CSS_FONT_WEIGHT_300:
-		*ptr += sprintf(*ptr, "300");
+		*ptr += sprintfltr(*ptr, "300");
 		break;
 	case CSS_FONT_WEIGHT_400:
-		*ptr += sprintf(*ptr, "400");
+		*ptr += sprintfltr(*ptr, "400");
 		break;
 	case CSS_FONT_WEIGHT_500:
-		*ptr += sprintf(*ptr, "500");
+		*ptr += sprintfltr(*ptr, "500");
 		break;
 	case CSS_FONT_WEIGHT_600:
-		*ptr += sprintf(*ptr, "600");
+		*ptr += sprintfltr(*ptr, "600");
 		break;
 	case CSS_FONT_WEIGHT_700:
-		*ptr += sprintf(*ptr, "700");
+		*ptr += sprintfltr(*ptr, "700");
 		break;
 	case CSS_FONT_WEIGHT_800:
-		*ptr += sprintf(*ptr, "800");
+		*ptr += sprintfltr(*ptr, "800");
 		break;
 	case CSS_FONT_WEIGHT_900:
-		*ptr += sprintf(*ptr, "900");
+		*ptr += sprintfltr(*ptr, "900");
 		break;
 	default:
-		*ptr += sprintf(*ptr, "Unhandled weight %d\n", (int)weight);
+		*ptr += snprintf(*ptr, 64, "Unhandled weight %d\n", (int)weight);
 		break;
 	}
 
@@ -2915,53 +2917,53 @@ void dump_font_face(css_font_face *font_face, char **ptr)
 		css_font_face_src *srcs = font_face->srcs;
 		for (i = 0; i < font_face->n_srcs; ++i) {
 			css_font_face_format format;
-			*ptr += sprintf(*ptr, "\n|  src: ");
+			*ptr += sprintfltr(*ptr, "\n|  src: ");
 
 			format = css_font_face_src_format(&srcs[i]);
 
-			*ptr += sprintf(*ptr, "\n|   format: ");
+			*ptr += sprintfltr(*ptr, "\n|   format: ");
 
 			switch (format) {
 			case CSS_FONT_FACE_FORMAT_UNSPECIFIED:
-				*ptr += sprintf(*ptr, "unspecified");
+				*ptr += sprintfltr(*ptr, "unspecified");
 				break;
 			case CSS_FONT_FACE_FORMAT_WOFF:
-				*ptr += sprintf(*ptr, "WOFF");
+				*ptr += sprintfltr(*ptr, "WOFF");
 				break;
 			case CSS_FONT_FACE_FORMAT_OPENTYPE:
-				*ptr += sprintf(*ptr, "OTF");
+				*ptr += sprintfltr(*ptr, "OTF");
 				break;
 			case CSS_FONT_FACE_FORMAT_EMBEDDED_OPENTYPE:
-				*ptr += sprintf(*ptr, "EOTF");
+				*ptr += sprintfltr(*ptr, "EOTF");
 				break;
 			case CSS_FONT_FACE_FORMAT_SVG:
-				*ptr += sprintf(*ptr, "SVG");
+				*ptr += sprintfltr(*ptr, "SVG");
 				break;
 			case CSS_FONT_FACE_FORMAT_UNKNOWN:
-				*ptr += sprintf(*ptr, "unknown");
+				*ptr += sprintfltr(*ptr, "unknown");
 				break;
 			default:
-				*ptr += sprintf(*ptr, "UNEXPECTED");
+				*ptr += sprintfltr(*ptr, "UNEXPECTED");
 				break;
 			}
 
 			if (srcs[i].location != NULL) {
-				*ptr += sprintf(*ptr, "\n|   location: ");
+				*ptr += sprintfltr(*ptr, "\n|   location: ");
 
 				switch (css_font_face_src_location_type(
 						&srcs[i])) {
 				case CSS_FONT_FACE_LOCATION_TYPE_LOCAL:
-					*ptr += sprintf(*ptr, "local");
+					*ptr += sprintfltr(*ptr, "local");
 					break;
 				case CSS_FONT_FACE_LOCATION_TYPE_URI:
-					*ptr += sprintf(*ptr, "url");
+					*ptr += sprintfltr(*ptr, "url");
 					break;
 				default:
-					*ptr += sprintf(*ptr, "UNKNOWN");
+					*ptr += sprintfltr(*ptr, "UNKNOWN");
 					break;
 				}
 
-				*ptr += sprintf(*ptr, "(%.*s)",
+				*ptr += snprintf(*ptr, 1024, "(%.*s)",
 					(int) lwc_string_length(
 							srcs[i].location),
 					lwc_string_data(srcs[i].location));
