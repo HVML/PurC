@@ -199,12 +199,13 @@ typedef struct ws_frame_header {
 #define WS_ERR_ANY              0x00000FFF
 
 enum ws_error_code {
-    WS_ERR_OOM      = 0x00000001,
-    WS_ERR_SSL      = 0x00000002,
-    WS_ERR_IO       = 0x00000003,
-    WS_ERR_SRV      = 0x00000004,
-    WS_ERR_MSG      = 0x00000005,
-    WS_ERR_LTNR     = 0x00000006,   /* Long time no response */
+    WS_ERR_TLR      = 0x00000001,   /* Too long request */
+    WS_ERR_OOM      = 0x00000002,
+    WS_ERR_SSL      = 0x00000003,
+    WS_ERR_IO       = 0x00000004,
+    WS_ERR_SRV      = 0x00000005,
+    WS_ERR_MSG      = 0x00000006,
+    WS_ERR_LTNR     = 0x00000007,   /* Long time no response */
 };
 
 typedef struct ws_pending_data {
@@ -273,7 +274,7 @@ struct stream_extended_data {
     struct list_head    pending;
 
     /* buffer for handshake. */
-#define SZ_HSBUF_INC        256
+#define SZ_HSBUF_INC        512
 #define SZ_HSBUF_MAX        8192    /* a reasonable size for request headers */
     char               *hsbuf;      /* the pointer to the handshake buffer */
     size_t              sz_hsbuf;   /* the current size of handshake buffer */
@@ -335,6 +336,8 @@ static int ws_status_to_pcerr(struct stream_extended_data *ext)
 {
     enum ws_error_code code = (enum ws_error_code)(ext->status & WS_ERR_ANY);
     switch (code) {
+        case WS_ERR_TLR:
+            return PURC_ERROR_TOO_LONG;
         case WS_ERR_OOM:
             return PURC_ERROR_OUT_OF_MEMORY;
         case WS_ERR_SSL:
@@ -673,37 +676,38 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
         }
     }
 
+    const char *extra_msg = NULL;
     if (status != 101) {
-        PC_DEBUG("Bad HTTP status during handshake: %d\n", status);
-        goto out;
+        extra_msg = "Got a bad HTTP status during handshake";
     }
-
-    if (ws_accept == NULL || strcmp(ws_accept, accept)) {
-        PC_DEBUG("Failed to verify Sec-WebSocket-Accept during handshake\n");
-        goto out;
+    else if (connection == NULL || strcasecmp(connection, "upgrade")) {
+        extra_msg = "Not 'connection` header found during handshake";
     }
-
-    if (upgrade == NULL || strcasecmp(upgrade, "websocket")) {
-        PC_DEBUG("No 'upgrade' header found during handshake\n");
-        goto out;
+    else if (upgrade == NULL || strcasecmp(upgrade, "websocket")) {
+        extra_msg = "No 'upgrade' header found during handshake";
     }
-
-    if (connection == NULL || strcasecmp(connection, "upgrade")) {
-        PC_DEBUG("Not 'connection` header found during handshake\n");
-        goto out;
+    else if (ws_accept == NULL || strcmp(ws_accept, accept)) {
+        extra_msg = "Failed to verify Sec-WebSocket-Accept during handshake";
     }
-
-    ret = 0;
+    else {
+        extra_msg = "Everything is ok";
+        ret = 0;
+    }
 
     purc_atom_t target = ext->event_cids[K_EVENT_TYPE_HANDSHAKE];
     if (target != 0) {
         purc_variant_t obj = purc_variant_make_object_0();
         if (obj) {
-            MAKE_NUMBER_PROPERTY(obj, status,       "Status");
-            MAKE_STRING_PROPERTY(obj, upgrade,      "Upgrade");
-            MAKE_STRING_PROPERTY(obj, connection,   "Connection");
-            MAKE_STRING_PROPERTY(obj, ws_prot,      "Sec-WebSocket-Protocol");
-            MAKE_STRING_PROPERTY(obj, ws_ext,       "Sec-WebSocket-Extensions");
+            MAKE_NUMBER_PROPERTY(obj, status, "Status");
+            if (status == 101) {
+                MAKE_STRING_PROPERTY(obj, upgrade, "Upgrade");
+                MAKE_STRING_PROPERTY(obj, connection, "Connection");
+                MAKE_STRING_PROPERTY(obj, ws_prot, "Sec-WebSocket-Protocol");
+                MAKE_STRING_PROPERTY(obj, ws_ext, "Sec-WebSocket-Extensions");
+            }
+
+            if (extra_msg)
+                MAKE_STRING_PROPERTY(obj, extra_msg, "Extra-Message");
 
             pcintr_coroutine_post_event(target,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
@@ -714,7 +718,6 @@ static int ws_verify_handshake_response(struct pcdvobjs_stream *stream)
         }
     }
 
-out:
     free(ext->ws_key);
     ext->ws_key = NULL;
 
@@ -722,6 +725,7 @@ out:
 }
 
 enum {
+    READ_TLR = -3,
     READ_OOM = -2,
     READ_ERROR = -1,
     READ_NONE,
@@ -738,7 +742,7 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
     do {
         if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
             if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
-                return READ_OOM;
+                return READ_TLR;
             }
 
             ext->hsbuf = realloc(ext->hsbuf, ext->sz_hsbuf + SZ_HSBUF_INC);
@@ -796,6 +800,9 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
 
     PC_DEBUG("Time to read handshake request.\n");
 
+    const char *response = NULL;
+    size_t resp_len = 0;
+
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
     case READ_NONE:
@@ -813,7 +820,25 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
         break;
 
     case READ_ERROR:
+        /* Send the Internal Server Error response to the client. */
+        response = WS_INTERNAL_ERROR_STR;
+        resp_len = sizeof(WS_INTERNAL_ERROR_STR) - 1;
+        ext->status |= WS_CLOSING;
+        retv = -1;
+        break;
+
+    case READ_TLR:
+        /* Send the Invalid Request response to the client. */
+        response = WS_BAD_REQUEST_STR;
+        resp_len = sizeof(WS_BAD_REQUEST_STR) - 1;
+        ext->status = WS_ERR_TLR | WS_CLOSING;
+        retv = -1;
+        break;
+
     case READ_OOM:
+        /* Send the Internal Server Error response to the client. */
+        response = WS_INTERNAL_ERROR_STR;
+        resp_len = sizeof(WS_INTERNAL_ERROR_STR) - 1;
         ext->status = WS_ERR_OOM | WS_CLOSING;
         retv = -1;
         break;
@@ -823,15 +848,18 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
         ext->on_readable = ws_handle_reads; /* switch to regular rw mode. */
         PC_DEBUG("Got handshake request:\n%s", ext->hsbuf);
         if (ws_verify_handshake_request(stream)) {
-            /* Send the Bad request response to the client. */
-            ws_write_data(stream, WS_BAD_REQUEST_STR,
-                    sizeof(WS_BAD_REQUEST_STR) - 1);
+            /* Send the Invalid Request response to the client. */
+            response = WS_BAD_REQUEST_STR;
+            resp_len = sizeof(WS_BAD_REQUEST_STR) - 1;
             ext->status = WS_ERR_MSG | WS_CLOSING;
             retv = -1;
         }
         reset_handshake_buffer(ext);
         break;
     }
+
+    if (ext->role != WS_ROLE_CLIENT && response)
+        ws_write_data(stream, response, resp_len);
 
     if (retv)
         ws_handle_rwerr_close(stream);
@@ -864,6 +892,11 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
 
     case READ_ERROR:
         ext->status |= WS_CLOSING;
+        retv = -1;
+        break;
+
+    case READ_TLR:
+        ext->status = WS_ERR_TLR | WS_CLOSING;
         retv = -1;
         break;
 
@@ -911,7 +944,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
 static int
 ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
 {
-    int ret = -1;
+    struct stream_extended_data *ext = stream->ext0.data;
     purc_variant_t tmp;
 
     DEFINE_STRING_VAR_FROM_OBJECT(path, stream->url ? stream->url->path : NULL);
@@ -919,8 +952,8 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     DEFINE_STRING_VAR_FROM_OBJECT(origin, "hvml.fmsoft.cn");
     DEFINE_STRING_VAR_FROM_OBJECT(useragent, USER_AGENT);
     DEFINE_STRING_VAR_FROM_OBJECT(referer, "https://hvml.fmsoft.cn/");
-    DEFINE_STRING_VAR_FROM_OBJECT(extensions, "");
-    DEFINE_STRING_VAR_FROM_OBJECT(subprotocols, "");
+
+    purc_clr_error();       /* XXX: work-around */
 
     /* generate Sec-WebSocket-Key */
     srandom(time(NULL));
@@ -929,8 +962,11 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
         key[i] = random() & 0xff;
     }
 
-    struct stream_extended_data *ext = stream->ext0.data;
     ext->ws_key = pcutils_b64_encode_alloc((unsigned char *)key, WS_KEY_LEN);
+    if (ext->ws_key == NULL) {
+        PC_ERROR("Failed pcutils_b64_encode_alloc() to make the key.\n");
+        goto failed_key;
+    }
 
     char *req_headers = NULL;
     int n = asprintf(&req_headers,
@@ -941,37 +977,90 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
             "Origin: %s" CRLF
             "User-Agent: %s" CRLF
             "Referer: %s:" CRLF
-            "Sec-WebSocket-Extensions: %s" CRLF
-            "Sec-WebSocket-Protocol: %s" CRLF
             "Sec-WebSocket-Key: %s" CRLF
-            "Sec-WebSocket-Version: 13" CRLF CRLF,
-            path, host, origin, useragent, referer,
-            extensions, subprotocols, ext->ws_key);
+            "Sec-WebSocket-Version: 13" CRLF,
+            path, host, origin, useragent, referer, ext->ws_key);
 
     if (n < 0) {
         PC_ERROR("Failed asprintf() to make the request headers.\n");
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
+        goto failed_req;
     }
 
     /* Send the handshake request to the server. */
     if (ws_write_data(stream, req_headers, n) <= 0) {
         PC_ERROR("Failed ws_write_sock(): no any bytes send to the server .\n");
-        purc_set_error(PURC_ERROR_IO_FAILURE);
-        ext->status |= WS_CLOSING;
     }
     else {
-        ext->status = WS_WAITING4HSRESP;
-        ret = 0;
+        struct extra_header {
+            const char *name;
+            const char *header;
+        } extra_headers[] = {
+            { "extensions", "Sec-WebSocket-Extensions: "},
+            { "subprotocols","Sec-WebSocket-Protocol: " },
+        };
+
+        size_t nr_headers = 0, nr_wrotten = 0;
+        for (size_t i = 0; i < PCA_TABLESIZE(extra_headers); i++) {
+            tmp = purc_variant_object_get_by_ckey(extra_opts,
+                    extra_headers[i].name);
+
+            if (tmp) {
+                size_t len;
+                const char *value;
+                value  = purc_variant_get_string_const_ex(tmp, &len);
+                if (value && len > 0) {
+                    nr_headers++;
+                    if (ws_write_data(stream, extra_headers[i].header,
+                                strlen(extra_headers[i].header)) <= 0)
+                        break;
+                    if (ws_write_data(stream, value, len) <= 0)
+                        break;
+                    if (ws_write_data(stream, CRLF, sizeof(CRLF) - 1) <= 0)
+                        break;
+                    nr_wrotten++;
+                }
+                else {
+                    PC_WARN("%s for header %s is defined but invalid.\n",
+                            extra_headers[i].name, extra_headers[i].header);
+                }
+            }
+        }
+
+        if (nr_headers == nr_wrotten) {
+            if (ws_write_data(stream, CRLF, sizeof(CRLF) - 1) <= 0)
+                goto failed_write;
+        }
+        else {
+            goto failed_write;
+        }
     }
 
-failed:
-    if (req_headers) {
-        free(req_headers);
-    }
+    free(req_headers);
+    ext->status = WS_WAITING4HSRESP;
+    return 0;
+
+failed_req:
+    free(ext->ws_key);
+    ext->ws_key = NULL;
+
+failed_key:
+    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    ext->status = WS_ERR_OOM | WS_CLOSING;
+    return -1;
+
+failed_write:
+    free(req_headers);
+    free(ext->ws_key);
+    ext->ws_key = NULL;
+
+    purc_set_error(PURC_ERROR_IO_FAILURE);
+    ext->status |= WS_CLOSING;
+    return -1;
 
 error:
-    return ret;
+    purc_set_error(PURC_ERROR_INVALID_VALUE);
+    ext->status |= WS_CLOSING;
+    return -1;
 }
 
 #if HAVE(OPENSSL)
