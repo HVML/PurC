@@ -137,7 +137,7 @@
 
 ### 2.7) More Platforms
 
-1. [0.9.20] Windows
+1. [0.9.30] Windows
 
 ### 2.8) Others
 
