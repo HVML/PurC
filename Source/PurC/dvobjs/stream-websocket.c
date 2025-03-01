@@ -1730,12 +1730,11 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         int opcode, const void *data, ssize_t sz)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    int ret = PCRDR_ERROR_IO;
+    int ret = 0;
     int mask_int = 0;
-    size_t size = sz;
     char *buf = NULL;
     char *p = NULL;
-    size_t nr_buf = 0;
+    size_t sz_buf = 0;
     ws_frame_header header;
     unsigned char mask[4] = { 0 };
     int sz_mask;
@@ -1744,6 +1743,9 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         PC_WARN("Invalid data size %zd.\n", sz);
         goto out;
     }
+
+    if (opcode == WS_OPCODE_TEXT)
+        PC_DEBUG("Sending data frame: `%s` (%zu)\n", (const char*)data, sz);
 
     header.fin = fin;
     header.rsv = 0;
@@ -1761,31 +1763,30 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         sz_mask = 0;
     }
 
-    size = sz;
-    if (size > 0xffff) {
+    if (sz > 0xffff) {
         /* header(16b) + Extended payload length(64b) + mask(32b) + data */
-        nr_buf = 2 + 8 + sz_mask + sz;
+        sz_buf = 2 + 8 + sz_mask + sz;
         header.sz_payload = 127;
     }
-    else if (size > 125) {
+    else if (sz > 125) {
         /* header(16b) + Extended payload length(16b) + mask(32b) + data */
-        nr_buf = 2 + 2 + sz_mask + sz;
+        sz_buf = 2 + 2 + sz_mask + sz;
         header.sz_payload = 126;
     }
     else {
         /* header(16b) + data + mask(32b) */
-        nr_buf = 2 + sz_mask + sz;
+        sz_buf = 2 + sz_mask + sz;
         header.sz_payload = sz;
     }
 
-    buf = malloc(nr_buf + 1);
+    buf = malloc(sz_buf + 1);
     buf[0] = 0;
-    buf[1] = 0;
     if (fin) {
         buf[0] |= 0x80;
     }
     buf[0] |= (0xff & opcode);
-    buf[1] = 0x80 | header.sz_payload;
+    buf[1] = (header.mask << 7);
+    buf[1] |= header.sz_payload;
 
     p = buf + 2;
     if (header.sz_payload == 127) {
@@ -1799,13 +1800,16 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         p = p + 2;
     }
 
+    PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
+            header.fin, header.rsv, header.op, header.mask,
+            header.sz_payload);
     if (sz_mask) {
         /* mask */
         memcpy(p, &mask, 4);
+        p = p + sz_mask;
     }
 
     /* payload */
-    p = p + sz_mask;
     memcpy(p, data, sz);
 
     if (sz_mask) {
@@ -1815,8 +1819,8 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         }
     }
 
-    ws_write_or_queue(stream, buf, nr_buf);
-    ret = 0;
+    if (ws_write_or_queue(stream, buf, sz_buf) < 0)
+        ret = -1;
 
 out:
     if (buf) {
@@ -1933,6 +1937,10 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
                 ext->sz_mask = 0;
                 ext->sz_read_mask = 0;
             }
+
+            PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
+                    header->fin, header->rsv, header->op, header->mask,
+                    header->sz_payload);
 
             switch (header->sz_payload) {
             case 127:
@@ -2095,7 +2103,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
             ext->sz_payload - ext->sz_read_payload);
     if (n > 0) {
         if (ext->sz_mask) {
-            ws_unmask_payload(buf, ext->sz_read_payload, n, ext->mask);
+            ws_unmask_payload(buf, n, ext->sz_read_payload, ext->mask);
         }
 
         ext->sz_read_payload += n;
@@ -2327,17 +2335,14 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                     break;
 
                 case WS_OPCODE_TEXT:
-                    ext->message[ext->sz_message] = 0;
-                    ext->sz_message++;
                     if (!pcutils_string_check_utf8_len(ext->message,
                             ext->sz_message, NULL, NULL)) {
-                        PC_ERROR("Got an invalid UTF-8 text message.\n");
+                        PC_ERROR("Got an invalid UTF-8 text message: %s (%zu).\n",
+                                ext->message, ext->sz_message);
                         ws_notify_to_close(stream, WS_CLOSE_INVALID_UTF8, NULL);
                         ext->status = WS_ERR_MSG | WS_CLOSING;
                         goto failed;
                     }
-
-                    PC_INFO("Got a text payload: %s\n", ext->message);
 
                     retv = stream->ext0.msg_ops->on_message(stream,
                             ext->msg_type, ext->message, ext->sz_message);
@@ -2674,7 +2679,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     switch (type) {
         case MT_TEXT:
             // fire a `message` event
-            data = purc_variant_make_string(buf, false);
+            data = purc_variant_make_string_ex(buf, len, false);
             break;
 
         case MT_BINARY:
