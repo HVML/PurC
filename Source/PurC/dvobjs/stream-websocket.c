@@ -2440,6 +2440,7 @@ io_callback_for_read(int fd, int event, void *ctxt)
 
     if (event & PCRUNLOOP_IO_ERR) {
         PC_ERROR("Got error event on fd (%d).\n", fd);
+        ext = stream->ext0.data;
         if (ext) {
             stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
             cleanup_extension(stream);
