@@ -574,7 +574,7 @@ set(test_websocket_bad_client_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_websocket_bad_client)
 PURC_FRAMEWORK(test_websocket_bad_client)
-GTEST_DISCOVER_TESTS(test_websocket_bad_client DISCOVERY_TIMEOUT 10)
+GTEST_DISCOVER_TESTS(test_websocket_bad_client DISCOVERY_TIMEOUT 20)
 
 # test_websocket_good_client
 PURC_EXECUTABLE_DECLARE(test_websocket_good_client)

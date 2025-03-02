@@ -114,18 +114,19 @@
 #define WS_KEY_LEN          16
 #define SHA_DIGEST_LEN      20
 
-#define MAX_FRAME_PAYLOAD_SIZE      (1024 * 4)
-#define MAX_INMEM_MESSAGE_SIZE      (1024 * 64)
-
 /* 512 KiB throttle threshold per stream */
 #define SOCK_THROTTLE_THLD          (1024 * 512)
 
 #define MIN_PING_TIMER_INTERVAL             (1 * 1000)      // 1 seconds
 
+#define MIN_FRAME_PAYLOAD_SIZE      (1024 * 1)
+#define DEF_FRAME_PAYLOAD_SIZE      (1024 * 4)
+#define MIN_INMEM_MESSAGE_SIZE      (1024 * 16)
+#define DEF_INMEM_MESSAGE_SIZE      (1024 * 64)
 #define MIN_NO_RESPONSE_TIME_TO_PING        3
-#define NO_RESPONSE_TIME_TO_PING            30
+#define DEF_NO_RESPONSE_TIME_TO_PING        30
 #define MIN_NO_RESPONSE_TIME_TO_CLOSE       6
-#define NO_RESPONSE_TIME_TO_CLOSE           90
+#define DEF_NO_RESPONSE_TIME_TO_CLOSE       90
 
 #define WS_CLOSE_NORMAL                     1000
 #define WS_CLOSE_GOING_AWAY                 1001
@@ -242,6 +243,7 @@ struct stream_extended_data {
     pcintr_timer_t      ping_timer;
 
     /* configuration */
+    size_t              maxframepayloadsize;
     size_t              maxmessagesize;
     /* The maximum no response seconds to send a PING message. */
     uint32_t            noresptimetoping;
@@ -1395,7 +1397,6 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
 
         done = 0;
         if ((ret = SSL_read_ex(ext->ssl, buffer, size, &read_bytes)) > 0) {
-            // ext->sslstatus &= ~WS_TLS_READING;
             break;
         }
 
@@ -2509,8 +2510,8 @@ static void mark_closing(struct pcdvobjs_stream *stream)
 
 static int ws_can_send_data(struct stream_extended_data *ext, size_t sz)
 {
-    if (sz > MAX_FRAME_PAYLOAD_SIZE) {
-        size_t frames = sz / MAX_FRAME_PAYLOAD_SIZE + 1;
+    if (sz > ext->maxframepayloadsize) {
+        size_t frames = sz / ext->maxframepayloadsize + 1;
         if (ext->sz_pending + sz + (frames * ext->sz_header) >=
                 SOCK_THROTTLE_THLD) {
             goto failed;
@@ -2559,7 +2560,7 @@ static int send_message(struct pcdvobjs_stream *stream,
 
     ext->status = WS_OK;
 
-    if (sz > MAX_FRAME_PAYLOAD_SIZE) {
+    if (sz > ext->maxframepayloadsize) {
         unsigned int left = sz;
         int fin;
         int opcode;
@@ -2569,14 +2570,14 @@ static int send_message(struct pcdvobjs_stream *stream,
             if (left == sz) {
                 fin = 0;
                 opcode = text_or_binary ? WS_OPCODE_TEXT : WS_OPCODE_BIN;
-                sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
-                left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                sz_payload = ext->maxframepayloadsize;
+                left -= ext->maxframepayloadsize;
             }
-            else if (left > PCRDR_MAX_FRAME_PAYLOAD_SIZE) {
+            else if (left > ext->maxframepayloadsize) {
                 fin = 0;
                 opcode = WS_OPCODE_CONTINUATION;
-                sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
-                left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                sz_payload = ext->maxframepayloadsize;
+                left -= ext->maxframepayloadsize;
             }
             else {
                 fin = 1;
@@ -3109,6 +3110,14 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     }
 
     purc_variant_t tmp;
+
+    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxframepayloadsize");
+    uint64_t maxframepayloadsize = 0;
+    if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxframepayloadsize, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
     tmp = purc_variant_object_get_by_ckey(extra_opts, "maxmessagesize");
     uint64_t maxmessagesize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
@@ -3144,22 +3153,29 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
+    if (maxframepayloadsize == 0)
+        ext->maxframepayloadsize = DEF_FRAME_PAYLOAD_SIZE;
+    else if (maxframepayloadsize < MIN_FRAME_PAYLOAD_SIZE)
+        ext->maxframepayloadsize = MIN_FRAME_PAYLOAD_SIZE;
+    else
+        ext->maxframepayloadsize = maxframepayloadsize;
+
     if (maxmessagesize == 0)
-        ext->maxmessagesize = MAX_INMEM_MESSAGE_SIZE;
-    else if (maxmessagesize <= MAX_FRAME_PAYLOAD_SIZE)
-        ext->maxmessagesize = MAX_FRAME_PAYLOAD_SIZE;
+        ext->maxmessagesize = DEF_INMEM_MESSAGE_SIZE;
+    else if (maxmessagesize < MIN_INMEM_MESSAGE_SIZE)
+        ext->maxmessagesize = MIN_INMEM_MESSAGE_SIZE;
     else
         ext->maxmessagesize = maxmessagesize;
 
     if (noresptimetoping == 0)
-        ext->noresptimetoping = NO_RESPONSE_TIME_TO_PING;
+        ext->noresptimetoping = DEF_NO_RESPONSE_TIME_TO_PING;
     else if (noresptimetoping < MIN_NO_RESPONSE_TIME_TO_PING)
         ext->noresptimetoping = MIN_NO_RESPONSE_TIME_TO_PING;
     else
         ext->noresptimetoping = noresptimetoping;
 
     if (noresptimetoclose == 0)
-        ext->noresptimetoclose = NO_RESPONSE_TIME_TO_CLOSE;
+        ext->noresptimetoclose = DEF_NO_RESPONSE_TIME_TO_CLOSE;
     else if (noresptimetoclose < MIN_NO_RESPONSE_TIME_TO_CLOSE)
         ext->noresptimetoclose = MIN_NO_RESPONSE_TIME_TO_CLOSE;
     else
