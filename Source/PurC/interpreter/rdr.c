@@ -1198,14 +1198,19 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
             }
             else {
                 purc_variant_t req_data = PURC_VARIANT_INVALID;
+                pcrdr_msg_data_type req_data_type = PCRDR_MSG_DATA_TYPE_JSON;
                 if (ref_elem) {
                     req_data = purc_variant_make_native(ref_elem, NULL);
+                }
+                else if (data) {
+                    req_data = purc_variant_ref(data);
+                    req_data_type = data_type;
                 }
                 /* dom operation */
                 response_msg = pcintr_rdr_send_request_and_wait_response(
                         pconn, target, target_value, operation,
                         req_id, element_type, elem, property,
-                        PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
+                        req_data_type, req_data, 0);
                 if (req_data) {
                     purc_variant_unref(req_data);
                 }
