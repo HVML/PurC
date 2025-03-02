@@ -340,8 +340,8 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             list_empty(&inst->intr_heap->crtns) &&
             list_empty(&inst->intr_heap->stopped_crtns)) {
         purc_runloop_stop(inst->running_loop);
+        PC_DEBUG("Called purc_runloop_stop()\n");
     }
-
 }
 
 pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)

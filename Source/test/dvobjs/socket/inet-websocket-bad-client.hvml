@@ -301,7 +301,24 @@
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Got handkshake:' />
+            <include with $logMsg on 'Client got HANDSHAKE event:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                $cliStreamSocket.close()
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event:' />
             <include with $logMsg on $DATA.serialize($?) />
 
             <include with $logMsg on 'Client is going to exit.' />

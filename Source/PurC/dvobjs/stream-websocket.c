@@ -242,13 +242,13 @@ struct stream_extended_data {
     struct timespec     last_live_ts;
     pcintr_timer_t      ping_timer;
 
-    /* configuration */
-    size_t              maxframepayloadsize;
-    size_t              maxmessagesize;
-    /* The maximum no response seconds to send a PING message. */
-    uint32_t            noresptimetoping;
-    /* The maximum no response seconds to close the socket. */
-    uint32_t            noresptimetoclose;
+    /* configuration options */
+    size_t              maxframepayloadsize;// The maximum frame payload size.
+    size_t              maxmessagesize;     // The maximum message size.
+    uint32_t            noresptimetoping;   // The maximum no response seconds
+                                            // to send a PING message.
+    uint32_t            noresptimetoclose;  // The maximum no response seconds
+                                            // to close the socket.
 
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
@@ -860,8 +860,10 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
         break;
     }
 
-    if (ext->role != WS_ROLE_CLIENT && response)
+    if (ext->role != WS_ROLE_CLIENT && response) {
+        PC_DEBUG("Sending response to client: %s", response);
         ws_write_data(stream, response, resp_len);
+    }
 
     if (retv)
         ws_handle_rwerr_close(stream);
@@ -3181,8 +3183,10 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     else
         ext->noresptimetoclose = noresptimetoclose;
 
-    PC_DEBUG("Configuration: maxmessagesize(%zu/%zu), noresptimetoping(%u/%u), "
+    PC_DEBUG("Configuration: maxframepayloadsize(%zu/%zu), "
+            "maxmessagesize(%zu/%zu), noresptimetoping(%u/%u), "
             "noresptimetoclose(%u/%u)\n",
+            ext->maxframepayloadsize, maxframepayloadsize,
             ext->maxmessagesize, maxmessagesize,
             ext->noresptimetoping, noresptimetoping,
             ext->noresptimetoclose, noresptimetoclose);
