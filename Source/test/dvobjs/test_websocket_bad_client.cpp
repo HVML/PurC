@@ -55,6 +55,7 @@ TEST(websocket, plain_server_tlr_client)
     }
 }
 
+#if HAVE(OPENSSL)
 TEST(websocket, secure_server_stlr_client)
 {
     PurCInstance purc(false);
@@ -123,6 +124,7 @@ TEST(websocket, secure_server_sltnr_client)
         ASSERT_LT(seconds, 10);
     }
 }
+#endif
 
 TEST(websocket, plain_server_raw_client)
 {
@@ -147,6 +149,7 @@ TEST(websocket, plain_server_raw_client)
     }
 }
 
+#if HAVE(OPENSSL)
 TEST(websocket, secure_server_raw_client)
 {
     PurCInstance purc(false);
@@ -169,6 +172,7 @@ TEST(websocket, secure_server_raw_client)
         ASSERT_LT(seconds, 10);
     }
 }
+#endif
 
 TEST(websocket, plain_server_ltnr_client)
 {
@@ -193,6 +197,7 @@ TEST(websocket, plain_server_ltnr_client)
     }
 }
 
+#if HAVE(OPENSSL)
 TEST(websocket, secure_server_ltnr_client)
 {
     PurCInstance purc(false);
@@ -216,6 +221,7 @@ TEST(websocket, secure_server_ltnr_client)
     }
 }
 
+#endif
 TEST(websocket, plain_server_sltnr_client)
 {
     PurCInstance purc(false);
@@ -238,4 +244,3 @@ TEST(websocket, plain_server_sltnr_client)
         ASSERT_LT(seconds, 10);
     }
 }
-

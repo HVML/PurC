@@ -269,7 +269,7 @@
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Got handkshake:' />
+            <include with $logMsg on 'Client got HANDSHAKE event:' />
             <include with $logMsg on $DATA.serialize($?) />
 
             <include with $logMsg on 'Client is going to exit.' />

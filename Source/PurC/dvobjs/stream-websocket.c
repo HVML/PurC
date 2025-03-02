@@ -24,6 +24,7 @@
 
 #define _GNU_SOURCE
 #undef NDEBUG /* TODO: Remove this before merging to main branch. */
+
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
@@ -509,13 +510,6 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 
             *value = '\0';
             value += 1;
-#if 0
-            char *end = strstr(value, CRLF);
-            if (end == NULL) {
-                break;
-            }
-            *end = '\0';
-#endif
 
             char *key = line;
             if (strcasecmp("Host:", key) == 0)
@@ -553,7 +547,8 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
     PC_DEBUG("parsed request: origin(%s), ws_key(%s), ws_ver(%s)\n",
             origin, ws_key, ws_ver);
 
-    if (path == NULL || host == NULL || upgrade == NULL || connection == NULL ||
+    if (path == NULL || host == NULL ||
+            upgrade == NULL || connection == NULL ||
             origin == NULL || ws_key == NULL || ws_ver == NULL) {
         // Bad request.
         PC_ERROR("Bad handshake request:\n");
@@ -561,7 +556,8 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
     }
 
     if (strchr(path, '%') &&
-            pcdvobj_url_decode_in_place(path, strlen(path), PURC_K_KW_rfc3986)) {
+            pcdvobj_url_decode_in_place(path, strlen(path),
+                PURC_K_KW_rfc3986)) {
         PC_ERROR("Failed to decode path (%s)\n", path);
         return -1;
     }
@@ -579,7 +575,7 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
 
     if (strcmp(ws_ver, "13")) {
         PC_ERROR("Bad Sec-WebSocket-Version in handshake request headers: %s\n",
-                connection);
+                ws_ver);
         return -1;
     }
 
@@ -763,7 +759,8 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
 
         ext->sz_read_hsbuf += nr_one_read;
         nr_total += nr_one_read;
-        PC_DEBUG("handshake buffer info: sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_total(%zd)\n",
+        PC_DEBUG("handshake buffer info: "
+                "sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_total(%zd)\n",
                 ext->sz_hsbuf, ext->sz_read_hsbuf, nr_total);
 
 #if HAVE(OPENSSL)
@@ -992,7 +989,7 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
 
     /* Send the handshake request to the server. */
     if (ws_write_data(stream, req_headers, n) <= 0) {
-        PC_ERROR("Failed ws_write_sock(): no any bytes send to the server .\n");
+        PC_ERROR("Failed ws_write_sock(): no any bytes send to the server.\n");
     }
     else {
         struct extra_header {
@@ -1076,47 +1073,47 @@ log_return_message_ssl(int ret, int err, const char *fn)
     unsigned long e;
 
     switch (err) {
-        case SSL_ERROR_NONE:
-            PC_INFO("SSL: %s -> SSL_ERROR_NONE\n", fn);
-            PC_INFO("SSL: TLS/SSL I/O operation completed\n");
-            break;
-        case SSL_ERROR_WANT_READ:
-            PC_INFO("SSL: %s -> SSL_ERROR_WANT_READ\n", fn);
-            PC_INFO("SSL: incomplete, data available for reading\n");
-            break;
-        case SSL_ERROR_WANT_WRITE:
-            PC_INFO("SSL: %s -> SSL_ERROR_WANT_WRITE\n", fn);
-            PC_INFO("SSL: incomplete, data available for writing\n");
-            break;
-        case SSL_ERROR_ZERO_RETURN:
-            PC_INFO("SSL: %s -> SSL_ERROR_ZERO_RETURN\n", fn);
-            PC_INFO("SSL: TLS/SSL connection has been closed\n");
-            break;
-        case SSL_ERROR_WANT_X509_LOOKUP:
-            PC_INFO("SSL: %s -> SSL_ERROR_WANT_X509_LOOKUP\n", fn);
-            break;
-        case SSL_ERROR_SYSCALL:
-            PC_INFO("SSL: %s -> SSL_ERROR_SYSCALL\n", fn);
+    case SSL_ERROR_NONE:
+        PC_INFO("SSL: %s -> SSL_ERROR_NONE\n", fn);
+        PC_INFO("SSL: TLS/SSL I/O operation completed\n");
+        break;
+    case SSL_ERROR_WANT_READ:
+        PC_INFO("SSL: %s -> SSL_ERROR_WANT_READ\n", fn);
+        PC_INFO("SSL: incomplete, data available for reading\n");
+        break;
+    case SSL_ERROR_WANT_WRITE:
+        PC_INFO("SSL: %s -> SSL_ERROR_WANT_WRITE\n", fn);
+        PC_INFO("SSL: incomplete, data available for writing\n");
+        break;
+    case SSL_ERROR_ZERO_RETURN:
+        PC_INFO("SSL: %s -> SSL_ERROR_ZERO_RETURN\n", fn);
+        PC_INFO("SSL: TLS/SSL connection has been closed\n");
+        break;
+    case SSL_ERROR_WANT_X509_LOOKUP:
+        PC_INFO("SSL: %s -> SSL_ERROR_WANT_X509_LOOKUP\n", fn);
+        break;
+    case SSL_ERROR_SYSCALL:
+        PC_INFO("SSL: %s -> SSL_ERROR_SYSCALL\n", fn);
 
-            e = ERR_get_error();
-            if (e > 0)
-                PC_INFO("SSL: %s -> %s\n", fn, ERR_error_string(e, NULL));
+        e = ERR_get_error();
+        if (e > 0)
+            PC_INFO("SSL: %s -> %s\n", fn, ERR_error_string(e, NULL));
 
-            /* call was not successful because a fatal error occurred either at the
-             * protocol level or a connection failure occurred. */
-            if (ret != 0) {
-                PC_INFO("SSL bogus handshake interrupt: %s\n", strerror(errno));
-                break;
-            }
-            /* call not yet finished. */
-            PC_INFO("SSL: handshake interrupted, got EOF\n");
-            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-                PC_INFO("SSL: %s -> not yet finished %s\n", fn, strerror(errno));
+        /* call was not successful because a fatal error occurred either at the
+         * protocol level or a connection failure occurred. */
+        if (ret != 0) {
+            PC_INFO("SSL bogus handshake interrupt: %s\n", strerror(errno));
             break;
-        default:
-            PC_INFO("SSL: %s -> failed fatal error code: %d\n", fn, err);
-            PC_INFO("SSL: %s\n", ERR_error_string (ERR_get_error(), NULL));
-            break;
+        }
+        /* call not yet finished. */
+        PC_INFO("SSL: handshake interrupted, got EOF\n");
+        if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+            PC_INFO("SSL: %s -> not yet finished %s\n", fn, strerror(errno));
+        break;
+    default:
+        PC_INFO("SSL: %s -> failed fatal error code: %d\n", fn, err);
+        PC_INFO("SSL: %s\n", ERR_error_string (ERR_get_error(), NULL));
+        break;
     }
 }
 
@@ -1619,7 +1616,13 @@ read_socket_plain(struct pcdvobjs_stream *stream, void *buf, size_t len)
 
     while ((bytes = read(stream->fd4r, buf, len)) == -1 && errno == EINTR);
 
-    if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+    if (bytes == 0) {
+        /* EOF: peer closed */
+        struct stream_extended_data *ext = stream->ext0.data;
+        ext->status = WS_ERR_IO | WS_CLOSING;
+        bytes = -1;
+    }
+    else if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
         /* Reset bytes to be 0 */
         return 0;
     }
@@ -1807,7 +1810,8 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         p = p + 2;
     }
 
-    PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd, sz_payload: %zu\n",
+    PC_DEBUG("Frame info: "
+            "fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd, sz_payload: %zu\n",
             header.fin, header.rsv, header.op, header.mask,
             header.sz_payload, sz);
     if (sz_mask) {
@@ -1965,7 +1969,8 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
                 ext->sz_read_mask = 0;
             }
 
-            PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
+            PC_DEBUG("Frame info: "
+                    "fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
                     header->fin, header->rsv, header->op, header->mask,
                     header->sz_payload);
 
@@ -2367,7 +2372,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 case MT_TEXT:
                     if (!pcutils_string_check_utf8_len(ext->message,
                             ext->sz_message, NULL, NULL)) {
-                        PC_ERROR("Got an invalid UTF-8 text message: %s (%zu).\n",
+                        PC_ERROR("Invalid UTF-8 text message: %s (%zu).\n",
                                 ext->message, ext->sz_message);
                         ws_notify_to_close(stream, WS_CLOSE_INVALID_UTF8, NULL);
                         ext->status = WS_ERR_MSG | WS_CLOSING;
@@ -2419,20 +2424,30 @@ io_callback_for_read(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
-    if ((event & PCRUNLOOP_IO_HUP) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
-        PC_ERROR("Got hang up event on fd (%d).\n", fd);
-        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
-        return false;
-    }
-
-    if ((event & PCRUNLOOP_IO_ERR) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
-        PC_ERROR("Got error event on fd (%d).\n", fd);
-        stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
-        return false;
-    }
-
+    /* read data then check the exception */
     assert(ext->on_readable);
-    return ext->on_readable(stream) == 0;
+    bool retv = ext->on_readable(stream) == 0;
+
+    if (event & PCRUNLOOP_IO_HUP) {
+        PC_ERROR("Got hang up event on fd (%d).\n", fd);
+        ext = stream->ext0.data;
+        if (ext) {
+            stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
+            cleanup_extension(stream);
+            retv = false;
+        }
+    }
+
+    if (event & PCRUNLOOP_IO_ERR) {
+        PC_ERROR("Got error event on fd (%d).\n", fd);
+        if (ext) {
+            stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
+            cleanup_extension(stream);
+            retv = false;
+        }
+    }
+
+    return retv;
 }
 
 static int
@@ -2464,15 +2479,17 @@ io_callback_for_write(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
-    if ((event & PCRUNLOOP_IO_HUP) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
+    if (event & PCRUNLOOP_IO_HUP) {
         PC_ERROR("Got hang up event on fd (%d).\n", fd);
         stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
+        cleanup_extension(stream);
         return false;
     }
 
-    if ((event & PCRUNLOOP_IO_ERR) && ext->event_cids[K_EVENT_TYPE_ERROR]) {
+    if (event & PCRUNLOOP_IO_ERR) {
         PC_ERROR("Got error event on fd (%d).\n", fd);
         stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
+        cleanup_extension(stream);
         return false;
     }
 
@@ -3316,14 +3333,14 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
                     goto failed;
                 }
             }
+
+            ext->reader = read_socket_ssl;
+            ext->writer = write_socket_ssl;
 #else
             PC_ERROR("`secure` is true, but OpenSSL not enabled.\n");
             purc_set_error(PURC_ERROR_NOT_SUPPORTED);
             goto failed;
 #endif
-
-            ext->reader = read_socket_ssl;
-            ext->writer = write_socket_ssl;
         }
         else {
             ext->reader = read_socket_plain;

@@ -2050,7 +2050,9 @@ purc_variant_t purc_dvobj_socket_new(void)
         struct dvobjs_option_to_atom *opts;
         size_t sz;
     } opts_set[] = {
+#if HAVE(OPENSSL)
         { access_users_ckws,    PCA_TABLESIZE(access_users_ckws) },
+#endif
     };
 
     for (size_t i = 0; i < PCA_TABLESIZE(opts_set); i++) {

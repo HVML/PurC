@@ -55,6 +55,7 @@ TEST(websocket, plain_server_plain_client)
     }
 }
 
+#if HAVE(OPENSSL)
 TEST(websocket, secure_server_secure_client)
 {
     PurCInstance purc(false);
@@ -100,4 +101,5 @@ TEST(websocket, secure_server_secure_client_with_large_message)
         ASSERT_LT(seconds, 10);
     }
 }
+#endif
 
