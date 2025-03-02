@@ -1313,11 +1313,13 @@ handle_pending_rw_ssl(struct pcdvobjs_stream *stream, int rwflag)
 
     /* trying to read but still waiting for a successful SSL_read */
     if (ext->sslstatus & WS_TLS_READING) {
+        PC_INFO("SSL still in reading.\n");
         ws_handle_reads(stream);
         return 0;
     }
     /* trying to write but still waiting for a successful SSL_write */
     if (ext->sslstatus & WS_TLS_WRITING) {
+        PC_INFO("SSL still in writing.\n");
         ws_handle_writes(stream);
         return 0;
     }
@@ -1388,12 +1390,14 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
 
     do {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-        ERR_clear_error ();
+        ERR_clear_error();
 #endif
 
         done = 0;
-        if ((ret = SSL_read_ex(ext->ssl, buffer, size, &read_bytes)) > 0)
+        if ((ret = SSL_read_ex(ext->ssl, buffer, size, &read_bytes)) > 0) {
+            // ext->sslstatus &= ~WS_TLS_READING;
             break;
+        }
 
         err = SSL_get_error(ext->ssl, ret);
         log_return_message_ssl(ret, err, "SSL_read");
@@ -1800,9 +1804,9 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         p = p + 2;
     }
 
-    PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
+    PC_DEBUG("Frame info: fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd, sz_payload: %zu\n",
             header.fin, header.rsv, header.op, header.mask,
-            header.sz_payload);
+            header.sz_payload, sz);
     if (sz_mask) {
         /* mask */
         memcpy(p, &mask, 4);
@@ -2024,7 +2028,6 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
     if (n > 0) {
         ext->sz_read_ext_paylen += n;
         if (ext->sz_read_ext_paylen == ext->sz_ext_paylen) {
-            ext->sz_read_ext_paylen = 0;
             if (ext->sz_ext_paylen == sizeof(uint16_t)) {
                 uint16_t v;
                 memcpy(&v, ext->ext_paylen_buf, 2);
@@ -2039,6 +2042,8 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
                 // never be here.
                 assert(0);
             }
+
+            PC_DEBUG("Got payload size:: %zu\n", header->sz_payload);
 
             if (header->sz_payload > ext->maxmessagesize) {
                 ws_notify_to_close(stream, WS_CLOSE_TOO_LARGE,
@@ -2148,8 +2153,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     return READ_SOME;
 }
 
-/*
- * Tries to read a frame payload. */
+/* Try to read a frame payload. */
 static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
@@ -2157,7 +2161,8 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
     int retv;
 
     /* read extended payload length */
-    if (ext->sz_ext_paylen != 0) {
+    if (ext->sz_ext_paylen != 0 &&
+            ext->sz_read_ext_paylen < ext->sz_ext_paylen) {
         retv = try_to_read_ext_payload_length(stream);
         if (retv != READ_WHOLE) {
             return retv;
@@ -2292,6 +2297,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
         else if (ext->status & WS_WAITING4PAYLOAD) {
             retv = try_to_read_frame_payload(stream);
             if (retv == READ_NONE) {
+                PC_DEBUG("Got no any data for payload. Wait for new data...\n");
                 break;
             }
             else if (retv == READ_SOME) {
@@ -2610,14 +2616,14 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
 
         tmp = purc_variant_make_number(errcode);
         if (tmp) {
-            purc_variant_object_set_by_static_ckey(data, "errCode", tmp);
+            purc_variant_object_set_by_static_ckey(data, "code", tmp);
             purc_variant_unref(tmp);
         }
 
         tmp = purc_variant_make_string_static(
             purc_get_error_message(errcode), false);
         if (tmp) {
-            purc_variant_object_set_by_static_ckey(data, "errMsg", tmp);
+            purc_variant_object_set_by_static_ckey(data, "postscript", tmp);
             purc_variant_unref(tmp);
         }
 
@@ -2707,7 +2713,8 @@ make_payload_object_for_ctrl_op(const char *buf, size_t len)
             tmp = purc_variant_make_string_ex(buf + 2, len - 2, true);
             tmp = (!tmp) ? purc_variant_make_string_static("", false) : tmp;
             if (tmp) {
-                purc_variant_object_set_by_static_ckey(payload, "postscript", tmp);
+                purc_variant_object_set_by_static_ckey(payload,
+                        "postscript", tmp);
                 purc_variant_unref(tmp);
             }
         }
@@ -3158,7 +3165,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     else
         ext->noresptimetoclose = noresptimetoclose;
 
-    PC_DEBUG("Configuration: maxmessagesize(%zu/%llu), noresptimetoping(%u/%u), "
+    PC_DEBUG("Configuration: maxmessagesize(%zu/%zu), noresptimetoping(%u/%u), "
             "noresptimetoclose(%u/%u)\n",
             ext->maxmessagesize, maxmessagesize,
             ext->noresptimetoping, noresptimetoping,

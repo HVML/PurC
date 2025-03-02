@@ -207,7 +207,7 @@
             <include with $logMsg on 'Client has connected to the server.' />
         </init>
 
-        <sleep for '5s' silently />
+        <sleep for '5s' />
 
         <inherit>
             $cliStreamSocket.close()
@@ -235,7 +235,7 @@
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Got handkshake:' />
+            <include with $logMsg on 'Got handshake event:' />
             <include with $logMsg on $DATA.serialize($?) />
 
             <sleep for '5s' />
