@@ -32,97 +32,13 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/stream.h"
 
 enum pcdvobjs_stdio_type {
     STDIO_TYPE_STDIN,
     STDIO_TYPE_STDOUT,
     STDIO_TYPE_STDERR,
 };
-
-enum pcdvobjs_stream_type {
-    STREAM_TYPE_FILE,
-    STREAM_TYPE_PIPE,
-    STREAM_TYPE_FIFO,
-    STREAM_TYPE_UNIX,
-    STREAM_TYPE_INET,
-};
-
-struct pcdvobjs_stream;
-struct stream_extended_data;
-
-enum stream_socket_role {
-    SR_CLIENT = 0,
-    SR_SERVER,
-};
-
-enum stream_message_type {
-    MT_UNKNOWN = 0,
-    MT_TEXT,
-    MT_BINARY,
-    MT_PING,
-    MT_PONG,
-    MT_CLOSE
-};
-
-enum stream_inet_socket_family {
-    ISF_UNSPEC = 0,
-    ISF_INET4,
-    ISF_INET6,
-};
-
-struct stream_messaging_ops {
-    int (*send_message)(struct pcdvobjs_stream *stream,
-            bool text_or_bin, const char *text, size_t len);
-    int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
-    void (*mark_closing)(struct pcdvobjs_stream *stream);
-
-    /* the following operations can be overridden by extended layer */
-    int (*on_message)(struct pcdvobjs_stream *stream, int type,
-            const char *buf, size_t len);
-    void (*cleanup)(struct pcdvobjs_stream *stream);
-};
-
-#define NATIVE_ENTITY_NAME_STREAM       "stream"
-#define STREAM_EXT_SIG_MSG              "MSG"
-#define STREAM_EXT_SIG_HBS              "HBS"
-
-struct stream_extended {
-    char signature[4];
-
-    struct stream_extended_data    *data;
-    const struct purc_native_ops   *super_ops;
-    union {
-        struct stream_messaging_ops    *msg_ops;
-        struct stream_hbdbus_ops       *bus_ops;
-    };
-};
-
-struct pcdvobjs_socket;
-typedef struct pcdvobjs_stream {
-    enum pcdvobjs_stream_type type;
-    struct purc_broken_down_url *url;
-    purc_rwstream_t stm4r;      /* stream for read */
-    purc_rwstream_t stm4w;      /* stream for write */
-    purc_variant_t observed;    /* not inc ref */
-
-    #define NR_STREAM_MONITORS      2
-    uintptr_t monitors[0];
-    uintptr_t monitor4r, monitor4w;
-    int ioevents4r, ioevents4w;
-    int fd4r, fd4w;
-
-    pid_t cpid;             /* only for pipe, the pid of child */
-    purc_atom_t cid;
-
-    char *peer_addr;        /* the address of the connection peer; 0.9.22 */
-    char *peer_port;        /* the port of the connection peer; 0.9.22 */
-
-    struct stream_extended ext0;   /* for presentation layer */
-    struct stream_extended ext1;   /* for application layer */
-
-    /* If the stream is accepted from a stream socket. */
-    struct pcdvobjs_socket  *socket;
-} pcdvobjs_stream;
 
 PCA_EXTERN_C_BEGIN
 
