@@ -3204,8 +3204,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     PC_DEBUG("Configuration: maxframepayloadsize(%zu/%zu), "
             "maxmessagesize(%zu/%zu), noresptimetoping(%u/%u), "
             "noresptimetoclose(%u/%u)\n",
-            ext->maxframepayloadsize, maxframepayloadsize,
-            ext->maxmessagesize, maxmessagesize,
+            ext->maxframepayloadsize, (size_t)maxframepayloadsize,
+            ext->maxmessagesize, (size_t)maxmessagesize,
             ext->noresptimetoping, noresptimetoping,
             ext->noresptimetoclose, noresptimetoclose);
 
@@ -3305,7 +3305,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             }
 
             tmp = purc_variant_object_get_by_ckey(extra_opts,
-                    "ssl-session-cache-id");
+                    "sslsessioncacheid");
             const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
                 purc_variant_get_string_const(tmp);
 

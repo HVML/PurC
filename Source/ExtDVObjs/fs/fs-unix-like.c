@@ -67,15 +67,8 @@
 #define _KW_DELIMITERS      " \t\n\v\f\r"
 #define _DEF_FILE_IS_WHICH  "regular readable"
 
-purc_variant_t pcdvobjs_create_file (void);
+purc_variant_t pcdvobjs_create_file (void) WTF_INTERNAL;
 typedef purc_variant_t (*pcdvobjs_create) (void);
-
-// as FILE, FS, MATH
-struct pcdvobjs_dvobjs_object {
-    const char *name;
-    const char *description;
-    pcdvobjs_create create_func;
-};
 
 static const char * pcdvobjs_remove_space (char *buffer)
 {
@@ -3758,7 +3751,11 @@ static purc_variant_t pcdvobjs_create_fs(void)
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
 
-static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
+static struct pcdvobjs_dvobjs_object {
+    const char *name;
+    const char *description;
+    pcdvobjs_create create_func;
+} dynamic_objects[] = {
     {
         "FS",                                   // name
         "For File System Operations in PURC",   // description
@@ -3773,18 +3770,28 @@ static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
+#if 1
+    /* work-around for an inexplicable ASAN error: global-buffer-overflow */
+    if (strcmp(name, "FS") == 0) {
+        *ver_code = FS_DVOBJ_VERSION;
+        return pcdvobjs_create_fs();
+    }
+    else if (strcmp(name, "FILE") == 0) {
+        *ver_code = FS_DVOBJ_VERSION;
+        return pcdvobjs_create_file();
+    }
+#else
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
-        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
-            break;
+        pcdvobjs_create creator = dynamic_objects[i].create_func;
+        if (strcmp(name, dynamic_objects[i].name) == 0) {
+            *ver_code = FS_DVOBJ_VERSION;
+            return creator();
+        }
     }
+#endif
 
-    if (i == PCA_TABLESIZE(dynamic_objects))
-        return PURC_VARIANT_INVALID;
-    else {
-        *ver_code = FS_DVOBJ_VERSION;
-        return dynamic_objects[i].create_func();
-    }
+    return PURC_VARIANT_INVALID;
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)
@@ -3807,3 +3814,4 @@ const char * __purcex_get_dynamic_variant_desc (size_t idx)
     else
         return dynamic_objects[idx].description;
 }
+
