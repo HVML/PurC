@@ -3772,11 +3772,11 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
 #if 1
     /* work-around for an inexplicable ASAN error: global-buffer-overflow */
-    if (strcmp(name, "FS") == 0) {
+    if (strcasecmp(name, "FS") == 0) {
         *ver_code = FS_DVOBJ_VERSION;
         return pcdvobjs_create_fs();
     }
-    else if (strcmp(name, "FILE") == 0) {
+    else if (strcasecmp(name, "FILE") == 0) {
         *ver_code = FS_DVOBJ_VERSION;
         return pcdvobjs_create_file();
     }
