@@ -80,15 +80,18 @@ typedef struct purc_instance_extra_info {
      * When using a SOCKET renderer, you can specify a UNIX domain socket
      * or a URI of WebSocket:
      *
-     *      - UNIX domain socket: `unix:///var/tmp/xxx.sock`
+     *      - UNIX/local domain socket: `unix:///var/tmp/xxx.sock` or
+     *          `local:///var/tmp/xxx.sock`
      *      - WebSocket: `ws://foo.bar.com:8877`
      *      - Secured WebSocket: `wss://foo.bar.com:8877`
      *
      * If the renderer acts as a socket client, and the interpreter
-     * instance inherits the socket connection and acts as a worker proecess
-     * at server-side, you can specify the URI like this:
-     *      - WebSocket: `ws://_inherited@<hostname>/?fd=5&handshake=false`
-     *      - Secured WebSocket: `wss://_inherited@<hostname>/?fd=5&handshake=true&sslsessioncacheid=78567`
+     * instance inherits the socket connection from the renderer and
+     * acts as a worker proecess at server-side, you can specify the URI
+     * like this:
+     *      - UNIX domain socket: `local://_inherited:<fd>@<hostname>/?prot=message`
+     *      - WebSocket: `inet://_inherited:<fd>@<hostname>/?prot=websocket&handshake=false`
+     *      - Secured WebSocket: `inet://_inherited:<fd>@<hostname>/?prot=websocket&handshake=false&sslsessioncacheid=78567`
      *
      */
     const char      *renderer_uri;

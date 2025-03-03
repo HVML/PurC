@@ -292,7 +292,8 @@ typedef enum {
 enum {
     CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
-    CT_WEB_SOCKET,
+    CT_INET_SOCKET,
+    CT_WEB_SOCKET = CT_INET_SOCKET, /* XXX: is going to remove */
     CT_MOVE_BUFFER,
 };
 
@@ -1228,14 +1229,15 @@ pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
- * Connect to a socket-based renderer.
+ * Connect to a socket-based renderer, including UNIX/local socket,
+ * or a websocket.
  *
  * @param renderer_uri: the URI of the renderer.
  * @param app_name: the app name.
  * @param runner_name: the runner name.
  * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
  *
- * Connects to a socket-based renderer.
+ * Connect to a socket-based renderer.
  *
  * Returns: The initial response message; NULL on error.
  *
@@ -1259,9 +1261,14 @@ pcrdr_socket_connect(const char* renderer_uri,
  *
  * Since: 0.1.0
  */
-PCA_EXPORT pcrdr_msg *
+ PCA_EXPORT pcrdr_msg *
 pcrdr_websocket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
+/* TODO: make this as an inline function of pcrdr_socket_connect()
+{
+    return pcrdr_socket_connect(renderer_uri, app_name, runner_name, conn);
+}
+*/
 
 /**@}*/
 

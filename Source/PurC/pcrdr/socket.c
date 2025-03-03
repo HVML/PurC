@@ -1584,7 +1584,7 @@ int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
 
 #define SCHEMA_UNIX_SOCKET  "unix://"
 
-pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
@@ -1627,7 +1627,7 @@ failed:
 
 #else   /* for OS not Linux or Unix */
 
-pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     purc_set_error(PCRDR_ERROR_NOT_IMPLEMENTED);
