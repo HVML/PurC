@@ -43,9 +43,24 @@
 #define STREAM_PROTOCOL_MESSAGE     "message"
 #define STREAM_PROTOCOL_WEBSOCKET   "websocket"
 
+#define STREAM_EXT_SIG_PMC          "PMC"
+
 struct pcrdr_prot_data {
     purc_variant_t          dvobj;
-    struct pcdvobjs_stream   *stream;
+    struct pcdvobjs_stream *stream;
+    struct list_head        msgs;
+
+    /* saved super operations */
+    int (*on_message_super)(struct pcdvobjs_stream *stream, int type,
+            char *msg, size_t len, int *owner_taken);
+    void (*cleanup_super)(struct pcdvobjs_stream *stream);
+};
+
+/* the header of the struct pcrdr_msg */
+struct pcrdr_msg_hdr {
+    unsigned int            refcnt;
+    purc_atom_t             origin;
+    struct list_head        ln;
 };
 
 static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
@@ -67,8 +82,15 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 {
-    (void)conn;
-    return NULL;
+    if (list_empty(&conn->prot_data->msgs))
+        return NULL;
+
+    struct pcrdr_msg_hdr *hdr;
+    hdr = list_first_entry(&conn->prot_data->msgs, struct pcrdr_msg_hdr, ln);
+    pcrdr_msg *msg = (pcrdr_msg *)hdr;
+    list_del(&hdr->ln);
+
+    return msg;
 }
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
@@ -109,10 +131,58 @@ static int my_ping_peer(pcrdr_conn* conn)
     return 0;
 }
 
-static int my_disconnect (pcrdr_conn* conn)
+static int my_disconnect(pcrdr_conn* conn)
 {
-    (void)conn;
+    purc_variant_unref(conn->prot_data->dvobj);
     return 0;
+}
+
+static int on_message(struct pcdvobjs_stream *stream, int type,
+            char *payload, size_t len, int *owner_taken)
+{
+    pcrdr_conn *conn = (pcrdr_conn *)stream->ext1.data;
+    assert(conn);
+
+    if (type != MT_TEXT) {
+        /* call the method of Layer 0. */
+        return conn->prot_data->on_message_super(stream, type, payload, len,
+                owner_taken);
+    }
+
+    pcrdr_msg *msg = NULL;
+    if (pcrdr_parse_packet(payload, len, &msg) < 0)
+        return -1;
+
+    struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
+    list_add_tail(&hdr->ln, &conn->prot_data->msgs);
+    return 0;
+}
+
+static void cleanup_extension(struct pcdvobjs_stream *stream)
+{
+    pcrdr_conn *conn = (pcrdr_conn *)stream->ext1.data;
+    assert(conn);
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &conn->prot_data->msgs) {
+        struct pcrdr_msg_hdr *hdr;
+
+        hdr = list_entry(p, struct pcrdr_msg_hdr, ln);
+        list_del(p);
+        pcrdr_release_message((pcrdr_msg *)hdr);
+    }
+
+    if (conn->srv_host_name)
+        free(conn->srv_host_name);
+    if (conn->own_host_name)
+        free(conn->own_host_name);
+
+    stream->ext1.data = NULL;
+
+    if (conn->prot_data->cleanup_super)
+        conn->prot_data->cleanup_super(stream);
+
+    free(conn);
 }
 
 pcrdr_msg *
@@ -204,19 +274,19 @@ pcrdr_socket_connect(const char* renderer_uri,
         url = (const char *)pcutils_url_assemble(bdurl, true);
     }
 
-    purc_variant_t stream;
+    purc_variant_t stream_vrt;
     if (fd >= 0) {
-        stream = dvobjs_create_stream_from_fd(fd, PURC_VARIANT_INVALID,
+        stream_vrt = dvobjs_create_stream_from_fd(fd, PURC_VARIANT_INVALID,
                 prot, extra_opts);
-        if (stream == NULL) {
+        if (stream_vrt == PURC_VARIANT_INVALID) {
             PC_DEBUG ("Failed to create DVOBJ stream from fd: %d\n", fd);
             goto failed;
         }
     }
     else {
-        stream = dvobjs_create_stream_from_url(url, PURC_VARIANT_INVALID,
+        stream_vrt = dvobjs_create_stream_from_url(url, PURC_VARIANT_INVALID,
                 prot, extra_opts);
-        if (stream == NULL) {
+        if (stream_vrt == PURC_VARIANT_INVALID) {
             PC_DEBUG ("Failed to create DVOBJ stream from url: %s\n", url);
             goto failed;
         }
@@ -236,16 +306,36 @@ pcrdr_socket_connect(const char* renderer_uri,
         goto failed;
     }
 
-    prot_data->dvobj = stream;
-    prot_data->stream = purc_variant_native_get_entity(stream);
-    assert(prot_data->stream->ext0.data);
-    assert(prot_data->stream->ext0.msg_ops);
+    prot_data->dvobj = stream_vrt;
+    struct pcdvobjs_stream *stream;
+    stream = purc_variant_native_get_entity(stream_vrt);
+    prot_data->stream = stream;
+
+    list_head_init(&prot_data->msgs);
+
+    struct purc_native_ops *super_ops;
+    super_ops = purc_variant_native_get_ops(stream_vrt);
+
+    assert(stream->ext0.data);
+    assert(stream->ext0.msg_ops);
+
+    /* extend the stream with PURCMC protocol */
+    strcpy(stream->ext1.signature, STREAM_EXT_SIG_PMC);
+    stream->ext1.data = (struct stream_extended_data *)*conn;
+    stream->ext1.super_ops = super_ops;
+    stream->ext1.bus_ops = NULL;
+
+    /* override the `on_message` method of Layer 0 */
+    prot_data->on_message_super = stream->ext0.msg_ops->on_message;
+    stream->ext0.msg_ops->on_message = on_message;
+    prot_data->cleanup_super = stream->ext0.msg_ops->cleanup;
+    stream->ext0.msg_ops->cleanup = cleanup_extension;
 
     (*conn)->prot = PURC_RDRCOMM_SOCKET;
     (*conn)->type = CT_WEB_SOCKET;
-    (*conn)->fd = prot_data->stream->fd4r;
+    (*conn)->fd = stream->fd4r;
     (*conn)->timeout_ms = 10;   /* 10 milliseconds */
-    (*conn)->srv_host_name = strdup(prot_data->stream->peer_addr);
+    (*conn)->srv_host_name = strdup(stream->peer_addr);
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);
     (*conn)->app_name = app_name;
     (*conn)->runner_name = runner_name;

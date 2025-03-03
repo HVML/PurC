@@ -207,7 +207,7 @@ struct stream_extended_data {
     struct pcutils_kvlist subscribed_list;
 
     int (*on_message_super)(struct pcdvobjs_stream *stream, int type,
-            const char *buf, size_t len);
+            char *buf, size_t len, int *owner_taken);
     void (*cleanup_super)(struct pcdvobjs_stream *stream);
 };
 
@@ -2538,12 +2538,12 @@ static int handle_regular_message(struct pcdvobjs_stream *stream,
 }
 
 static int on_message(struct pcdvobjs_stream *stream, int type,
-            const char *payload, size_t len)
+            char *payload, size_t len, int *owner_taken)
 {
     struct stream_extended_data *ext = stream->ext1.data;
 
     if (ext == NULL) {
-        return false;
+        return 0;
     }
 
     clr_error(ext);
@@ -2551,7 +2551,8 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     if (type != MT_TEXT) {
         /* call the method of Layer 0. */
         if (ext->on_message_super) {
-            return ext->on_message_super(stream, type, payload, len);
+            return ext->on_message_super(stream, type, payload, len,
+                    owner_taken);
         }
 
         set_error(ext, UNKNOWNMESSAGE);

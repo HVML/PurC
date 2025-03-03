@@ -2223,6 +2223,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
 
     struct stream_extended_data *ext = stream->ext0.data;
     int retv;
+    int owner_taken; // indicate wheter the owner of message has been taken.
 
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
@@ -2309,12 +2310,12 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
             else if (retv == READ_WHOLE) {
                 if (!ext->message) {
                     ext->sz_message = ext->sz_payload;
-                    ext->message = malloc(ext->sz_message);
+                    ext->message = malloc(ext->sz_message + 1);
                     ext->sz_read_message = 0;
                 }
                 else {
                     ext->sz_message += ext->sz_payload;
-                    ext->message = realloc(ext->message, ext->sz_message);
+                    ext->message = realloc(ext->message, ext->sz_message + 1);
                 }
 
                 if (ext->message == NULL) {
@@ -2340,22 +2341,23 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 }
 
                 /* whole message */
+                owner_taken = 0;
                 switch (ext->msg_type) {
                 case MT_PING:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_PING,
-                            ext->message, ext->sz_message);
+                            ext->message, ext->sz_message, &owner_taken);
                     goto done_msg;
                     break;
 
                 case MT_PONG:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_PONG,
-                            ext->message, ext->sz_message);
+                            ext->message, ext->sz_message, &owner_taken);
                     goto done_msg;
                     break;
 
                 case MT_CLOSE:
                     retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE,
-                            ext->message, ext->sz_message);
+                            ext->message, ext->sz_message, &owner_taken);
                     ext->status = WS_CLOSING;
                     goto done_msg;
                     break;
@@ -2370,14 +2372,17 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                         goto failed;
                     }
 
+                    ext->message[ext->sz_message] = 0; // null-terminated
                     retv = stream->ext0.msg_ops->on_message(stream,
-                            ext->msg_type, ext->message, ext->sz_message);
+                            ext->msg_type, ext->message, ext->sz_message,
+                            &owner_taken);
                     goto done_msg;
                     break;
 
                 case MT_BINARY:
                     retv = stream->ext0.msg_ops->on_message(stream,
-                            ext->msg_type, ext->message, ext->sz_message);
+                            ext->msg_type, ext->message, ext->sz_message,
+                            &owner_taken);
                     goto done_msg;
                     break;
 
@@ -2400,7 +2405,8 @@ failed:
     return -1;
 
 done_msg:
-    free(ext->message);
+    if (!owner_taken)
+        free(ext->message);
     ext->message = NULL;
     ext->sz_message = 0;
     ext->sz_read_payload = 0;
@@ -2736,7 +2742,7 @@ make_payload_object_for_ctrl_op(const char *buf, size_t len)
 }
 
 static int on_message(struct pcdvobjs_stream *stream, int type,
-        const char *buf, size_t len)
+        char *buf, size_t len, int *owner_taken)
 {
     int retv = 0;
     struct stream_extended_data *ext = stream->ext0.data;
@@ -2747,12 +2753,14 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     switch (type) {
         case MT_TEXT:
             // fire a `message` event
-            data = purc_variant_make_string_ex(buf, len, false);
+            data = purc_variant_make_string_reuse_buff(buf, len + 1, false);
+            *owner_taken = 1;
             break;
 
         case MT_BINARY:
             // fire a `message` event
-            data = purc_variant_make_byte_sequence(buf, len);
+            data = purc_variant_make_byte_sequence_reuse_buff(buf, len, len);
+            *owner_taken = 1;
             break;
 
         case MT_PING:

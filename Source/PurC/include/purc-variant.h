@@ -291,7 +291,7 @@ purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
  * @sz_buff: The size of the buffer (not the length of the string).
  * @check_encoding: Whether to check the encoding.
  *
- * Creates a variant which represents a null-terminated static string in
+ * Create a variant which represents a null-terminated string in
  * UTF-8 encoding. Note that the new variant will take the ownership of
  * the buffer which containing the string. The buffer will be released by
  * calling free() when the variant is destroyed ultimately.

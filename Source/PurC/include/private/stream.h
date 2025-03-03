@@ -73,7 +73,7 @@ struct stream_messaging_ops {
 
     /* the following operations can be overridden by extended layer */
     int (*on_message)(struct pcdvobjs_stream *stream, int type,
-            const char *buf, size_t len);
+            char *msg, size_t len, int *owner_taken);
     void (*cleanup)(struct pcdvobjs_stream *stream);
 };
 

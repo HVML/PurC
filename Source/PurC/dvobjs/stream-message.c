@@ -537,12 +537,14 @@ us_handle_reads(int fd, int event, void *ctxt)
             switch (ext->header.op) {
             case US_OPCODE_PING:
                 ext->msg_type = MT_PING;
-                retv = stream->ext0.msg_ops->on_message(stream, MT_PING, NULL, 0);
+                retv = stream->ext0.msg_ops->on_message(stream, MT_PING,
+                        NULL, 0, NULL);
                 break;
 
             case US_OPCODE_CLOSE:
                 ext->msg_type = MT_CLOSE;
-                retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE, NULL, 0);
+                retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE,
+                        NULL, 0, NULL);
                 ext->status = US_CLOSING;
                 break;
 
@@ -592,7 +594,8 @@ us_handle_reads(int fd, int event, void *ctxt)
 
             case US_OPCODE_PONG:
                 ext->msg_type = MT_PONG;
-                retv = stream->ext0.msg_ops->on_message(stream, MT_PONG, NULL, 0);
+                retv = stream->ext0.msg_ops->on_message(stream, MT_PONG,
+                        NULL, 0, NULL);
                 break;
 
             default:
@@ -616,9 +619,12 @@ us_handle_reads(int fd, int event, void *ctxt)
                         PC_INFO("Got a text payload: %s\n", ext->message);
                     }
 
+                    int owner_taken = 0;
                     retv = stream->ext0.msg_ops->on_message(stream,
-                            ext->msg_type, ext->message, ext->sz_message);
-                    free(ext->message);
+                            ext->msg_type, ext->message, ext->sz_message,
+                            &owner_taken);
+                    if (!owner_taken)
+                        free(ext->message);
                     ext->message = NULL;
                     ext->sz_message = 0;
                     ext->sz_read_payload = 0;
@@ -880,7 +886,7 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
 }
 
 static int on_message(struct pcdvobjs_stream *stream, int type,
-        const char *buf, size_t len)
+        char *buf, size_t len, int *owner_taken)
 {
     int retv = 0;
     purc_variant_t data = PURC_VARIANT_INVALID;
@@ -888,20 +894,22 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     switch (type) {
         case MT_TEXT:
             // fire a `message:text` event
-            data = purc_variant_make_string(buf, true);
+            data = purc_variant_make_string_reuse_buff(buf, len, true);
             pcintr_coroutine_post_event(stream->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_TEXT,
                     data, PURC_VARIANT_INVALID);
+            *owner_taken = 1;
             break;
 
         case MT_BINARY:
             // fire a `message:binary` event
-            data = purc_variant_make_byte_sequence(buf, len);
+            data = purc_variant_make_byte_sequence_reuse_buff(buf, len, len);
             pcintr_coroutine_post_event(stream->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_BINARY,
                     data, PURC_VARIANT_INVALID);
+            *owner_taken = 1;
             break;
 
         case MT_PING:
