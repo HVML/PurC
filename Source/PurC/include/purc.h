@@ -75,7 +75,7 @@ typedef struct purc_instance_extra_info {
      * When using a THREAD renderer, you should specify the endpoint name
      * of the renderer like `edpt://localhost/<app_name>/<runner_name>`.
      * The endpoint name will be used to communicate between the renderer
-     * and the interperter instances.
+     * and the interpreter instances.
      *
      * When using a SOCKET renderer, you can specify a UNIX domain socket
      * or a URI of WebSocket:
@@ -83,6 +83,13 @@ typedef struct purc_instance_extra_info {
      *      - UNIX domain socket: `unix:///var/tmp/xxx.sock`
      *      - WebSocket: `ws://foo.bar.com:8877`
      *      - Secured WebSocket: `wss://foo.bar.com:8877`
+     *
+     * If the renderer acts as a socket client, and the interpreter
+     * instance inherits the socket connection and acts as a worker proecess
+     * at server-side, you can specify the URI like this:
+     *      - WebSocket: `ws://_inherited@<hostname>/?fd=5&handshake=false`
+     *      - Secured WebSocket: `wss://_inherited@<hostname>/?fd=5&handshake=true&sslsessioncacheid=78567`
+     *
      */
     const char      *renderer_uri;
 
