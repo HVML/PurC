@@ -923,15 +923,6 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     return retv;
 }
 
-// Mozilla/5.0 (<system-information>) <platform> (<platform-details>) <extensions>
-#if OS(LINUX)
-#   define USER_AGENT  "Mozilla/5.0 (Linux) Foil/Chouniu PurC/0.9.22"
-#elif OS(MAC_OS_X)
-#   define USER_AGENT  "Mozilla/5.0 (macOS) Foil/Chouniu PurC/0.9.22"
-#else
-#   define USER_AGENT  "Mozilla/5.0 (Unknown) Foil/Chouniu PurC/0.9.22"
-#endif
-
 #define DEFINE_STRING_VAR_FROM_OBJECT(name, alternative)        \
     const char *name;                                           \
     tmp = purc_variant_object_get_by_ckey(extra_opts, #name);   \
@@ -951,7 +942,7 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     DEFINE_STRING_VAR_FROM_OBJECT(path, stream->url ? stream->url->path : NULL);
     DEFINE_STRING_VAR_FROM_OBJECT(host, stream->url ? stream->url->host : NULL);
     DEFINE_STRING_VAR_FROM_OBJECT(origin, "hvml.fmsoft.cn");
-    DEFINE_STRING_VAR_FROM_OBJECT(useragent, USER_AGENT);
+    DEFINE_STRING_VAR_FROM_OBJECT(useragent, PURC_USER_AGENT);
     DEFINE_STRING_VAR_FROM_OBJECT(referer, "https://hvml.fmsoft.cn/");
 
     purc_clr_error();       /* XXX: work-around */
