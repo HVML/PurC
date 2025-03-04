@@ -44,7 +44,6 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
-
 #define PURC_VARIANT_BADSIZE            ((ssize_t)(-1))
 
 PCA_EXTERN_C_BEGIN
