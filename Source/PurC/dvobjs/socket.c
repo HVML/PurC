@@ -474,10 +474,10 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-cert");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslcert");
     ssl_cert = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-key");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslkey");
     ssl_key = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     if (ssl_cert == NULL || ssl_key == NULL) {
@@ -485,7 +485,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         goto skip;
     }
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-session-cache-id");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheid");
     ssl_session_cache_id = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
     if (ssl_session_cache_id) {
         if (strlen(ssl_session_cache_id) > OPENSSL_SHCTX_ID_LEN) {
@@ -493,8 +493,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
             goto opt_failed;
         }
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj,
-                "ssl-session-cache-users");
+        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheusers");
         cache_mode = dvobjs_parse_options(tmp, NULL, 0,
             access_users_ckws, PCA_TABLESIZE(access_users_ckws), 0, -1);
         if (cache_mode == -1) {
@@ -503,7 +502,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         }
         cache_mode |= 0600;
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj, "ssl-session-cache-size");
+        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncachesize");
         if ((tmp && !purc_variant_cast_to_ulongint(tmp,
                     &cache_size, false)) ||
                 cache_size < OPENSSL_SHCTX_CACHESZ_MIN) {
@@ -568,7 +567,9 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     }
 
     socket->ssl_ctx = ctx;
+
 skip:
+    purc_clr_error();
     return 0;
 
 ssl_failed:
@@ -1181,11 +1182,11 @@ recvfrom_getter(void *native_entity, const char *property_name,
             /* make sure there is a null terminate character */
             tmp = purc_variant_make_string_ex(unix_addr->sun_path,
                     sizeof(unix_addr->sun_path), false);
-            purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "sourceaddr", tmp);
             purc_variant_unref(tmp);
 
             tmp = purc_variant_make_null();
-            purc_variant_object_set_by_static_ckey(retv, "source-port", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "sourceport", tmp);
             purc_variant_unref(tmp);
         }
         else if (!(flags & _O_NOSOURCE)) {

@@ -52,6 +52,7 @@
 #define STREAM_EXT_SIG_PMC          "PMC"
 
 struct pcrdr_prot_data {
+    int                     errcode;
     purc_variant_t          dvobj;
     struct pcdvobjs_stream *stream;
     struct list_head        msgs;
@@ -142,6 +143,9 @@ static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
 
     while (list_empty(&conn->prot_data->msgs)) {
         if (my_wait_message(conn, conn->timeout_ms))
+            goto error;
+
+        if (conn->prot_data->errcode)
             goto error;
 
         if (max_wait > 0) {
@@ -240,6 +244,8 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
     pcrdr_conn *conn = (pcrdr_conn *)stream->ext1.data;
     assert(conn);
 
+    conn->prot_data->errcode = errcode;
+
     PC_ERROR("%s: Got an error: %d\n", __func__, errcode);
 
     /* call the method of Layer 0. */
@@ -290,6 +296,56 @@ static struct purc_native_ops purcmc_ops = {
     .on_forget = NULL,
     .on_release = on_release_stream_vrt,
 };
+
+#define NORMALIZE_BOOL_PROPERTY(name)                                   \
+    tmp = purc_variant_object_get_by_ckey(extra_opts, #name);           \
+    if (!purc_variant_is_boolean(tmp)) {                                \
+        /* It must be a string */                                       \
+        const char *str = purc_variant_get_string_const(tmp);           \
+        bool name;                                                      \
+        if (strcasecmp(str, "true") == 0 ||                             \
+                strcasecmp(str, "yes") == 0 ||                          \
+                strcasecmp(str, "1") == 0)                              \
+            name = true;                                                \
+        else if (strcasecmp(str, "false") == 0 ||                       \
+                strcasecmp(str, "no") == 0 ||                           \
+                strcasecmp(str, "0") == 0)                              \
+            name = false;                                               \
+        else                                                            \
+            name = purc_variant_booleanize(tmp);                        \
+                                                                        \
+        tmp = purc_variant_make_boolean(name);                          \
+        purc_variant_object_set_by_ckey(extra_opts, #name, tmp);        \
+        purc_variant_unref(tmp);                                        \
+    }
+
+#define NORMALIZE_UINT_PROPERTY(name)                                   \
+    do {                                                                \
+        uint64_t name = 0;                                              \
+        tmp = purc_variant_object_get_by_ckey(extra_opts, #name);       \
+        if (tmp && purc_variant_cast_to_ulongint(tmp, &name, true)) {   \
+            tmp = purc_variant_make_ulongint(name);                     \
+            purc_variant_object_set_by_ckey(extra_opts, #name, tmp);    \
+            purc_variant_unref(tmp);                                    \
+        }                                                               \
+        else {                                                          \
+            purc_variant_object_remove_by_ckey(extra_opts, #name, true);\
+        }                                                               \
+    } while (0)
+
+static void normalize_extra_options(purc_variant_t extra_opts)
+{
+    purc_variant_t tmp;
+
+    NORMALIZE_BOOL_PROPERTY(secure);
+    NORMALIZE_BOOL_PROPERTY(handshake);
+    NORMALIZE_UINT_PROPERTY(maxframepayloadsize);
+    NORMALIZE_UINT_PROPERTY(maxmessagesize);
+    NORMALIZE_UINT_PROPERTY(noresptimetoping);
+    NORMALIZE_UINT_PROPERTY(noresptimetoclose);
+
+    purc_clr_error();
+}
 
 pcrdr_msg *
 pcrdr_socket_connect(const char* renderer_uri,
@@ -380,6 +436,8 @@ pcrdr_socket_connect(const char* renderer_uri,
         url = (const char *)pcutils_url_assemble(bdurl, true);
     }
 
+    normalize_extra_options(extra_opts);
+
     purc_variant_t stream_vrt;
     if (fd >= 0) {
         stream_vrt = dvobjs_create_stream_from_fd(fd, PURC_VARIANT_INVALID,
@@ -398,7 +456,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         }
     }
 
-    if ((*conn = calloc(1, sizeof (pcrdr_conn))) == NULL) {
+    if ((*conn = calloc(1, sizeof(pcrdr_conn))) == NULL) {
         PC_DEBUG ("Failed to callocate space for connection\n");
         purc_set_error(PCRDR_ERROR_NOMEM);
         goto failed;

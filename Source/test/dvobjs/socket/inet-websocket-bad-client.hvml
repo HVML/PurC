@@ -21,8 +21,8 @@
         <test with $L.streq('caseless', $REQ.secure, 'true') >
             <update on $sslSettings to 'merge'>
                 {
-                    'ssl-key': '../Source/test/dvobjs/localhost.key',
-                    'ssl-cert': '../Source/test/dvobjs/localhost.crt',
+                    'sslkey': '../Source/test/dvobjs/localhost.key',
+                    'sslcert': '../Source/test/dvobjs/localhost.crt',
                 }
             </update>
         </test>

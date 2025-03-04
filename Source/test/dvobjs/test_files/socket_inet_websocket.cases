@@ -32,35 +32,35 @@ negative:
     WrongDataType
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, {'ssl-key': 'foobar.key', 'ssl-cert': 'foobar.crt' })
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, {'sslkey': 'foobar.key', 'sslcert': 'foobar.crt' })
     OSFailure
 
-#'ssl-session-cache-id':       < string: `Use the external SSL session cache to enable sharing the sessions between processes.` >
-#'ssl-session-cache-users':    < ['group || other'] | undefined: `Specify the extra users who can access the shared SSL session cache except the owner.` >
-# 'ssl-session-cache-size':     < real = 256: `Specify the size of the cache: how many sessions to cache.` >
+#'sslsessioncacheid':       < string: `Use the external SSL session cache to enable sharing the sessions between processes.` >
+#'sslsessioncacheusers':    < ['group || other'] | undefined: `Specify the extra users who can access the shared SSL session cache except the owner.` >
+#'sslsessioncachesize':     < real = 256: `Specify the size of the cache: how many sessions to cache.` >
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'hvml-test', 'ssl-session-cache-users': 'foo', 'ssl-session-cache-size': null })
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'hvml-test', 'sslsessioncacheusers': 'foo', 'sslsessioncachesize': null })
     InvalidValue
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'test', 'ssl-session-cache-users': 'foo', 'ssl-session-cache-size': null })
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'foo', 'sslsessioncachesize': null })
     InvalidValue
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'test', 'ssl-session-cache-users': 'group', 'ssl-session-cache-size': null })
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': null })
     InvalidValue
 
 negative:
-    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'test', 'ssl-session-cache-users': 'group', 'ssl-session-cache-size': -32 })
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': -32 })
     InvalidValue
 
 positive:
-    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt' }))
+    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }))
     'native'
 
 positive:
-    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt', 'ssl-session-cache-id': 'test', 'ssl-session-cache-users': 'group', 'ssl-session-cache-size': 32 }))
+    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': 32 }))
     'native'
 
 positive:
@@ -92,7 +92,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'ssl-key': '../Source/test/dvobjs/localhost.key', 'ssl-cert': '../Source/test/dvobjs/localhost.crt' }) )
+    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }) )
     true
 
 positive:

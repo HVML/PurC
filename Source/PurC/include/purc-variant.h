@@ -1282,7 +1282,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * @key: The key of the property to set.
  * @value: The new property value.
  *
- * Sets the value of the property given by a static null-terminated
+ * Set the value of the property given by a static null-terminated
  * string @key to @value, in the object variant @obj.
  *
  * If there is no property in @obj specified by @key, this function will
