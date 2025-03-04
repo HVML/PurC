@@ -462,6 +462,7 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.renderer_uri = purc_variant_get_string_const(tmp);
     }
 
+    /* XXX: Removed since 0.9.22
     tmp = purc_variant_object_get_by_ckey(request->data, "sslCert");
     if (tmp) {
         info.ssl_cert = purc_variant_get_string_const(tmp);
@@ -470,7 +471,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     tmp = purc_variant_object_get_by_ckey(request->data, "sslKey");
     if (tmp) {
         info.ssl_key = purc_variant_get_string_const(tmp);
-    }
+    } */
 
     tmp = purc_variant_object_get_by_ckey(request->data, "workspaceName");
     if (tmp) {
@@ -864,6 +865,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
             purc_variant_unref(tmp);
         }
 
+        /* XXX: Removed since 0.9.22
         if (extra_info->ssl_cert) {
             tmp = purc_variant_make_string_static(extra_info->ssl_cert,
                     false);
@@ -876,7 +878,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
                     false);
             purc_variant_object_set_by_static_ckey(data, "sslKey", tmp);
             purc_variant_unref(tmp);
-        }
+        } */
 
         if (extra_info->workspace_name) {
             tmp = purc_variant_make_string_static(extra_info->workspace_name,

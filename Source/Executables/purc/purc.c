@@ -975,13 +975,14 @@ fill_run_rdr_info(struct my_opts *opts,
     if (tmp)
         rdr_info->renderer_uri = purc_variant_get_string_const(tmp);
 
+    /* XXX: Removed since 0.9.22
     tmp = purc_variant_object_get_by_ckey(rdr, "sslCert");
     if (tmp)
         rdr_info->ssl_cert = purc_variant_get_string_const(tmp);
 
     tmp = purc_variant_object_get_by_ckey(rdr, "sslKey");
     if (tmp)
-        rdr_info->ssl_key = purc_variant_get_string_const(tmp);
+        rdr_info->ssl_key = purc_variant_get_string_const(tmp); */
 
     tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName");
     if (tmp)

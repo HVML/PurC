@@ -96,11 +96,12 @@ typedef struct purc_instance_extra_info {
      */
     const char      *renderer_uri;
 
-    /** The SSL certification if using Secured WebSocket. */
+    /* XXX: Removed since 0.9.22
+     *  The SSL certification if using Secured WebSocket.
     const char      *ssl_cert;
 
-    /** The SSL key if using Secured WebSocket. */
-    const char      *ssl_key;
+    ** The SSL key if using Secured WebSocket.
+    const char      *ssl_key; */
 
     /** The default workspace of this instance. */
     const char      *workspace_name;
