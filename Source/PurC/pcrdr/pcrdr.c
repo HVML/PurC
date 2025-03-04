@@ -365,7 +365,8 @@ connect_to_renderer(struct pcinst *inst,
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
-        msg = pcrdr_socket_connect(extra_info->renderer_uri,
+        // TODO: use pcrdr_socket_connect() instead.
+        msg = pcrdr_local_socket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
@@ -375,6 +376,7 @@ connect_to_renderer(struct pcinst *inst,
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
+        // TODO: use pcrdr_socket_connect() instead.
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }

@@ -638,7 +638,7 @@ did_matched(void *native_entity, purc_variant_t val)
 purc_variant_t
 pcchan_make_entity(pcchan_t chan)
 {
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .did_matched = did_matched,
         .on_observe = on_observe,

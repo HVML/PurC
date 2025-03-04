@@ -3653,7 +3653,7 @@ opendir_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = NULL,
         .on_forget = NULL,

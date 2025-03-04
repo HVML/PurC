@@ -945,8 +945,6 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     DEFINE_STRING_VAR_FROM_OBJECT(useragent, PURC_USER_AGENT);
     DEFINE_STRING_VAR_FROM_OBJECT(referer, "https://hvml.fmsoft.cn/");
 
-    purc_clr_error();       /* XXX: work-around */
-
     /* generate Sec-WebSocket-Key */
     srandom(time(NULL));
     char key[WS_KEY_LEN];
@@ -1026,6 +1024,8 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
             goto failed_write;
         }
     }
+
+    purc_clr_error();       /* XXX: work-around */
 
     free(req_headers);
     ext->status = WS_WAITING4HSRESP;
@@ -2992,7 +2992,7 @@ property_getter(void *entity, const char *name)
         method = send_handshake_resp;
     }
     else {
-        const struct purc_native_ops *super_ops = stream->ext0.super_ops;
+        struct purc_native_ops *super_ops = stream->ext0.super_ops;
         if (super_ops->property_getter)
             method = super_ops->property_getter(entity, name);
 
@@ -3086,7 +3086,7 @@ static bool on_forget(void *entity, const char *event_name,
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
-    const struct purc_native_ops *super_ops = stream->ext0.super_ops;
+    struct purc_native_ops *super_ops = stream->ext0.super_ops;
 
     cleanup_extension(stream);
 
@@ -3095,16 +3095,16 @@ static void on_release(void *entity)
     }
 }
 
-static const struct purc_native_ops msg_entity_ops = {
+static struct purc_native_ops msg_entity_ops = {
     .property_getter = property_getter,
     .on_observe = on_observe,
     .on_forget = on_forget,
     .on_release = on_release,
 };
 
-const struct purc_native_ops *
+struct purc_native_ops *
 dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
+        struct purc_native_ops *super_ops, purc_variant_t extra_opts)
 {
     struct stream_extended_data *ext = NULL;
     struct stream_messaging_ops *msg_ops = NULL;

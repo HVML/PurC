@@ -190,6 +190,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     struct purc_broken_down_url *bdurl = NULL;
+    pcrdr_msg *msg = NULL;
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
@@ -229,7 +230,6 @@ pcrdr_socket_connect(const char* renderer_uri,
 
     purc_variant_t extra_opts = PURC_VARIANT_INVALID;
     const char *url = renderer_uri;
-    pcrdr_msg *msg = NULL;
 
     if (bdurl->query)
         extra_opts = purc_make_object_from_query_string(bdurl->query, false);

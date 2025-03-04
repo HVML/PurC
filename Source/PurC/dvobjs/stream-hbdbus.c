@@ -1693,7 +1693,7 @@ static bool on_forget(void *entity, const char *event_name,
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
-    const struct purc_native_ops *super_ops = stream->ext1.super_ops;
+    struct purc_native_ops *super_ops = stream->ext1.super_ops;
 
     cleanup_extension(stream);
     if (super_ops->on_release) {
@@ -1701,7 +1701,7 @@ static void on_release(void *entity)
     }
 }
 
-static const struct purc_native_ops hbdbus_ops = {
+static struct purc_native_ops hbdbus_ops = {
     .property_getter = property_getter,
     .on_observe = on_observe,
     .on_forget = on_forget,
@@ -2641,9 +2641,9 @@ done:
     return 0;
 }
 
-const struct purc_native_ops *
+struct purc_native_ops *
 dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
+        struct purc_native_ops *super_ops, purc_variant_t extra_opts)
 {
     (void)extra_opts;
 

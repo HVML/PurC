@@ -42,19 +42,19 @@ enum pcdvobjs_stdio_type {
 
 PCA_EXTERN_C_BEGIN
 
-const struct purc_native_ops *
+struct purc_native_ops *
 dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
+        struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
-const struct purc_native_ops *
+struct purc_native_ops *
 dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
+        struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
-const struct purc_native_ops *
+struct purc_native_ops *
 dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
-        const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
+        struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
 purc_variant_t

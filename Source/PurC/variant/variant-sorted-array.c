@@ -154,7 +154,7 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
         goto out;
     }
 
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_release = on_release,
     };

@@ -1248,6 +1248,29 @@ pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
+ * Connect to a local-socket-based renderer.
+ *
+ * @param renderer_uri: the URI of the renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
+ *
+ * Connects to a socket-based renderer.
+ *
+ * Returns: The initial response message; NULL on error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_local_socket_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+/* TODO: make this as an inline function of pcrdr_socket_connect()
+{
+    return pcrdr_socket_connect(renderer_uri, app_name, runner_name, conn);
+}
+*/
+
+/**
  * Connect to a websocket-based renderer.
  *
  * @param renderer_uri: the URI of the renderer.
@@ -1261,7 +1284,7 @@ pcrdr_socket_connect(const char* renderer_uri,
  *
  * Since: 0.1.0
  */
- PCA_EXPORT pcrdr_msg *
+PCA_EXPORT pcrdr_msg *
 pcrdr_websocket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 /* TODO: make this as an inline function of pcrdr_socket_connect()

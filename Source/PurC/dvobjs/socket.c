@@ -1669,7 +1669,7 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error_free_url;
     }
 
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
@@ -1964,7 +1964,7 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error_free_url;
     }
 
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,

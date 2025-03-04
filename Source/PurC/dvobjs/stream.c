@@ -2038,12 +2038,13 @@ static
 struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
+    int fd = -1;
     int flags = (int)parse_open_option(option);
+
     if (flags == -1) {
         goto error;
     }
 
-    int fd = 0;
     if (flags & O_CREAT) {
         fd = open(url->path, flags, FILE_DEFAULT_MODE);
     }
@@ -2606,14 +2607,14 @@ purc_variant_t
 dvobjs_create_stream_from_fd(int fd, purc_variant_t option,
         const char *ext_prot, purc_variant_t extra_opts)
 {
-    static const struct purc_native_ops basic_ops = {
+    static struct purc_native_ops basic_ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
         .on_release = on_release,
     };
 
-    const struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
@@ -2783,14 +2784,14 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
         }
     }
 
-    static const struct purc_native_ops basic_ops = {
+    static struct purc_native_ops basic_ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
         .on_release = on_release,
     };
 
-    const struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
@@ -2919,7 +2920,8 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto error;
     }
-    ext_prot = purc_variant_get_string_const(argv[2]);
+    else if (nr_args > 2)
+        ext_prot = purc_variant_get_string_const(argv[2]);
 
     if (nr_args > 3 && !purc_variant_is_object(argv[3])) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
@@ -2961,7 +2963,7 @@ stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     struct pcdvobjs_stream *stream = purc_variant_native_get_entity(argv[0]);
-    const struct purc_native_ops* ops = purc_variant_native_get_ops(argv[0]);
+    struct purc_native_ops* ops = purc_variant_native_get_ops(argv[0]);
     PC_ASSERT(ops->property_getter);
     purc_nvariant_method closer = ops->property_getter(stream, _KW_close);
     return closer(stream, _KW_close, nr_args - 1, argv + 1, call_flags);
@@ -2975,7 +2977,7 @@ out:
 
 static bool add_stdio_property(purc_variant_t v)
 {
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
@@ -3075,14 +3077,14 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    static const struct purc_native_ops basic_ops = {
+    static struct purc_native_ops basic_ops = {
         .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
         .on_release = on_release,
     };
 
-    const struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
 

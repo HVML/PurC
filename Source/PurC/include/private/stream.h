@@ -85,7 +85,7 @@ struct stream_extended {
     char signature[4];
 
     struct stream_extended_data    *data;
-    const struct purc_native_ops   *super_ops;
+    struct purc_native_ops   *super_ops;
     union {
         struct stream_messaging_ops    *msg_ops;
         struct stream_hbdbus_ops       *bus_ops;
