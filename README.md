@@ -43,7 +43,7 @@ You can use PurC to run an HVML program or an HVML app by using the command line
 
 We release the PurC library under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
-This is version 0.9.20 of PurC.
+This is version 0.9.22 of PurC.
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -280,7 +280,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```bash
 $ purc -v error.hvml
-purc 0.9.20
+purc 0.9.22
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -312,7 +312,7 @@ Run `purc` to execute this HVML program with `-b` option, it will report the exe
 
 ```
 $ purc -v exception.hvml
-purc 0.9.20
+purc 0.9.22
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -470,7 +470,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.20
+purc 0.9.22
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -554,7 +554,7 @@ You can also try other samples which illustrate the features of the Foil rendere
 - `hvml/foil-progress.hvml`
 - `hvml/foil-meter.hvml`
 
-Note that in the current version (0.9.20), Foil is not fully functional.
+Note that in the current version (0.9.22), Foil is not fully functional.
 Shortly, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    so that you can get a similar experience to a web browser.
 
@@ -651,7 +651,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.9.20) - a standalone HVML interpreter/debugger based on PurC.
+purc (0.9.22) - a standalone HVML interpreter/debugger based on PurC.
 Copyright (C) 2022, 2023 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -674,12 +674,11 @@ The following options can be supplied to the command:
             - `remote`: use the remote data fetcher to support more URL schemas,
                such as `http`, `https`, `ftp` and so on.
 
-  -c --rdr-comm=< headless | thread | socket | websocket>
+  -c --rdr-comm=< headless | thread | socket>
         The renderer commnunication method; use `headless` (default), `thread`, or `socket`.
             - `headless`: use the built-in headless renderer.
             - `thread`: use the built-in thread-based renderer.
-            - `socket`: use the remote UNIX domain socket-based renderer;
-            - `websocket`: use the remote websocket-based renderer;
+            - `socket`: use the remote UNIX domain socket-based renderer or websocket-based renderer;
               `purc` will connect to the renderer via Unix Socket or WebSocket.
 
   -u --rdr-uri=< renderer_uri >
@@ -691,8 +690,6 @@ The following options can be supplied to the command:
               `foil` if Foil is enabled, otherwise `seeker`.
             - For the renderer comm method `socket`,
               the default value is `unix:///var/tmp/purcmc.sock`.
-            - For the renderer comm method `websocket`,
-              the default value is `ws://localhost:7702`.
 
   -j --request=< json_file | - >
         The JSON file contains the request data which will be passed to
@@ -879,12 +876,12 @@ There are many ways to contribute to PurC:
 ### Current Status
 
 This project was launched in June. 2021, and we opened this repo in July 2022.
-This is version 0.9.20 of PurC.
+This is version 0.9.22 of PurC.
 
 The main purpose of PurC is to provide a library for you to write your own HVML interpreter.
 The current version implements almost all features defined by [HVML Specification V1.0],
       and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
-We plan to release PurC version 1.0 in Dec. 2024.
+We plan to release PurC version 1.0 in Dec. 2025.
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
 
@@ -985,7 +982,7 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 
 ### PurC
 
-Copyright (C) 2021 ~ 2024 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1023,7 +1020,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The new source files developed by FMSoft are licensed under LGPLv3:
 
-Copyright (C) 2021 ~ 2024 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1040,7 +1037,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### DOMRuler
 
-Copyright (C) 2021 ~ 2024 FMSoft <https://www.fmsoft.cn>
+Copyright (C) 2021 ~ 2025 FMSoft <https://www.fmsoft.cn>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General License as published by
@@ -1075,7 +1072,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
 
-Copyright (C) 2022, 2024 [FMSoft Technologies]
+Copyright (C) 2022, 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1092,7 +1089,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc-fetcher
 
-Copyright (C) 2022, 2024 [FMSoft Technologies]
+Copyright (C) 2022, 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

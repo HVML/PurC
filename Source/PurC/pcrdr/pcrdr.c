@@ -363,21 +363,30 @@ connect_to_renderer(struct pcinst *inst,
             extra_info ? extra_info->renderer_uri : NULL,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
+#if 0
     else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
         // TODO: use pcrdr_socket_connect() instead.
         msg = pcrdr_local_socket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
-    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
-        // rdr_comm = PURC_RDRCOMM_THREAD;
-        msg = pcrdr_thread_connect(extra_info->renderer_uri,
-            inst->app_name, inst->runner_name, &conn_to_rdr);
-    }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         // TODO: use pcrdr_socket_connect() instead.
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+#else
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
+        // Since 0.9.22: merge support for local socket and web socket
+        // into pcrdr_socket_connect().
+        msg = pcrdr_socket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+#endif
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
+        // rdr_comm = PURC_RDRCOMM_THREAD;
+        msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else {
@@ -707,11 +716,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         msg = pcrdr_socket_connect(uri,
             inst->app_name, inst->runner_name, &n_conn_to_rdr);
     }
+    /* XXX: Removed since 0.9.22
     else if (strcasecmp(comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(uri,
             inst->app_name, inst->runner_name, &n_conn_to_rdr);
-    }
+    } */
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -998,9 +1008,10 @@ rdr_comm(struct pcrdr_conn *rdr)
         comm = PURC_RDRCOMM_NAME_HBDBUS;
         break;
 
+    /* XXX: Removed since 0.9.22
     case PURC_RDRCOMM_WEBSOCKET:
         comm = PURC_RDRCOMM_NAME_WEBSOCKET;
-        break;
+        break; */
     }
 
 out:
@@ -1130,11 +1141,12 @@ connect_to_renderer_async(struct pcinst *inst,
         msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
+    /* XXX: Removed since 0.9.22
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
-    }
+    } */
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);

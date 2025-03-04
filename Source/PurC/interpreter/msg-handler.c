@@ -686,9 +686,10 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
             extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
         }
+        /* XXX: Removed since 0.9.22
         else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
             extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
-        }
+        } */
         else {
             PC_WARN("Invalid '%s' comm.", s_comm);
             return;

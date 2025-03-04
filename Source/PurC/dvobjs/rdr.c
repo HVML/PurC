@@ -73,9 +73,10 @@ rdr_comm(struct pcrdr_conn *rdr)
         comm = PURC_RDRCOMM_NAME_HBDBUS;
         break;
 
+    /* XXX: Removed since 0.9.22
     case PURC_RDRCOMM_WEBSOCKET:
         comm = PURC_RDRCOMM_NAME_WEBSOCKET;
-        break;
+        break; */
     }
 
 out:
