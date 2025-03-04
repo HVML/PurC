@@ -1200,23 +1200,23 @@ recvfrom_getter(void *native_entity, const char *property_name,
             else {
                 tmp = purc_variant_make_string(hbuf, false);
                 purc_variant_object_set_by_static_ckey(retv,
-                        "source-addr", tmp);
+                        "sourceaddr", tmp);
                 purc_variant_unref(tmp);
 
                 tmp = purc_variant_make_longint(atol(sbuf));
                 purc_variant_object_set_by_static_ckey(retv,
-                        "source-port", tmp);
+                        "sourceport", tmp);
                 purc_variant_unref(tmp);
             }
         }
 
         if (flags & _O_NOSOURCE) {
             tmp = purc_variant_make_null();
-            purc_variant_object_set_by_static_ckey(retv, "source-addr", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "sourceaddr", tmp);
             purc_variant_unref(tmp);
 
             tmp = purc_variant_make_null();
-            purc_variant_object_set_by_static_ckey(retv, "source-port", tmp);
+            purc_variant_object_set_by_static_ckey(retv, "sourceport", tmp);
             purc_variant_unref(tmp);
         }
     }

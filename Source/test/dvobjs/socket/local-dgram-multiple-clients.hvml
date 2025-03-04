@@ -28,11 +28,11 @@
 
                 <choose on $dgramSocket.recvfrom('dontwait', 13) >
                     <inherit>
-                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved | $?.errorname | $?['source-addr']")
+                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved | $?.errorname | $?['sourceaddr']")
                     </inherit>
 
                     <test with $L.gt($?.recved, 0) >
-                        <init as 'clientName' with $STR.strstr($?['source-addr'], 'client') temp />
+                        <init as 'clientName' with $STR.strstr($?['sourceaddr'], 'client') temp />
 
                         <inherit>
                             $STREAM.stdout.writelines("Client name: $clientName")
