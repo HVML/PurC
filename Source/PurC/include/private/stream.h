@@ -68,13 +68,24 @@ enum stream_inet_socket_family {
 struct stream_messaging_ops {
     int (*send_message)(struct pcdvobjs_stream *stream,
             bool text_or_bin, const char *text, size_t len);
-    int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
-    void (*mark_closing)(struct pcdvobjs_stream *stream);
+    void (*shut_off)(struct pcdvobjs_stream *stream);
 
     /* the following operations can be overridden by extended layer */
     int (*on_message)(struct pcdvobjs_stream *stream, int type,
             char *msg, size_t len, int *owner_taken);
+    int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
     void (*cleanup)(struct pcdvobjs_stream *stream);
+
+    /* When runloop is not available, the creator of the stream entity
+       should call the following functions to give the chance of the stream
+       to read/write data from/to socket. */
+    bool (*on_readable)(int fd, int event, void *stream);
+    bool (*on_writable)(int fd, int event, void *stream);
+
+    /* When runloop is not available, the creator of the stream entity
+       should call the following function to give the chance of the stream
+       to ping the peer. */
+    void (*on_ping_timer)(void *, const char *, void *stream);
 };
 
 #define NATIVE_ENTITY_NAME_STREAM       "stream"
@@ -85,7 +96,7 @@ struct stream_extended {
     char signature[4];
 
     struct stream_extended_data    *data;
-    struct purc_native_ops   *super_ops;
+    struct purc_native_ops         *super_ops;
     union {
         struct stream_messaging_ops    *msg_ops;
         struct stream_hbdbus_ops       *bus_ops;

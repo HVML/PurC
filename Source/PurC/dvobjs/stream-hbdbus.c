@@ -2635,7 +2635,7 @@ done:
 
     if (ext->state == BS_UNCERTAIN) {
         // close the connection
-        call_super(stream, mark_closing, stream);
+        call_super(stream, shut_off, stream);
     }
 
     return 0;

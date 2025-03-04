@@ -753,7 +753,7 @@ static int us_notify_to_close(struct pcdvobjs_stream *stream)
     return 0;
 }
 
-static void mark_closing(struct pcdvobjs_stream *stream)
+static void shut_off(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     if (ext->sz_pending == 0) {
@@ -1107,7 +1107,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
     if (msg_ops) {
         msg_ops->send_message = send_message;
         msg_ops->on_error = on_error;
-        msg_ops->mark_closing = mark_closing;
+        msg_ops->shut_off = shut_off;
 
         msg_ops->on_message = on_message;
         msg_ops->cleanup = cleanup_extension;

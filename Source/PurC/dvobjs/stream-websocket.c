@@ -2515,7 +2515,7 @@ static inline int ws_pong_peer(struct pcdvobjs_stream *stream)
     return ws_send_ctrl_frame(stream, WS_OPCODE_PONG, NULL, 0);
 }
 
-static void mark_closing(struct pcdvobjs_stream *stream)
+static void shut_off(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     if (ext->sz_pending == 0) {
@@ -3218,7 +3218,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     if (msg_ops) {
         msg_ops->send_message = send_message;
         msg_ops->on_error = on_error;
-        msg_ops->mark_closing = mark_closing;
+        msg_ops->shut_off = shut_off;
 
         msg_ops->on_message = on_message;
         msg_ops->cleanup = cleanup_extension;
@@ -3258,7 +3258,11 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
-
+    }
+    else {
+        stream->ext0.msg_ops->on_readable = io_callback_for_read;
+        stream->ext0.msg_ops->on_writable = io_callback_for_write;
+        stream->ext0.msg_ops->on_ping_timer = on_ping_timer;
     }
 
     /* destroy rwstreams */

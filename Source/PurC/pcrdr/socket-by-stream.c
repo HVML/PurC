@@ -24,6 +24,9 @@
  */
 
 #include "config.h"
+
+#include "connect.h"
+
 #include "private/list.h"
 #include "private/debug.h"
 #include "private/utils.h"
@@ -31,7 +34,10 @@
 
 #include "purc-pcrdr.h"
 #include "purc-utils.h"
-#include "connect.h"
+#include "purc-runloop.h"
+
+#include <poll.h>
+#include <errno.h>
 
 #define SCHEMA_WEBSOCKET            "ws"
 #define SCHEMA_SECURE_WEBSOCKET     "wss"
@@ -53,6 +59,7 @@ struct pcrdr_prot_data {
     /* saved super operations */
     int (*on_message_super)(struct pcdvobjs_stream *stream, int type,
             char *msg, size_t len, int *owner_taken);
+    int (*on_error_super)(struct pcdvobjs_stream *stream, int errcode);
     void (*cleanup_super)(struct pcdvobjs_stream *stream);
 };
 
@@ -65,6 +72,7 @@ struct pcrdr_msg_hdr {
 
 static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 {
+#if 0
     fd_set rfds;
     struct timeval tv;
 
@@ -78,19 +86,85 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     }
 
     return select(conn->fd + 1, &rfds, NULL, NULL, NULL);
+#else
+     struct pollfd fds[] = {
+         { conn->fd, POLLIN | POLLHUP | POLLERR, 0 },
+         { conn->fd, POLLOUT | POLLERR, 0 },
+     };
+
+     int r = poll(fds, PCA_TABLESIZE(fds), timeout_ms < 0 ? -1 : timeout_ms);
+     if (r < 0) {
+         PC_ERROR("Failed poll(): %s\n", strerror(errno));
+         goto done;
+     }
+     else if (r == 0) {
+         goto done;
+     }
+
+     struct pcdvobjs_stream *stream = conn->prot_data->stream;
+     int events = 0;
+
+     if (fds[0].revents & POLLIN) {
+         events |= PCRUNLOOP_IO_IN;
+     }
+     if (fds[0].revents & POLLHUP) {
+         events |= PCRUNLOOP_IO_HUP;
+     }
+     if (fds[0].revents & POLLERR) {
+         events |= PCRUNLOOP_IO_ERR;
+     }
+
+     bool ret_read, ret_write;
+     ret_read = stream->ext0.msg_ops->on_readable(conn->fd, events, stream);
+
+     events = 0;
+     if (fds[1].revents & POLLOUT) {
+         events |= PCRUNLOOP_IO_OUT;
+     }
+     if (fds[1].revents & POLLERR) {
+         events |= PCRUNLOOP_IO_ERR;
+     }
+
+     ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events, stream);
+
+     if (!ret_read || !ret_write)
+         return -1;
+
+done:
+     return r;
+#endif
+}
+
+static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
+{
+    int total_wait = 0;;
+    pcrdr_msg *msg = NULL;
+
+    while (list_empty(&conn->prot_data->msgs)) {
+        if (my_wait_message(conn, conn->timeout_ms))
+            goto error;
+
+        if (max_wait > 0) {
+            total_wait += conn->timeout_ms;
+            if (max_wait > total_wait) {
+                purc_set_error(PCRDR_ERROR_TIMEOUT);
+                goto error;
+            }
+        }
+    }
+
+    struct pcrdr_msg_hdr *hdr;
+    hdr = list_first_entry(&conn->prot_data->msgs, struct pcrdr_msg_hdr, ln);
+    msg = (pcrdr_msg *)hdr;
+    list_del(&hdr->ln);
+
+error:
+    return msg;
 }
 
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 {
-    if (list_empty(&conn->prot_data->msgs))
-        return NULL;
-
-    struct pcrdr_msg_hdr *hdr;
-    hdr = list_first_entry(&conn->prot_data->msgs, struct pcrdr_msg_hdr, ln);
-    pcrdr_msg *msg = (pcrdr_msg *)hdr;
-    list_del(&hdr->ln);
-
-    return msg;
+    return my_read_message_timeout(conn, 0);
 }
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
@@ -127,12 +201,15 @@ done:
 
 static int my_ping_peer(pcrdr_conn* conn)
 {
-    (void)conn;
+    struct pcdvobjs_stream *stream = conn->prot_data->stream;
+    stream->ext0.msg_ops->on_ping_timer(NULL, NULL, stream);
     return 0;
 }
 
 static int my_disconnect(pcrdr_conn* conn)
 {
+    struct pcdvobjs_stream *stream = conn->prot_data->stream;
+    stream->ext0.msg_ops->shut_off(stream);
     purc_variant_unref(conn->prot_data->dvobj);
     return 0;
 }
@@ -156,6 +233,17 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     list_add_tail(&hdr->ln, &conn->prot_data->msgs);
     return 0;
+}
+
+static int on_error(struct pcdvobjs_stream *stream, int errcode)
+{
+    pcrdr_conn *conn = (pcrdr_conn *)stream->ext1.data;
+    assert(conn);
+
+    PC_ERROR("%s: Got an error: %d\n", __func__, errcode);
+
+    /* call the method of Layer 0. */
+    return conn->prot_data->on_error_super(stream, errcode);
 }
 
 static void cleanup_extension(struct pcdvobjs_stream *stream)
@@ -185,12 +273,30 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
     free(conn);
 }
 
+static void on_release_stream_vrt(void *entity)
+{
+    struct pcdvobjs_stream *stream = entity;
+    struct purc_native_ops *super_ops = stream->ext1.super_ops;
+
+    cleanup_extension(stream);
+    if (super_ops->on_release) {
+        return super_ops->on_release(entity);
+    }
+}
+
+static struct purc_native_ops purcmc_ops = {
+    .property_getter = NULL,
+    .on_observe = NULL,
+    .on_forget = NULL,
+    .on_release = on_release_stream_vrt,
+};
+
 pcrdr_msg *
 pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
-    struct purc_broken_down_url *bdurl = NULL;
     pcrdr_msg *msg = NULL;
+    struct purc_broken_down_url *bdurl = NULL;
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
@@ -314,7 +420,7 @@ pcrdr_socket_connect(const char* renderer_uri,
     list_head_init(&prot_data->msgs);
 
     struct purc_native_ops *super_ops;
-    super_ops = purc_variant_native_get_ops(stream_vrt);
+    super_ops = purc_variant_native_set_ops(stream_vrt, &purcmc_ops);
 
     assert(stream->ext0.data);
     assert(stream->ext0.msg_ops);
@@ -325,14 +431,17 @@ pcrdr_socket_connect(const char* renderer_uri,
     stream->ext1.super_ops = super_ops;
     stream->ext1.bus_ops = NULL;
 
-    /* override the `on_message` method of Layer 0 */
+    /* override the some methods of Layer 0 */
     prot_data->on_message_super = stream->ext0.msg_ops->on_message;
     stream->ext0.msg_ops->on_message = on_message;
+    prot_data->on_error_super = stream->ext0.msg_ops->on_error;
+    stream->ext0.msg_ops->on_error = on_error;
     prot_data->cleanup_super = stream->ext0.msg_ops->cleanup;
     stream->ext0.msg_ops->cleanup = cleanup_extension;
 
     (*conn)->prot = PURC_RDRCOMM_SOCKET;
-    (*conn)->type = CT_WEB_SOCKET;
+    (*conn)->type = stream->type == STREAM_TYPE_INET ? CT_INET_SOCKET :
+        CT_UNIX_SOCKET;
     (*conn)->fd = stream->fd4r;
     (*conn)->timeout_ms = 10;   /* 10 milliseconds */
     (*conn)->srv_host_name = strdup(stream->peer_addr);
@@ -349,6 +458,11 @@ pcrdr_socket_connect(const char* renderer_uri,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init(&(*conn)->pending_requests);
+
+    /* Got the initial message from the renderer */
+    msg = my_read_message_timeout(*conn, 5000);  /* five seconds */
+    if (msg)
+        return msg;
 
 failed:
     if (url && url != renderer_uri)
