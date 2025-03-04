@@ -807,8 +807,6 @@ purc_variant_is_false(purc_variant_t v)
     return false;
 }
 
-#define MAX_NUMBER_STRING       64
-
 bool
 purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
 {
@@ -905,6 +903,27 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_int32(bytes, sz, i32) != 0) {
+                *i32 = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -922,6 +941,25 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as an integer */
+#if 1
+            if (sz >= sizeof(int32_t)) {
+                memcpy(i32, bytes, sizeof(int32_t));
+            }
+            else if (sz >= sizeof(int16_t)) {
+                int16_t i16;
+                memcpy(&i16, bytes, sizeof(int16_t));
+                *i32 = i16;
+            }
+            else if (sz >= sizeof(int8_t)) {
+                int8_t i8 = *(int8_t *)bytes;
+                *i32 = i8;
+            }
+            else {
+                *i32 = 0;
+            }
+#else
+#define MAX_NUMBER_STRING       64
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -930,10 +968,8 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_int32(bytes, sz, i32) != 0) {
-                    *i32 = 0;
-                }
             }
+#endif
             return true;
 
         default:
@@ -1039,6 +1075,27 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_uint32(bytes, sz, u32) != 0) {
+                *u32 = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -1056,6 +1113,24 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as an integer */
+#if 1
+            if (sz >= sizeof(uint32_t)) {
+                memcpy(u32, bytes, sizeof(uint32_t));
+            }
+            else if (sz >= sizeof(uint16_t)) {
+                uint16_t u16;
+                memcpy(&u16, bytes, sizeof(uint16_t));
+                *u32 = u16;
+            }
+            else if (sz >= sizeof(uint8_t)) {
+                uint8_t u8 = *(uint8_t *)bytes;
+                *u32 = u8;
+            }
+            else {
+                *u32 = 0;
+            }
+#else
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -1064,10 +1139,8 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_uint32(bytes, sz, u32) != 0) {
-                    *u32 = 0;
-                }
             }
+#endif
             return true;
 
         default:
@@ -1170,6 +1243,27 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_int64(bytes, sz, i64) != 0) {
+                *i64 = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -1187,6 +1281,29 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as an integer */
+#if 1
+            if (sz >= sizeof(int64_t)) {
+                memcpy(i64, bytes, sizeof(int64_t));
+            }
+            else if (sz >= sizeof(int32_t)) {
+                int32_t i32;
+                memcpy(&i32, bytes, sizeof(int32_t));
+                *i64 = i32;
+            }
+            else if (sz >= sizeof(int16_t)) {
+                int16_t i16;
+                memcpy(&i16, bytes, sizeof(int16_t));
+                *i64 = i16;
+            }
+            else if (sz >= sizeof(int8_t)) {
+                int8_t i8 = *(int8_t *)bytes;
+                *i64 = i8;
+            }
+            else {
+                *i64 = 0;
+            }
+#else
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -1195,10 +1312,8 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_int64(bytes, sz, i64) != 0) {
-                    *i64 = 0;
-                }
             }
+#endif
             return true;
 
         default:
@@ -1297,6 +1412,27 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_uint64(bytes, sz, u64) != 0) {
+                *u64 = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -1314,6 +1450,29 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as an integer */
+#if 1
+            if (sz >= sizeof(uint64_t)) {
+                memcpy(u64, bytes, sizeof(uint64_t));
+            }
+            else if (sz >= sizeof(uint32_t)) {
+                uint32_t u32;
+                memcpy(&u32, bytes, sizeof(uint32_t));
+                *u64 = u32;
+            }
+            else if (sz >= sizeof(uint16_t)) {
+                uint16_t u16;
+                memcpy(&u16, bytes, sizeof(uint16_t));
+                *u64 = u16;
+            }
+            else if (sz >= sizeof(uint8_t)) {
+                uint8_t u8 = *(uint8_t *)bytes;
+                *u64 = u8;
+            }
+            else {
+                *u64 = 0;
+            }
+#else
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -1322,10 +1481,8 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_uint64(bytes, sz, u64) != 0) {
-                    *u64 = 0;
-                }
             }
+#endif
             return true;
 
         default:
@@ -1385,6 +1542,27 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_double(bytes, sz, d) != 0) {
+                *d = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -1402,6 +1580,20 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as a float number */
+#if 1
+            if (sz >= sizeof(double)) {
+                memcpy(d, bytes, sizeof(double));
+            }
+            else if (sz >= sizeof(float)) {
+                float f;
+                memcpy(&f, bytes, sizeof(float));
+                *d = f;
+            }
+            else {
+                *d = 0;
+            }
+#else
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -1410,10 +1602,8 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_double(bytes, sz, d) != 0) {
-                    *d = 0;
-                }
             }
+#endif
             return true;
 
         default:
@@ -1475,6 +1665,27 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
             return true;
 
         case PURC_VARIANT_TYPE_STRING:
+            if (!force)
+                break;
+
+            if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+
+            if (pcutils_parse_long_double(bytes, sz, d) != 0) {
+                *d = 0;
+            }
+            return true;
+
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (!force)
                 break;
@@ -1492,6 +1703,25 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
                 sz = v->size;
             }
 
+            /* Since 0.9.22: treat the bytes as a float number */
+#if 1
+            if (sz >= sizeof(long double)) {
+                memcpy(d, bytes, sizeof(long double));
+            }
+            else if (sz >= sizeof(double)) {
+                double f;
+                memcpy(&f, bytes, sizeof(double));
+                *d = f;
+            }
+            else if (sz >= sizeof(float)) {
+                float f;
+                memcpy(&f, bytes, sizeof(float));
+                *d = f;
+            }
+            else {
+                *d = 0;
+            }
+#else
             {
                 char buf[MAX_NUMBER_STRING] = { 0 };
 
@@ -1500,10 +1730,8 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
                     memcpy(buf, bytes, sz);
                     bytes = buf;
                 }
-                if (pcutils_parse_long_double(bytes, sz, d) != 0) {
-                    *d = 0;
-                }
             }
+#endif
             return true;
 
         default:
