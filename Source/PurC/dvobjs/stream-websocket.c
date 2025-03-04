@@ -2486,7 +2486,7 @@ io_callback_for_write(int fd, int event, void *ctxt)
 
     if (event & PCRUNLOOP_IO_ERR) {
         PC_ERROR("Got error event on fd (%d).\n", fd);
-        stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
+        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_IO_FAILURE);
         cleanup_extension(stream);
         return false;
     }
@@ -2746,20 +2746,22 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
 {
     int retv = 0;
     struct stream_extended_data *ext = stream->ext0.data;
-
     purc_atom_t target = ext->event_cids[K_EVENT_TYPE_MESSAGE];
     purc_variant_t data = PURC_VARIANT_INVALID;
-    const char *event = EVENT_TYPE_MESSAGE;
+    const char *event = NULL;
+
     switch (type) {
         case MT_TEXT:
             // fire a `message` event
             data = purc_variant_make_string_reuse_buff(buf, len + 1, false);
+            event = EVENT_TYPE_MESSAGE;
             *owner_taken = 1;
             break;
 
         case MT_BINARY:
             // fire a `message` event
             data = purc_variant_make_byte_sequence_reuse_buff(buf, len, len);
+            event = EVENT_TYPE_MESSAGE;
             *owner_taken = 1;
             break;
 
@@ -2778,14 +2780,15 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
             break;
     }
 
-    if (data) {
+    if (event) {
         PC_DEBUG("Fire event: `%s`\n", event);
         if (target)
             pcintr_coroutine_post_event(target,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     event, NULL,
                     data, PURC_VARIANT_INVALID);
-        purc_variant_unref(data);
+        if (data)
+            purc_variant_unref(data);
     }
 
     return retv;
