@@ -1404,3 +1404,44 @@ positive:
     $RUNNER.logmsg('This is a log message (info level).')
     true
 
+positive:
+    $STR.explode('beijing:shanghai:guangzhou', ':')
+    ['beijing', 'shanghai', 'guangzhou']
+
+positive:
+    $STR.explode('1, 2, 3, ', ', ')
+    ['1', '2', '3', '']
+
+positive:
+    $STR.explode('汉字')
+    ['汉', '字']
+
+positive:
+    $STR.explode('中华人民共和国', '', 2)
+    ['中', '华']
+
+positive:
+    $STR.explode('中华人民共和国', '', -5)
+    ['中', '华']
+
+positive:
+    $STR.explode(', , , ', ', ')
+    ['', '', '', '']
+
+positive:
+    $STR.explode('汉字', '\n\n')
+    ['汉字']
+
+positive:
+    $STR.explode('汉\n\n字', '\n\n')
+    ['汉', '字']
+
+positive:
+    $STR.explode('中华\n\n人民\n\n共和国', '\n\n', 4)
+    ['中华', '人民', '共和国']
+
+positive:
+    $STR.explode('中华\n\n人民\n\n共和国', '\n\n', -2)
+    ['中华']
+
+

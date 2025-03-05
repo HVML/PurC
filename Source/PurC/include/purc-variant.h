@@ -389,10 +389,10 @@ purc_variant_string_bytes(purc_variant_t value, size_t *length);
  *
  * @value: A string, an atom, or an exception variant.
  *
- * Gets the length of the string contained in the specified variant
+ * Get the length of the string contained in the specified variant
  * if the variant represents a string, an atom, or an exception variant.
  *
- * Returns: The length in bytes (not including the terminating null byte)
+ * Returns: The length in bytes (including the terminating null byte)
  *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the value
  *  is not a string, an atom, or an exception variant.
  *
