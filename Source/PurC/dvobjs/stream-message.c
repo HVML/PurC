@@ -954,6 +954,8 @@ static int on_error(struct pcdvobjs_stream *stream, int errcode)
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_ERROR, NULL,
                 data, PURC_VARIANT_INVALID);
+
+        purc_variant_unref(data);
     }
 
 done:
