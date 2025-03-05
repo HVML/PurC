@@ -682,7 +682,7 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             nr_max = INT64_MAX;
         }
         else if (limit > 0) {
-            nr_max = limit;
+            nr_max = limit - 1;
         }
         else {
             size_t nr_chars;
@@ -704,7 +704,7 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             n++;
         }
 
-        if (limit == 0 && *p) {
+        if (limit >= 0 && *p) {
             purc_variant_t tmp;
             tmp = purc_variant_make_string(p, false);
             purc_variant_array_append(ret_var, tmp);
@@ -724,7 +724,7 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             nr_max = INT64_MAX;
         }
         else if (limit > 0) {
-            nr_max = limit;
+            nr_max = limit - 1;
         }
         else {
             size_t nr_segments;
