@@ -1444,4 +1444,19 @@ positive:
     $STR.explode('中华\n\n人民\n\n共和国', '\n\n', -2)
     ['中华']
 
+positive:
+    $STR.implode(['beijing', 'shanghai', 'guangzhou'], ', ')
+    'beijing, shanghai, guangzhou'
+
+positive:
+    $STR.implode([1, 2, 3, ''], ', ')
+    '1, 2, 3, '
+
+positive:
+    $STR.implode(["root", 'x', 0, 0, 'root', "/root", "/bin/bash"], ':')
+    'root:x:0:0:root:/root:/bin/bash'
+
+positive:
+    $STR.implode(['汉', '字'])
+    '汉字'
 

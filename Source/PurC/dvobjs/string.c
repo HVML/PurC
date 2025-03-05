@@ -642,25 +642,24 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((nr_args < 1)) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
 
     if (!purc_variant_is_string(argv[0])) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
 
     const char *seperator = "";
     size_t sep_len = 0;
     if (nr_args > 1 && !purc_variant_is_string (argv[1])) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
     else if (nr_args > 1) {
         seperator = purc_variant_get_string_const_ex(argv[1], &sep_len);
@@ -670,10 +669,10 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 2 &&
             !purc_variant_cast_to_longint(argv[2], &limit, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto error;
     }
 
-    ret_var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    ret_var = purc_variant_make_array_0();
 
     const char *source = purc_variant_get_string_const(argv[0]);
     if (sep_len == 0) {
@@ -777,95 +776,73 @@ explode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 done:
     return ret_var;
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_array_0();
+    return PURC_VARIANT_INVALID;
 }
 
 
 static purc_variant_t
-implode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+implode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    const char *delimiter = NULL;
-    size_t delimiter_len = 0;
     size_t array_size = 0;
-    size_t i = 0;
 
-    if ((argv == NULL) || (nr_args < 2)) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
     }
 
-    // argv[1] must be linear container
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            !purc_variant_linear_container_size (argv[1], &array_size)) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (!purc_variant_linear_container_size(argv[0], &array_size)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
     }
 
     if (array_size == 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
     }
 
-    // delimiter can be null
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
+    // seperator can be null
+    const char *seperator = "";
+    size_t sep_len = 0;
+    if (nr_args > 1 && !purc_variant_is_string(argv[1])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
     }
-    else {
-        delimiter = purc_variant_get_string_const (argv[0]);
-        purc_variant_string_bytes (argv[0], &delimiter_len);
+    else if (nr_args > 1) {
+        seperator = purc_variant_get_string_const_ex(argv[1], &sep_len);
     }
 
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t total_size = 0;
-    size_t string_size = 0;
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+    for (size_t i = 0; i < array_size; i++) {
+        purc_variant_t tmp;
+        tmp = purc_variant_linear_container_get(argv[0], i);
+        purc_variant_stringify(rwstream, tmp,
+                PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS, NULL);
 
-    for (i = 0; i < array_size; i++) {
-        val = purc_variant_linear_container_get (argv[1], i);
-        if (!purc_variant_is_string (val))
-            continue;
-
-        purc_variant_string_bytes (val, &string_size);
-        if (string_size == 1)
-            continue;
-
-        total_size += (string_size - 1);
-        if (total_size > STREAM_SIZE - 1) {
-            total_size -= (string_size - 1);
-            break;
-        }
-        purc_rwstream_write (rwstream,
-                purc_variant_get_string_const(val), string_size - 1);
-
-        if (i != array_size - 1) {
-            if (delimiter_len > 1) {
-                total_size += (delimiter_len - 1);
-                if (total_size > STREAM_SIZE - 1) {
-                    total_size -= (string_size - 1);
-                    break;
-                }
-                purc_rwstream_write (rwstream, delimiter, delimiter_len - 1);
-            }
+        if (i != array_size - 1 && sep_len > 0) {
+            purc_rwstream_write(rwstream, seperator, sep_len);
         }
     }
-    purc_rwstream_write (rwstream, "\0", 1);
+    purc_rwstream_write(rwstream, "\0", 1);
 
-    size_t rw_size = 0;
-    const char *rw_string = purc_rwstream_get_mem_buffer (rwstream, &rw_size);
+    size_t sz_content, sz_rwbuf;
+    char *rw_string;
+    rw_string = purc_rwstream_get_mem_buffer_ex(rwstream, &sz_content,
+            &sz_rwbuf, true);
+    purc_rwstream_destroy(rwstream);
 
-    if ((rw_size == 0) || (rw_string == NULL))
-        ret_var = PURC_VARIANT_INVALID;
-    else {
-        ret_var = purc_variant_make_string (rw_string, false);
-    }
+    return purc_variant_make_string_reuse_buff(rw_string, sz_rwbuf, false);
 
-    purc_rwstream_destroy (rwstream);
-
-    return ret_var;
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_string_static("", false);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t

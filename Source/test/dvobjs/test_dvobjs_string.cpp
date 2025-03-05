@@ -1706,6 +1706,7 @@ TEST(dvobjs, dvobjs_string_nr_chars)
     purc_cleanup ();
 }
 
+#if 0 // Obsolete since 0.9.22
 TEST(dvobjs, dvobjs_string_implode)
 {
     const char *function[] = {"implode"};
@@ -1869,6 +1870,7 @@ TEST(dvobjs, dvobjs_string_implode)
     purc_variant_unref(string);
     purc_cleanup ();
 }
+#endif // Obsolete since 0.9.22
 
 TEST(dvobjs, dvobjs_string_substr)
 {
