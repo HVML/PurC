@@ -18,7 +18,7 @@
         <include with $logMsg on 'The server is running...' />
 
         <init as 'msgSettings' with {} />
-        <test with $STR.contains($REQ.client, 'ltnr') >
+        <test with {{ $STR.contains($REQ.client, 'shorthello') || $STR.contains($REQ.client, 'ltnr') }} >
             <update on $msgSettings to 'merge'>
                 {
                     'noresptimetoping': 3,
@@ -114,13 +114,14 @@
 
     </body>
 
-    <!-- a raw client -->
-    <body id="raw">
+    <!-- a raw client say short hello -->
+    <body id="shorthello">
 
         <include with $logMsg on 'Client is running...' />
 
-        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/html-test-server', 'default') >
+        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default') >
             <catch for `ANY`>
+                <include with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
@@ -128,6 +129,54 @@
 
             <inherit>
                 $cliStreamSocket.writelines('Hello')
+
+                <include with $logMsg on 'Client has wrotten a line to the server.' />
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling stream.writelines()" />
+                </catch>
+            </inherit>
+
+            <include with $logMsg on 'Client try to read one line from the server.' />
+
+            <choose on $cliStreamSocket.readlines(1) >
+
+                <include with $logMsg on 'Client has got one line from the server and going to exit:' />
+                <include with $logMsg on $?[0] />
+
+                <choose on $cliStreamSocket.close() >
+                    <catch for `ANY`>
+                        <exit with "Client failed with $?.name when calling stream.close()" />
+                    </catch>
+                </choose>
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling stream.readlines()" />
+                </catch>
+
+                <exit with 'Bye' />
+
+            </choose>
+
+        </init>
+
+    </body>
+
+    <!-- a raw client say long hello -->
+    <body id="longhello">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default') >
+            <catch for `ANY`>
+                <include with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+            <inherit>
+                $cliStreamSocket.writelines('Hello from a client say long hello')
 
                 <include with $logMsg on 'Client has wrotten a line to the server.' />
 
@@ -188,18 +237,12 @@
 
         <include with $logMsg on 'Client is running...' />
 
-        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/html-test-server', 'default', 'message', { secure: true } ) >
+        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default', 'message', { secure: true } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
             <include with $logMsg on 'Client has connected to the server.' />
-
-        </init>
-
-        <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDKSHAKE event' />
-            <include with $logMsg on $DATA.serialize($?) />
 
             <include with $logMsg on 'Client is going to send a large message.' />
 
@@ -212,6 +255,11 @@
                     <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
                 </catch>
             </inherit>
+        </init>
+
+        <observe on $cliStreamSocket for 'handshake'>
+            <include with $logMsg on 'Client got HANDKSHAKE event' />
+            <include with $logMsg on $DATA.serialize($?) />
         </observe>
 
         <observe on $cliStreamSocket for 'message'>
@@ -226,12 +274,28 @@
                  }}
 
                 <catch for `ANY`>
-                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.send()" />
                 </catch>
             </inherit>
 
         </observe>
 
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <exit with 'Bye' />
+        </observe>
+
         <observe on $cliStreamSocket for 'close'>
+            <include with $logMsg on 'Client got CLOSE event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <exit with 'Bye' />
+        </observe>
 </hvml>
 

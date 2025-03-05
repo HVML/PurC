@@ -23,6 +23,8 @@
  */
 
 #define _GNU_SOURCE
+#undef NDEBUG /* TODO: Remove this before merging to main branch. */
+
 #include "config.h"
 #include "stream.h"
 
@@ -48,7 +50,7 @@
 
 #define MIN_FRAME_PAYLOAD_SIZE      (1024 * 1)
 #define DEF_FRAME_PAYLOAD_SIZE      (1024 * 4)
-#define MIN_INMEM_MESSAGE_SIZE      (1024 * 16)
+#define MIN_INMEM_MESSAGE_SIZE      (1024 * 8)
 #define DEF_INMEM_MESSAGE_SIZE      (1024 * 64)
 #define MIN_NO_RESPONSE_TIME_TO_PING        3
 #define DEF_NO_RESPONSE_TIME_TO_PING        30
@@ -427,6 +429,10 @@ again:
             return 0;
         }
     }
+    else if (bytes == 0) {
+        /* no data, peer has been closed */
+        bytes = -1;
+    }
 
     return bytes;
 }
@@ -450,6 +456,7 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
     n = us_read_socket(stream, buf + ext->sz_read_header,
             ext->sz_header - ext->sz_read_header);
     if (n > 0) {
+        PC_DEBUG("Got %zd bytes from Unix socket\n", n);
         ext->sz_read_header += n;
         if (ext->sz_read_header == ext->sz_header) {
             ext->sz_read_header = 0;
@@ -464,7 +471,6 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
         return READ_ERROR;
     }
     else {
-        /* no data */
         ext->status |= US_READING;
         return READ_NONE;
     }
@@ -499,7 +505,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         if (n > 0) {
             ext->sz_read_payload += n;
 
-            PC_INFO("Read payload: %u/%u; message (%u/%u)\n",
+            PC_DEBUG("Read payload: %u/%u; message (%u/%u)\n",
                     (unsigned)ext->sz_read_payload,
                     (unsigned)ext->header.sz_payload,
                     (unsigned)ext->sz_read_message,
@@ -562,7 +568,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                 goto failed;
             }
 
-            PC_INFO("Got a frame header: %d\n", ext->header.op);
+            PC_DEBUG("Got a frame header: %d\n", ext->header.op);
             switch (ext->header.op) {
             case US_OPCODE_PING:
                 ext->msg_type = MT_PING;
@@ -637,7 +643,7 @@ us_handle_reads(int fd, int event, void *ctxt)
         else if (ext->status & US_WAITING4PAYLOAD) {
 
             retv = try_to_read_payload(stream);
-            PC_INFO("Got a new payload: %d\n", retv);
+            PC_DEBUG("Got a new payload: %d\n", retv);
             if (retv == READ_WHOLE) {
                 ext->status &= ~US_WAITING4PAYLOAD;
 
@@ -645,7 +651,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                     if (ext->msg_type == MT_TEXT) {
                         ext->message[ext->sz_message] = 0;
                         ext->sz_message++;
-                        PC_INFO("Got a text payload: %s\n", ext->message);
+                        PC_DEBUG("Got a text payload: %s\n", ext->message);
                     }
 
                     int owner_taken = 0;
@@ -1079,12 +1085,10 @@ failed:
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
-    (void)entity;
+    struct pcdvobjs_stream *stream = entity;
     purc_nvariant_method method = NULL;
 
-    if (name == NULL) {
-        goto failed;
-    }
+    assert(name);
 
     if (strcmp(name, "send") == 0) {
         method = send_getter;
@@ -1093,7 +1097,12 @@ property_getter(void *entity, const char *name)
         method = close_getter;
     }
     else {
-        goto failed;
+        struct purc_native_ops *super_ops = stream->ext0.super_ops;
+        if (super_ops->property_getter)
+            method = super_ops->property_getter(entity, name);
+
+        if (method == NULL)
+            goto failed;
     }
 
     /* override the getters of parent */
@@ -1353,7 +1362,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
 
     us_start_ping_timer(stream);
 
-    PC_INFO("This socket is extended by Layer 0 protocol: message\n");
+    PC_DEBUG("This socket is extended by Layer 0 protocol: message\n");
     return &msg_entity_ops;
 
 failed:

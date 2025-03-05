@@ -23,6 +23,8 @@
  */
 
 #define _GNU_SOURCE
+#undef NDEBUG /* TODO: Remove this before merging to main branch. */
+
 #include "config.h"
 #include "stream.h"
 #include "helper.h"

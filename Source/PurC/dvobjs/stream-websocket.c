@@ -122,7 +122,7 @@
 
 #define MIN_FRAME_PAYLOAD_SIZE      (1024 * 1)
 #define DEF_FRAME_PAYLOAD_SIZE      (1024 * 4)
-#define MIN_INMEM_MESSAGE_SIZE      (1024 * 16)
+#define MIN_INMEM_MESSAGE_SIZE      (1024 * 8)
 #define DEF_INMEM_MESSAGE_SIZE      (1024 * 64)
 #define MIN_NO_RESPONSE_TIME_TO_PING        3
 #define DEF_NO_RESPONSE_TIME_TO_PING        30

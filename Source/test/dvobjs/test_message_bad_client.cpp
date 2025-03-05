@@ -31,7 +31,7 @@
 #include <gtest/gtest.h>
 
 /* using load within */
-TEST(message, plain_server_raw_client)
+TEST(message, plain_server_shorthello_client)
 {
     PurCInstance purc(false);
 
@@ -41,7 +41,7 @@ TEST(message, plain_server_raw_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/local-message-bad-client.hvml", "client=raw");
+    run_one_comp_test("dvobjs/socket/local-message-bad-client.hvml", "client=shorthello");
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -88,6 +88,29 @@ TEST(message, plain_server_tlmsg_client)
     assert(client_inst != 0);
 
     run_one_comp_test("dvobjs/socket/local-message-bad-client.hvml", "client=tlmsg");
+
+    purc_inst_ask_to_shutdown(client_inst);
+
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(client_inst)) {
+        purc_log_info("Wait for termination of client instance...\n");
+        sleep(1);
+        seconds++;
+        ASSERT_LT(seconds, 10);
+    }
+}
+
+TEST(message, plain_server_longhello_client)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    purc_atom_t client_inst = purc_inst_create_or_get(APP_NAME,
+            "client", client_cond_handler, NULL);
+    assert(client_inst != 0);
+
+    run_one_comp_test("dvobjs/socket/local-message-bad-client.hvml", "client=longhello");
 
     purc_inst_ask_to_shutdown(client_inst);
 
