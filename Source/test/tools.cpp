@@ -192,7 +192,6 @@ int client_cond_handler(purc_cond_k event, void *arg, void *data)
         assert(strncmp(run_name, "client", 6) == 0);
     }
     else if (event == PURC_COND_SHUTDOWN_ASKED) {
-        return 0;
     }
     else if (event == PURC_COND_COR_TERMINATED) {
         purc_coroutine_t cor = (purc_coroutine_t)arg;
@@ -209,17 +208,25 @@ int client_cond_handler(purc_cond_k event, void *arg, void *data)
         purc_coroutine_dump_stack(cor, dump_stm);
         fprintf(stdout, "\n");
         purc_rwstream_destroy(dump_stm);
-        return 0;
     }
 
     return 0;
 }
 
+void (*after_first_run)(purc_coroutine_t cor,
+        struct purc_cor_run_info *info);
+
 static int
 comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
-    if (event == PURC_COND_COR_EXITED) {
+    if (event == PURC_COND_COR_ONE_RUN) {
+        struct purc_cor_run_info *info = (struct purc_cor_run_info *)data;
+        if (info->run_idx == 0 && after_first_run) {
+            after_first_run(cor, info);
+        }
+    }
+    else if (event == PURC_COND_COR_EXITED) {
         void *user_data = purc_coroutine_get_user_data(cor);
         if (!user_data) {
             return -1;

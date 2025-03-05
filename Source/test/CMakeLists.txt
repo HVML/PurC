@@ -19,6 +19,7 @@ add_subdirectory(externals)
 add_subdirectory(document)
 add_subdirectory(fetcher)
 add_subdirectory(wtf)
+add_subdirectory(renderer)
 
 PURC_COPY_FILES(TEST_Script
     DESTINATION ${CMAKE_BINARY_DIR}/
