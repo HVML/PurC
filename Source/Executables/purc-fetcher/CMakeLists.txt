@@ -20,7 +20,10 @@ set_target_properties(purcfetcher PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-set_target_properties(purcfetcher PROPERTIES OUTPUT_NAME "purc-fetcher")
+set_target_properties(purcfetcher
+    PROPERTIES OUTPUT_NAME "purc-fetcher"
+    INSTALL_RPATH "${LIB_INSTALL_DIR}/"
+)
 
 PURC_COMPUTE_SOURCES(purcfetcher)
 PURC_FRAMEWORK(purcfetcher)
