@@ -2117,7 +2117,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     }
 
     if (!purc_variant_is_type (dvobj, PURC_VARIANT_TYPE_OBJECT)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return false;
     }
 
@@ -2125,12 +2125,12 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
             EXOBJ_LOAD_HANDLE_KEY);
     if (val == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return false;
     }
 
     if (!purc_variant_cast_to_ulongint (val, &u64, false)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return false;
     }
 
@@ -2138,11 +2138,12 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     if (u64) {
         purc_variant_unref (dvobj);
         if (dlclose((void *)u64) != 0) {
+            PC_ERROR("Failed dlclose(): %s\n", strerror(errno));
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             ret = false;
         }
     } else {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         ret = false;
     }
 #else
