@@ -321,6 +321,14 @@ positive:
     11UL
 
 positive:
+    $STR.nr_bytes("JavaScript", true)
+    11UL
+
+positive:
+    $STR.nr_bytes("JavaScript", false)
+    10UL
+
+positive:
     $STR.nr_bytes( bb )
     0UL
 
