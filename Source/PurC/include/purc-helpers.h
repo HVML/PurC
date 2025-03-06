@@ -657,6 +657,38 @@ purc_log_error(const char *msg, ...)
 PCA_EXPORT purc_variant_t
 purc_make_object_from_query_string(const char *query, bool rfc1738);
 
+/**
+ * Encode a string for URL query which conforms to RFC 1738
+ * or RFC 3986.
+ *
+ * @param query: The pointer to a null-terminated string.
+ * @param rfc1738: Use RFC 1738 ('+' for space) or RFC 3986;
+ *       %true for RFC 1738.
+ *
+ * Returns: A pointer to a new encoded string. Note that the caller should
+ *  free the string by calling `free()`.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT char *
+purc_url_encode_alloc(const char *string, bool rfc1738);
+
+/**
+ * Decode a URL-encoded string which conforms to RFC 1738
+ * or RFC 3986.
+ *
+ * @param query: The pointer to a null-terminated URL-encoded string.
+ * @param rfc1738: Use RFC 1738 ('+' for space) or RFC 3986;
+ *       %true for RFC 1738.
+ *
+ * Returns: A pointer to a new encoded string. Note that the caller should
+ *  free the string by calling `free()`.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT char *
+purc_url_decode_alloc(const char *string, bool rfc1738);
+
 struct purc_page_ostack;
 typedef struct purc_page_ostack *purc_page_ostack_t;
 

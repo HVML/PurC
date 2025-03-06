@@ -95,6 +95,8 @@ run_one_comp_test(const char *file, const char *query = NULL);
 int
 client_cond_handler(purc_cond_k event, void *arg, void *data);
 
+char *make_query_with_base(const char *format);
+
 extern void (*after_first_run)(purc_coroutine_t cor,
         struct purc_cor_run_info *info);
 

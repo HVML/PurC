@@ -498,3 +498,20 @@ void run_one_comp_test(const char *file, const char *query)
         purc_variant_unref(request);
 }
 
+
+char *make_query_with_base(const char *format)
+{
+    char path[PATH_MAX];
+    const char *env = "SOURCE_FILES";
+    const char *rel = "renderer/hvml";
+    test_getpath_from_env_or_rel(path, sizeof(path), env, rel);
+    char *base = purc_url_encode_alloc(path, true);
+    assert(base);
+
+    char *query;
+    asprintf(&query, format, base);
+    free(base);
+
+    return query;
+}
+

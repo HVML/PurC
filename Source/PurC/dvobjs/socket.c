@@ -457,7 +457,7 @@ dvobjs_socket_new(enum pcdvobjs_socket_type type,
 }
 
 #if HAVE(OPENSSL)
-static struct dvobjs_option_to_atom access_users_ckws[] = {
+static struct pcdvobjs_option_to_atom access_users_ckws[] = {
     { "group",     0, 0060 },
     { "other",     0, 0006 },
 };
@@ -494,7 +494,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         }
 
         tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheusers");
-        cache_mode = dvobjs_parse_options(tmp, NULL, 0,
+        cache_mode = pcdvobjs_parse_options(tmp, NULL, 0,
             access_users_ckws, PCA_TABLESIZE(access_users_ckws), 0, -1);
         if (cache_mode == -1) {
             error = PURC_ERROR_INVALID_VALUE;
@@ -2048,7 +2048,7 @@ purc_variant_t purc_dvobj_socket_new(void)
     }
 
     static struct dvobjs_option_set {
-        struct dvobjs_option_to_atom *opts;
+        struct pcdvobjs_option_to_atom *opts;
         size_t sz;
     } opts_set[] = {
 #if HAVE(OPENSSL)
@@ -2057,7 +2057,7 @@ purc_variant_t purc_dvobj_socket_new(void)
     };
 
     for (size_t i = 0; i < PCA_TABLESIZE(opts_set); i++) {
-        struct dvobjs_option_to_atom *opts = opts_set[i].opts;
+        struct pcdvobjs_option_to_atom *opts = opts_set[i].opts;
         if (opts[0].atom == 0) {
             for (size_t j = 0; j < opts_set[i].sz; j++) {
                 opts[j].atom = purc_atom_from_static_string_ex(

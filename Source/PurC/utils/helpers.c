@@ -868,6 +868,45 @@ purc_make_object_from_query_string(const char *query, bool rfc1738)
     return obj;
 }
 
+char *
+purc_url_encode_alloc(const char *string, bool rfc1738)
+{
+    DECL_MYSTRING(mystr);
+    if (pcdvobj_url_encode(&mystr,
+                (const unsigned char *)string, strlen(string),
+                rfc1738 ? PURC_K_KW_rfc1738 : PURC_K_KW_rfc3986) ||
+            pcutils_mystring_done(&mystr)) {
+        return NULL;
+    }
+
+    return mystr.buff;
+}
+
+char *
+purc_url_decode_alloc(const char *string, bool rfc1738)
+{
+    DECL_MYSTRING(mystr);
+    int ret = pcdvobj_url_decode(&mystr, string, strlen(string),
+            rfc1738 ? PURC_K_KW_rfc1738 : PURC_K_KW_rfc3986, true);
+    if (ret == 0) {
+        if (pcutils_mystring_done(&mystr))
+            goto failed;
+    }
+    else if (ret > 0) {
+        pcutils_mystring_free(&mystr);
+        goto failed;
+    }
+    else if (ret < 0) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    return mystr.buff;
+
+failed:
+    return NULL;
+}
+
 #if HAVE(STDATOMIC_H)
 
 #include <stdatomic.h>

@@ -477,12 +477,12 @@ failed:
     return purc_variant_make_boolean(ret);
 }
 
-static struct dvobjs_option_to_atom enablelog_levels_skws[] = {
+static struct pcdvobjs_option_to_atom enablelog_levels_skws[] = {
     { "all",        0,  PURC_LOG_MASK_ALL },
     { "default",    0,  PURC_LOG_MASK_DEFAULT },
 };
 
-static struct dvobjs_option_to_atom enablelog_levels_ckws[] = {
+static struct pcdvobjs_option_to_atom enablelog_levels_ckws[] = {
     { "emerg",      0, PURC_LOG_MASK_EMERG },
     { "alert",      0, PURC_LOG_MASK_ALERT },
     { "crit",       0, PURC_LOG_MASK_CRIT },
@@ -493,7 +493,7 @@ static struct dvobjs_option_to_atom enablelog_levels_ckws[] = {
     { "debug",      0, PURC_LOG_MASK_DEBUG },
 };
 
-static struct dvobjs_option_to_atom enablelog_level_skws[] = {
+static struct pcdvobjs_option_to_atom enablelog_level_skws[] = {
     { "emerg",      0, PURC_LOG_EMERG },
     { "alert",      0, PURC_LOG_ALERT },
     { "crit",       0, PURC_LOG_CRIT },
@@ -504,7 +504,7 @@ static struct dvobjs_option_to_atom enablelog_level_skws[] = {
     { "debug",      0, PURC_LOG_DEBUG },
 };
 
-static struct dvobjs_option_to_atom enablelog_facility_skws[] = {
+static struct pcdvobjs_option_to_atom enablelog_facility_skws[] = {
     { "stdout",     0, PURC_LOG_FACILITY_STDOUT },
     { "stderr",     0, PURC_LOG_FACILITY_STDERR },
     { "syslog",     0, PURC_LOG_FACILITY_SYSLOG },
@@ -523,21 +523,21 @@ enablelog_getter(purc_variant_t root, size_t nr_args,
         goto failed;
     }
 
-    int levels = dvobjs_parse_options(argv[0],
+    int levels = pcdvobjs_parse_options(argv[0],
             enablelog_levels_skws, PCA_TABLESIZE(enablelog_levels_skws),
             enablelog_levels_ckws, PCA_TABLESIZE(enablelog_levels_ckws),
             0, 0);
     if (levels == 0) {
-        /* error will be set by dvobjs_parse_options() */
+        /* error will be set by pcdvobjs_parse_options() */
         goto failed;
     }
 
-    int facility = dvobjs_parse_options(
+    int facility = pcdvobjs_parse_options(
             (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
             enablelog_facility_skws, PCA_TABLESIZE(enablelog_facility_skws),
             NULL, 0, PURC_LOG_FACILITY_STDOUT, -1);
     if (facility == -1) {
-        /* error will be set by dvobjs_parse_options() */
+        /* error will be set by pcdvobjs_parse_options() */
         goto failed;
     }
 
@@ -569,12 +569,12 @@ logmsg_getter(purc_variant_t root, size_t nr_args,
         goto failed;
     }
 
-    int level = dvobjs_parse_options(
+    int level = pcdvobjs_parse_options(
             (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
             enablelog_level_skws, PCA_TABLESIZE(enablelog_level_skws),
             NULL, 0, PURC_LOG_INFO, -1);
     if (level == -1) {
-        /* error will be set by dvobjs_parse_options() */
+        /* error will be set by pcdvobjs_parse_options() */
         goto failed;
     }
 
@@ -635,7 +635,7 @@ purc_dvobj_runner_new(void)
     };
 
     static struct dvobjs_option_set {
-        struct dvobjs_option_to_atom *opts;
+        struct pcdvobjs_option_to_atom *opts;
         size_t sz;
     } opts_set[] = {
         { enablelog_levels_skws,    PCA_TABLESIZE(enablelog_levels_skws) },
@@ -645,7 +645,7 @@ purc_dvobj_runner_new(void)
     };
 
     for (size_t i = 0; i < PCA_TABLESIZE(opts_set); i++) {
-        struct dvobjs_option_to_atom *opts = opts_set[i].opts;
+        struct pcdvobjs_option_to_atom *opts = opts_set[i].opts;
         if (opts[0].atom == 0) {
             for (size_t j = 0; j < opts_set[i].sz; j++) {
                 opts[j].atom = purc_atom_from_static_string_ex(

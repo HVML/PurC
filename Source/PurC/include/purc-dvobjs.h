@@ -246,9 +246,9 @@ int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
         const char *events[], int nr_events);
 
 /** Cast a number to a time value (struct timeval). */
-bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
+bool pcdvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
 
-struct dvobjs_option_to_atom {
+struct pcdvobjs_option_to_atom {
     const char *option;
     purc_atom_t atom;
     int flag;
@@ -256,9 +256,9 @@ struct dvobjs_option_to_atom {
 
 /** Parse options specified by @vrt according to @single_keywords
     and @composite_keywords. */
-int dvobjs_parse_options(purc_variant_t vrt,
-        const struct dvobjs_option_to_atom *single_keywords, size_t nr_skw,
-        const struct dvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
+int pcdvobjs_parse_options(purc_variant_t vrt,
+        const struct pcdvobjs_option_to_atom *single_keywords, size_t nr_skw,
+        const struct pcdvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
         int flags4null, int flags4failed);
 
 /**@}*/

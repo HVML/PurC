@@ -2781,7 +2781,7 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
         purc_variant_t tmp;
         tmp = purc_variant_object_get_by_ckey(extra_opts, "recv-timeout");
         if (tmp) {
-            dvobjs_cast_to_timeval(&tv, tmp);
+            pcdvobjs_cast_to_timeval(&tv, tmp);
             timeout = &tv;
         }
     }

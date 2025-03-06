@@ -4,16 +4,13 @@
 
 <hvml target="void">
     <head>
-        <define as 'logMsg'>
-            $RUNNER.enablelog('all', 'stderr')
-
-            <inherit>
-                $RUNNER.logmsg($?)
-            </inherit>
-        </define>
+        <base href=$CRTN.base(! {{ $REQ.base || $SYS.cwd }) hvml:silently />
     </head>
 
     <body id='server' >
+
+        <define as 'mainFuncs' from 'controller/main.hvml' temp />
+        <include with $mainFuncs />
 
         <include with $logMsg on 'The server is running...' />
 

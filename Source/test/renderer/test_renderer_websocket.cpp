@@ -70,7 +70,9 @@ TEST(renderer, websocket)
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
     after_first_run = my_after_first_run;
-    run_one_comp_test("renderer/hvml/websocket-based-server.hvml", "client=plain");
+    char *query = make_query_with_base("base=%s&client=plain");
+    run_one_comp_test("renderer/hvml/message-based-server.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
     unsigned int seconds = 0;

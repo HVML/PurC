@@ -644,7 +644,7 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!dvobjs_cast_to_timeval(&timeval, argv[0])) {
+    if (!pcdvobjs_cast_to_timeval(&timeval, argv[0])) {
         goto failed;
     }
 
@@ -2457,7 +2457,7 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int optname = 0;
     if (option == keywords2atoms[K_KW_recv_timeout].atom) {
-        if (!dvobjs_cast_to_timeval(&timeval, argv[2])) {
+        if (!pcdvobjs_cast_to_timeval(&timeval, argv[2])) {
             goto error;
         }
 
@@ -2466,7 +2466,7 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         optname = SO_RCVTIMEO;
     }
     else if (option == keywords2atoms[K_KW_send_timeout].atom) {
-        if (!dvobjs_cast_to_timeval(&timeval, argv[2])) {
+        if (!pcdvobjs_cast_to_timeval(&timeval, argv[2])) {
             goto error;
         }
 

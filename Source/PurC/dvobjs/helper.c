@@ -325,7 +325,7 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
-bool dvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
+bool pcdvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t)
 {
     switch (purc_variant_get_type(t)) {
     case PURC_VARIANT_TYPE_NUMBER:
@@ -385,9 +385,9 @@ failed:
     return false;
 }
 
-int dvobjs_parse_options(purc_variant_t vrt,
-        const struct dvobjs_option_to_atom *single_options, size_t nr_sopt,
-        const struct dvobjs_option_to_atom *composite_options, size_t nr_copt,
+int pcdvobjs_parse_options(purc_variant_t vrt,
+        const struct pcdvobjs_option_to_atom *single_options, size_t nr_sopt,
+        const struct pcdvobjs_option_to_atom *composite_options, size_t nr_copt,
         int flags4null, int flags4failed)
 {
     int flags = 0;
