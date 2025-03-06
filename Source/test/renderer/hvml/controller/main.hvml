@@ -1,3 +1,5 @@
+<hvml>
+<body>
 <define as 'logMsg' at '_topmost'>
     $RUNNER.enablelog('all', 'stderr')
     <inherit>
@@ -50,7 +52,8 @@ $data
 HVMLSimulator:1.0
 HTML:5.3
 workspace:7/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:32
-DOMElementSelectors:id,css,handle,handles"""
+DOMElementSelectors:id,css,handle,handles
+"""
         </init>
     </test>
 
@@ -145,7 +148,7 @@ $data
                     <update on $message to 'merge' with { dataType: $header[1] } />
                 </match>
             </test>
-        </choose>
+        </init>
     </iterate>
 
     <test with $L.streq('case', $message.dataType, 'json')>
@@ -161,4 +164,6 @@ $data
 
 </define>
 
+</body>
+</hvml>
 

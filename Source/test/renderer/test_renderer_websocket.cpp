@@ -30,7 +30,16 @@
 
 #include <gtest/gtest.h>
 
-/* using load within */
+static struct purc_instance_extra_info client_inst_info = {
+    PURC_RDRCOMM_SOCKET,
+    "inet4://localhost:8080/renderer",
+    "main",
+    "mainWorkspace",
+    NULL,               // workspace_layout
+    0,                  // allow_switching_rdr (since 0.9.18)
+    0,                  // allow_scaling_by_denisty
+    0,                  // keep_alive (since 0.9.22)
+};
 
 static purc_atom_t client_inst;
 void my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
@@ -39,7 +48,7 @@ void my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
 
     /* create a client instance which will connect to the above renderer */
     client_inst = purc_inst_create_or_get(APP_NAME,
-            "client", client_cond_handler, NULL);
+            "client", client_cond_handler, &client_inst_info);
     assert(client_inst != 0);
 
     char path[PATH_MAX];

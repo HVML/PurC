@@ -4,7 +4,7 @@
 
 <hvml target="void">
     <head>
-        <base href=$CRTN.base(! {{ $REQ.base || $SYS.cwd }) hvml:silently />
+        <base href="$CRTN.base(! {{ $REQ.base || $SYS.cwd }} )" hvml:silently />
     </head>
 
     <body id='server' >
@@ -25,7 +25,7 @@
 
         <init as 'clients' with {} />
 
-        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-fake-renderer', 'none', 32) >
+        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-test-renderer.sock', 'none', 32) >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>

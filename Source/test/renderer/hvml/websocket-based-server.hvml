@@ -4,7 +4,7 @@
 
 <hvml target="void">
     <head>
-        <base href=$CRTN.base(! {{ $REQ.base || $SYS.cwd }) hvml:silently />
+        <base href="$CRTN.base(! {{ $REQ.base || $SYS.cwd }} )" hvml:silently />
     </head>
 
     <body id='server' >
@@ -36,7 +36,7 @@
 
         <init as 'clients' with {} />
 
-        <init as 'srvListenSocket' with $SOCKET.stream('inet://localhost:8080', 'none', 32, $sslSettings) >
+        <init as 'srvListenSocket' with $SOCKET.stream('inet4://localhost:8080', 'none', 32, $sslSettings) >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
