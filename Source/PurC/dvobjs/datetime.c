@@ -160,7 +160,7 @@ static char *set_tz(const char *timezone)
 
         if (env == NULL || strcmp(env, timezone)) {
             /* change timezone temporarily. */
-            char new_timezone[strlen(timezone) + 1];
+            char new_timezone[strlen(timezone) + 2];
             strcpy(new_timezone, ":");
             strcat(new_timezone, timezone);
             setenv("TZ", new_timezone, 1);
