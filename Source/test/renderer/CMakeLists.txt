@@ -19,6 +19,7 @@ PURC_EXECUTABLE(test_renderer_message)
 
 set(test_renderer_message_SOURCES
     test_renderer_message.cpp
+    client_thread.cpp
     ../dvobjs/helper.cpp
     ../tools.cpp
 )
@@ -48,6 +49,7 @@ PURC_EXECUTABLE(test_renderer_websocket)
 
 set(test_renderer_websocket_SOURCES
     test_renderer_websocket.cpp
+    client_thread.cpp
     ../dvobjs/helper.cpp
     ../tools.cpp
 )

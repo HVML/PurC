@@ -47,7 +47,9 @@ $data
 
     <test with $L.streq('case', $requestId, '0') >
         <!-- override data passed to this function -->
-        <init as 'data' at '_last' temp>
+        <init as 'dataType' at '_nexttolast' with 'plain' temp />
+
+        <init as 'data' at '_nexttolast' temp>
 """PURCMC:120
 HVMLSimulator:1.0
 HTML:5.3
@@ -69,7 +71,7 @@ DOMElementSelectors:id,css,handle,handles
 
     <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
 
-    <init as result_value with $STR.format_c('%x', $resultValue) temp />
+    <init as 'result_value' with $STR.format_c('%x', $resultValue) temp />
 
     <init as 'message' temp >
 """type: response

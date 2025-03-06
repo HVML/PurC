@@ -116,8 +116,10 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
          events |= PCRUNLOOP_IO_ERR;
      }
 
-     bool ret_read, ret_write;
-     ret_read = stream->ext0.msg_ops->on_readable(conn->fd, events, stream);
+     bool ret_read = false, ret_write = false;
+     if (conn->prot_data && stream->ext0.msg_ops) {
+         ret_read = stream->ext0.msg_ops->on_readable(conn->fd, events, stream);
+     }
 
      events = 0;
      if (fds[1].revents & POLLOUT) {
@@ -127,7 +129,9 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
          events |= PCRUNLOOP_IO_ERR;
      }
 
-     ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events, stream);
+     if (conn->prot_data && stream->ext0.msg_ops) {
+         ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events, stream);
+     }
 
      if (!ret_read || !ret_write) {
          PC_ERROR("Failed read of write: %s\n", strerror(errno));
@@ -186,6 +190,9 @@ static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
     int retv = -1;
     purc_rwstream_t buffer = NULL;
 
+    if (!(conn->prot_data && conn->prot_data->stream->ext0.msg_ops))
+        return -1;
+
     buffer = purc_rwstream_new_buffer(PCRDR_MIN_PACKET_BUFF_SIZE,
             PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
@@ -215,17 +222,25 @@ done:
 
 static int my_ping_peer(pcrdr_conn* conn)
 {
-    struct pcdvobjs_stream *stream = conn->prot_data->stream;
-    stream->ext0.msg_ops->on_ping_timer(NULL, NULL, stream);
-    return 0;
+    if (conn->prot_data && conn->prot_data->stream->ext0.msg_ops) {
+        struct pcdvobjs_stream *stream = conn->prot_data->stream;
+        stream->ext0.msg_ops->on_ping_timer(NULL, NULL, stream);
+        return 0;
+    }
+
+    return -1;
 }
 
 static int my_disconnect(pcrdr_conn* conn)
 {
-    struct pcdvobjs_stream *stream = conn->prot_data->stream;
-    stream->ext0.msg_ops->shut_off(stream);
-    purc_variant_unref(conn->prot_data->dvobj);
-    return 0;
+    if (conn->prot_data && conn->prot_data->stream->ext0.msg_ops) {
+        struct pcdvobjs_stream *stream = conn->prot_data->stream;
+        stream->ext0.msg_ops->shut_off(stream);
+        purc_variant_unref(conn->prot_data->dvobj);
+        return 0;
+    }
+
+    return -1;
 }
 
 static int on_message(struct pcdvobjs_stream *stream, int type,

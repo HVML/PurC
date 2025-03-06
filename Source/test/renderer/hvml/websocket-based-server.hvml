@@ -44,7 +44,7 @@
 
         <include with $logMsg on 'The server is accepting...' />
 
-        <observe on $srvListenSocket for 'connAttempt'>
+        <observe on $srvListenSocket for 'socket:connAttempt'>
             <choose on $srvListenSocket.accept('default', 'websocket', $wsSettings)>
                 <catch for `ANY`>
                     <exit with "Server failed with $?.name when calling accept()" />

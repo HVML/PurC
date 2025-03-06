@@ -33,7 +33,11 @@
 
         <include with $logMsg on 'The server is accepting...' />
 
-        <observe on $srvListenSocket for 'connAtempt'>
+        <observe on $CRTN for 'idle'>
+            <include with $logMsg on 'The server is idle...' />
+        </observe>
+
+        <observe on $srvListenSocket for 'socket:connAttempt'>
             <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
                 <catch for `ANY`>
                     <exit with "Server failed with $?.name when calling accept()" />
@@ -48,7 +52,7 @@
                     <update on $clients to 'merge' with { $clientId : $? } />
 
                     <!-- send initial response to the client -->
-                    <call on $sendResponse >
+                    <call on $sendResponse with {requestId: '0', resultValue: 0} >
                         {
                             requestId : '0',
                             retCode: 200,

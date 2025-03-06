@@ -1,3 +1,5 @@
+add_subdirectory(renderer)
+add_subdirectory(dvobjs)
 add_subdirectory(csseng)
 add_subdirectory(domruler)
 add_subdirectory(utils)
@@ -8,7 +10,6 @@ add_subdirectory(misc)
 add_subdirectory(tree)
 add_subdirectory(ejson)
 add_subdirectory(html)
-add_subdirectory(dvobjs)
 add_subdirectory(extdvobjs)
 add_subdirectory(hvml)
 add_subdirectory(vcm)
@@ -19,7 +20,6 @@ add_subdirectory(externals)
 add_subdirectory(document)
 add_subdirectory(fetcher)
 add_subdirectory(wtf)
-add_subdirectory(renderer)
 
 PURC_COPY_FILES(TEST_Script
     DESTINATION ${CMAKE_BINARY_DIR}/
