@@ -73,6 +73,15 @@ nr_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    /* override nr_bytes with string length if argv[1] is false
+       and argv[0] is a string. */
+    if (nr_args > 1 && !purc_variant_booleanize(argv[1])) {
+        size_t len;
+        if (purc_variant_get_string_const_ex(argv[0], &len)) {
+            nr_bytes = len;
+        }
+    }
+
     return purc_variant_make_ulongint(nr_bytes);
 
 failed:
