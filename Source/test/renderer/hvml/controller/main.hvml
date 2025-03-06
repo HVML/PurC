@@ -37,6 +37,8 @@ $data
     </inherit>
 
     <include with $logMsg on $message />
+
+    <return with true />
 </define>
 
 <define as 'sendResponse' at '_topmost'>
@@ -80,14 +82,14 @@ $data
     </inherit>
 
     <include with $logMsg on $message />
+
+    <return with true />
 </define>
 
 <define as 'parseMessage' at '_topmost'>
     <include with $logMsg on $message />
 
     <init as 'headers_and_body' with $STR.explode($message, " \n", 1) temp />
-
-    <init as 'headers' with  temp />
 
     <init as $message with {} temp />
 
@@ -155,6 +157,8 @@ $data
     </test>
 
     <include with $logMsg on $DATA.serialize($message) />
+    <return with $message />
+
 </define>
 
 

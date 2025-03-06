@@ -53,15 +53,23 @@
 
                     <update on $clients to 'merge' with { $clientId : $? } />
 
-                    <!-- TODO: send initial response to the client -->
+                    <!-- send initial response to the client -->
+                    <call on $sendResponse >
+                        {
+                            requestId : '0',
+                            retCode: 200,
+                            resultValue: 0,
+                            dataType: 'void',
+                        }
+                    </call>
 
                     <observe on $clients[$clientId] for 'message'>
                         $clientId
 
-                        <include with $logMsg on "Server got ERROR event from `$_observedContent`; payload:" />
-                        <include with $logMsg on $DATA.serialize($?) />
-
                         <!-- TODO: handle message here -->
+                        <call on $parseMessage with { message : $? } >
+                        </call>
+
                     </observe>
 
                     <observe on $clients[$clientId] for 'error'>
