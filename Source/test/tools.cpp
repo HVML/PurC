@@ -220,8 +220,12 @@ static int
 comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
+    purc_log_info("condition: %s\n", cond_names[event]);
+
     if (event == PURC_COND_COR_ONE_RUN) {
         struct purc_cor_run_info *info = (struct purc_cor_run_info *)data;
+        purc_log_info("condition: %s: run index: %lu\n", cond_names[event],
+                info->run_idx);
         if (info->run_idx == 0 && after_first_run) {
             after_first_run(cor, info);
         }
@@ -503,7 +507,7 @@ char *make_query_with_base(const char *format)
 {
     char path[PATH_MAX];
     const char *env = "SOURCE_FILES";
-    const char *rel = "renderer/hvml";
+    const char *rel = "renderer/hvml/";
     test_getpath_from_env_or_rel(path, sizeof(path), env, rel);
     char *base = purc_url_encode_alloc(path, true);
     assert(base);

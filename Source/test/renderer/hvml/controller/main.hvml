@@ -1,5 +1,3 @@
-<hvml>
-<body>
 <define as 'logMsg' at '_topmost'>
     $RUNNER.enablelog('all', 'stderr')
     <inherit>
@@ -21,10 +19,12 @@
 
     <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
 
+    <init as source_uri with {{ $sourceURI || '_renderer' }} temp silently />
+
     <init as 'message' temp >
 """type: event
 eventName: $eventName
-sourceURI: {{ $sourceURI || '_renderer' }}
+sourceURI: $source_uri
 target: $targetName/$targetValue
 element: $elementType/$elementValue
 dataType: $dataType
@@ -69,10 +69,12 @@ DOMElementSelectors:id,css,handle,handles
 
     <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
 
+    <init as result_value with $STR.format_c('%x', $resultValue) temp />
+
     <init as 'message' temp >
 """type: response
 requestId: $requestId
-result: $retCode/$STR.format_c('%x', $resultValue)
+result: $retCode/$result_value
 dataType: $dataType
 dataLen: $dataLen
  
@@ -163,7 +165,4 @@ $data
     <return with $message />
 
 </define>
-
-</body>
-</hvml>
 

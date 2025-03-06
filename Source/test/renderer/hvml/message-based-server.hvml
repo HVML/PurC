@@ -4,12 +4,12 @@
 
 <hvml target="void">
     <head>
-        <base href="$CRTN.base(! {{ $REQ.base || $SYS.cwd }} )" hvml:silently />
+        <base href=$CRTN.base(! "file://$REQ.base" ) hvml:silently />
     </head>
 
     <body id='server' >
 
-        <define as 'mainFuncs' from 'controller/main.hvml' temp />
+        <define as 'mainFuncs' from 'controller/main.hvml' />
         <include with $mainFuncs />
 
         <include with $logMsg on 'The server is running...' />
@@ -30,12 +30,6 @@
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
         </init>
-
-        <observe on $client for "corState:exited" >
-            <inherit>
-                $STREAM.stdout.writelines("Client exited with $?")
-            </inherit>
-        </observe>
 
         <include with $logMsg on 'The server is accepting...' />
 

@@ -405,7 +405,8 @@ static void enable_log_on_demand(void)
                 strcasecmp(env_value, "true") == 0);
     }
 
-    purc_enable_log_ex(log_mask, use_syslog);
+    purc_enable_log_ex(log_mask,
+            use_syslog ? PURC_LOG_FACILITY_SYSLOG : PURC_LOG_FACILITY_STDERR);
 }
 
 static int init_modules(struct pcinst *curr_inst,

@@ -99,6 +99,7 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
          goto done;
      }
      else if (r == 0) {
+         PC_DEBUG("Timeout: %s\n", __func__);
          goto done;
      }
 
@@ -128,8 +129,10 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 
      ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events, stream);
 
-     if (!ret_read || !ret_write)
+     if (!ret_read || !ret_write) {
+         PC_ERROR("Failed read of write: %s\n", strerror(errno));
          return -1;
+     }
 
 done:
      return r;
@@ -142,21 +145,28 @@ static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
     pcrdr_msg *msg = NULL;
 
     while (list_empty(&conn->prot_data->msgs)) {
-        if (my_wait_message(conn, conn->timeout_ms))
+        int r = my_wait_message(conn, conn->timeout_ms);
+        if (r < 0) {
+            PC_ERROR("Failed my_wait_message: %u\n", conn->timeout_ms);
             goto error;
-
-        if (conn->prot_data->errcode)
-            goto error;
-
-        if (max_wait > 0) {
+        }
+        else if (r == 0) {
             total_wait += conn->timeout_ms;
-            if (max_wait > total_wait) {
-                purc_set_error(PCRDR_ERROR_TIMEOUT);
-                goto error;
-            }
+        }
+
+        if (conn->prot_data->errcode) {
+            PC_ERROR("Failed read/write: %d\n", conn->prot_data->errcode);
+            goto error;
+        }
+
+        if (max_wait > 0 && total_wait >= max_wait) {
+            PC_ERROR("Timeout: %d/%d\n", total_wait, max_wait);
+            purc_set_error(PCRDR_ERROR_TIMEOUT);
+            goto error;
         }
     }
 
+    PC_DEBUG("in function: %s\n", __func__);
     struct pcrdr_msg_hdr *hdr;
     hdr = list_first_entry(&conn->prot_data->msgs, struct pcrdr_msg_hdr, ln);
     msg = (pcrdr_msg *)hdr;
@@ -266,17 +276,14 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         pcrdr_release_message((pcrdr_msg *)hdr);
     }
 
-    if (conn->srv_host_name)
-        free(conn->srv_host_name);
-    if (conn->own_host_name)
-        free(conn->own_host_name);
-
     stream->ext1.data = NULL;
 
-    if (conn->prot_data->cleanup_super)
-        conn->prot_data->cleanup_super(stream);
-
-    free(conn);
+    if (conn->prot_data) {
+        if (conn->prot_data->cleanup_super)
+            conn->prot_data->cleanup_super(stream);
+        free(conn->prot_data);
+        conn->prot_data = NULL;
+    }
 }
 
 static void on_release_stream_vrt(void *entity)
@@ -299,7 +306,7 @@ static struct purc_native_ops purcmc_ops = {
 
 #define NORMALIZE_BOOL_PROPERTY(name)                                   \
     tmp = purc_variant_object_get_by_ckey(extra_opts, #name);           \
-    if (!purc_variant_is_boolean(tmp)) {                                \
+    if (tmp && !purc_variant_is_boolean(tmp)) {                         \
         /* It must be a string */                                       \
         const char *str = purc_variant_get_string_const(tmp);           \
         bool name;                                                      \
@@ -451,7 +458,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         stream_vrt = dvobjs_create_stream_from_url(url, PURC_VARIANT_INVALID,
                 prot, extra_opts);
         if (stream_vrt == PURC_VARIANT_INVALID) {
-            PC_DEBUG ("Failed to create DVOBJ stream from url: %s\n", url);
+            PC_DEBUG("Failed to create DVOBJ stream from url: %s\n", url);
             goto failed;
         }
     }
@@ -502,7 +509,8 @@ pcrdr_socket_connect(const char* renderer_uri,
         CT_UNIX_SOCKET;
     (*conn)->fd = stream->fd4r;
     (*conn)->timeout_ms = 10;   /* 10 milliseconds */
-    (*conn)->srv_host_name = strdup(stream->peer_addr);
+    (*conn)->srv_host_name = stream->peer_addr ? strdup(stream->peer_addr) :
+        strdup("localhost");
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);
     (*conn)->app_name = app_name;
     (*conn)->runner_name = runner_name;
@@ -521,6 +529,8 @@ pcrdr_socket_connect(const char* renderer_uri,
     msg = my_read_message_timeout(*conn, 5000);  /* five seconds */
     if (msg)
         return msg;
+    else
+        PC_ERROR("Failed to get the initial message from the renderer in 5s.\n");
 
 failed:
     if (url && url != renderer_uri)
