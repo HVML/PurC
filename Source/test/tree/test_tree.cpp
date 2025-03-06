@@ -36,7 +36,7 @@ struct test_tree_node {
 
 struct pctree_node* create_tree_node(uint32_t id)
 {
-    struct test_tree_node* node = (struct test_tree_node*) calloc(sizeof(struct test_tree_node), 1);
+    struct test_tree_node* node = (struct test_tree_node*) calloc(1, sizeof(struct test_tree_node));
     node->id = id;
     return pctree_node_new(node);
 }
