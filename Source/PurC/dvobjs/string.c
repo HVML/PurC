@@ -811,11 +811,6 @@ implode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    if (array_size == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error;
-    }
-
     // seperator can be null
     const char *seperator = "";
     size_t sep_len = 0;
@@ -931,127 +926,186 @@ replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    const char *format = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t rwstream = NULL;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        purc_rwstream_destroy (rwstream);
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        purc_rwstream_destroy (rwstream);
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    const char *format;
+    size_t format_len;
+
+    if ((format = purc_variant_get_string_const_ex(argv[0], &format_len)) ==
+            NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
     }
-    else
-        format = purc_variant_get_string_const (argv[0]);
 
-    char buff[32];
-    int start = 0, len;
-    int i = 0;
-    int j = 1;
-    int64_t i64 = 0;
-    uint64_t u64 = 0;
-    double number = 0;
-    const char *temp_str = NULL;
+    bool is_array = false;
+    size_t sz_array = 0;
+    if (purc_variant_linear_container_size(argv[1], &sz_array)) {
+        is_array = true;
+    }
 
+    rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+
+    size_t start = 0, i = 0, j = 0;
     while (*(format + i) != 0x00) {
         if (*(format + i) == '%') {
-            switch (*(format + i + 1)) {
+            purc_variant_t item = PURC_VARIANT_INVALID;
+            if (is_array) {
+                if (j < sz_array) {
+                    item = purc_variant_linear_container_get(argv[1], j);
+                }
+            }
+            else {
+                if (nr_args > j + 1) {
+                    item = argv[j + 1];
+                }
+            }
+
+            char fc = format[i + 1];
+            if (strchr("diouxXeEfFgGaAs", fc) && item == PURC_VARIANT_INVALID) {
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+                goto error;
+            }
+
+            char buff[64];
+            int64_t i64 = 0;
+            uint64_t u64 = 0;
+            double number = 0;
+            const char *string = NULL;
+            size_t len;
+
+            switch (fc) {
             case 0x00:
                 break;
+
             case '%':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                purc_rwstream_write (rwstream, "%", 1);
+                purc_rwstream_write(rwstream, format + start, i - start);
+                purc_rwstream_write(rwstream, "%", 1);
                 i++;
                 start = i + 1;
                 break;
+
+            case 'i':
             case 'd':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_longint(item, &i64, true)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
                 }
-                purc_variant_cast_to_longint (argv[j], &i64, false);
                 len = snprintf(buff, sizeof(buff), "%lld", (long long int)i64);
-                purc_rwstream_write (rwstream, buff, len);
+                purc_rwstream_write(rwstream, buff, len);
                 i++;
                 j++;
                 start = i + 1;
                 break;
+
             case 'o':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
-                }
-                purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                len = snprintf(buff, sizeof(buff), "%llo", (long long unsigned)u64);
-                purc_rwstream_write(rwstream, buff, len);
-                i++;
-                j++;
-                start = i + 1;
-                break;
             case 'u':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_ulongint(item, &u64, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
                 }
-                purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                len = snprintf(buff, sizeof(buff), "%llu", (long long unsigned)u64);
-                purc_rwstream_write (rwstream, buff, len);
-                i++;
-                j++;
-                start = i + 1;
-                break;
-            case 'x':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
-                }
-                purc_variant_cast_to_ulongint (argv[j], &u64, false);
-                len = snprintf(buff, sizeof(buff), "%llx", (long long unsigned)u64);
-                purc_rwstream_write (rwstream, buff, len);
-                i++;
-                j++;
-                start = i + 1;
-                break;
-            case 'f':
-                purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
-                }
-                purc_variant_cast_to_number (argv[j], &number, false);
-                len = snprintf(buff, sizeof(buff), "%lf", number);
+                len = snprintf(buff, sizeof(buff), fc == 'o' ? "%llo" : "%llu",
+                        (long long unsigned)u64);
                 purc_rwstream_write(rwstream, buff, len);
                 i++;
                 j++;
                 start = i + 1;
                 break;
+
+            case 'x':
+            case 'X':
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_ulongint(item, &u64, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
+                }
+                len = snprintf(buff, sizeof(buff), fc == 'x' ? "%llx" : "%llX",
+                        (long long unsigned)u64);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+
+            case 'e':
+            case 'E':
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_number(item, &number, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
+                }
+                len = snprintf(buff, sizeof(buff), fc == 'e' ? "%e" : "%E",
+                        number);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+
+            case 'f':
+            case 'F':
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_number(item, &number, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
+                }
+                len = snprintf(buff, sizeof(buff), fc == 'f' ? "%f" : "%F",
+                        number);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+
+            case 'g':
+            case 'G':
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_number(item, &number, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
+                }
+                len = snprintf(buff, sizeof(buff), fc == 'g' ? "%g" : "%G",
+                        number);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+
+            case 'a':
+            case 'A':
+                purc_rwstream_write(rwstream, format + start, i - start);
+                if (!purc_variant_cast_to_number(item, &number, false)) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
+                }
+                len = snprintf(buff, sizeof(buff), fc == 'a' ? "%a" : "%A",
+                        number);
+                purc_rwstream_write(rwstream, buff, len);
+                i++;
+                j++;
+                start = i + 1;
+                break;
+
             case 's':
                 purc_rwstream_write (rwstream, format + start, i - start);
-                if (argv[j] == PURC_VARIANT_INVALID) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
+                string = purc_variant_get_string_const_ex(item, &len);
+                if (string == NULL) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto error;
                 }
-                if (!purc_variant_is_string (argv[0])) {
-                    purc_rwstream_destroy (rwstream);
-                    return PURC_VARIANT_INVALID;
-                }
-                temp_str = purc_variant_get_string_const (argv[j]);
-                purc_rwstream_write (rwstream, temp_str, strlen (temp_str));
+                purc_rwstream_write(rwstream, string, len);
                 i++;
                 j++;
                 start = i + 1;
@@ -1062,28 +1116,32 @@ format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (i != start)
-        purc_rwstream_write (rwstream, format + start, strlen (format + start));
-    purc_rwstream_write (rwstream, "\0", 1);
+        purc_rwstream_write(rwstream, format + start, strlen(format + start));
+    purc_rwstream_write(rwstream, "\0", 1);
 
     size_t rw_size = 0;
     size_t content_size = 0;
-    char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
+    char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
             &content_size, &rw_size, true);
 
-    if ((rw_size == 0) || (rw_string == NULL))
-        ret_var = PURC_VARIANT_INVALID;
-    else {
-        ret_var = purc_variant_make_string_reuse_buff (rw_string,
-                rw_size, false);
-        if(ret_var == PURC_VARIANT_INVALID) {
-            purc_set_error (PURC_ERROR_INVALID_VALUE);
-            ret_var = PURC_VARIANT_INVALID;
-        }
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    if ((rw_size == 0) || (rw_string == NULL)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto error;
     }
+    else {
+        retv = purc_variant_make_string_reuse_buff(rw_string, rw_size, false);
+    }
+    purc_rwstream_destroy(rwstream);
+    return retv;
 
-    purc_rwstream_destroy (rwstream);
+error:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
 
-    return ret_var;
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_string_static("", false);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
