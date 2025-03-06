@@ -200,10 +200,6 @@ static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
 {
     size_t normalized = normalize_size(new_size);
-#ifndef NDEBUG
-    printf("curent: %u, expected: %u, normalized: %u\n",
-            (unsigned)t->size, (unsigned)new_size, (unsigned)normalized);
-#endif
     if (normalized == t->size) {
         return 0;
     }
