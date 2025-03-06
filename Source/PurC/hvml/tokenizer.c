@@ -291,9 +291,14 @@ next_state:                                                             \
         tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes); \
     } while (false)
 
-#define RESET_QUOTED_COUNTER()                                              \
+#define RESET_SINGLE_QUOTED_COUNTER()                                       \
     do {                                                                    \
-        parser->nr_quoted = 0;                                              \
+        parser->nr_single_quoted = 0;                                       \
+    } while (false)
+
+#define RESET_DOUBLE_QUOTED_COUNTER()                                       \
+    do {                                                                    \
+        parser->nr_double_quoted = 0;                                       \
     } while (false)
 
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
@@ -922,21 +927,19 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
     }
     if (character == '"') {
         RESET_TEMP_BUFFER();
-        RESET_QUOTED_COUNTER();
+        RESET_DOUBLE_QUOTED_COUNTER();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
     if (character == '\'') {
         RESET_TEMP_BUFFER();
-        RESET_QUOTED_COUNTER();
+        RESET_SINGLE_QUOTED_COUNTER();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
     }
     if (character == '`') {
         RESET_TEMP_BUFFER();
-        RESET_QUOTED_COUNTER();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE);
     }
     RESET_TEMP_BUFFER();
-    RESET_QUOTED_COUNTER();
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED);
 END_STATE()
 
@@ -1943,12 +1946,12 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '\"') {
-        if (parser->nr_quoted == 0) {
-            parser->nr_quoted++;
+        if (parser->nr_double_quoted == 0) {
+            parser->nr_double_quoted++;
             ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
         }
-        else if (parser->nr_quoted == 1) {
-            parser->nr_quoted++;
+        else if (parser->nr_double_quoted == 1) {
+            parser->nr_double_quoted++;
             ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
         }
         else {
@@ -1956,7 +1959,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
             RETURN_AND_STOP_PARSE();
         }
     }
-    if (parser->nr_quoted < 2) {
+    if (parser->nr_double_quoted < 2) {
         if (hee_line == -1) {
             hee_line = parser->curr_uc->line;
             hee_column = parser->curr_uc->column;
@@ -1995,12 +1998,12 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '\'') {
-        if (parser->nr_quoted == 0) {
-            parser->nr_quoted++;
+        if (parser->nr_single_quoted == 0) {
+            parser->nr_single_quoted++;
             ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
         }
-        else if (parser->nr_quoted == 1) {
-            parser->nr_quoted++;
+        else if (parser->nr_single_quoted == 1) {
+            parser->nr_single_quoted++;
             ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
         }
         else {
@@ -2008,7 +2011,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
             RETURN_AND_STOP_PARSE();
         }
     }
-    if (parser->nr_quoted < 2) {
+    if (parser->nr_single_quoted < 2) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
     }

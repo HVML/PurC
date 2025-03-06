@@ -173,9 +173,14 @@
         tkz_buffer_append(parser->string_buffer, uc);                       \
     } while (false)
 
-#define RESET_QUOTED_COUNTER()                                              \
+#define RESET_SINGLE_QUOTED_COUNTER()                                       \
     do {                                                                    \
-        parser->nr_quoted = 0;                                              \
+        parser->nr_single_quoted = 0;                                       \
+    } while (false)
+
+#define RESET_DOUBLE_QUOTED_COUNTER()                                       \
+    do {                                                                    \
+        parser->nr_double_quoted = 0;                                       \
     } while (false)
 
 #define APPEND_TO_RAW_BUFFER(c)                                             \
@@ -294,7 +299,8 @@ struct pcejson {
 
     uint64_t char_ref_code;
     uint32_t prev_separator;
-    uint32_t nr_quoted;
+    uint32_t nr_single_quoted;
+    uint32_t nr_double_quoted;
     bool enable_log;
 };
 

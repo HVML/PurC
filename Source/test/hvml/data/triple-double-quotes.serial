@@ -1,0 +1,378 @@
+PCHVML_TOKEN_START_TAG|<hvml>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<define as="logMsg" at="_topmost">
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("RUNNER"),"enablelog"),"all","stderr")
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("RUNNER"),"logmsg"),getVariable("?"))
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_START_TAG|<define as="sendEvent" at="_topmost">
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<test on=getVariable("dataType")>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<match for="AS 'json'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="data" at="_nexttolast" with=callGetter(getElement(getVariable("DATA"),"seralize"),getVariable("data"),"real-ejson runtime-null plain bseq-hex-string") temp/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<match for="AS 'void'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="data" at="_nexttolast" with="" temp/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as="dataLen" with=callGetter(getElement(getVariable("STR"),"nr_bytes"),getVariable("data"),false) temp/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as="message" temp>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_VCM_TREE|concatString("type: event
+eventName: ",getVariable("eventName"),"
+sourceURI: ",{{ getVariable("sourceURI") || "_renderer" }},"
+target: ",getVariable("targetName"),"/",getVariable("targetValue"),"
+element: ",getVariable("elementType"),"/",getVariable("elementValue"),"
+dataType: ",getVariable("dataType"),"
+dataLen: ",getVariable("dataLen"),"
+ 
+",getVariable("data"),"
+")
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("stream"),"send"),getVariable("message"))
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<include with=getVariable("logMsg") on=getVariable("message")/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<return with=true/>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_START_TAG|<define as="sendResponse" at="_topmost">
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getElement(getVariable("L"),"streq"),"case",getVariable("requestId"),"0")>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_COMMENT|<!-- override data passed to this function -->
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<init as="data" at="_last" temp>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_VCM_TREE|"PURCMC:120
+HVMLSimulator:1.0
+HTML:5.3
+workspace:7/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:32
+DOMElementSelectors:id,css,handle,handles
+"
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<test on=getVariable("dataType")>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<match for="AS 'json'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="data" at="_nexttolast" with=callGetter(getElement(getVariable("DATA"),"seralize"),getVariable("data"),"real-ejson runtime-null plain bseq-hex-string") temp/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<match for="AS 'void'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="data" at="_nexttolast" with="" temp/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as="dataLen" with=callGetter(getElement(getVariable("STR"),"nr_bytes"),getVariable("data"),false) temp/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as="message" temp>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_VCM_TREE|concatString("type: response
+requestId: ",getVariable("requestId"),"
+result: ",getVariable("retCode"),"/",callGetter(getElement(getVariable("STR"),"format_c"),"%x",getVariable("resultValue")),"
+dataType: ",getVariable("dataType"),"
+dataLen: ",getVariable("dataLen"),"
+ 
+",getVariable("data"),"
+")
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("stream"),"send"),getVariable("message"))
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<include with=getVariable("logMsg") on=getVariable("message")/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<return with=true/>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_START_TAG|<define as="parseMessage" at="_topmost">
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<include with=getVariable("logMsg") on=getVariable("message")/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as="headers_and_body" with=callGetter(getElement(getVariable("STR"),"explode"),getVariable("message")," 
+",1) temp/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<init as=getVariable("message") with=make_object() temp/>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<iterate on=callGetter(getElement(getVariable("STR"),"explode"),getElement(getVariable("headers_and_body"),0),"
+")>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<init as="header" with=callGetter(getElement(getVariable("STR"),"explode"),getVariable("?"),": ",1) temp>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<test on=getElement(getVariable("header"),0)>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'type'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("type",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'target'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("STR"),"explode"),getElement(getVariable("header"),1),"/",1)>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("targetName",getElement(getVariable("?"),0))/>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("targetValue",getElement(getVariable("?"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_END_TAG|</choose>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'requestId'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("requestId",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'operation'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("operation",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'element'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("STR"),"explode"),getElement(getVariable("header"),1),"/",1)>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("elementType",getElement(getVariable("?"),0))/>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("elementValue",getElement(getVariable("?"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_END_TAG|</choose>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'property'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("property",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'result'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("STR"),"explode"),getElement(getVariable("header"),1),"/",1)>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("retCode",getElement(getVariable("?"),0))/>
+PCHVML_TOKEN_VCM_TREE|"
+                        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("resultValue",getElement(getVariable("?"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_END_TAG|</choose>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'eventName'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("eventName",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'sourceURI'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("sourceURI",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+
+                "
+PCHVML_TOKEN_START_TAG|<match for="AS 'dataType'" exclusively>
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("dataType",getElement(getVariable("header"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</match>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getElement(getVariable("L"),"streq"),"case",getElement(getVariable("message"),"dataType"),"json")>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("data",getElement(getVariable("header_and_body"),1))/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<differ>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("message") to="merge" with=make_object("data",callGetter(getElement(getVariable("DATA"),"parse"),getElement(getVariable("header_and_body"),1)))/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</differ>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<include with=getVariable("logMsg") on=callGetter(getElement(getVariable("DATA"),"serialize"),getVariable("message"))/>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<return with=getVariable("message")/>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>

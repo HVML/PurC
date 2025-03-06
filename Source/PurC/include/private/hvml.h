@@ -44,9 +44,9 @@ struct pchvml_parser {
 
     uint64_t char_ref_code;
     uint32_t prev_separator;
-    uint32_t nr_quoted;
     uint32_t nr_whitespace;
     uint32_t nr_single_quoted;
+    uint32_t nr_double_quoted;
     uint32_t ejson_parser_max_depth;
     uint32_t ejson_parser_flags;
 
