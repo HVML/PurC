@@ -528,8 +528,8 @@ TEST(html, edom_gen)
         ASSERT_TRUE(false);
     }
     key = pcdom_element_set_attribute(head,
-                (const unsigned char*)"foo", 5,
-                (const unsigned char*)"bar", 5);
+                (const unsigned char*)"foo", 3,
+                (const unsigned char*)"bar", 3);
     ASSERT_NE(key, nullptr);
 
     pcdom_element_t *body;
