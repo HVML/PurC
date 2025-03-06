@@ -1412,6 +1412,18 @@ positive:
     $RUNNER.logmsg('This is a log message (info level).')
     true
 
+negative:
+    $STR.explode()
+    ArgumentMissed
+
+negative:
+    $STR.explode(null)
+    WrongDataType
+
+positive:
+    $STR.explode('')
+    []
+
 positive:
     $STR.explode('beijing:shanghai:guangzhou', ':')
     ['beijing', 'shanghai', 'guangzhou']
@@ -1468,6 +1480,22 @@ positive:
     $STR.explode('中华\n\n人民\n\n共和国', '\n\n', -4)
     []
 
+negative:
+    $STR.implode()
+    ArgumentMissed
+
+negative:
+    $STR.implode(null)
+    WrongDataType
+
+negative:
+    $STR.implode([], null)
+    WrongDataType
+
+positive:
+    $STR.implode([])
+    ''
+
 positive:
     $STR.implode(['beijing', 'shanghai', 'guangzhou'], ', ')
     'beijing, shanghai, guangzhou'
@@ -1483,4 +1511,41 @@ positive:
 positive:
     $STR.implode(['汉', '字'])
     '汉字'
+
+negative:
+    $STR.format_c()
+    ArgumentMissed
+
+negative:
+    $STR.format_c('')
+    ArgumentMissed
+
+negative:
+    $STR.format_c(null, 5)
+    WrongDataType
+
+negative:
+    $STR.format_c('%s/%s', 16)
+    WrongDataType
+
+positive:
+    $STR.format_c('%x', 16)
+    '10'
+
+positive:
+    $STR.format_c('Tom is %d years old, while Jerry is %d years old.', 9, 7)
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+$STR.format_c('Tom is %d years old, while Jerry is %d years old.', [9, 7])
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.format_c('no format characters', 16)
+    'no format characters'
+
+positive:
+    $STR.format_c('%s/%d', 'Tom', 16)
+    'Tom/16'
+
 
