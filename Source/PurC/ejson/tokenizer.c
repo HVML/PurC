@@ -3030,6 +3030,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
         SET_RETURN_STATE(curr_state);
         ADVANCE_TO(EJSON_TKZ_STATE_STRING_ESCAPE);
     }
+    if (character == '"') {
+        if (top->type == ETT_MULTI_QUOTED_S) {
+            pcejson_token_close(top);
+            update_tkz_stack(parser);
+            if (is_parse_finished(parser, character)) {
+                ADVANCE_TO(EJSON_TKZ_STATE_FINISHED);
+            }
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_RAW_STRING);
 END_STATE()
