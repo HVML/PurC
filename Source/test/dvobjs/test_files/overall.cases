@@ -1425,6 +1425,10 @@ positive:
     []
 
 positive:
+    $STR.explode('beijing\n \nshanghai:guangzhou', '\n \n', 2)
+    ['beijing', 'shanghai:guangzhou']
+
+positive:
     $STR.explode('beijing:shanghai:guangzhou', ':')
     ['beijing', 'shanghai', 'guangzhou']
 
@@ -1548,4 +1552,59 @@ positive:
     $STR.format_c('%s/%d', 'Tom', 16)
     'Tom/16'
 
+negative:
+    $STR.trim()
+    ArgumentMissed
+
+negative:
+    $STR.trim(null)
+    WrongDataType
+
+negative:
+    $STR.trim('', null)
+    WrongDataType
+
+negative:
+    $STR.trim('', null, null)
+    WrongDataType
+
+negative:
+    $STR.trim('', '', '')
+    InvalidValue
+
+negative:
+    $STR.trim('', 'foo', '')
+    InvalidValue
+
+positive:
+    $STR.trim('', 'left', '')
+    ''
+
+positive:
+    $STR.trim('', 'both', '')
+    ''
+
+positive:
+    $STR.trim('\n foo bar \t')
+    'foo bar'
+
+positive:
+    $STR.trim('\n foo bar \t', 'left')
+    'foo bar \t'
+
+positive:
+    $STR.trim('\n foo bar \t', 'right')
+    '\n foo bar'
+
+positive:
+    $STR.trim('张三李四', 'left', '张李')
+    '三李四'
+
+positive:
+    $STR.trim('张三李四', 'right', '张李')
+    '张三李四'
+
+positive:
+    $STR.trim(' 张三李四 ', 'both', ' 张四')
+    '三李'
 
