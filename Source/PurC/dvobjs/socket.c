@@ -1328,19 +1328,21 @@ socket_io_callback(int fd, int event, void *ctxt)
         return false;
     }
 
-    const char* sub = NULL;
-    if (socket->type <= SOCKET_TYPE_STREAM_MAX) {
-        sub = SOCKET_SUB_EVENT_CONNATTEMPT;
-    }
-    else if (socket->type >= SOCKET_TYPE_DGRAM_MIN) {
-        sub = SOCKET_SUB_EVENT_NEWDATAGRAM;
-    }
+    if (event & PCRUNLOOP_IO_IN) {
+        const char* sub = NULL;
+        if (socket->type <= SOCKET_TYPE_STREAM_MAX) {
+            sub = SOCKET_SUB_EVENT_CONNATTEMPT;
+        }
+        else if (socket->type >= SOCKET_TYPE_DGRAM_MIN) {
+            sub = SOCKET_SUB_EVENT_NEWDATAGRAM;
+        }
 
-    if (sub && socket->cid) {
-        pcintr_coroutine_post_event(socket->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
-                socket->observed, SOCKET_EVENT_NAME, sub,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (sub && socket->cid) {
+            pcintr_coroutine_post_event(socket->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+                    socket->observed, SOCKET_EVENT_NAME, sub,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
     }
 
     return true;

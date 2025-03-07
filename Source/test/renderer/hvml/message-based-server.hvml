@@ -25,7 +25,7 @@
 
         <init as 'clients' with {} />
 
-        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-test-renderer.sock', 'none', 32) >
+        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-test-renderer.sock', 'default', 32) >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
@@ -38,6 +38,9 @@
         </observe>
 
         <observe on $srvListenSocket for 'socket:connAttempt'>
+
+            <include with $logMsg on "Server got a new socket:connAttempt event" />
+
             <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
                 <catch for `ANY`>
                     <exit with "Server failed with $?.name when calling accept()" />
@@ -52,7 +55,7 @@
                     <update on $clients to 'merge' with { $clientId : $? } />
 
                     <!-- send initial response to the client -->
-                    <call on $sendResponse with {requestId: '0', resultValue: 0} >
+                    <call on $sendResponse with {stream: $?, requestId: '0', retCode: 200, resultValue: 0} >
                         {
                             requestId : '0',
                             retCode: 200,
@@ -64,8 +67,9 @@
                     <observe on $clients[$clientId] for 'message'>
                         $clientId
 
-                        <!-- TODO: handle message here -->
-                        <call on $parseMessage with { message : $? } >
+                        <include with $logMsg on "Server got a message from $_observedContent" />
+
+                        <call on $parseMessage with { message: $? } >
                         </call>
 
                     </observe>

@@ -82,14 +82,14 @@ pcinst_load_app_manifest(const char *app_name)
     PC_DEBUG("manifest path: %s (%p)\n", path_buf, manifest);
 
     if (manifest == PURC_VARIANT_INVALID) {
-        PC_ERROR("Failed to load manifest for app %s: %s\n",
+        PC_WARN("Failed to load manifest for app %s: %s\n",
                 app_name,
                 purc_get_error_message(purc_get_last_error()));
         purc_clr_error();
         manifest = purc_variant_make_object_0();
     }
     else if (!purc_variant_is_object(manifest)) {
-        PC_ERROR("A bad manifest file for app %s\n", app_name);
+        PC_WARN("A bad manifest file for app %s\n", app_name);
         purc_variant_unref(manifest);
         manifest = purc_variant_make_object_0();
     }

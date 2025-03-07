@@ -971,6 +971,8 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     purc_variant_t data = PURC_VARIANT_INVALID;
     const char *event = NULL;
 
+    PC_DEBUG("Got a message and prepare to fire a MESSAGE event\n");
+
     switch (type) {
         case MT_TEXT:
             // fire a `message` event

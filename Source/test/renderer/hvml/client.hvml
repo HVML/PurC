@@ -1,6 +1,18 @@
+#!/usr/bin/purc
+
+# RESULT: 'closed'
+
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
+        <define as 'logMsg'>
+            $RUNNER.enablelog('all', 'stderr')
+
+            <inherit>
+                $RUNNER.logmsg($?)
+            </inherit>
+        </define>
+
         <title>Client: Time</title>
 
         <update on $TIMERS to 'unite'>
@@ -11,6 +23,8 @@
     </head>
 
     <body>
+        <include with $logMsg on 'The client is running...' />
+
         <h1>Client: Time</h1>
         <p>Current Time: <input id="clock"></input><p>
 

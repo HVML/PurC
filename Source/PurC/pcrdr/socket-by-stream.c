@@ -190,6 +190,7 @@ static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
     int retv = -1;
     purc_rwstream_t buffer = NULL;
 
+    PC_INFO("Going to send a message\n");
     if (!(conn->prot_data && conn->prot_data->stream->ext0.msg_ops))
         return -1;
 
@@ -206,9 +207,11 @@ static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 
     if (conn->prot_data->stream->ext0.msg_ops->send_message(
             conn->prot_data->stream, true, packet, packet_len) < 0) {
+        PC_ERROR("Failed send_message()\n");
         goto done;
     }
 
+    PC_INFO("Message sent\n");
     conn->stats.bytes_sent += packet_len;
     retv = 0;
 

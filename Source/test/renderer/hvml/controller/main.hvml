@@ -1,7 +1,7 @@
 <define as 'logMsg' at '_topmost'>
     $RUNNER.enablelog('all', 'stderr')
     <inherit>
-            $RUNNER.logmsg($?)
+            $RUNNER.logmsg($DATA.serialize($?))
     </inherit>
 </define>
 
@@ -96,75 +96,96 @@ $data
 <define as 'parseMessage' at '_topmost'>
     <include with $logMsg on $message />
 
-    <init as 'headers_and_body' with $STR.explode($message, " \n", 1) temp />
+    <init as 'headers_and_body' with $STR.explode($message, '\n \n', 2) temp />
 
-    <init as $message with {} temp />
+    <include with $logMsg on "HEADERS:" />
+    <include with $logMsg on $headers_and_body[0] />
+
+    <include with $logMsg on "DATA:" />
+    <include with $logMsg on $headers_and_body[1] />
+
+    <init as 'parsedMsg' with {} temp />
+
+    <include with $logMsg on "HEADERS:" />
+    <include with $logMsg on $STR.explode($headers_and_body[0], '\n') />
 
     <iterate on $STR.explode($headers_and_body[0], '\n')>
-        <init as 'header' with $STR.explode($?, ': ', 1) temp>
+        <include with $logMsg on "KEY-VALUE PAIR:" />
+        <include with $logMsg on $STR.explode($?, ':', 2) />
+
+        <init as 'header' with $STR.explode($?, ':', 2) temp>
+
+            <update on $header at '[1]' with $STR.trim($header[1]) />
+
             <test on $header[0] >
                 <match for "AS 'type'" exclusively>
-                    <update on $message to 'merge' with { type: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { type: $header[1] } />
                 </match>
 
                 <match for "AS 'target'" exclusively>
-                    <choose on $STR.explode($header[1], '/', 1) >
-                        <update on $message to 'merge' with { targetName: $?[0] } />
-                        <update on $message to 'merge' with { targetValue: $?[1] } />
+                    <choose on $STR.explode($header[1], '/', 2) >
+                        <update on $parsedMsg to 'merge' with { targetName: $?[0] } />
+                        <update on $parsedMsg to 'merge' with { targetValue: $?[1] } />
                     </choose>
                 </match>
 
                 <match for "AS 'requestId'" exclusively>
-                    <update on $message to 'merge' with { requestId: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { requestId: $header[1] } />
                 </match>
 
                 <match for "AS 'operation'" exclusively>
-                    <update on $message to 'merge' with { operation: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { operation: $header[1] } />
                 </match>
 
                 <match for "AS 'element'" exclusively>
-                    <choose on $STR.explode($header[1], '/', 1) >
-                        <update on $message to 'merge' with { elementType: $?[0] } />
-                        <update on $message to 'merge' with { elementValue: $?[1] } />
+                    <choose on $STR.explode($header[1], '/', 2) >
+                        <update on $parsedMsg to 'merge' with { elementType: $?[0] } />
+                        <update on $parsedMsg to 'merge' with { elementValue: $?[1] } />
                     </choose>
                 </match>
 
                 <match for "AS 'property'" exclusively>
-                    <update on $message to 'merge' with { property: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { property: $header[1] } />
                 </match>
 
                 <match for "AS 'result'" exclusively>
-                    <choose on $STR.explode($header[1], '/', 1) >
-                        <update on $message to 'merge' with { retCode: $?[0] } />
-                        <update on $message to 'merge' with { resultValue: $?[1] } />
+                    <choose on $STR.explode($header[1], '/', 2) >
+                        <update on $parsedMsg to 'merge' with { retCode: $?[0] } />
+                        <update on $parsedMsg to 'merge' with { resultValue: $?[1] } />
                     </choose>
                 </match>
 
                 <match for "AS 'eventName'" exclusively>
-                    <update on $message to 'merge' with { eventName: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { eventName: $header[1] } />
                 </match>
 
                 <match for "AS 'sourceURI'" exclusively>
-                    <update on $message to 'merge' with { sourceURI: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { sourceURI: $header[1] } />
                 </match>
 
                 <match for "AS 'dataType'" exclusively>
-                    <update on $message to 'merge' with { dataType: $header[1] } />
+                    <update on $parsedMsg to 'merge' with { dataType: $header[1] } />
                 </match>
             </test>
         </init>
     </iterate>
 
-    <test with $L.streq('case', $message.dataType, 'json')>
-        <update on $message to 'merge' with { data: $header_and_body[1] } />
+    <include with $logMsg on "parsed message:" />
+    <include with $logMsg on $DATA.serialize($parsedMsg) />
+
+    <test with $L.streq('case', $parsedMsg.dataType, 'json')>
+        <update on $parsedMsg to 'merge' with { data: $headers_and_body[1] } />
 
         <differ>
-            <update on $message to 'merge' with { data: $DATA.parse($header_and_body[1]) } />
+            <include with $logMsg on "parsed data: " />
+            <include with $logMsg on $DATA.parse($headers_and_body[1]) />
+
+            <update on $parsedMsg to 'merge' with { data: $DATA.parse($headers_and_body[1]) } />
         </differ>
     </test>
 
-    <include with $logMsg on $DATA.serialize($message) />
-    <return with $message />
+    <include with $logMsg on $DATA.serialize($parsedMsg) />
+    <return with $parsedMsg />
 
 </define>
 

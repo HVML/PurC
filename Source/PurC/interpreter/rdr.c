@@ -620,6 +620,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 {
     PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
 
+    purc_rwstream_t out = NULL;
+
     /* supress update opeations */
     if (cor && cor->supressed) {
         goto failed;
@@ -632,7 +634,6 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
     uint64_t target_value;
     pcrdr_msg_data_type data_type = doc->def_text_type;// VW
     purc_variant_t req_data = PURC_VARIANT_INVALID;
-    purc_rwstream_t out = NULL;
     struct pcintr_coroutine_rdr_conn *rdr_conn;
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn);
 
