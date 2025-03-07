@@ -44,10 +44,6 @@
             <exit with 'timeout' />
         </observe>
 
-        <observe on $CRTN for "idle">
-            <include with $logMsg on 'Client in idle.' />
-        </observe>
-
         <observe on $CRTN for "rdrState:closed">
             <exit with "closed" />
         </observe>

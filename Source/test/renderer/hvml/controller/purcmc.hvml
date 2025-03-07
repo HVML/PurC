@@ -74,3 +74,21 @@
     <return with true />
 </define>
 
+<define as 'revoke' at '_topmost'>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: 0, dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'endSession' at '_topmost'>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: 0, dataType: "void" } />
+
+    <return with true />
+</define>
+

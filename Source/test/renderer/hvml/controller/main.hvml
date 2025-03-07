@@ -77,6 +77,10 @@ $data
 
     <inherit>
         $clients[$clientId].stream.send($message)
+
+        <catch for `ANY`>
+            <include with $logMsg on 'Failed to send message to peer.' />
+        </catch>
     </inherit>
 
     <return with true />
