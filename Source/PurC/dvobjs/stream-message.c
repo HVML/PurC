@@ -850,6 +850,20 @@ static void us_start_ping_timer(struct pcdvobjs_stream *stream)
 }
 
 /*
+ * Get size of pending data to write
+ */
+static size_t get_pending_size(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        return 0;
+    }
+
+    return ext->sz_pending;
+}
+
+/*
  * Send a message
  *
  * return zero on success; none-zero on error.
@@ -1307,6 +1321,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
         msg_ops->send_message = send_message;
         msg_ops->on_error = on_error;
         msg_ops->shut_off = shut_off;
+        msg_ops->sz_pending = get_pending_size;
 
         msg_ops->on_message = on_message;
         msg_ops->cleanup = cleanup_extension;

@@ -69,6 +69,7 @@ struct stream_messaging_ops {
     int (*send_message)(struct pcdvobjs_stream *stream,
             bool text_or_bin, const char *text, size_t len);
     void (*shut_off)(struct pcdvobjs_stream *stream);
+    size_t (*sz_pending)(struct pcdvobjs_stream *stream);
 
     /* the following operations can be overridden by extended layer */
     int (*on_message)(struct pcdvobjs_stream *stream, int type,

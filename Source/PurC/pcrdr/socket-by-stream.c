@@ -73,74 +73,69 @@ struct pcrdr_msg_hdr {
 
 static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 {
-#if 0
-    fd_set rfds;
-    struct timeval tv;
+    int r = -1;
 
-    FD_ZERO(&rfds);
-    FD_SET(conn->fd, &rfds);
-
-    if (timeout_ms >= 0) {
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-        return select(conn->fd + 1, &rfds, NULL, NULL, &tv);
+    if (conn->prot_data == NULL ||
+            conn->prot_data->stream == NULL ||
+            conn->prot_data->stream->ext0.msg_ops == NULL) {
+        goto done;
     }
 
-    return select(conn->fd + 1, &rfds, NULL, NULL, NULL);
-#else
-     struct pollfd fds[] = {
-         { conn->fd, POLLIN | POLLHUP | POLLERR, 0 },
-         { conn->fd, POLLOUT | POLLERR, 0 },
-     };
+    struct pcdvobjs_stream *stream = conn->prot_data->stream;
+    struct pollfd fds[] = {
+        { conn->fd, POLLIN | POLLHUP | POLLERR, 0 },
+        { conn->fd, POLLOUT | POLLERR, 0 },
+    };
 
-     int r = poll(fds, PCA_TABLESIZE(fds), timeout_ms < 0 ? -1 : timeout_ms);
-     if (r < 0) {
-         PC_ERROR("Failed poll(): %s\n", strerror(errno));
-         goto done;
-     }
-     else if (r == 0) {
-         PC_DEBUG("Timeout: %s\n", __func__);
-         goto done;
-     }
+    size_t sz_pending = stream->ext0.msg_ops->sz_pending(stream);
+    r = poll(fds, sz_pending > 0 ? 2 : 1, timeout_ms < 0 ? -1 : timeout_ms);
+    if (r < 0) {
+        PC_ERROR("Failed poll(): %s\n", strerror(errno));
+        goto done;
+    }
+    else if (r == 0) {
+        goto done;
+    }
 
-     struct pcdvobjs_stream *stream = conn->prot_data->stream;
-     int events = 0;
+    int events = 0;
 
-     if (fds[0].revents & POLLIN) {
-         events |= PCRUNLOOP_IO_IN;
-     }
-     if (fds[0].revents & POLLHUP) {
-         events |= PCRUNLOOP_IO_HUP;
-     }
-     if (fds[0].revents & POLLERR) {
-         events |= PCRUNLOOP_IO_ERR;
-     }
+    if (fds[0].revents & POLLIN) {
+        events |= PCRUNLOOP_IO_IN;
+    }
+    if (fds[0].revents & POLLHUP) {
+        events |= PCRUNLOOP_IO_HUP;
+    }
+    if (fds[0].revents & POLLERR) {
+        events |= PCRUNLOOP_IO_ERR;
+    }
 
-     bool ret_read = false, ret_write = false;
-     if (conn->prot_data && stream->ext0.msg_ops) {
-         ret_read = stream->ext0.msg_ops->on_readable(conn->fd, events, stream);
-     }
+    bool ret_read = true, ret_write = true;
+    if (conn->prot_data && stream->ext0.msg_ops) {
+        ret_read = stream->ext0.msg_ops->on_readable(conn->fd, events, stream);
+    }
 
-     events = 0;
-     if (fds[1].revents & POLLOUT) {
-         events |= PCRUNLOOP_IO_OUT;
-     }
-     if (fds[1].revents & POLLERR) {
-         events |= PCRUNLOOP_IO_ERR;
-     }
+    if (sz_pending > 0) {
+        events = 0;
+        if (fds[1].revents & POLLOUT) {
+            events |= PCRUNLOOP_IO_OUT;
+        }
+        if (fds[1].revents & POLLERR) {
+            events |= PCRUNLOOP_IO_ERR;
+        }
 
-     if (conn->prot_data && stream->ext0.msg_ops) {
-         ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events, stream);
-     }
+        if (conn->prot_data && stream->ext0.msg_ops) {
+            ret_write = stream->ext0.msg_ops->on_writable(conn->fd, events,
+                    stream);
+        }
+    }
 
-     if (!ret_read || !ret_write) {
-         PC_ERROR("Failed read of write: %s\n", strerror(errno));
-         return -1;
-     }
+    if (!ret_read || !ret_write) {
+        PC_ERROR("Failed read of write: %s\n", strerror(errno));
+        return -1;
+    }
 
 done:
-     return r;
-#endif
+    return r;
 }
 
 static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
@@ -155,6 +150,7 @@ static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
             goto error;
         }
         else if (r == 0) {
+            PC_ERROR("my_wait_message timeout: %u\n", total_wait);
             total_wait += conn->timeout_ms;
         }
 
@@ -182,7 +178,7 @@ error:
 
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 {
-    return my_read_message_timeout(conn, 0);
+    return my_read_message_timeout(conn, conn->timeout_ms);
 }
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)

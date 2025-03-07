@@ -47,7 +47,7 @@
     <return with true />
 </define>
 
-<define as 'loadFromURL' at '_topmost'>
+<define as 'load' at '_topmost'>
 
     <include with $logMsg on 'plainwindows:' />
     <include with $logMsg on $plainwindows />
@@ -61,6 +61,15 @@
     <call on $sendResponse with {
             clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
             resultValue: $DATA.key($plainwindows[$parsedMsg.targetValue].page), dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'update' at '_topmost'>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: 0, dataType: "void" } />
 
     <return with true />
 </define>
