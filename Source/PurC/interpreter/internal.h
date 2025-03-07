@@ -253,11 +253,11 @@ bool
 pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
-bool
+int
 pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
-bool
+int
 pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor);
 
@@ -279,20 +279,6 @@ Note that for different operation, the reference element:
   - `clear`: the target element itself.
 
 */
-
-pcrdr_msg *
-pcintr_rdr_send_dom_req(struct pcinst *inst,
-        pcintr_coroutine_t co, int op, const char *request_id,
-        pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
-        pcrdr_msg_data_type data_type, purc_variant_t data);
-
-pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
-        pcintr_coroutine_t co, int op, const char *request_id,
-        pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
-        pcrdr_msg_data_type data_type, const char *data, size_t len);
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,

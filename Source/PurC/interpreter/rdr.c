@@ -44,6 +44,7 @@
 #define LAYOUT_STYLE_KEY        "layoutStyle"
 #define TOOLKIT_STYLE_KEY       "toolkitStyle"
 #define TRANSITION_STYLE_KEY    "transitionStyle"
+#define KEEP_CONTENTS_KEY       "keepContents"
 
 #define BUFF_MIN                1024
 #define BUFF_MAX                1024 * 1024 * 4
@@ -423,6 +424,14 @@ pcintr_attach_to_renderer(struct pcrdr_conn *conn, pcintr_coroutine_t cor,
                     errors++;
                 }
             }
+
+            if (extra_info->keep_contents) {
+                if (!purc_variant_object_set_by_static_ckey(data,
+                            KEEP_CONTENTS_KEY,
+                            extra_info->keep_contents)) {
+                    errors++;
+                }
+            }
         }
         else
             errors++;
@@ -611,8 +620,12 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 {
     PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
 
-    pcrdr_msg *response_msg = NULL;
+    /* supress update opeations */
+    if (cor && cor->supressed) {
+        goto failed;
+    }
 
+    pcrdr_msg *response_msg = NULL;
     purc_document_t doc = cor->stack.doc;
 
     pcrdr_msg_target target;
@@ -825,10 +838,11 @@ failed:
     return false;
 }
 
-bool
+int
 pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
+    int ret = PCRDR_ERROR_SERVER_REFUSED;
     pcrdr_msg_target target;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
@@ -854,12 +868,47 @@ pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn);
     pcrdr_msg *response_msg;
 
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    if (cor->transition_style || cor->keep_contents) {
+        int errors = 0;
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
+        data = purc_variant_make_object_0();
+        if (cor->transition_style) {
+            if (!object_set(data, TRANSITION_STYLE_KEY,
+                        cor->transition_style)) {
+                errors++;
+            }
+        }
+
+        if (cor->keep_contents) {
+            if (!purc_variant_object_set_by_static_ckey(data,
+                        KEEP_CONTENTS_KEY,
+                        cor->keep_contents)) {
+                errors++;
+            }
+        }
+
+        if (errors > 0) {
+            purc_log_error("Failed to create data for page.\n");
+            if (data) {
+                purc_variant_unref(data);
+            }
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
     /* register */
     response_msg = pcintr_rdr_send_request_and_wait_response(
             conn, target, rdr_conn->page_handle,
             PCRDR_OPERATION_REGISTER, NULL,
             PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
-            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+            data_type, data, 0);
+    if (data) {
+        purc_variant_unref(data);
+    }
+
     if (response_msg == NULL) {
         goto failed;
     }
@@ -871,21 +920,26 @@ pcintr_rdr_page_control_register(struct pcinst *inst, pcrdr_conn *conn,
 
     pcrdr_release_message(response_msg);
 
-    if (ret_code != PCRDR_SC_OK) {
+    if (ret_code == PCRDR_SC_OK) {
+        ret = 0;
+    }
+    else if (ret_code == PCRDR_SC_NOT_IMPLEMENTED) {
+        ret = PCRDR_ERROR_NOT_IMPLEMENTED;
+    }
+    else {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        ret = PCRDR_ERROR_SERVER_REFUSED;
     }
 
-    return true;
-
 failed:
-    return false;
+    return ret;
 }
 
-bool
+int
 pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
+    int ret = PCRDR_ERROR_SERVER_REFUSED;
     pcrdr_msg_target target;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
@@ -910,13 +964,41 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
     struct pcintr_coroutine_rdr_conn *rdr_conn;
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn);
 
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    if (cor->keep_contents) {
+        int errors = 0;
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
+        data = purc_variant_make_object_0();
+        if (cor->keep_contents) {
+            if (!purc_variant_object_set_by_static_ckey(data,
+                        KEEP_CONTENTS_KEY,
+                        cor->keep_contents)) {
+                errors++;
+            }
+        }
+
+        if (errors > 0) {
+            purc_log_error("Failed to create data for page.\n");
+            if (data) {
+                purc_variant_unref(data);
+            }
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
+
     pcrdr_msg *response_msg;
     /* revoke */
     response_msg = pcintr_rdr_send_request_and_wait_response(
             conn, target, rdr_conn->page_handle,
             PCRDR_OPERATION_REVOKE, NULL,
             PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
-            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+            data_type, data, 0);
+    if (data) {
+        purc_variant_unref(data);
+    }
     if (response_msg == NULL) {
         goto failed;
     }
@@ -925,18 +1007,22 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
     uint64_t result = response_msg->resultValue;
     pcrdr_release_message(response_msg);
 
-    if (ret_code != PCRDR_SC_OK) {
+    if (ret_code == PCRDR_SC_OK) {
+        ret = 0;
+        if (result != 0) {
+            pcintr_reload_crtn_doc(inst, conn, cor, result);
+        }
+    }
+    else if (ret_code == PCRDR_SC_NOT_IMPLEMENTED) {
+        ret = PCRDR_ERROR_NOT_IMPLEMENTED;
+    }
+    else {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        ret = PCRDR_ERROR_SERVER_REFUSED;
     }
-    else if (ret_code == PCRDR_SC_OK && result != 0) {
-        pcintr_reload_crtn_doc(inst, conn, cor, result);
-    }
-
-    return true;
 
 failed:
-    return false;
+    return ret;
 }
 
 static const char *rdr_ops[] = {
@@ -1016,7 +1102,7 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
     return 0;
 }
 
-pcrdr_msg *
+static pcrdr_msg *
 pcintr_rdr_send_dom_req(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
@@ -1035,6 +1121,11 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
     int n;
 
     if (!co || co->stack.doc->ldc == 0 ) {
+        return NULL;
+    }
+
+    /* supress update opeations */
+    if (co && co->supressed) {
         return NULL;
     }
 
@@ -1108,14 +1199,19 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
             }
             else {
                 purc_variant_t req_data = PURC_VARIANT_INVALID;
+                pcrdr_msg_data_type req_data_type = PCRDR_MSG_DATA_TYPE_JSON;
                 if (ref_elem) {
                     req_data = purc_variant_make_native(ref_elem, NULL);
+                }
+                else if (data) {
+                    req_data = purc_variant_ref(data);
+                    req_data_type = data_type;
                 }
                 /* dom operation */
                 response_msg = pcintr_rdr_send_request_and_wait_response(
                         pconn, target, target_value, operation,
                         req_id, element_type, elem, property,
-                        PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
+                        req_data_type, req_data, 0);
                 if (req_data) {
                     purc_variant_unref(req_data);
                 }
@@ -1153,7 +1249,7 @@ failed:
     return NULL;
 }
 
-pcrdr_msg *
+static pcrdr_msg *
 pcintr_rdr_send_dom_req_raw(struct pcinst *inst,
         pcintr_coroutine_t co, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
@@ -1197,6 +1293,11 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     if (data && len == 0) {
         len = strlen(data);
     }
@@ -1213,6 +1314,8 @@ pcintr_rdr_send_dom_req_simple_raw(struct pcinst *inst,
         pcrdr_release_message(response_msg);
         return true;
     }
+
+out:
     return false;
 }
 
@@ -1226,6 +1329,12 @@ pcintr_rdr_call_method(struct pcinst *inst,
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     if (!data) {
         goto out;
     }
@@ -1292,6 +1401,11 @@ pcintr_rdr_set_property(struct pcinst *inst,
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
     purc_variant_t data = value;
 
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
+
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
         response_msg = pcintr_rdr_send_dom_req(inst, co,
@@ -1321,6 +1435,7 @@ pcintr_rdr_set_property(struct pcinst *inst,
         pcrdr_release_message(response_msg);
     }
 
+out:
     return ret;
 }
 
@@ -1332,6 +1447,11 @@ pcintr_rdr_get_property(struct pcinst *inst,
     purc_variant_t ret = PURC_VARIANT_INVALID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    /* supress update opeations */
+    if (co && co->supressed) {
+        goto out;
+    }
 
     pcrdr_msg *response_msg;
     if (css_selector[0] == '#' && purc_is_valid_css_identifier(css_selector + 1)) {
@@ -1362,6 +1482,7 @@ pcintr_rdr_get_property(struct pcinst *inst,
         pcrdr_release_message(response_msg);
     }
 
+out:
     return ret;
 }
 

@@ -399,7 +399,8 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->string_buffer = tkz_buffer_new();
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
-    parser->nr_quoted = 0;
+    parser->nr_single_quoted = 0;
+    parser->nr_double_quoted = 0;
     parser->raw_buffer = tkz_buffer_new();
 
     const char *env_value = getenv(PURC_ENVV_EJSON_LOG_ENABLE);
@@ -436,7 +437,8 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     pcejson_token_stack_destroy(parser->tkz_stack);
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
-    parser->nr_quoted = 0;
+    parser->nr_single_quoted = 0;
+    parser->nr_double_quoted = 0;
 }
 
 static bool

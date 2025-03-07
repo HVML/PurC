@@ -1,0 +1,169 @@
+<hvml>
+<body>
+<define as 'logMsg' at '_topmost'>
+    $RUNNER.enablelog('all', 'stderr')
+    <inherit>
+            $RUNNER.logmsg($?)
+    </inherit>
+</define>
+
+<define as 'sendEvent' at '_topmost'>
+
+    <test on $dataType>
+        <match for "AS 'json'" exclusively>
+            <init as 'data' at '_nexttolast' with $DATA.seralize($data, 'real-ejson runtime-null plain bseq-hex-string') temp />
+        </match>
+
+        <match for "AS 'void'" exclusively>
+            <init as 'data' at '_nexttolast' with '' temp />
+        </match>
+    </test>
+
+    <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
+
+    <init as 'message' temp >
+"""type: event
+eventName: $eventName
+sourceURI: {{ $sourceURI || '_renderer' }}
+target: $targetName/$targetValue
+element: $elementType/$elementValue
+dataType: $dataType
+dataLen: $dataLen
+ 
+$data
+"""
+    </init>
+
+    <inherit>
+        $stream.send($message)
+    </inherit>
+
+    <include with $logMsg on $message />
+
+    <return with true />
+</define>
+
+<define as 'sendResponse' at '_topmost'>
+
+    <test with $L.streq('case', $requestId, '0') >
+        <!-- override data passed to this function -->
+        <init as 'data' at '_last' temp>
+"""PURCMC:120
+HVMLSimulator:1.0
+HTML:5.3
+workspace:7/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:32
+DOMElementSelectors:id,css,handle,handles
+"""
+        </init>
+    </test>
+
+    <test on $dataType>
+        <match for "AS 'json'" exclusively>
+            <init as 'data' at '_nexttolast' with $DATA.seralize($data, 'real-ejson runtime-null plain bseq-hex-string') temp />
+        </match>
+
+        <match for "AS 'void'" exclusively>
+            <init as 'data' at '_nexttolast' with '' temp />
+        </match>
+    </test>
+
+    <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
+
+    <init as 'message' temp >
+"""type: response
+requestId: $requestId
+result: $retCode/$STR.format_c('%x', $resultValue)
+dataType: $dataType
+dataLen: $dataLen
+ 
+$data
+"""
+    </init>
+
+    <inherit>
+        $stream.send($message)
+    </inherit>
+
+    <include with $logMsg on $message />
+
+    <return with true />
+</define>
+
+<define as 'parseMessage' at '_topmost'>
+    <include with $logMsg on $message />
+
+    <init as 'headers_and_body' with $STR.explode($message, " \n", 1) temp />
+
+    <init as $message with {} temp />
+
+    <iterate on $STR.explode($headers_and_body[0], '\n')>
+        <init as 'header' with $STR.explode($?, ': ', 1) temp>
+            <test on $header[0] >
+                <match for "AS 'type'" exclusively>
+                    <update on $message to 'merge' with { type: $header[1] } />
+                </match>
+
+                <match for "AS 'target'" exclusively>
+                    <choose on $STR.explode($header[1], '/', 1) >
+                        <update on $message to 'merge' with { targetName: $?[0] } />
+                        <update on $message to 'merge' with { targetValue: $?[1] } />
+                    </choose>
+                </match>
+
+                <match for "AS 'requestId'" exclusively>
+                    <update on $message to 'merge' with { requestId: $header[1] } />
+                </match>
+
+                <match for "AS 'operation'" exclusively>
+                    <update on $message to 'merge' with { operation: $header[1] } />
+                </match>
+
+                <match for "AS 'element'" exclusively>
+                    <choose on $STR.explode($header[1], '/', 1) >
+                        <update on $message to 'merge' with { elementType: $?[0] } />
+                        <update on $message to 'merge' with { elementValue: $?[1] } />
+                    </choose>
+                </match>
+
+                <match for "AS 'property'" exclusively>
+                    <update on $message to 'merge' with { property: $header[1] } />
+                </match>
+
+                <match for "AS 'result'" exclusively>
+                    <choose on $STR.explode($header[1], '/', 1) >
+                        <update on $message to 'merge' with { retCode: $?[0] } />
+                        <update on $message to 'merge' with { resultValue: $?[1] } />
+                    </choose>
+                </match>
+
+                <match for "AS 'eventName'" exclusively>
+                    <update on $message to 'merge' with { eventName: $header[1] } />
+                </match>
+
+                <match for "AS 'sourceURI'" exclusively>
+                    <update on $message to 'merge' with { sourceURI: $header[1] } />
+                </match>
+
+                <match for "AS 'dataType'" exclusively>
+                    <update on $message to 'merge' with { dataType: $header[1] } />
+                </match>
+            </test>
+        </init>
+    </iterate>
+
+    <test with $L.streq('case', $message.dataType, 'json')>
+        <update on $message to 'merge' with { data: $header_and_body[1] } />
+
+        <differ>
+            <update on $message to 'merge' with { data: $DATA.parse($header_and_body[1]) } />
+        </differ>
+    </test>
+
+    <include with $logMsg on $DATA.serialize($message) />
+    <return with $message />
+
+</define>
+
+</body>
+</hvml>
+

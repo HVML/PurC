@@ -1,0 +1,128 @@
+#!/usr/bin/purc
+
+# RESULT: 'Bad Client'
+
+<hvml target="void">
+    <head>
+    </head>
+
+    <body id='server' >
+
+        <init as 'sslSettings'>
+            {
+                'ssl-key': '../Source/test/dvobjs/localhost.key',
+                'ssl-cert': '../Source/test/dvobjs/localhost.crt'
+            }
+        </init>
+
+        <init as 'clients' with {} />
+
+        <init as 'srvListenSocket' with $SOCKET.stream('inet://localhost:8080', 'none', 32, {{ $REQ.secure && $sslSettings || { } }}) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+        </init>
+
+        <load from "#{$REQ.client}" within 'client' onto 'null:' as 'client' async >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when loading client" />
+            </catch>
+        </load>
+
+        <iterate with $srvListenSocket.accept('default', 'websocket')>
+            <test with $L.not($DATA.isequal($?, null)) >
+
+                <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
+
+                <inherit>
+                    $STREAM.stdout.writelines("Accepted a connection: $clientId")
+                </inherit>
+
+                <update on $clients to 'merge' with { $clientId : $? } />
+
+                <observe on $clients[$clientId] for 'handshake'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Got handshake event from $_observedContent, payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                    }}
+                    </inherit>
+                </observe>
+
+                <observe on $clients[$clientId] for 'error'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Got error event from $_observedContent, payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                    }}
+                    </inherit>
+
+                    <exit with 'Bad Client' />
+                </observe>
+
+                <observe on $clients[$clientId] for 'close'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Got error event from $_observedContent, payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?))
+                    }}
+                    </inherit>
+
+                    <exit with 'Good Client' />
+                </observe>
+            </test>
+        </iterate>
+
+        <observe on $client for "corState:exited" >
+            <inherit>
+                $STREAM.stdout.writelines("Client exited with $?")
+            </inherit>
+        </observe>
+
+    </body>
+
+    <body id="raw">
+
+        <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default') >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <inherit>
+                $cliStreamSocket.writelines('Hello from a raw client socket');
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling stream.writelines()" />
+                </catch>
+            </inherit>
+
+            <choose on $cliStreamSocket.readlines(1) >
+
+                <inherit>
+                    $STREAM.stdout.writelines("Client got $DATA.serialize($?) and is going to close.")
+                </inherit>
+
+                <choose on $cliStreamSocket.close() >
+                    <catch for `ANY`>
+                        <exit with "Client failed with $?.name when calling stream.close()" />
+                    </catch>
+                </choose>
+
+                <exit with 'Bye' />
+
+                <catch for `ANY`>
+                    <return with "Client failed with $?.name when calling stream.readlines()" />
+                </catch>
+            </choose>
+
+        </init>
+
+    </body>
+</hvml>
+

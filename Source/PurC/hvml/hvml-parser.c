@@ -106,7 +106,8 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->ejson_stack = pcutils_stack_new(0);
     parser->char_ref_code = 0;
     parser->prev_separator = 0;
-    parser->nr_quoted = 0;
+    parser->nr_single_quoted = 0;
+    parser->nr_double_quoted = 0;
     parser->tag_is_operation = 0;
     parser->tag_has_raw_attr = 0;
     parser->is_in_file_header = 1;
@@ -143,7 +144,8 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     }
     parser->char_ref_code = 0;
     parser->prev_separator = 0;
-    parser->nr_quoted = 0;
+    parser->nr_single_quoted = 0;
+    parser->nr_double_quoted = 0;
     parser->tag_is_operation = false;
     parser->tag_has_raw_attr = false;
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
