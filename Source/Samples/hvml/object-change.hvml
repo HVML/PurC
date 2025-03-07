@@ -1,0 +1,35 @@
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+    <body>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+        <init as info>
+            {
+                type:"normal",
+                id:"first"
+            }
+        </init>
+
+        <observe on $info for 'change'>
+            <inherit>
+                $STREAM.stdout.writelines("############# receive change")
+            </inherit>
+            <forget on $info for 'change' />
+        </observe>
+
+
+        <observe on="$TIMERS" for="expired:clock">
+            <forget on $TIMERS for 'expired:clock' />
+            <inherit>
+                $STREAM.stdout.writelines("############# before update $info")
+            </inherit>
+            <update on $info at ".id" with "second" />
+            <inherit>
+                $STREAM.stdout.writelines("############# after update $info")
+            </inherit>
+        </observe>
+    </body>
+</hvml>
