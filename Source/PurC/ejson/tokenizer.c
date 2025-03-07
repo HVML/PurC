@@ -2738,6 +2738,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE)
             APPEND_TO_TEMP_BUFFER('\b');
             ADVANCE_TO(parser->return_state);
             break;
+        case 'v':
+            APPEND_TO_TEMP_BUFFER('\v');
+            ADVANCE_TO(parser->return_state);
         case 'f':
             APPEND_TO_TEMP_BUFFER('\f');
             ADVANCE_TO(parser->return_state);

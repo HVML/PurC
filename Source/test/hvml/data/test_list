@@ -597,3 +597,5 @@ dollar_sign_and_special_character_007 PCEJSON_ERROR_UNEXPECTED_CHARACTER
 dollar_sign_and_special_character_008 PCEJSON_ERROR_UNEXPECTED_CHARACTER
 inet-websocket-bad-client
 triple-double-quotes
+unescaped_control_character PCHVML_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER
+
