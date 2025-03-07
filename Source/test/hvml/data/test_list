@@ -599,4 +599,5 @@ inet-websocket-bad-client
 triple-double-quotes
 unescaped_control_character PCHVML_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER
 unescaped_control_character_double_quoted PCHVML_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER
+chee_on_double_quoted
 
