@@ -1666,8 +1666,10 @@ static void on_call_method(struct pcrdr_prot_data *prot_data,
     UNUSED_PARAM(msg);
     UNUSED_PARAM(op_id);
 
-    result->retCode = PCRDR_SC_NOT_IMPLEMENTED;
-    result->resultValue = 0;
+    /* always return a true value */
+    result->retCode = PCRDR_SC_OK;
+    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
+    result->data = purc_variant_make_boolean(true);
 }
 
 static void on_get_property(struct pcrdr_prot_data *prot_data,
@@ -1746,8 +1748,10 @@ static void on_set_property(struct pcrdr_prot_data *prot_data,
     UNUSED_PARAM(msg);
     UNUSED_PARAM(op_id);
 
-    result->retCode = PCRDR_SC_NOT_IMPLEMENTED;
-    result->resultValue = 0;
+    /* always return a true value */
+    result->retCode = PCRDR_SC_OK;
+    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
+    result->data = purc_variant_make_boolean(true);
 }
 
 static request_handler handlers[] = {
