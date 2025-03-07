@@ -55,9 +55,17 @@
 
 #define PARSER_ERROR_TYPE       "hvmlParsing"
 
+#define __DEV_HVML__                0
+
+#if (defined __DEV_HVML__ && __DEV_HVML__)
+#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
+#else
+#define PLOG               PC_INFO
+#endif /* (defined __DEV_HVML__ && __DEV_HVML__) */
+
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
-        PC_DEBUG(                                                           \
+        PLOG(                                                               \
             "in %s|uc=%c|hex=0x%X|fh=%d\n",                                 \
             curr_state_name, character, character,                          \
             parser->is_in_file_header);                                     \
@@ -72,7 +80,7 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         if (parser->enable_log) {                                           \
-            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
+            PLOG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);          \
         }                                                                   \
     }                                                                       \
     tkz_set_error_info(parser->reader, parser->curr_uc, err,                \
