@@ -23,15 +23,17 @@
  */
 
 #define _GNU_SOURCE
-
 #include "config.h"
 
 #include "private/errors.h"
 #include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/variant.h"
+#include "private/atom-buckets.h"
 #include "purc-variant.h"
 #include "helper.h"
+
+#include "purc-dvobjs.h"
 
 static const char *get_next_segment(const char *data,
         const char *delim, size_t *length)
@@ -1397,7 +1399,6 @@ strstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -1457,13 +1458,255 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$STR.trim(
+        <string $string: `The orignal string to trim.`>
+        [, <string $characters = " \n\r\t\v\f": `The characters to trim from the original string.`>
+            [, < 'left | right | both' $position  = 'both': `The trimming position.`> ]
+        ]
+) string
+*/
+
+enum {
+    POS_LEFT = 0x01,
+    POS_RIGHT = 0x02,
+    POS_BOTH = POS_LEFT | POS_RIGHT,
+};
+
+static struct pcdvobjs_option_to_atom position_ckws[] = {
+    { "left",   0,  POS_LEFT },
+    { "right",  0,  POS_RIGHT },
+    { "both",   0,  POS_BOTH },
+};
+
+static bool is_all_ascii(const char *str)
+{
+    while (*str) {
+        if (*str & 0x80)
+            return false;
+        str++;
+    }
+
+    return true;
+}
+
+static int trim_ascii_chars(purc_rwstream_t rwstream,
+        const char *str, size_t len, const char *chars, int pos)
+{
+    int ec = PURC_ERROR_OK;
+
+    const char *left = str;
+    const char *right = str + len - 1;
+
+    if (pos & POS_LEFT) {
+        while (len > 0) {
+            if (strchr(chars, *left)) {
+                left++;
+                len--;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (pos & POS_RIGHT) {
+        while (len > 0) {
+            if (strchr(chars, *right)) {
+                right--;
+                len--;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (len > 0 && purc_rwstream_write(rwstream, left, len) < 1) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    return ec;
+}
+
+static const char *utf8_prev_char(const char *str)
+{
+    /* The maximum length of a UTF-8 character is 6 */
+    for (int n = 6; n > 0; n--) {
+        const char *p = str - n;
+        if (pcutils_utf8_next_char(p) == str)
+            return p;
+    }
+
+    return NULL;
+}
+
+static int trim_utf8_chars(purc_rwstream_t rwstream,
+        const char *str, size_t len, const char *characters, int pos)
+{
+    int ec = PURC_ERROR_OK;
+
+    const char *left = str;
+    const char *right = str + len;
+
+    if (pos & POS_LEFT) {
+        while (len > 0) {
+            char utf8[10];
+            const char *p = pcutils_utf8_next_char(left);
+            size_t utf8_len = p - left;
+            assert(utf8_len < sizeof(utf8));
+
+            strncpy(utf8, left, utf8_len);
+            PC_DEBUG("characters: '%s', utf8: '%s', strstr:  %s\n",
+                    characters, utf8,
+                    strstr(characters, utf8) ? "true" : "false");
+            /* work-around: strstr(" 中国", " ") may return NULL */
+            if ((utf8_len == 1 && strchr(characters, utf8[0])) ||
+                    strstr(characters, utf8)) {
+                left = p;
+                len -= utf8_len;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (pos & POS_RIGHT) {
+        while (len > 0) {
+            char utf8[10];
+            const char *p = utf8_prev_char(right);
+            size_t utf8_len = right - p;
+            assert(utf8_len < sizeof(utf8));
+
+            strncpy(utf8, p, utf8_len);
+            PC_DEBUG("Right string: %s, Previouse char: %s\n", right, utf8);
+            PC_DEBUG("characters: '%s', utf8: '%s', strstr:  %s\n",
+                    characters, utf8,
+                    strstr(characters, utf8) ? "true" : "false");
+            if ((utf8_len == 1 && strchr(characters, utf8[0])) ||
+                    strstr(characters, utf8)) {
+                right = p;
+                len -= utf8_len;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (len > 0 && purc_rwstream_write(rwstream, left, len) < 1) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    return ec;
+}
+
+static purc_variant_t
+trim_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int errcode = PURC_ERROR_OK;
+    purc_rwstream_t rwstream = NULL;
+
+    if (nr_args < 1) {
+        errcode = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *chars = " \n\r\t\v\f";
+    bool all_ascci = true;
+    const char *str;
+    size_t len, chars_len;
+
+    if ((str = purc_variant_get_string_const_ex(argv[0], &len)) == NULL) {
+        errcode = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    int position = POS_BOTH;
+    if (nr_args > 1) {
+        if (position_ckws[0].atom == 0) {
+            for (size_t i = 0; i < PCA_TABLESIZE(position_ckws); i++) {
+                position_ckws[i].atom = purc_atom_from_static_string_ex(
+                        ATOM_BUCKET_DVOBJ, position_ckws[i].option);
+            }
+        }
+
+        position = pcdvobjs_parse_options(argv[1], NULL, 0,
+                position_ckws, PCA_TABLESIZE(position_ckws), 0, -1);
+        if (position == -1) {
+            goto error;
+        }
+    }
+
+    if (nr_args > 2) {
+        if ((chars = purc_variant_get_string_const_ex(argv[2], &chars_len)) ==
+                NULL) {
+            errcode = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+
+        all_ascci = is_all_ascii(chars);
+    }
+
+    if (len == 0 || chars_len == 0)
+        goto empty_done;
+
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        errcode = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    // call worker
+    int ret;
+    if (all_ascci) {
+        ret = trim_ascii_chars(rwstream, str, len, chars, position);
+    }
+    else {
+        ret = trim_utf8_chars(rwstream, str, len, chars, position);
+    }
+
+    if (ret) {
+        errcode = ret;
+        goto failed;
+    }
+
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+empty_done:
+    return purc_variant_ref(argv[0]);
+
+failed:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+error:
+    if (errcode)
+        purc_set_error(errcode);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
         { "nr_bytes",   nr_bytes_getter,    NULL },
         { "nr_chars",   nr_chars_getter,    NULL },
         { "contains",   contains_getter,    NULL },
-        { "starts_with",starts_with_getter,   NULL },
+        { "starts_with",starts_with_getter, NULL },
         { "ends_with",  ends_with_getter,   NULL },
         { "join",       join_getter,        NULL },
         { "tolower",    tolower_getter,     NULL },
@@ -1478,6 +1721,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "format_p",   format_p_getter,    NULL },
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
+        { "trim",       trim_getter,        NULL },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
