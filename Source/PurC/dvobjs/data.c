@@ -41,6 +41,27 @@
 #include <regex.h>
 
 static purc_variant_t
+key_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    void *p;
+    if (nr_args == 0) {
+        // treat as undefined
+        purc_variant_t vrt = purc_variant_make_undefined();
+        p = vrt;
+        purc_variant_unref(vrt);
+    }
+    else {
+        p = argv[0];
+    }
+
+    return purc_variant_make_ulongint((uint64_t)p);
+}
+
+static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -3648,6 +3669,7 @@ failed:
 purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
+        { "key",        key_getter, NULL },
         { "type",       type_getter, NULL },
         { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },

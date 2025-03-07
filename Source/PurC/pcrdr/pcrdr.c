@@ -523,10 +523,11 @@ connect_to_renderer(struct pcinst *inst,
     bool set_page_groups = (conn_to_rdr->caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
             conn_to_rdr->caps->workspace != 0) {
-        /* send `createWorkspace` */
+        /* send `createWorkspace`;
+           Since PURCMC 120, send workspace name via element. */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
                 PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
-                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_ID, extra_info->workspace_name, NULL,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
         if (msg == NULL) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -534,13 +535,16 @@ connect_to_renderer(struct pcinst *inst,
         }
 
         msg->data = purc_variant_make_object_0();
-        purc_variant_t value = purc_variant_make_string_static(
+        purc_variant_t value;
+#if 0
+        value = purc_variant_make_string_static(
                 extra_info->workspace_name, true);
         if (value == PURC_VARIANT_INVALID) {
             goto failed;
         }
         purc_variant_object_set_by_static_ckey(msg->data, "name", value);
         purc_variant_unref(value);
+#endif
 
         if (extra_info->workspace_title) {
             value = purc_variant_make_string_static(

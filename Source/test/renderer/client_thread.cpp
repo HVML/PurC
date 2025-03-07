@@ -59,7 +59,7 @@ static void* general_thread_entry(void* arg)
         PURC_RDRCOMM_SOCKET,
         rdr_uri,
         "main",
-        "mainWorkspace",
+        "The main workspace",
         NULL,               // workspace_layout
         0,                  // allow_switching_rdr (since 0.9.18)
         0,                  // allow_scaling_by_denisty
@@ -77,10 +77,38 @@ static void* general_thread_entry(void* arg)
     purc_log_info("Return value of purc_init_ex(): %d\n", ret);
 
     if (ret == 0) {
-        run_one_comp_test("renderer/hvml/client.hvml");
-        purc_cleanup();
+        char path[PATH_MAX];
+        const char *env = "SOURCE_FILES";
+        const char *rel = "hvml/client.hvml";
+        test_getpath_from_env_or_rel(path, sizeof(path), env, rel);
+        purc_log_info("Loading HVML program from: %s\n", path);
+
+        size_t n;
+        char *buf = purc_load_file_contents(path, &n);
+        if (buf) {
+            purc_vdom_t vdom;
+            vdom = purc_load_hvml_from_string(buf);
+            free(buf);
+
+            if (vdom) {
+                purc_coroutine_t cor = purc_schedule_vdom(vdom, 0, NULL,
+                    PCRDR_PAGE_TYPE_PLAINWIN, "main", NULL,
+                    "hello", NULL, NULL, NULL);
+                if (cor) {
+                    purc_run((purc_cond_handler)client_cond_handler);
+                }
+            }
+            else {
+                purc_log_info("Failed to parse HVML program from: %s\n", path);
+            }
+        }
+        else {
+            purc_log_info("Failed to load HVML program from: %s\n", path);
+        }
     }
 
+    if (ret == 0)
+        purc_cleanup();
     return NULL;
 }
 

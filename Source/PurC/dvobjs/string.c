@@ -88,7 +88,7 @@ nr_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
+        return purc_variant_make_ulongint(0);
 
     return PURC_VARIANT_INVALID;
 }

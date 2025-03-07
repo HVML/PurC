@@ -5,11 +5,11 @@
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <define as 'logMsg'>
-            $RUNNER.enablelog('all', 'stderr')
+        $RUNNER.enablelog('all', 'stderr')
 
+        <define as 'logMsg'>
             <inherit>
-                $RUNNER.logmsg($?)
+                $RUNNER.logmsg($DATA.serialize($?))
             </inherit>
         </define>
 
@@ -18,6 +18,7 @@
         <update on $TIMERS to 'unite'>
             [
                 { "id" : "clock", "interval" : 500, "active" : "yes" },
+                { "id" : "exit", "interval" : 5000, "active" : "yes" },
             ]
         </update>
     </head>
@@ -35,7 +36,16 @@
         </ul>
 
         <observe on $TIMERS for "expired:clock">
-            <request on="#clock" to="set:value" with "$DATETIME.time_prt()" />
+            <include with $logMsg on 'clock timer expired' />
+            <update on '#clock' at 'textContent' with $DATETIME.time_prt() />
+        </observe>
+
+        <observe on $TIMERS for "expired:exit">
+            <exit with 'timeout' />
+        </observe>
+
+        <observe on $CRTN for "idle">
+            <include with $logMsg on 'Client in idle.' />
         </observe>
 
         <observe on $CRTN for "rdrState:closed">

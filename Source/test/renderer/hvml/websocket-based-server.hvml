@@ -4,6 +4,14 @@
 
 <hvml target="void">
     <head>
+        $RUNNER.enablelog('all', 'stderr')
+
+        <define as 'logMsg'>
+            <inherit>
+                    $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+
         <base href="$CRTN.base(! {{ $REQ.base || $SYS.cwd }} )" hvml:silently />
     </head>
 

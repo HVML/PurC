@@ -213,9 +213,6 @@ int client_cond_handler(purc_cond_k event, void *arg, void *data)
     return 0;
 }
 
-void (*after_first_run)(purc_coroutine_t cor,
-        struct purc_cor_run_info *info);
-
 static int
 comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
@@ -224,10 +221,16 @@ comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 
     if (event == PURC_COND_COR_ONE_RUN) {
         struct purc_cor_run_info *info = (struct purc_cor_run_info *)data;
-        purc_log_info("condition: %s: run index: %lu\n", cond_names[event],
-                info->run_idx);
-        if (info->run_idx == 0 && after_first_run) {
-            after_first_run(cor, info);
+        if (info->run_idx == 0) {
+            uintptr_t p = 0;
+
+            purc_get_local_data(FN_AFTER_FIRST_RUN, &p, NULL);
+            after_first_run_fn after_first_run = (after_first_run_fn)p;
+
+            if (after_first_run) {
+                purc_log_info("Going to call after_first_run()\n");
+                after_first_run(cor, info);
+            }
         }
     }
     else if (event == PURC_COND_COR_EXITED) {

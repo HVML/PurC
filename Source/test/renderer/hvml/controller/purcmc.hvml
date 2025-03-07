@@ -1,0 +1,67 @@
+<define as 'startSession' at '_topmost'>
+
+    <update on $clients[$clientId] to 'merge' >
+        {
+            endpoint: "edpt://$parsedMsg.data.hostName/$parsedMsg.data.appName/$parsedMsg.data.runnerName",
+        }
+    </update>
+
+    <call on $sendResponse with { clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200, resultValue: 0, dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'createWorkspace' at '_topmost'>
+
+    <update on $workspaces to 'merge' >
+        {
+            $parsedMsg.elementValue: $parsedMsg.data,
+        }
+    </update>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: $DATA.key($workspaces[$parsedMsg.elementValue]), dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'createPlainWindow' at '_topmost'>
+
+    <test with $L.streq('case', $DATA.type($parsedMsg.data), 'object') >
+        <differ>
+            <update on $parsedMsg at '.data' with {} />
+        </differ>
+    </test>
+
+    <update on $plainwindows to 'merge' >
+        {
+            $STR.format_c("%x", $DATA.key($parsedMsg.elementValue)): $parsedMsg.data,
+        }
+    </update>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: $DATA.key($parsedMsg.elementValue), dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'loadFromURL' at '_topmost'>
+
+    <include with $logMsg on 'plainwindows:' />
+    <include with $logMsg on $plainwindows />
+
+    <update on $plainwindows[$parsedMsg.targetValue] to 'merge' >
+        {
+            page: "placehodler",
+        }
+    </update>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: $DATA.key($plainwindows[$parsedMsg.targetValue].page), dataType: "void" } />
+
+    <return with true />
+</define>
+

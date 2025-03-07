@@ -33,8 +33,8 @@
 
 /* using load within */
 
-static purc_atom_t client_inst;
-void my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
+static void
+my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
 {
     (void)cor;
     (void)info;
@@ -49,7 +49,8 @@ TEST(renderer, message)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    after_first_run = my_after_first_run;
+    purc_set_local_data(FN_AFTER_FIRST_RUN,
+            (uintptr_t)my_after_first_run, NULL);
 
     char *query = make_query_with_base("base=%s&client=plain");
     run_one_comp_test("renderer/hvml/message-based-server.hvml", query);

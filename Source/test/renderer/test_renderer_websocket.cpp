@@ -27,47 +27,20 @@
 #include "purc/purc.h"
 #include "../helpers.h"
 #include "../tools.h"
+#include "client_thread.h"
 
 #include <gtest/gtest.h>
 
-static struct purc_instance_extra_info client_inst_info = {
-    PURC_RDRCOMM_SOCKET,
-    "inet4://localhost:8080/renderer",
-    "main",
-    "mainWorkspace",
-    NULL,               // workspace_layout
-    0,                  // allow_switching_rdr (since 0.9.18)
-    0,                  // allow_scaling_by_denisty
-    0,                  // keep_alive (since 0.9.22)
-};
+/* using load within */
 
-static purc_atom_t client_inst;
-void my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
+static void
+my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
 {
+    (void)cor;
     (void)info;
 
-    /* create a client instance which will connect to the above renderer */
-    client_inst = purc_inst_create_or_get(APP_NAME,
-            "client", client_cond_handler, &client_inst_info);
-    assert(client_inst != 0);
-
-    char path[PATH_MAX];
-    const char *env = "SOURCE_FILES";
-    const char *rel = "renderer/hvml/client.hvml";
-    test_getpath_from_env_or_rel(path, sizeof(path), env, rel);
-
-    size_t n;
-    char *buf = purc_load_file_contents(path, &n);
-    assert(buf);
-
-    purc_vdom_t vdom = purc_load_hvml_from_string(buf);
-    assert(vdom);
-    free(buf);
-
-    purc_atom_t client_cor = purc_inst_schedule_vdom(client_inst, vdom,
-        purc_coroutine_identifier(cor), NULL, PCRDR_PAGE_TYPE_PLAINWIN,
-            "main", NULL, "client page name", NULL, NULL);
-    assert(client_cor != 0);
+    // create client threads
+    create_client_threads(1, "local:///var/tmp/hvml-test-renderer.sock");
 }
 
 TEST(renderer, websocket)
@@ -78,11 +51,14 @@ TEST(renderer, websocket)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    after_first_run = my_after_first_run;
+    purc_set_local_data(FN_AFTER_FIRST_RUN,
+            (uintptr_t)my_after_first_run, NULL);
+
     char *query = make_query_with_base("base=%s&client=plain");
     run_one_comp_test("renderer/hvml/message-based-server.hvml", query);
     free(query);
 
+#if 0
     purc_inst_ask_to_shutdown(client_inst);
     unsigned int seconds = 0;
     while (purc_atom_to_string(client_inst)) {
@@ -91,5 +67,6 @@ TEST(renderer, websocket)
         seconds++;
         ASSERT_LT(seconds, 10);
     }
+#endif
 }
 

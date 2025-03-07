@@ -1,10 +1,3 @@
-<define as 'logMsg' at '_topmost'>
-    $RUNNER.enablelog('all', 'stderr')
-    <inherit>
-            $RUNNER.logmsg($DATA.serialize($?))
-    </inherit>
-</define>
-
 <define as 'sendEvent' at '_topmost'>
 
     <test on $dataType>
@@ -35,10 +28,8 @@ $data
     </init>
 
     <inherit>
-        $stream.send($message)
+        $clients[$clientId].stream.send($message)
     </inherit>
-
-    <include with $logMsg on $message />
 
     <return with true />
 </define>
@@ -61,11 +52,11 @@ DOMElementSelectors:id,css,handle,handles
 
     <test on $dataType>
         <match for "AS 'json'" exclusively>
-            <init as 'data' at '_nexttolast' with $DATA.seralize($data, 'real-ejson runtime-null plain bseq-hex-string') temp />
+            <init as 'data' at '3' with $DATA.seralize($data, 'real-ejson runtime-null plain bseq-hex-string') temp />
         </match>
 
         <match for "AS 'void'" exclusively>
-            <init as 'data' at '_nexttolast' with '' temp />
+            <init as 'data' at '3' with '' temp />
         </match>
     </test>
 
@@ -85,34 +76,18 @@ $data
     </init>
 
     <inherit>
-        $stream.send($message)
+        $clients[$clientId].stream.send($message)
     </inherit>
-
-    <include with $logMsg on $message />
 
     <return with true />
 </define>
 
 <define as 'parseMessage' at '_topmost'>
-    <include with $logMsg on $message />
-
     <init as 'headers_and_body' with $STR.explode($message, '\n \n', 2) temp />
-
-    <include with $logMsg on "HEADERS:" />
-    <include with $logMsg on $headers_and_body[0] />
-
-    <include with $logMsg on "DATA:" />
-    <include with $logMsg on $headers_and_body[1] />
 
     <init as 'parsedMsg' with {} temp />
 
-    <include with $logMsg on "HEADERS:" />
-    <include with $logMsg on $STR.explode($headers_and_body[0], '\n') />
-
     <iterate on $STR.explode($headers_and_body[0], '\n')>
-        <include with $logMsg on "KEY-VALUE PAIR:" />
-        <include with $logMsg on $STR.explode($?, ':', 2) />
-
         <init as 'header' with $STR.explode($?, ':', 2) temp>
 
             <update on $header at '[1]' with $STR.trim($header[1]) />
@@ -170,21 +145,17 @@ $data
         </init>
     </iterate>
 
-    <include with $logMsg on "parsed message:" />
-    <include with $logMsg on $DATA.serialize($parsedMsg) />
 
     <test with $L.streq('case', $parsedMsg.dataType, 'json')>
-        <update on $parsedMsg to 'merge' with { data: $headers_and_body[1] } />
+        <update on $parsedMsg to 'merge' with { data: $DATA.parse($headers_and_body[1]) } />
 
         <differ>
-            <include with $logMsg on "parsed data: " />
-            <include with $logMsg on $DATA.parse($headers_and_body[1]) />
-
-            <update on $parsedMsg to 'merge' with { data: $DATA.parse($headers_and_body[1]) } />
+            <update on $parsedMsg to 'merge' with { data: $headers_and_body[1] } />
         </differ>
     </test>
 
-    <include with $logMsg on $DATA.serialize($parsedMsg) />
+    <include with $logMsg on "parsed message:" />
+    <include with $logMsg on $parsedMsg />
     <return with $parsedMsg />
 
 </define>
