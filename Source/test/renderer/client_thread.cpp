@@ -32,6 +32,7 @@
 #include <fcntl.h>           /* For O_* constants */
 #include <gtest/gtest.h>
 #include <wtf/Compiler.h>
+#include <limits.h>
 
 #define NR_THREADS          10
 
