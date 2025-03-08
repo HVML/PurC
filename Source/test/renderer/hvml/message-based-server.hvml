@@ -32,7 +32,7 @@
             }
         </init>
 
-        <include with $logMsg on $DATA.serialize($msgSettings) />
+        <include with $logMsg on $msgSettings />
 
         <init as 'clients' at '_topmost' with {} />
         <init as 'workspaces' at '_topmost' with {} />

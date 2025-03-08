@@ -546,16 +546,23 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto fatal;
         }
     }
+    else if (nr_args == 1) {
+        vrt = argv[0];
+        /* default is JSON compliant */
+        flags = PCVRNT_SERIALIZE_OPT_REAL_JSON |
+            PCVRNT_SERIALIZE_OPT_RUNTIME_STRING |
+            PCVRNT_SERIALIZE_OPT_PLAIN |
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING;
+    }
     else {
         vrt = argv[0];
 
-        if (nr_args > 1) {
-            options = purc_variant_get_string_const_ex(argv[1], &options_len);
-            if (options) {
-                options = pcutils_trim_spaces(options, &options_len);
-                if (options_len == 0) {
-                    options = NULL;
-                }
+        options = purc_variant_get_string_const_ex(argv[1], &options_len);
+        if (options) {
+            options = pcutils_trim_spaces(options, &options_len);
+            if (options_len == 0) {
+                options = NULL;
             }
         }
     }

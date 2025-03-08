@@ -48,8 +48,8 @@
                 }
         </init>
 
-        <include with $logMsg on $DATA.serialize($sslSettings) />
-        <include with $logMsg on $DATA.serialize($wsSettings) />
+        <include with $logMsg on $sslSettings />
+        <include with $logMsg on $wsSettings />
 
         <init as 'clients' at '_topmost' with {} />
         <init as 'workspaces' at '_topmost' with {} />
