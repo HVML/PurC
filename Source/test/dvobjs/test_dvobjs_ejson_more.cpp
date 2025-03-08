@@ -841,7 +841,7 @@ TEST(dvobjs, parse)
         { "bad",
             "$DATA.parse('[')",
             parse, NULL, PCEJSON_ERROR_UNEXPECTED_EOF },
-        { "null",
+        { "\"<undefined>\"",
             "$DATA.serialize($DATA.parse('['))",
             parse, parse_vrtcmp, 0 },
         { "[]",

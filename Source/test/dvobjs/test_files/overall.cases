@@ -1608,3 +1608,7 @@ positive:
     $STR.trim(' 张三李四 ', 'both', ' 张四')
     '三李'
 
+positive:
+    $DATA.serialize($DATA.parse(']'))
+    '"<undefined>"'
+
