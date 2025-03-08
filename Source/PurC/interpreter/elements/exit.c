@@ -161,6 +161,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (purc_variant_is_object(with)) {
         purc_variant_t rdr =
             purc_variant_object_get_by_ckey(with, "_renderer");
+        purc_clr_error();
         if (rdr && purc_variant_is_object(rdr)) {
             purc_variant_t keep_contents = purc_variant_object_get_by_ckey(rdr,
                     "keepContents");

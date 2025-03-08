@@ -191,6 +191,7 @@ pcintr_schedule_child_co(purc_vdom_t vdom, purc_atom_t curator,
     if (request && purc_variant_is_object(request)) {
         purc_variant_t rdr =
             purc_variant_object_get_by_ckey(request, "_renderer");
+        purc_clr_error();
         if (rdr && purc_variant_is_object(rdr)) {
             fill_cor_rdr_info(&rdr_info, rdr);
         }
