@@ -1551,7 +1551,7 @@ static int trim_utf8_chars(purc_rwstream_t rwstream,
 
     if (pos & POS_LEFT) {
         while (len > 0) {
-            char utf8[10];
+            char utf8[10] = { 0 };
             const char *p = pcutils_utf8_next_char(left);
             size_t utf8_len = p - left;
             assert(utf8_len < sizeof(utf8));
@@ -1574,7 +1574,7 @@ static int trim_utf8_chars(purc_rwstream_t rwstream,
 
     if (pos & POS_RIGHT) {
         while (len > 0) {
-            char utf8[10];
+            char utf8[10] = { 0 };
             const char *p = utf8_prev_char(right);
             size_t utf8_len = right - p;
             assert(utf8_len < sizeof(utf8));
@@ -1619,7 +1619,7 @@ trim_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *chars = " \n\r\t\v\f";
     bool all_ascci = true;
     const char *str;
-    size_t len, chars_len;
+    size_t len, chars_len = strlen(chars);
 
     if ((str = purc_variant_get_string_const_ex(argv[0], &len)) == NULL) {
         errcode = PURC_ERROR_WRONG_DATA_TYPE;
