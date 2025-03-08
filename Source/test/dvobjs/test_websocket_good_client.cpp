@@ -66,7 +66,9 @@ TEST(websocket, secure_server_secure_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-good-client.hvml", "secure=true&client=secure");
+    char *query = make_query_with_base("secure=true&base=%s&client=secure");
+    run_one_comp_test("dvobjs/socket/inet-websocket-good-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -89,7 +91,9 @@ TEST(websocket, secure_server_secure_client_with_large_message)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-good-client.hvml", "secure=true&client=securelmsg");
+    char *query = make_query_with_base("secure=true&base=%s&client=securelmsg");
+    run_one_comp_test("dvobjs/socket/inet-websocket-good-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 

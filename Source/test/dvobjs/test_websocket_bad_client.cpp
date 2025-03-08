@@ -66,7 +66,9 @@ TEST(websocket, secure_server_stlr_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=stlr");
+    char *query = make_query_with_base("secure=true&base=%s&client=stlr");
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -89,7 +91,9 @@ TEST(websocket, secure_server_sltnrafterhandshake_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=sltnrafterhandshake");
+    char *query = make_query_with_base("secure=true&base=%s&client=sltnrafterhandshake");
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -112,7 +116,9 @@ TEST(websocket, secure_server_sltnr_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=sltnr");
+    char *query = make_query_with_base("secure=true&base=%s&client=sltnr");
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -160,7 +166,9 @@ TEST(websocket, secure_server_raw_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=raw");
+    char *query = make_query_with_base("secure=true&base=%s&client=raw");
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
@@ -208,7 +216,9 @@ TEST(websocket, secure_server_ltnr_client)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", "secure=true&client=ltnr");
+    char *query = make_query_with_base("secure=true&base=%s&client=ltnr");
+    run_one_comp_test("dvobjs/socket/inet-websocket-bad-client.hvml", query);
+    free(query);
 
     purc_inst_ask_to_shutdown(client_inst);
 
