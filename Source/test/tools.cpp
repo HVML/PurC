@@ -151,7 +151,6 @@ static const char *cond_names[] = {
 int client_cond_handler(purc_cond_k event, void *arg, void *data)
 {
     (void)data;
-    purc_log_info("condition: %s\n", cond_names[event]);
 
     if (event == PURC_COND_STARTED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
@@ -192,8 +191,10 @@ int client_cond_handler(purc_cond_k event, void *arg, void *data)
         assert(strncmp(run_name, "client", 6) == 0);
     }
     else if (event == PURC_COND_SHUTDOWN_ASKED) {
+        purc_log_info("condition: %s\n", cond_names[event]);
     }
     else if (event == PURC_COND_COR_TERMINATED) {
+
         purc_coroutine_t cor = (purc_coroutine_t)arg;
         struct purc_cor_term_info *info = (struct purc_cor_term_info *)data;
         purc_atom_t cid = purc_coroutine_identifier(cor);
@@ -217,8 +218,6 @@ static int
 comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
-    purc_log_info("condition: %s\n", cond_names[event]);
-
     if (event == PURC_COND_COR_ONE_RUN) {
         struct purc_cor_run_info *info = (struct purc_cor_run_info *)data;
         if (info->run_idx == 0) {

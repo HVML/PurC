@@ -864,11 +864,11 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
     static const struct purc_dvobj_method method [] = {
         { "target", target_getter, NULL },
         { "base", base_getter, base_setter },
-        { "max_iteration_count",    // TODO: remove in 1.0
+        { "max_iteration_count",    // TODO: remove in 0.9.24
             max_iteration_count_getter, max_iteration_count_setter },
-        { "max_recursion_depth",    // TODO: remove in 1.0
+        { "max_recursion_depth",    // TODO: remove in 0.9.24
             max_recursion_depth_getter, max_recursion_depth_setter },
-        { "max_embedded_levels",    // TODO: remove in 1.0
+        { "max_embedded_levels",    // TODO: remove in 0.9.24
             max_embedded_levels_getter, max_embedded_levels_setter },
         { "maxIterationCount",
             max_iteration_count_getter, max_iteration_count_setter },
@@ -876,7 +876,7 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
             max_recursion_depth_getter, max_recursion_depth_setter },
         { "maxEmbeddedLevels",
             max_embedded_levels_getter, max_embedded_levels_setter },
-        { "sendingDocumentByURL",
+        { "sendingDocumentByURL",   // TODO: remove in 0.9.24
             sending_document_by_url_getter, sending_document_by_url_setter },
         { "timeout", timeout_getter, timeout_setter },
         { "cid",     cid_getter,     NULL },
