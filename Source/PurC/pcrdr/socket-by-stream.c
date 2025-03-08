@@ -454,6 +454,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         url = (const char *)pcutils_url_assemble(bdurl, true);
     }
 
+    pcutils_broken_down_url_delete(bdurl);
     normalize_extra_options(extra_opts);
 
     purc_variant_t stream_vrt;
@@ -473,6 +474,10 @@ pcrdr_socket_connect(const char* renderer_uri,
             goto failed;
         }
     }
+
+    if (url && url != renderer_uri)
+        free((void *)url);
+    purc_variant_unref(extra_opts);
 
     if ((*conn = calloc(1, sizeof(pcrdr_conn))) == NULL) {
         PC_DEBUG ("Failed to callocate space for connection\n");
