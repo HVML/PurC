@@ -96,9 +96,15 @@ BadJsoneeVariableName
 BadJsoneeName
     except: BadExpression
     flags: None
-    msg: "pchvml error bad jsonee name"
+    msg: "pcejson error bad jsonee name"
 
 BadJsoneeKeyword
     except: BadExpression
     flags: None
-    msg: "pchvml error bad jsonee keyword"
+    msg: "pcejson error bad jsonee keyword"
+
+UnexpectedUnescapedControlCharacter
+    except: BadExpression
+    flags: None
+    msg: "pcejson error unexpected unescaped control character"
+

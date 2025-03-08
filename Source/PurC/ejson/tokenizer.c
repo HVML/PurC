@@ -1692,7 +1692,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (is_c0(character)) {
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
@@ -1750,6 +1750,24 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
+    }
+    if (character == '{') {
+         /* ETT_VALUE */
+        tkz_stack_drop_top();
+        top = tkz_stack_top();
+        if (top->type == ETT_DOUBLE_S) {
+            tkz_stack_drop_top();
+            top = tkz_stack_push(ETT_MULTI_QUOTED_S);
+        }
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            struct pcvcm_node *node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer)
+                    );
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)node);
+            RESET_TEMP_BUFFER();
+        }
+        RECONSUME_IN(EJSON_TKZ_STATE_DATA);
     }
     if (character == '$') {
         if ((parser->flags & PCEJSON_FLAG_GET_VARIABLE) == 0) {
@@ -1809,7 +1827,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     if (is_c0(character)) {
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
@@ -2738,6 +2756,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE)
             APPEND_TO_TEMP_BUFFER('\b');
             ADVANCE_TO(parser->return_state);
             break;
+        case 'v':
+            APPEND_TO_TEMP_BUFFER('\v');
+            ADVANCE_TO(parser->return_state);
         case 'f':
             APPEND_TO_TEMP_BUFFER('\f');
             ADVANCE_TO(parser->return_state);
@@ -2924,12 +2945,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_CJSONEE_FINISHED)
         APPEND_TO_TEMP_BUFFER(character);
         if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
             update_tkz_stack(parser);
+            RESET_TEMP_BUFFER();
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
         }
         ADVANCE_TO(EJSON_TKZ_STATE_CJSONEE_FINISHED);
     }
     if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
         update_tkz_stack(parser);
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);

@@ -73,7 +73,7 @@
 #if (defined __DEV_EJSON__ && __DEV_EJSON__)
 #define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
 #else
-#define PLOG               PC_DEBUG
+#define PLOG               PC_INFO
 #endif /* (defined __DEV_EJSON__ && __DEV_EJSON__) */
 
 #define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)

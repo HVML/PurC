@@ -55,9 +55,17 @@
 
 #define PARSER_ERROR_TYPE       "hvmlParsing"
 
+#define __DEV_HVML__                0
+
+#if (defined __DEV_HVML__ && __DEV_HVML__)
+#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
+#else
+#define PLOG               PC_INFO
+#endif /* (defined __DEV_HVML__ && __DEV_HVML__) */
+
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
-        PC_DEBUG(                                                           \
+        PLOG(                                                               \
             "in %s|uc=%c|hex=0x%X|fh=%d\n",                                 \
             curr_state_name, character, character,                          \
             parser->is_in_file_header);                                     \
@@ -72,7 +80,7 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         if (parser->enable_log) {                                           \
-            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
+            PLOG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);          \
         }                                                                   \
     }                                                                       \
     tkz_set_error_info(parser->reader, parser->curr_uc, err,                \
@@ -1960,16 +1968,24 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         }
     }
     if (parser->nr_double_quoted < 2) {
+        if (character == '&') {
+            SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
+            ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
+        }
+        if (is_c0(character)) {
+            uint32_t c = tkz_buffer_get_last_char(parser->temp_buffer);
+            if (c != '\\') {
+                SET_ERR(PCHVML_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
+
         if (hee_line == -1) {
             hee_line = parser->curr_uc->line;
             hee_column = parser->curr_uc->column;
         }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
-    }
-    if (character == '&') {
-        SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
-        ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
 
     struct pcvcm_node *node = NULL;
@@ -2012,12 +2028,20 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
         }
     }
     if (parser->nr_single_quoted < 2) {
+        if (character == '&') {
+            SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
+            ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
+        }
+        if (character == '\\') {
+            SET_RETURN_STATE(curr_state);
+            ADVANCE_TO(TKZ_STATE_ATTRIBUTE_STRING_ESCAPE);
+        }
+        if (is_c0(character)) {
+            SET_ERR(PCHVML_ERROR_UNEXPECTED_UNESCAPED_CONTROL_CHARACTER);
+            RETURN_AND_STOP_PARSE();
+        }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
-    }
-    if (character == '&') {
-        SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
-        ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
     APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
     END_TOKEN_ATTR();
@@ -2056,6 +2080,96 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
         END_TOKEN_ATTR();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(TKZ_STATE_ATTRIBUTE_STRING_ESCAPE)
+    switch (character)
+    {
+        case 'b':
+            APPEND_TO_TEMP_BUFFER('\b');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'v':
+            APPEND_TO_TEMP_BUFFER('\v');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'f':
+            APPEND_TO_TEMP_BUFFER('\f');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'n':
+            APPEND_TO_TEMP_BUFFER('\n');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'r':
+            APPEND_TO_TEMP_BUFFER('\r');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 't':
+            APPEND_TO_TEMP_BUFFER('\t');
+            ADVANCE_TO(parser->return_state);
+            break;
+        case '$':
+        case '{':
+        case '}':
+        case '<':
+        case '>':
+        case '/':
+        case '\\':
+        case '"':
+        case '\'':
+        case '.':
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'u':
+            RESET_STRING_BUFFER();
+            ADVANCE_TO(
+                    TKZ_STATE_ATTRIBUTE_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS);
+            break;
+        default:
+            SET_ERR(PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+            RETURN_AND_STOP_PARSE();
+    }
+END_STATE()
+
+BEGIN_STATE(TKZ_STATE_ATTRIBUTE_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS)
+    if (is_ascii_hex_digit(character)) {
+        APPEND_TO_STRING_BUFFER(character);
+        size_t nr_chars = tkz_buffer_get_size_in_chars(
+                parser->string_buffer);
+        if (nr_chars == 4) {
+            uint64_t uc = 0;
+            const char *bytes = tkz_buffer_get_bytes(parser->string_buffer);
+            for (size_t i = 0; i < nr_chars; i++) {
+                if (is_ascii_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x30;
+                }
+                else if (is_ascii_upper_hex_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x37;
+                }
+                else if (is_ascii_lower_hex_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x57;
+                }
+            }
+
+            RESET_STRING_BUFFER();
+            if ((uc & 0xFFFFF800) == 0xD800) {
+                SET_ERR(PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            APPEND_TO_TEMP_BUFFER(uc);
+            ADVANCE_TO(parser->return_state);
+        }
+        ADVANCE_TO(
+                TKZ_STATE_ATTRIBUTE_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS);
+    }
+    SET_ERR(PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 

@@ -327,3 +327,9 @@ InvalidUtf8Character
     except: BadEncoding
     flags: None
     msg: "pchvml error invalid utf8 character"
+
+UnexpectedUnescapedControlCharacter
+    except: BadExpression
+    flags: None
+    msg: "pchvml error unexpected unescaped control character"
+

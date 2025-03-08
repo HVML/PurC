@@ -1,0 +1,18 @@
+<hvml>
+    <head>
+        <base href=$CRTN.base(! "file://{{ $REQ.base || $SYS.cwd }}" ) hvml:silently />
+    </head>
+    <body>
+        <inherit>
+            "file://{{ $REQ.base || $SYS.cwd }}/abc.txt"
+        </inherit>
+        <inherit>
+            file://{{ $REQ.base || $SYS.cwd }}/abc.txt
+        </inherit>
+        <init>
+            {
+                key:"{{ $REQ.base || $SYS.cwd }}"
+            }
+        </init>
+    </body>
+</hvml>
