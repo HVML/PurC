@@ -207,13 +207,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
             ext->ping_timer = NULL;
         }
 
-#if 0
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-#endif
-
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
                     stream->monitor4r);
@@ -260,6 +253,8 @@ static void us_handle_rwerr_close(struct pcdvobjs_stream *stream)
     }
 }
 
+static bool us_handle_writes(int fd, int event, void *ctxt);
+
 /*
  * Queue new data.
  *
@@ -291,6 +286,18 @@ static bool us_queue_data(struct pcdvobjs_stream *stream,
      * is sent */
     if (ext->sz_pending >= SOCK_THROTTLE_THLD) {
         ext->status |= US_THROTTLING;
+    }
+
+    /* install the writable monitor only having queued some data */
+    if (stream->monitor4w == 0 && stream->cid != 0) {
+        stream->monitor4w = purc_runloop_add_fd_monitor(
+                purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
+                us_handle_writes, stream);
+        if (stream->monitor4w == 0) {
+            us_clear_pending_data(ext);
+            ext->status = US_ERR_OOM | US_CLOSING;
+            return false;
+        }
     }
 
     return true;
@@ -367,6 +374,13 @@ static ssize_t us_write_pending(struct pcdvobjs_stream *stream)
         else if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             break;
         }
+    }
+
+    /* uninstall the writable monitor once all pending data has been sent. */
+    if (ext->sz_pending == 0 && stream->monitor4w != 0) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4w);
+        stream->monitor4w = 0;
     }
 
     return total_bytes;
@@ -1348,6 +1362,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
             goto failed;
         }
 
+#if 0   /* we should install the writable monitor on demand */
         stream->monitor4w = purc_runloop_add_fd_monitor(
                 purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
                 us_handle_writes, stream);
@@ -1358,6 +1373,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
+#endif
     }
     else {
         stream->ext0.msg_ops->on_readable = us_handle_reads;

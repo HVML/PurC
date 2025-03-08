@@ -1529,6 +1529,63 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
 
 }
 
+static bool
+io_callback_for_read(int fd, int event, void *ctxt)
+{
+    struct pcdvobjs_stream *stream = ctxt;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    /* read data then check the exception */
+    assert(ext->on_readable);
+    bool retv = ext->on_readable(stream) == 0;
+
+    if (event & PCRUNLOOP_IO_HUP) {
+        PC_ERROR("Got hang up event on fd (%d).\n", fd);
+        ext = stream->ext0.data;
+        if (ext) {
+            stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
+            cleanup_extension(stream);
+            retv = false;
+        }
+    }
+
+    if (event & PCRUNLOOP_IO_ERR) {
+        PC_ERROR("Got error event on fd (%d).\n", fd);
+        ext = stream->ext0.data;
+        if (ext) {
+            stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
+            cleanup_extension(stream);
+            retv = false;
+        }
+    }
+
+    return retv;
+}
+
+static bool
+io_callback_for_write(int fd, int event, void *ctxt)
+{
+    struct pcdvobjs_stream *stream = ctxt;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (event & PCRUNLOOP_IO_HUP) {
+        PC_ERROR("Got hang up event on fd (%d).\n", fd);
+        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
+        cleanup_extension(stream);
+        return false;
+    }
+
+    if (event & PCRUNLOOP_IO_ERR) {
+        PC_ERROR("Got error event on fd (%d).\n", fd);
+        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_IO_FAILURE);
+        cleanup_extension(stream);
+        return false;
+    }
+
+    assert(ext->on_writable);
+    return (ext->on_writable(stream) == 0);
+}
+
 /*
  * Queue new data.
  *
@@ -1560,6 +1617,20 @@ static bool ws_queue_data(struct pcdvobjs_stream *stream,
      * is sent */
     if (ext->sz_pending >= SOCK_THROTTLE_THLD) {
         ext->status |= WS_THROTTLING;
+    }
+
+    /* install the writable monitor only having queued some data */
+    if (stream->monitor4w == 0 && stream->cid != 0) {
+        stream->monitor4w = purc_runloop_add_fd_monitor(
+                purc_runloop_get_current(), stream->fd4w,
+                // macOS not allow to poll HUP and OUT at the same time.
+                PCRUNLOOP_IO_OUT | PCRUNLOOP_IO_ERR,
+                io_callback_for_write, stream);
+        if (stream->monitor4w == 0) {
+            ws_clear_pending_data(ext);
+            ext->status = WS_ERR_OOM | WS_CLOSING;
+            return false;
+        }
     }
 
     return true;
@@ -1694,6 +1765,13 @@ static ssize_t ws_write_pending(struct pcdvobjs_stream *stream)
         else if (bytes == -1) {
             goto failed;
         }
+    }
+
+    /* uninstall the writable monitor once all pending data has been sent. */
+    if (ext->sz_pending == 0 && stream->monitor4w != 0) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4w);
+        stream->monitor4w = 0;
     }
 
     return total_bytes;
@@ -2413,39 +2491,6 @@ done_msg:
     return retv;
 }
 
-static bool
-io_callback_for_read(int fd, int event, void *ctxt)
-{
-    struct pcdvobjs_stream *stream = ctxt;
-    struct stream_extended_data *ext = stream->ext0.data;
-
-    /* read data then check the exception */
-    assert(ext->on_readable);
-    bool retv = ext->on_readable(stream) == 0;
-
-    if (event & PCRUNLOOP_IO_HUP) {
-        PC_ERROR("Got hang up event on fd (%d).\n", fd);
-        ext = stream->ext0.data;
-        if (ext) {
-            stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
-            cleanup_extension(stream);
-            retv = false;
-        }
-    }
-
-    if (event & PCRUNLOOP_IO_ERR) {
-        PC_ERROR("Got error event on fd (%d).\n", fd);
-        ext = stream->ext0.data;
-        if (ext) {
-            stream->ext0.msg_ops->on_error(stream, PCRDR_ERROR_UNEXPECTED);
-            cleanup_extension(stream);
-            retv = false;
-        }
-    }
-
-    return retv;
-}
-
 static int
 ws_handle_writes(struct pcdvobjs_stream *stream)
 {
@@ -2467,30 +2512,6 @@ ws_handle_writes(struct pcdvobjs_stream *stream)
     }
 
     return 0;
-}
-
-static bool
-io_callback_for_write(int fd, int event, void *ctxt)
-{
-    struct pcdvobjs_stream *stream = ctxt;
-    struct stream_extended_data *ext = stream->ext0.data;
-
-    if (event & PCRUNLOOP_IO_HUP) {
-        PC_ERROR("Got hang up event on fd (%d).\n", fd);
-        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
-        cleanup_extension(stream);
-        return false;
-    }
-
-    if (event & PCRUNLOOP_IO_ERR) {
-        PC_ERROR("Got error event on fd (%d).\n", fd);
-        stream->ext0.msg_ops->on_error(stream, PURC_ERROR_IO_FAILURE);
-        cleanup_extension(stream);
-        return false;
-    }
-
-    assert(ext->on_writable);
-    return (ext->on_writable(stream) == 0);
 }
 
 /*
@@ -3262,6 +3283,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             goto failed;
         }
 
+#if 0   /* we should install the writable monitor on demand */
         stream->monitor4w = purc_runloop_add_fd_monitor(
                 purc_runloop_get_current(), stream->fd4w,
                 // macOS not allow to poll HUP and OUT at the same time.
@@ -3274,6 +3296,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
+#endif
     }
     else {
         stream->ext0.msg_ops->on_readable = io_callback_for_read;

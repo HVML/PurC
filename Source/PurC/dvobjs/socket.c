@@ -517,6 +517,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     if (!(ctx = SSL_CTX_new(SSLv23_server_method()))) {
         PC_ERROR("Failed SSL_CTX_new(): %s\n",
                 ERR_error_string(ERR_get_error(), NULL));
+        error = PURC_ERROR_TLS_FAILURE;
         goto ssl_failed;
     }
 
@@ -524,6 +525,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     if (!SSL_CTX_use_certificate_file(ctx, ssl_cert, SSL_FILETYPE_PEM)) {
         PC_ERROR("Failed SSL_CTX_use_certificate_file(%s): %s\n",
                 ssl_cert, ERR_error_string(ERR_get_error(), NULL));
+        error = PURC_ERROR_TLS_FAILURE;
         goto ssl_failed;
     }
 
@@ -531,12 +533,14 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     if (!SSL_CTX_use_PrivateKey_file(ctx, ssl_key, SSL_FILETYPE_PEM)) {
         PC_ERROR("Failed SSL_CTX_use_PrivateKey_file(%s): %s\n",
                 ssl_key, ERR_error_string(ERR_get_error(), NULL));
+        error = PURC_ERROR_TLS_FAILURE;
         goto ssl_failed;
     }
 
     if (!SSL_CTX_check_private_key(ctx)) {
         PC_ERROR("Failed SSL_CTX_check_private_key(): %s\n",
                 ERR_error_string(ERR_get_error(), NULL));
+        error = PURC_ERROR_TLS_FAILURE;
         goto ssl_failed;
     }
 
@@ -554,7 +558,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
                 error = purc_error_from_errno(errno);
                 break;
             case HELPER_RETV_BAD_LIBCALL:
-                error = PURC_ERROR_BAD_STDC_CALL;
+                error = PURC_ERROR_TLS_FAILURE;
                 break;
             case HELPER_RETV_BAD_ARGS:
                 error = PURC_ERROR_INVALID_VALUE;

@@ -34,28 +34,51 @@
 /* using load within */
 
 static void
-my_after_first_run(purc_coroutine_t cor, struct purc_cor_run_info *info)
+my_after_first_run_plain(purc_coroutine_t cor, struct purc_cor_run_info *info)
 {
     (void)cor;
     (void)info;
 
     // create client threads
-    create_client_threads(1, "local:///var/tmp/hvml-test-renderer.sock");
+    create_client_threads(1, "ws://localhost:8080/renderer");
 }
 
-TEST(renderer, websocket)
+TEST(renderer, plain_websocket)
 {
-    return;
-
     PurCInstance purc(false);
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
     purc_set_local_data(FN_AFTER_FIRST_RUN,
-            (uintptr_t)my_after_first_run, NULL);
+            (uintptr_t)my_after_first_run_plain, NULL);
 
-    char *query = make_query_with_base("base=%s&client=plain");
-    run_one_comp_test("renderer/hvml/message-based-server.hvml", query);
+    char *query = make_query_with_base("secure=false&base=%s&client=plain");
+    run_one_comp_test("renderer/hvml/websocket-based-server.hvml", query);
+    free(query);
+
+}
+
+static void
+my_after_first_run_secure(purc_coroutine_t cor, struct purc_cor_run_info *info)
+{
+    (void)cor;
+    (void)info;
+
+    // create client threads
+    create_client_threads(1, "wss://localhost:8080/renderer");
+}
+
+TEST(renderer, secure_websocket)
+{
+    PurCInstance purc(false);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    purc_set_local_data(FN_AFTER_FIRST_RUN,
+            (uintptr_t)my_after_first_run_secure, NULL);
+
+    char *query = make_query_with_base("secure=true&base=%s&client=plain");
+    run_one_comp_test("renderer/hvml/websocket-based-server.hvml", query);
     free(query);
 
 #if 0

@@ -46,8 +46,8 @@
 
         <include with $logMsg on 'The server is accepting...' />
 
-        <observe on $clients for 'change'>
-            <include with $logMsg on 'clients changed:' />
+        <observe on $clients for 'shrink'>
+            <include with $logMsg on 'clients shrunken:' />
             <include with $logMsg on $clients />
 
             <test with $DATA.count()>
@@ -80,7 +80,7 @@
                     <observe on $clients[$clientId].stream for 'message'>
                         $clientId
 
-                        <include with $logMsg on "Server got a message from $_observedContent" />
+                        <include with $logMsg on "Server got a MESSAGE event from $_observedContent" />
 
                         <call on $parseMessage with { message: $? } >
 
@@ -93,8 +93,8 @@
                     <observe on $clients[$clientId].stream for 'error'>
                         $clientId
 
-                        <include with $logMsg on "Server got ERROR event from `$_observedContent`; payload:" />
-                        <include with $logMsg on $DATA.serialize($?) />
+                        <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
+                        <include with $logMsg on $? />
 
                         <update on $clients at ".$_observedContent" to 'remove' />
                         <forget on $_observedOn for '*' />
@@ -104,7 +104,7 @@
                         $clientId
 
                         <include with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
-                        <include with $logMsg on $DATA.serialize($?) />
+                        <include with $logMsg on $? />
 
                         <update on $clients at ".$_observedContent" to 'remove' />
                         <forget on $_observedOn for '*' />

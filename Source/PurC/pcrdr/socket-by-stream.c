@@ -150,7 +150,6 @@ static pcrdr_msg *my_read_message_timeout(pcrdr_conn* conn, int max_wait)
             goto error;
         }
         else if (r == 0) {
-            PC_ERROR("my_wait_message timeout: %u\n", total_wait);
             total_wait += conn->timeout_ms;
         }
 
