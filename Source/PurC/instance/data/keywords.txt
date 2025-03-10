@@ -115,32 +115,36 @@ hvml erase
 hvml clear
 hvml callMethod
 
-# msg
+# The predefined event group name
 msg event
-msg change
 msg except
+msg expired
+msg stream
+msg socket
+msg user
+msg callState
+msg corState
+msg rdrState
+msg fetcherState
+msg change
+msg request
+msg response
+
+# TODO: The following event names should be removed because they are not group names.
 msg attached
 msg displaced
 msg detached
-msg expired
 msg readable
 msg writable
-msg callState
-msg corState
 msg click
 msg dblclick
 msg close
 msg idle
-msg rdrState
-msg request
-msg response
 msg lastMsg
 msg sleep
 msg subExit
 msg async
-msg fetcherState
 msg requestChan
 msg newRenderer
 msg dupRenderer
-msg user
 

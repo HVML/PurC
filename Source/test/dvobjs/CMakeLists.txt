@@ -24,7 +24,7 @@ set(test_dvobjs_system_SOURCES
 
 set(test_dvobjs_system_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -52,7 +52,7 @@ set(test_dvobjs_datetime_SOURCES
 
 set(test_dvobjs_datetime_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -82,7 +82,7 @@ set(test_dvobjs_ejson_SOURCES
 
 set(test_dvobjs_ejson_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -112,7 +112,7 @@ set(test_dvobjs_ejson_more_SOURCES
 
 set(test_dvobjs_ejson_more_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -141,7 +141,7 @@ set(test_dvobjs_coroutine_SOURCES
 
 set(test_dvobjs_coroutine_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -170,7 +170,7 @@ set(test_dvobjs_text_SOURCES
 
 set(test_dvobjs_text_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -198,7 +198,7 @@ set(test_dvobjs_logical_SOURCES
 
 set(test_dvobjs_logical_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -227,7 +227,7 @@ set(test_dvobjs_string_SOURCES
 
 set(test_dvobjs_string_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -256,7 +256,7 @@ set(test_dvobjs_overall_SOURCES
 
 set(test_dvobjs_overall_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -285,13 +285,42 @@ set(test_dvobjs_stream_SOURCES
 
 set(test_dvobjs_stream_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
 PURC_COMPUTE_SOURCES(test_dvobjs_stream)
 PURC_FRAMEWORK(test_dvobjs_stream)
 GTEST_DISCOVER_TESTS(test_dvobjs_stream DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_socket
+PURC_EXECUTABLE_DECLARE(test_dvobjs_socket)
+
+list(APPEND test_dvobjs_socket_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_dvobjs_socket)
+
+set(test_dvobjs_socket_SOURCES
+    test_dvobjs_socket.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_dvobjs_socket_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_socket)
+PURC_FRAMEWORK(test_dvobjs_socket)
+GTEST_DISCOVER_TESTS(test_dvobjs_socket DISCOVERY_TIMEOUT 10)
 
 # test_stream_observe_readable
 PURC_EXECUTABLE_DECLARE(test_stream_observe_readable)
@@ -312,7 +341,7 @@ set(test_stream_observe_readable_SOURCES
 
 set(test_stream_observe_readable_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -339,7 +368,7 @@ set(test_stream_observe_writable_SOURCES
 
 set(test_stream_observe_writable_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -368,7 +397,7 @@ set(test_dvobjs_runner_SOURCES
 
 set(test_dvobjs_runner_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -397,7 +426,7 @@ set(test_string_substitution_SOURCES
 
 set(test_string_substitution_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -426,10 +455,208 @@ set(test_dvobjs_rdr_SOURCES
 
 set(test_dvobjs_rdr_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
 PURC_COMPUTE_SOURCES(test_dvobjs_rdr)
 PURC_FRAMEWORK(test_dvobjs_rdr)
 GTEST_DISCOVER_TESTS(test_dvobjs_rdr DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_system_posix
+PURC_EXECUTABLE_DECLARE(test_dvobjs_system_posix)
+
+list(APPEND test_dvobjs_system_posix_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_dvobjs_system_posix)
+
+set(test_dvobjs_system_posix_SOURCES
+    test_dvobjs_system_posix.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_dvobjs_system_posix_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_system_posix)
+PURC_FRAMEWORK(test_dvobjs_system_posix)
+GTEST_DISCOVER_TESTS(test_dvobjs_system_posix DISCOVERY_TIMEOUT 10)
+
+# test_socket_dgram
+PURC_EXECUTABLE_DECLARE(test_socket_dgram)
+
+list(APPEND test_socket_dgram_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_socket_dgram)
+
+set(test_socket_dgram_SOURCES
+    test_socket_dgram.cpp
+    ../tools.cpp
+)
+
+set(test_socket_dgram_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_socket_dgram)
+PURC_FRAMEWORK(test_socket_dgram)
+GTEST_DISCOVER_TESTS(test_socket_dgram DISCOVERY_TIMEOUT 10)
+
+# test_socket_stream
+PURC_EXECUTABLE_DECLARE(test_socket_stream)
+
+list(APPEND test_socket_stream_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_socket_stream)
+
+set(test_socket_stream_SOURCES
+    test_socket_stream.cpp
+    ../tools.cpp
+)
+
+set(test_socket_stream_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_socket_stream)
+PURC_FRAMEWORK(test_socket_stream)
+GTEST_DISCOVER_TESTS(test_socket_stream DISCOVERY_TIMEOUT 10)
+
+# test_websocket_bad_client
+PURC_EXECUTABLE_DECLARE(test_websocket_bad_client)
+
+list(APPEND test_websocket_bad_client_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_websocket_bad_client)
+
+set(test_websocket_bad_client_SOURCES
+    test_websocket_bad_client.cpp
+    ../tools.cpp
+)
+
+set(test_websocket_bad_client_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_websocket_bad_client)
+PURC_FRAMEWORK(test_websocket_bad_client)
+GTEST_DISCOVER_TESTS(test_websocket_bad_client DISCOVERY_TIMEOUT 20)
+
+# test_websocket_good_client
+PURC_EXECUTABLE_DECLARE(test_websocket_good_client)
+
+list(APPEND test_websocket_good_client_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_websocket_good_client)
+
+set(test_websocket_good_client_SOURCES
+    test_websocket_good_client.cpp
+    ../tools.cpp
+)
+
+set(test_websocket_good_client_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_websocket_good_client)
+PURC_FRAMEWORK(test_websocket_good_client)
+GTEST_DISCOVER_TESTS(test_websocket_good_client DISCOVERY_TIMEOUT 10)
+
+# test_message_bad_client
+PURC_EXECUTABLE_DECLARE(test_message_bad_client)
+
+list(APPEND test_message_bad_client_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_message_bad_client)
+
+set(test_message_bad_client_SOURCES
+    test_message_bad_client.cpp
+    ../tools.cpp
+)
+
+set(test_message_bad_client_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_message_bad_client)
+PURC_FRAMEWORK(test_message_bad_client)
+GTEST_DISCOVER_TESTS(test_message_bad_client DISCOVERY_TIMEOUT 20)
+
+# test_message_good_client
+PURC_EXECUTABLE_DECLARE(test_message_good_client)
+
+list(APPEND test_message_good_client_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_message_good_client)
+
+set(test_message_good_client_SOURCES
+    test_message_good_client.cpp
+    ../tools.cpp
+)
+
+set(test_message_good_client_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_message_good_client)
+PURC_FRAMEWORK(test_message_good_client)
+GTEST_DISCOVER_TESTS(test_message_good_client DISCOVERY_TIMEOUT 10)
+

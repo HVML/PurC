@@ -78,6 +78,8 @@ static void run_testcases(const struct ejson_result *test_cases, size_t n)
             "dvobjs", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
     purc_variant_t dvobj = purc_dvobj_data_new();
     ASSERT_NE(dvobj, nullptr);
     ASSERT_EQ(purc_variant_is_object(dvobj), true);
@@ -192,8 +194,11 @@ TEST(dvobjs, numerify)
         { "2.0",
             "$DATA.numerify({x:1.0, y:1.0})",
             numerify, numerify_vrtcmp, 0 },
-        { "0",
-            "$DATA.numerify($DATA)",
+        { "zero",
+            "$DATA.numerify(bx)",
+            numerify, numerify_vrtcmp, 0 },
+        { "zero",
+            "$DATA.numerify([! ])",
             numerify, numerify_vrtcmp, 0 },
         { "3.0",
             "$DATA.numerify($DATA.numerify(3.0))",
@@ -836,7 +841,7 @@ TEST(dvobjs, parse)
         { "bad",
             "$DATA.parse('[')",
             parse, NULL, PCEJSON_ERROR_UNEXPECTED_EOF },
-        { "null",
+        { "\"<undefined>\"",
             "$DATA.serialize($DATA.parse('['))",
             parse, parse_vrtcmp, 0 },
         { "[]",

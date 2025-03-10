@@ -1107,7 +1107,7 @@ static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
     dom = rdr->cbs.load_edom(endpoint->session, page, msg->data,
-            crtn, suppressed, &retv);
+            crtn, suppressed, sizeof(suppressed), &retv);
 
 failed:
     response.type = PCRDR_MSG_TYPE_RESPONSE;

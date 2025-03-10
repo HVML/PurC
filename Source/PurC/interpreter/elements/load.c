@@ -291,7 +291,7 @@ static void on_sync_complete(
     case PCFETCHER_RESP_TYPE_HEADER:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ctxt->ret_code = resp_header->ret_code;
         PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
         PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
@@ -311,7 +311,7 @@ static void on_sync_complete(
     case PCFETCHER_RESP_TYPE_ERROR:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ctxt->ret_code = resp_header->ret_code;
 
         if (ctxt->co->stack.exited) {
@@ -773,16 +773,10 @@ process_attr_within(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    char app_name[PURC_LEN_APP_NAME + 1];
-    char runner_name[PURC_LEN_RUNNER_NAME + 1];
+    const char *runner_name = purc_variant_get_string_const(val);
+    bool r = purc_is_valid_runner_name(runner_name);
 
-    const char *s = purc_variant_get_string_const(val);
-
-    int r;
-    r = purc_extract_app_name(s, app_name) &&
-        purc_extract_runner_name(s, runner_name);
-
-    if (r == 0) {
+    if (!r) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> is not valid",
                 purc_atom_to_string(name), element->tag_name);

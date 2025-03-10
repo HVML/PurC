@@ -1,0 +1,142 @@
+#!/usr/bin/purc
+
+# RESULT: 'No any clients'
+
+<hvml target="void">
+    <head>
+        $RUNNER.enablelog('all', 'stderr')
+
+        <define as 'logMsg'>
+            <inherit>
+                    $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+
+        <define as 'prtLns'>
+            <inherit>
+                    $STREAM.stdout.writelines($?);
+            </inherit>
+        </define>
+
+        <base href=$CRTN.base(! "file://$REQ.base" ) hvml:silently />
+    </head>
+
+    <body id='server' >
+
+        <define as 'mainFuncs' from 'controller/main.hvml' temp />
+        <include with $mainFuncs />
+
+        <define as 'purcmcFuncs' from 'controller/purcmc.hvml' />
+        <include with $purcmcFuncs />
+
+        <include with $logMsg on 'The server is running...' />
+
+        <init as 'sslSettings' with {} />
+        <test with $L.streq('caseless', $REQ.secure, 'true') >
+            <update on $sslSettings to 'merge'>
+                {
+                    'sslkey': "$REQ.base/localhost.key",
+                    'sslcert': "$REQ.base/localhost.crt",
+                }
+            </update>
+        </test>
+
+        <init as 'wsSettings' >
+                {
+                    'noresptimetoping': 3,
+                    'noresptimetoclose': 6,
+                }
+        </init>
+
+        <include with $logMsg on $sslSettings />
+        <include with $logMsg on $wsSettings />
+
+        <init as 'clients' at '_topmost' with {} />
+        <init as 'workspaces' at '_topmost' with {} />
+        <init as 'plainwindows' at '_topmost' with {} />
+
+        <init as 'srvListenSocket' with $SOCKET.stream('inet://localhost:8080', 'default', 32, $sslSettings) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+        </init>
+
+        <include with $logMsg on 'The server is accepting...' />
+
+        <observe on $clients for 'shrink'>
+            <include with $logMsg on 'clients shrunken:' />
+            <include with $logMsg on $clients />
+
+            <test with $DATA.count()>
+                <differ>
+                    <exit with 'No any clients' />
+                </differ>
+            </test>
+        </observe>
+
+        <observe on $srvListenSocket for 'socket:connAttempt'>
+            <choose on $srvListenSocket.accept('default', 'websocket', $wsSettings)>
+                <catch for `ANY`>
+                    <exit with "Server failed with $?.name when calling accept()" />
+                </catch>
+
+                <test with $L.not($DATA.isequal($?, null)) >
+
+                    <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+
+                    <init as 'clientId' with $DATA.stringify($DATA.key($?)) />
+
+                    <update on $clients to 'merge' with { $clientId : { stream: $? } } />
+
+                    <observe on $clients[$clientId].stream for 'handshake'>
+                        $clientId
+
+                        <include with $logMsg on 'Server got HANDSHAKE event from `$_observedContent`; payload:' />
+                        <include with $prtLns on $? />
+
+                        <inherit>
+                            $_observedOn.send_handshake_resp(101);
+                        </inherit>
+
+                        <!-- send initial message to client -->
+                        <call on $sendResponse with { clientId: $clientId, requestId: '0', retCode: 200, resultValue: 0 } />
+                    </observe>
+
+                    <observe on $clients[$clientId].stream for 'message'>
+                        $clientId
+
+                        <include with $logMsg on "Server got a MESSAGE event from `$_observedContent`" />
+
+                        <call on $parseMessage with { message: $? } >
+                            <!-- handle message here -->
+                            <test with $L.streq('case', $?.type, 'request') >
+                                <call on ${$?.operation} with { clientId: $_observedContent, parsedMsg: $? } />
+                            </test>
+                        </call>
+                    </observe>
+
+                    <observe on $clients[$clientId].stream for 'error'>
+                        $clientId
+
+                        <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
+                        <include with $logMsg on $? />
+
+                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <forget on $_observedOn for '*' />
+                    </observe>
+
+                    <observe on $clients[$clientId].stream for 'close'>
+                        $clientId
+
+                        <include with $logMsg on "Server got a CLOSE event from `$_observedContent`; payload:" />
+                        <include with $logMsg on $? />
+
+                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <forget on $_observedOn for '*' />
+                    </observe>
+                </test>
+            </choose>
+        </observe>
+    </body>
+</hvml>
+

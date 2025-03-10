@@ -24,7 +24,7 @@ set(test_html_SOURCES
 
 set(test_html_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -52,7 +52,7 @@ set(test_html_parser_SOURCES
 
 set(test_html_parser_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -81,7 +81,7 @@ set(test_html_edom_SOURCES
 
 set(test_html_edom_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -110,7 +110,7 @@ set(test_dom_SOURCES
 
 set(test_dom_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

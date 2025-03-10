@@ -30,33 +30,6 @@
 #include "helper.h"
 
 #include <math.h>
-#include <regex.h>
-
-static bool reg_cmp(const char *buf1, const char *buf2)
-{
-    regex_t reg;
-
-    assert(buf1);
-    assert(buf2);
-
-    if (regcomp(&reg, buf1, REG_EXTENDED | REG_NOSUB) < 0) {
-        goto error;
-    }
-
-    if (regexec(&reg, buf2, 0, NULL, 0) == REG_NOMATCH) {
-        goto error_free;
-    }
-
-    regfree(&reg);
-    return true;
-
-error_free:
-    regfree(&reg);
-
-error:
-    return false;
-}
-
 static purc_variant_t
 not_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -416,10 +389,10 @@ streq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (pcutils_strcasecmp(str1, str2) == 0);
         break;
     case PURC_K_KW_wildcard:
-        result = pcdvobjs_wildcard_cmp(str2, str1);
+        result = pcdvobjs_wildcard_cmp(str1, str2);
         break;
     case PURC_K_KW_regexp:
-        result = reg_cmp(str1, str2);
+        result = pcdvobjs_regex_cmp(str1, str2);
         break;
     default:
         assert(0);
@@ -487,10 +460,10 @@ strne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (pcutils_strcasecmp(str1, str2) != 0);
         break;
     case PURC_K_KW_wildcard:
-        result = !pcdvobjs_wildcard_cmp(str2, str1);
+        result = !pcdvobjs_wildcard_cmp(str1, str2);
         break;
     case PURC_K_KW_regexp:
-        result = !reg_cmp(str1, str2);
+        result = !pcdvobjs_regex_cmp(str1, str2);
         break;
     default:
         assert(0);

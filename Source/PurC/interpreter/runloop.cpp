@@ -100,7 +100,7 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
-static purc_runloop_io_event
+static int
 to_runloop_io_event(GIOCondition condition)
 {
     int event = 0;;
@@ -122,13 +122,13 @@ to_runloop_io_event(GIOCondition condition)
     if (condition & G_IO_NVAL) {
         event |= PCRUNLOOP_IO_NVAL;
     }
-    return (purc_runloop_io_event)event;
+    return event;
 }
 
 static GIOCondition
-to_gio_condition(purc_runloop_io_event event)
+to_gio_condition(int event)
 {
-    int condition = 0;
+    gushort condition = 0;
     if (event & PCRUNLOOP_IO_IN) {
         condition |= G_IO_IN;
     }
@@ -147,11 +147,11 @@ to_gio_condition(purc_runloop_io_event event)
     if (event & PCRUNLOOP_IO_NVAL) {
         condition |= G_IO_NVAL;
     }
-    return (GIOCondition)condition;
+    return (GIOCondition) condition;
 }
 
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        purc_runloop_io_event event, purc_runloop_io_callback callback,
+        int event, purc_runloop_io_callback callback,
         void *ctxt)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -163,10 +163,8 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             PC_ASSERT(pcintr_get_runloop()==nullptr);
-            purc_runloop_io_event io_event;
-            io_event = to_runloop_io_event(condition);
-            callback(fd, io_event, ctxt);
-            return true;
+            int io_event = to_runloop_io_event(condition);
+            return callback(fd, io_event, ctxt);
         });
 }
 

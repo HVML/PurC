@@ -147,6 +147,14 @@ purc_variant_t pcfetcher_local_request_async(
 
     if (!info->rws) {
         info->header.ret_code = 404;
+        RunLoop *runloop = &RunLoop::current();
+        runloop->dispatchAfter(Seconds(ASYNC_DELAY), [info] {
+                info->handler(info->session, info->req_id, info->ctxt,
+                        PCFETCHER_RESP_TYPE_ERROR,
+                        (const char *)&info->header, 0);
+                pcfetcher_destroy_callback_info(info);
+                });
+        return info->req_id;
     }
 
     purc_rwstream_seek(info->rws, 0, SEEK_END);
@@ -263,6 +271,9 @@ purc_rwstream_t pcfetcher_local_request_sync(
         return rws;
     }
 
+    resp_header->ret_code = 404;
+    resp_header->sz_resp = 0;
+    resp_header->mime_type = NULL;
     return NULL;
 }
 

@@ -25,9 +25,9 @@
 #ifndef PURC_PRIVATE_TIMER_H
 #define PURC_PRIVATE_TIMER_H
 
-#include "purc.h"
-
 #include "config.h"
+
+#include "purc.h"
 
 #include "private/variant.h"
 #include "private/map.h"
@@ -41,25 +41,26 @@ PCA_EXTERN_C_BEGIN
 
 pcintr_timer_t
 pcintr_timer_create(purc_runloop_t runloop, const char* id,
-        pcintr_timer_fire_func func, void *data);
+        pcintr_timer_fire_func func, void *data) WTF_INTERNAL;
 
 void
-pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval);
+pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval)
+    WTF_INTERNAL;
 
 uint32_t
-pcintr_timer_get_interval(pcintr_timer_t timer);
+pcintr_timer_get_interval(pcintr_timer_t timer) WTF_INTERNAL;
 
 void
-pcintr_timer_start(pcintr_timer_t timer);
+pcintr_timer_start(pcintr_timer_t timer) WTF_INTERNAL;
 
 void
-pcintr_timer_start_oneshot(pcintr_timer_t timer);
+pcintr_timer_start_oneshot(pcintr_timer_t timer) WTF_INTERNAL;
 
 void
-pcintr_timer_stop(pcintr_timer_t timer);
+pcintr_timer_stop(pcintr_timer_t timer) WTF_INTERNAL;
 
 void
-pcintr_timer_destroy(pcintr_timer_t timer);
+pcintr_timer_destroy(pcintr_timer_t timer) WTF_INTERNAL;
 
 PCA_EXTERN_C_END
 

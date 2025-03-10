@@ -47,6 +47,7 @@ struct ctxt_for_observe {
     purc_variant_t                as;
     purc_variant_t                with;
     purc_variant_t                against;
+    purc_variant_t                implicit_data;
 
     pcvdom_element_t              define;
 
@@ -64,6 +65,7 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->implicit_data);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -173,14 +175,17 @@ process_attr_on(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (val == PURC_VARIANT_INVALID) {
+    if (val == PURC_VARIANT_INVALID && !frame->handle_event) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->on = val;
-    purc_variant_ref(val);
+
+    if (val) {
+        ctxt->on = val;
+        purc_variant_ref(val);
+    }
 
     return 0;
 }
@@ -273,14 +278,20 @@ process_attr_for(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (val == PURC_VARIANT_INVALID) {
+    if (val == PURC_VARIANT_INVALID && !frame->handle_event) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->for_var = val;
-    purc_variant_ref(val);
+
+    if (val) {
+        ctxt->for_var = val;
+        purc_variant_ref(val);
+    }
+    else {
+        return 0;
+    }
 
     const char *s = purc_variant_get_string_const(ctxt->for_var);
     const char *p = strchr(s, EVENT_SEPARATOR);
@@ -395,7 +406,7 @@ register_named_var_observer(pcintr_stack_t stack,
     struct pcintr_observer *result = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            observed,
+            observed, ctxt->implicit_data,
             ctxt->msg_type, ctxt->sub_type,
             frame->pos, edom_element, frame->pos, NULL, NULL, NULL,
             NULL, NULL, false);
@@ -431,7 +442,7 @@ register_native_var_observer(pcintr_stack_t stack,
     observer = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            observed,
+            observed, ctxt->implicit_data,
             ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
@@ -461,7 +472,7 @@ register_timer_observer(pcintr_stack_t stack,
     return pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            on,
+            on, ctxt->implicit_data,
             ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
@@ -496,7 +507,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     return pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            on,
+            on, ctxt->implicit_data,
             ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos,
@@ -565,7 +576,7 @@ register_default_observer(pcintr_stack_t stack,
     struct pcintr_observer * ret = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            observed,
+            observed, ctxt->implicit_data,
             ctxt->msg_type, ctxt->sub_type,
             frame->pos, edom_element, frame->pos,
             NULL, NULL, NULL, NULL, NULL, false);
@@ -647,22 +658,104 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->pos = pos; // ATTENTION!!
     }
 
-    bool ignore_content = (frame->handle_event == 1);
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
-                ignore_content)) {
-        return NULL;
-    }
-
     if (NULL == pcintr_stack_frame_get_parent(frame)) {
         return ctxt;
     }
 
-    struct pcvdom_element *element = frame->pos;
+    if (frame->handle_event) {
+        purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
 
-    int r;
-    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
-    if (r)
-        return ctxt;
+        ctxt->implicit_data = purc_variant_ref(exclamation_var);
+
+        purc_variant_t v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDAGAINST);
+        if (v) {
+            ctxt->against = purc_variant_ref(v);
+        }
+
+        v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDON);
+        if (v) {
+            ctxt->on = purc_variant_ref(v);
+        }
+
+        v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDFOR);
+        if (v) {
+            ctxt->for_var = purc_variant_ref(v);
+            const char *s = purc_variant_get_string_const(ctxt->for_var);
+            const char *p = strchr(s, EVENT_SEPARATOR);
+            if (p) {
+                ctxt->msg_type = strndup(s, p-s);
+                ctxt->sub_type = strdup(p+1);
+            }
+            else {
+                ctxt->msg_type = strdup(s);
+            }
+        }
+
+        v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDIN);
+        if (v) {
+            frame->attr_in = purc_variant_ref(v);
+        }
+
+        v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDWITH);
+        if (v) {
+            ctxt->with = purc_variant_ref(v);
+        }
+
+        v = purc_variant_object_get_by_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDCONTENT);
+        if (v) {
+            pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+        }
+    }
+    else {
+        if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
+                    false)) {
+            return NULL;
+        }
+
+        int r = pcintr_walk_attrs(frame, frame->pos, stack, attr_found_val);
+        if (r) {
+            return ctxt;
+        }
+
+        ctxt->implicit_data = purc_variant_make_object_0();
+
+        if (ctxt->against) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDAGAINST, ctxt->against);
+        }
+
+        if (ctxt->on) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDON, ctxt->on);
+        }
+
+        if (ctxt->for_var) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDFOR, ctxt->for_var);
+        }
+
+        if (frame->attr_in) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDIN, frame->attr_in);
+        }
+
+        if (ctxt->with) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDWITH, ctxt->with);
+        }
+
+        purc_variant_t tmp = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+        if (tmp) {
+            purc_variant_object_set_by_ckey(ctxt->implicit_data,
+                    PCINTR_EXCLAMATION_OBSERVEDCONTENT, tmp);
+        }
+    }
 
 #if 0
     if (!ctxt->with) {
@@ -700,7 +793,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_variant_t for_var;
     for_var = ctxt->for_var;
-    if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
+    if (!frame->handle_event &&
+            (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return ctxt;
     }
@@ -773,7 +867,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     }
 
     if (frame->handle_event) {
-        if ((strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
+        if ((ctxt->msg_type && strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
                 stack->co->curator && pcintr_is_crtn_exists(stack->co->curator)) {
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;

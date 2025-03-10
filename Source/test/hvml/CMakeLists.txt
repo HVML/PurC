@@ -24,7 +24,7 @@ set(test_hvml_SOURCES
 
 set(test_hvml_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -54,7 +54,7 @@ set(test_sbst_SOURCES
 
 set(test_sbst_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -83,7 +83,7 @@ set(test_tokenizer_SOURCES
 
 set(test_tokenizer_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

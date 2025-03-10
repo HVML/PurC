@@ -793,6 +793,13 @@ again:
         pcrdr_release_message(msg);
     }
 
+    if (!busy && !msg_observed) {
+        size_t count = pcinst_msg_queue_count(co->mq);
+        if (count > 0) {
+            busy = true;
+        }
+    }
+
 out:
     if (type) {
         free(type);
@@ -809,10 +816,11 @@ dispatch_event(struct pcinst *inst)
     bool is_busy = false;
 
 #if 1
+    clock_gettime(CLOCK_MONOTONIC, &begin);
 again:
     is_busy = false;
-    clock_gettime(CLOCK_MONOTONIC, &begin);
 #endif
+
     check_and_dispatch_event_from_conn(inst);
 
     bool co_is_busy = false;
@@ -853,6 +861,24 @@ again:
     }
 #endif
     return is_busy;
+}
+
+static bool
+has_ready_co(struct pcinst *inst)
+{
+    bool ret = false;
+    struct pcintr_heap *heap = inst->intr_heap;
+
+    pcintr_coroutine_t p, q;
+    struct list_head *crtns;
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        if (p->state == CO_STATE_READY) {
+            ret = true;
+            break;
+        }
+    }
+    return ret;
 }
 
 void
@@ -896,7 +922,7 @@ again:
     event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
-    if (step_is_busy || event_is_busy) {
+    if (step_is_busy || event_is_busy || has_ready_co(inst)) {
         pcintr_update_timestamp(inst);
         goto again;
     }

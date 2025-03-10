@@ -40,13 +40,15 @@
 static struct purc_instance_extra_info worker_info = {
     PURC_RDRCOMM_HEADLESS,
     "file:///tmp/" APP_NAME ".log",
+    /* XXX: Removed since 0.9.22
     "sslCert",
-    "sslKey",
+    "sslKey", */
     "workspaceName",
     "workspaceTitle",
     "<html></html>",            // workspace_layout
     0,                          // allow_switching_rdr
     0,                          // allow_scaling_by_denisty
+    0,                          // keep_alive
 };
 
 static const char *cond_names[] = {
@@ -89,8 +91,9 @@ static int work_cond_handler(purc_cond_k event, void *arg, void *data)
 
         assert(info->renderer_comm == worker_info.renderer_comm);
         assert(strcmp(info->renderer_uri, worker_info.renderer_uri) == 0);
+        /* XXX: Removed since 0.9.22
         assert(strcmp(info->ssl_cert, worker_info.ssl_cert) == 0);
-        assert(strcmp(info->ssl_key, worker_info.ssl_key) == 0);
+        assert(strcmp(info->ssl_key, worker_info.ssl_key) == 0); */
     }
     else if (event == PURC_COND_STOPPED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;

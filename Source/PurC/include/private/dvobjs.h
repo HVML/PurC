@@ -211,7 +211,7 @@ enum {
 
 #define PURC_KW_DELIMITERS  " \t\n\v\f\r"
 
-#define for_each_keyword(options, total_len, kw, kw_len)                    \
+#define foreach_keyword(options, total_len, kw, kw_len)                     \
     for (kw_len = 0, kw = pcutils_get_next_token_len(options, total_len,    \
                 PURC_KW_DELIMITERS, &kw_len);                               \
             (kw != NULL && kw_len > 0 && kw_len < MAX_LEN_KEYWORD);         \
@@ -244,29 +244,34 @@ struct wildcard_list {
 int32_t pcdvobjs_get_random(void) WTF_INTERNAL;
 
 bool
-pcdvobjs_is_elements(purc_variant_t v);
+pcdvobjs_is_elements(purc_variant_t v) WTF_INTERNAL;
 
 purc_variant_t
-pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element);
+pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element)
+    WTF_INTERNAL;
 
 purc_variant_t
-pcdvobjs_elements_by_css(purc_document_t doc, const char *css);
+pcdvobjs_elements_by_css(purc_document_t doc, const char *css) WTF_INTERNAL;
 
 purc_variant_t
 pcdvobjs_elem_coll_query(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *sel);
-
+        pcdoc_element_t ancestor, const char *sel) WTF_INTERNAL;
 
 pcdoc_element_t
-pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);
+pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
+    WTF_INTERNAL;
 
 /* return the number of left characters cannot be decoded */
-size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc);
+size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc)
+    WTF_INTERNAL;
 
 int pcdvobj_url_encode(struct pcutils_mystring *mystr,
-        const unsigned char *bytes, size_t nr_bytes, int rfc);
+        const unsigned char *bytes, size_t nr_bytes, int rfc)
+    WTF_INTERNAL;
+
 int pcdvobj_url_decode(struct pcutils_mystring *mystr,
-        const char *string, size_t length, int rfc, bool silently);
+        const char *string, size_t length, int rfc, bool silently)
+    WTF_INTERNAL;
 
 /* on_release : delete the doc */
 purc_variant_t

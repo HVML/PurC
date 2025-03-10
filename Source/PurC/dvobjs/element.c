@@ -124,7 +124,7 @@ pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
 
     size_t nr_buf = end - begin;
     char *buf = strndup(content + begin, nr_buf);
-    ret = purc_variant_make_string_reuse_buff(buf, nr_buf, true);
+    ret = purc_variant_make_string_reuse_buff(buf, nr_buf + 1, true);
 
     purc_rwstream_destroy(rws);
 

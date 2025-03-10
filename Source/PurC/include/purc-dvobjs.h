@@ -48,6 +48,7 @@
 #define PURC_PREDEF_VARNAME_STR         "STR"
 #define PURC_PREDEF_VARNAME_DATA        "DATA"
 #define PURC_PREDEF_VARNAME_STREAM      "STREAM"
+#define PURC_PREDEF_VARNAME_SOCKET      "SOCKET"
 #define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
 #define PURC_PREDEF_VARNAME_URL         "URL"
 #define PURC_PREDEF_VARNAME_RDR         "RDR"
@@ -58,6 +59,7 @@
 #define PURC_PREDEF_VARNAME_STR_ZH      "字符串"
 #define PURC_PREDEF_VARNAME_DATA_ZH     "数据"
 #define PURC_PREDEF_VARNAME_STREAM_ZH   "流"
+#define PURC_PREDEF_VARNAME_SOCKET_ZH   "套接字"
 #define PURC_PREDEF_VARNAME_DATETIME_ZH "时间"
 
 /* coroutine-level variables */
@@ -153,6 +155,10 @@ purc_dvobj_url_new(void);
 PCA_EXPORT purc_variant_t
 purc_dvobj_stream_new(void);
 
+/** Make a dynamic variant object for built-in `$SOCKET` variable. */
+PCA_EXPORT purc_variant_t
+purc_dvobj_socket_new(void);
+
 /** Make a dynamic variant object for built-in `$RDR` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_rdr_new(void);
@@ -212,8 +218,48 @@ purc_dvobj_unpack_bytes(const uint8_t *bytes, size_t nr_bytes,
   * Return an empty array for invalid arguments when @silently is true,
   * or an invalid variant for any error. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_read_struct(purc_rwstream_t stream,
-        const char *formats, size_t formats_left, bool silently);
+purc_dvobj_read_struct(purc_rwstream_t stream, const char *formats,
+        size_t formats_left, size_t *nr_total_read, bool silently);
+
+/** Match the wildcard specified by @pattern
+    with multiple string candidants specified by @strs.
+    This function returns the mached strings in a 32-bit integer,
+    one bit per string; -1 on failure.
+    Note that the @nr_strs should be less than 32. */
+int pcdvobjs_wildcard_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs);
+
+/** Match the regualr expression specified by @pattern
+    with multiple string candidants specified by @strs.
+    This function returns the mached strings in a 32-bit integer,
+    one bit per string; -1 on failure.
+    Note that the @nr_strs should be less than 32. */
+int pcdvobjs_regex_cmp_ex(const char *pattern,
+        const char *strs[], int nr_strs);
+
+/** Match the event pattern specified by @main_pattern and @sub_pattern
+    with multiple event candidants specified by @events.
+    This function returns the mached events in a 32-bit integer,
+    one bit per event; -1 on failure.
+    Note that the @nr_events should be less than 32. */
+int pcdvobjs_match_events(const char *main_pattern, const char *sub_pattern,
+        const char *events[], int nr_events);
+
+/** Cast a number to a time value (struct timeval). */
+bool pcdvobjs_cast_to_timeval(struct timeval *timeval, purc_variant_t t);
+
+struct pcdvobjs_option_to_atom {
+    const char *option;
+    purc_atom_t atom;
+    int flag;
+};
+
+/** Parse options specified by @vrt according to @single_keywords
+    and @composite_keywords. */
+int pcdvobjs_parse_options(purc_variant_t vrt,
+        const struct pcdvobjs_option_to_atom *single_keywords, size_t nr_skw,
+        const struct pcdvobjs_option_to_atom *composite_keywords, size_t nr_ckw,
+        int flags4null, int flags4failed);
 
 /**@}*/
 

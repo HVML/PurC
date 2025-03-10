@@ -541,7 +541,7 @@ TEST(html, edom_gen)
     }
     key = pcdom_element_set_attribute(body,
                 (const unsigned char*)"great", 5,
-                (const unsigned char*)"wall", 5);
+                (const unsigned char*)"wall", 4);
     ASSERT_NE(key, nullptr);
 
     if (1) {

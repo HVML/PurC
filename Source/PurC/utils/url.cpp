@@ -473,7 +473,7 @@ encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
         if (k) {
             key = (char*)malloc(nr_k + nr_sk + 3);
 #if 0
-            sprintf(key, "%s[%s]", k, sk);
+            snprintf(key, nr_k + nr_sk + 3, "%s[%s]", k, sk);
 #else
             strcpy(key, k);
             strcat(key, "[");
@@ -669,7 +669,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
 #if 0
-                sprintf(key, "%s0", numeric_prefix);
+                snprintf(key, strlen(numeric_prefix) + 2, "%s0", numeric_prefix);
 #else
                 strcpy(key, numeric_prefix);
                 strcat(key, "0");
@@ -706,7 +706,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
 #if 0
-                sprintf(key, "%s0", numeric_prefix);
+                snprintf(key, strlen(numeric_prefix) + 2, "%s0", numeric_prefix);
 #else
                 strcpy(key, numeric_prefix);
                 strcat(key, "0");
@@ -742,7 +742,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
 #if 0
-                sprintf(key, "%s0", numeric_prefix);
+                snprintf(key, strlen(numeric_prefix) + 2, "%s0", numeric_prefix);
 #else
                 strcpy(key, numeric_prefix);
                 strcat(key, "0");
@@ -778,7 +778,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
 #if 0
-                sprintf(key, "%s0", numeric_prefix);
+                snprintf(key, strlen(numeric_prefix) + 2, "%s0", numeric_prefix);
 #else
                 strcpy(key, numeric_prefix);
                 strcat(key, "0");

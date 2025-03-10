@@ -67,15 +67,8 @@
 #define _KW_DELIMITERS      " \t\n\v\f\r"
 #define _DEF_FILE_IS_WHICH  "regular readable"
 
-purc_variant_t pcdvobjs_create_file (void);
+purc_variant_t pcdvobjs_create_file (void) WTF_INTERNAL;
 typedef purc_variant_t (*pcdvobjs_create) (void);
-
-// as FILE, FS, MATH
-struct pcdvobjs_dvobjs_object {
-    const char *name;
-    const char *description;
-    pcdvobjs_create create_func;
-};
 
 static const char * pcdvobjs_remove_space (char *buffer)
 {
@@ -181,7 +174,7 @@ static bool remove_dir (char *dir)
             if ((strcmp(dp->d_name, ".") == 0)
                     || (strcmp(dp->d_name, "..") == 0))
                 continue;
-            sprintf(dir_name, "%s/%s", dir, dp->d_name);
+            snprintf(dir_name, sizeof(dir_name), "%s/%s", dir, dp->d_name);
             remove_dir(dir_name);
         }
         closedir(dirp);
@@ -1489,31 +1482,40 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             continue;
 
         char info[NAME_MAX + 256] = {0};
+        size_t len;
         for (int i = 0; i < (DISPLAY_MAX - 1); i++) {
             switch (display[i]) {
-                case DISPLAY_MODE:
+                case DISPLAY_MODE: {
+                    char chr_type;
                     // type
                     if (ptr->d_type == DT_BLK) {
-                        sprintf (info + strlen (info), "b");
+                        chr_type = 'b';
                     }
                     else if(ptr->d_type == DT_CHR) {
-                        sprintf (info + strlen (info), "c");
+                        chr_type = 'c';
                     }
                     else if(ptr->d_type == DT_DIR) {
-                        sprintf (info + strlen (info), "d");
+                        chr_type = 'd';
                     }
                     else if(ptr->d_type == DT_FIFO) {
-                        sprintf (info + strlen (info), "f");
+                        chr_type = 'f';
                     }
                     else if(ptr->d_type == DT_LNK) {
-                        sprintf (info + strlen (info), "l");
+                        chr_type = 'l';
                     }
                     else if(ptr->d_type == DT_REG) {
-                        sprintf (info + strlen (info), "-");
+                        chr_type = '-';
                     }
                     else if(ptr->d_type == DT_SOCK) {
-                        sprintf (info + strlen (info), "s");
+                        chr_type = 's';
                     }
+                    else {
+                        chr_type = '?';
+                    }
+
+                    len = strlen(info);
+                    info[sizeof(info) - len] = chr_type;
+                    info[sizeof(info) - len + 1] = '\0';
 
                     // mode_str
                     for (int j = 0; j < 3; j++) {
@@ -1530,52 +1532,72 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                         else
                             au[j * 3 + 2] = '-';
                     }
-                    sprintf (info + strlen (info), "%s\t", au);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%s\t", au);
                     break;
+                }
 
                 case DISPLAY_NLINK:
-                    sprintf (info + strlen (info), "%ld\t",
-                            (long)file_stat.st_nlink);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%ld\t", (long)file_stat.st_nlink);
                     break;
 
                 case DISPLAY_UID:
-                    sprintf (info + strlen (info), "%ld\t",
-                            (long)file_stat.st_uid);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%ld\t", (long)file_stat.st_uid);
                     break;
 
                 case DISPLAY_GID:
-                    sprintf (info + strlen (info), "%ld\t",
-                            (long)file_stat.st_gid);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%ld\t", (long)file_stat.st_gid);
                     break;
 
                 case DISPLAY_SIZE:
-                    sprintf (info + strlen (info), "%llu\t",
-                            (long long unsigned)file_stat.st_size);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%llu\t", (long long unsigned)file_stat.st_size);
                     break;
 
                 case DISPLAY_BLKSIZE:
-                    sprintf (info + strlen (info), "%llu\t",
-                            (long long unsigned)file_stat.st_blksize);
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%llu\t", (long long unsigned)file_stat.st_blksize);
                     break;
 
                 case DISPLAY_ATIME:
-                    sprintf (info + strlen (info), "%s\t",
-                            ctime(&file_stat.st_atime));
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%s\t", ctime(&file_stat.st_atime));
                     break;
 
                 case DISPLAY_CTIME:
-                    sprintf (info + strlen (info), "%s\t",
-                            ctime(&file_stat.st_ctime));
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%s\t", ctime(&file_stat.st_ctime));
                     break;
 
                 case DISPLAY_MTIME:
-                    sprintf (info + strlen (info), "%s\t",
-                            ctime(&file_stat.st_mtime));
+                    len = strlen(info);
+                    snprintf(info + len,
+                            sizeof(info) > len ? sizeof(info) - len : 0,
+                            "%s\t", ctime(&file_stat.st_mtime));
                     break;
 
                 case DISPLAY_NAME:
-                    strcat (info, ptr->d_name);
-                    strcat (info, "\t");
+                    strcat(info, ptr->d_name);
+                    strcat(info, "\t");
                     break;
             }
         }
@@ -3198,7 +3220,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool set_string = false;
         bool set_strict = false;
         bool set_silent = false;
-        for_each_keyword(options, total_len, keyword, kwlen) {
+        foreach_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "binary", kwlen) == 0) {
                 if (set_string) {
                     // invalid option
@@ -3395,7 +3417,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         const char *keyword;
         size_t kwlen;
-        for_each_keyword(options, total_len, keyword, kwlen) {
+        foreach_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "append", kwlen) == 0) {
                 opt_append = true;
             }
@@ -3631,7 +3653,7 @@ opendir_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    static const struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = NULL,
         .on_forget = NULL,
@@ -3729,7 +3751,11 @@ static purc_variant_t pcdvobjs_create_fs(void)
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
 
-static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
+static struct pcdvobjs_dvobjs_object {
+    const char *name;
+    const char *description;
+    pcdvobjs_create create_func;
+} dynamic_objects[] = {
     {
         "FS",                                   // name
         "For File System Operations in PURC",   // description
@@ -3744,18 +3770,28 @@ static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
+#if 1
+    /* work-around for an inexplicable ASAN error: global-buffer-overflow */
+    if (strcasecmp(name, "FS") == 0) {
+        *ver_code = FS_DVOBJ_VERSION;
+        return pcdvobjs_create_fs();
+    }
+    else if (strcasecmp(name, "FILE") == 0) {
+        *ver_code = FS_DVOBJ_VERSION;
+        return pcdvobjs_create_file();
+    }
+#else
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
-        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
-            break;
+        pcdvobjs_create creator = dynamic_objects[i].create_func;
+        if (strcmp(name, dynamic_objects[i].name) == 0) {
+            *ver_code = FS_DVOBJ_VERSION;
+            return creator();
+        }
     }
+#endif
 
-    if (i == PCA_TABLESIZE(dynamic_objects))
-        return PURC_VARIANT_INVALID;
-    else {
-        *ver_code = FS_DVOBJ_VERSION;
-        return dynamic_objects[i].create_func();
-    }
+    return PURC_VARIANT_INVALID;
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)
@@ -3778,3 +3814,4 @@ const char * __purcex_get_dynamic_variant_desc (size_t idx)
     else
         return dynamic_objects[idx].description;
 }
+

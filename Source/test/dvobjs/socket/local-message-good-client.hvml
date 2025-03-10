@@ -1,0 +1,305 @@
+#!/usr/bin/purc
+
+# RESULT: 'Good Client'
+
+<hvml target="void">
+    <head>
+        <define as 'logMsg'>
+            $RUNNER.enablelog('all', 'stderr')
+
+            <inherit>
+                $RUNNER.logmsg($?)
+            </inherit>
+        </define>
+    </head>
+
+    <body id='server' >
+
+        <include with $logMsg on 'The server is running...' />
+
+        <init as 'msgSettings' with {} />
+        <test with $STR.contains($REQ.client, 'ltnr') >
+            <update on $msgSettings to 'merge'>
+                {
+                    'noresptimetoping': 3,
+                    'noresptimetoclose': 6,
+                }
+            </update>
+        </test>
+
+        <test with $L.streq('caseless', $REQ.client, 'tlmsg') >
+            <update on $msgSettings to 'merge'>
+                {
+                    'maxmessagesize': 4096,
+                }
+            </update>
+        </test>
+
+        <include with $logMsg on $DATA.serialize($msgSettings) />
+
+        <init as 'clients' with {} />
+
+        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-test-server', 'none', 32) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+        </init>
+
+        <load from "#{$REQ.client}" within 'client' onto 'null:' as 'client' async >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when loading client" />
+            </catch>
+        </load>
+
+        <observe on $client for "corState:exited" >
+            <inherit>
+                $STREAM.stdout.writelines("Client exited with $?")
+            </inherit>
+        </observe>
+
+        <include with $logMsg on 'The server is accepting...' />
+
+        <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling accept()" />
+            </catch>
+
+            <test with $L.not($DATA.isequal($?, null)) >
+
+                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+
+                <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
+
+                <update on $clients to 'merge' with { $clientId : $? } />
+
+                <observe on $clients[$clientId] for 'error'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Server got ERROR event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                    }}
+                    </inherit>
+
+                    <exit with 'Bad Client' />
+                </observe>
+
+                <observe on $clients[$clientId] for 'message'>
+                    $clientId
+
+                    <test with $L.streq('case', $?, 'Bye')>
+                        <inherit>
+                            $_observedOn.close();
+                        </inherit>
+
+                        <exit with 'Good Client' />
+
+                        <differ>
+
+                            <inherit>
+                            {{
+                                $STREAM.stdout.writelines("Server got MESSAGE event from `$_observedContent`; payload:");
+                                $STREAM.stdout.writelines($DATA.serialize($?));
+                                $_observedOn.send("Hello from the server");
+                            }}
+                            </inherit>
+
+                        </differ>
+                    </test>
+                </observe>
+
+                <observe on $clients[$clientId] for 'close'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Server got CLOSE event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?))
+                    }}
+                    </inherit>
+
+                    <exit with 'Good Client' />
+                </observe>
+            </test>
+        </choose>
+
+    </body>
+
+    <!-- A plain client -->
+    <body id="plain">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default', 'message', { secure: false } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+        </init>
+
+        <!-- observe on $cliStreamSocket for 'handshake' -->
+            <include with $logMsg on 'Client got HANDKSHAKE event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to send some words.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Hello from a good client.");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+        <!-- /observe -->
+
+        <observe on $cliStreamSocket for 'message'>
+            <include with $logMsg on 'Client got MESSAGE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Bye");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+        </observe>
+
+        <observe on $cliStreamSocket for 'close'>
+            <include with $logMsg on 'Client got CLOSE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+    </body>
+
+    <!-- A client sending a large message -->
+    <body id="lmsg">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default', 'message', { secure: true } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+        </init>
+
+        <!-- observe on $cliStreamSocket for 'handshake' -->
+            <include with $logMsg on 'Client got HANDKSHAKE event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to send a large message.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send($STR.repeat('0123456789', 1024));
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+        <!-- /observe -->
+
+        <observe on $cliStreamSocket for 'message'>
+            <include with $logMsg on 'Client got MESSAGE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Bye");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+        </observe>
+
+        <observe on $cliStreamSocket for 'close'>
+            <include with $logMsg on 'Client got CLOSE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+    </body>
+</hvml>
+

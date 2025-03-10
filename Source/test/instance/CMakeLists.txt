@@ -23,7 +23,7 @@ set(test_def_SOURCES
 
 set(test_def_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -50,7 +50,7 @@ set(test_syslog_SOURCES
 
 set(test_syslog_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -77,7 +77,7 @@ set(test_mylog_SOURCES
 
 set(test_mylog_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -104,7 +104,7 @@ set(test_threads_SOURCES
 
 set(test_threads_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -131,7 +131,7 @@ set(test_responser_SOURCES
 
 set(test_responser_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -158,7 +158,7 @@ set(test_requester_SOURCES
 
 set(test_requester_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -185,7 +185,7 @@ set(test_init_SOURCES
 
 set(test_init_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -212,7 +212,7 @@ set(test_pcrdr_init_SOURCES
 
 set(test_pcrdr_init_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

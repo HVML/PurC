@@ -21,6 +21,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#define _GNU_SOURCE
 #include "config.h"
 #include "helper.h"
 
@@ -36,12 +37,13 @@
 
 #include <locale.h>
 #include <errno.h>
-#include <time.h>
 #include <math.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
@@ -67,6 +69,8 @@ enum {
     K_KW_HVML_INTRPR_RELEASE,
 #define _KW_all                 "all"
     K_KW_all,
+#define _KW_none                "none"
+    K_KW_none,
 #define _KW_default             "default"
     K_KW_default,
 #define _KW_kernel_name         "kernel-name"
@@ -109,6 +113,28 @@ enum {
     K_KW_measurement,
 #define _KW_identification      "identification"
     K_KW_identification,
+#define _KW_cloexec             "cloexec"
+    K_KW_cloexec,
+#define _KW_nonblock            "nonblock"
+    K_KW_nonblock,
+#define _KW_append              "append"
+    K_KW_append,
+#define _KW_type                "type"
+    K_KW_type,
+#define _KW_nread               "nread"
+    K_KW_nread,
+#define _KW_nwrite              "nwrite"
+    K_KW_nwrite,
+#define _KW_recv_timeout        "recv-timeout"
+    K_KW_recv_timeout,
+#define _KW_send_timeout        "send-timeout"
+    K_KW_send_timeout,
+#define _KW_recv_buffer         "recv-buffer"
+    K_KW_recv_buffer,
+#define _KW_send_buffer         "send-buffer"
+    K_KW_send_buffer,
+#define _KW_keep_alive          "keep-alive"
+    K_KW_keep_alive,
 };
 
 static struct keyword_to_atom {
@@ -123,6 +149,7 @@ static struct keyword_to_atom {
     { _KW_HVML_INTRPR_VERSION, 0 },    // "HVML_INTRPR_VERSION"
     { _KW_HVML_INTRPR_RELEASE, 0 },    // "HVML_INTRPR_RELEASE"
     { _KW_all, 0 },                    // "all"
+    { _KW_none, 0 },                   // "none"
     { _KW_default, 0 },                // "default"
     { _KW_kernel_name, 0 },            // "kernel-name"
     { _KW_kernel_release, 0 },         // "kernel-release"
@@ -144,6 +171,17 @@ static struct keyword_to_atom {
     { _KW_telephone, 0 },              // "telephone"
     { _KW_measurement, 0 },            // "measurement"
     { _KW_identification, 0 },         // "identification"
+    { _KW_cloexec, 0 },                // "cloexec"
+    { _KW_nonblock, 0 },               // "nonblock"
+    { _KW_append, 0 },                 // "append"
+    { _KW_type, 0 },                   // "type"
+    { _KW_nread, 0 },                  // "nread"
+    { _KW_nwrite, 0 },                 // "nwrite"
+    { _KW_recv_timeout, 0 },           // "recv-timeout"
+    { _KW_send_timeout, 0 },           // "send-timeout"
+    { _KW_recv_buffer, 0 },            // "recv-buffer"
+    { _KW_send_buffer, 0 },            // "send-buffer"
+    { _KW_keep_alive, 0 },             // "keep-alive"
 };
 
 static int
@@ -590,66 +628,6 @@ time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_longint((int64_t)t_time);
 }
 
-static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
-{
-    switch (purc_variant_get_type(t)) {
-    case PURC_VARIANT_TYPE_NUMBER:
-    {
-        double time_d, sec_d, usec_d;
-
-        purc_variant_cast_to_number(t, &time_d, false);
-        if (isinf(time_d) || isnan(time_d)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        usec_d = modf(time_d, &sec_d);
-        timeval->tv_sec = (time_t)sec_d;
-        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
-        break;
-    }
-
-    case PURC_VARIANT_TYPE_LONGINT:
-    case PURC_VARIANT_TYPE_ULONGINT:
-    {
-        int64_t sec;
-        if (!purc_variant_cast_to_longint(t, &sec, false)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        timeval->tv_usec = (time_t)sec;
-        timeval->tv_usec = 0;
-        break;
-    }
-
-    case PURC_VARIANT_TYPE_LONGDOUBLE:
-    {
-        long double time_d, sec_d, usec_d;
-        purc_variant_cast_to_longdouble(t, &time_d, false);
-
-        if (isinf(time_d) || isnan(time_d)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
-
-        usec_d = modfl(time_d, &sec_d);
-        timeval->tv_sec = (time_t)sec_d;
-        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
-        break;
-    }
-
-    default:
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
-    return true;
-
-failed:
-    return false;
-}
-
 static purc_variant_t
 time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -666,7 +644,7 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!cast_to_timeval(&timeval, argv[0])) {
+    if (!pcdvobjs_cast_to_timeval(&timeval, argv[0])) {
         goto failed;
     }
 
@@ -1880,6 +1858,704 @@ random_sequence_getter(purc_variant_t root,
 }
 #endif  /* !OS(LINUX) */
 
+static purc_variant_t
+remove_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const char *path;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if ((path = purc_variant_get_string_const(argv[0])) == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (remove(path)) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+int parse_pipe_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            flags = -1;
+            goto done;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_default].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char tmp[parts_len + 1];
+        strncpy(tmp, parts, parts_len);
+        tmp[parts_len]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+    }
+
+    if (atom == keywords2atoms[K_KW_none].atom) {
+        flags = 0;
+    }
+    else if (atom == keywords2atoms[K_KW_default].atom) {
+        flags = O_CLOEXEC;
+    }
+    else {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = 0;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags |= O_CLOEXEC;
+            }
+            else {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                flags = -1;
+                break;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+pipe_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int flags = parse_pipe_flags(nr_args > 0 ? argv[0] : PURC_VARIANT_INVALID);
+    if (flags == -1) {
+        goto failed;
+    }
+
+    int fds[2];
+
+#if OS(LINUX)
+    if (pipe2(fds, flags) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         goto failed;
+    }
+#else
+    if (pipe(fds) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         goto failed;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        if (flags & O_CLOEXEC && fcntl(fds[i], F_SETFD, FD_CLOEXEC) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+
+        if (flags & O_NONBLOCK && fcntl(fds[i], F_SETFL, O_NONBLOCK) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+    }
+#endif
+
+    purc_variant_t fd1 = purc_variant_make_longint(fds[0]);
+    purc_variant_t fd2 = purc_variant_make_longint(fds[0]);
+    if (!fd1 || !fd2) {
+        if (fd1)
+            purc_variant_unref(fd1);
+        if (fd2)
+            purc_variant_unref(fd2);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t kv[2] = { fd1, fd2 };
+    purc_variant_t retv = purc_variant_make_tuple(2, kv);
+    purc_variant_unref(fd1);
+    purc_variant_unref(fd2);
+    return retv;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+int parse_fdflags_getter_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        flags = -1;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            flags = -1;
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto done;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            flags = -1;
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        }
+        else {
+            char tmp[parts_len + 1];
+            strncpy(tmp, parts, parts_len);
+            tmp[parts_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+
+            if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags = O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+                flags = O_CLOEXEC;
+            }
+            else if (atom == keywords2atoms[K_KW_append].atom) {
+                flags = O_APPEND;
+            }
+            else {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                flags = -1;
+            }
+        }
+    }
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+fdflags_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int flags = parse_fdflags_getter_flags(argv[1]);
+    if (flags == -1) {
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    bool result = false;
+    if (flags & O_CLOEXEC) {
+        int ret = fcntl(fd, F_GETFD);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+
+        result = !!(ret & FD_CLOEXEC);
+    }
+    else if (flags & O_APPEND) {
+        int ret = fcntl(fd, F_GETFL);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+        result = !!(ret & O_APPEND);
+    }
+    else if (flags & O_NONBLOCK) {
+        int ret = fcntl(fd, F_GETFL);
+        if (ret == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+        result = !!(ret & O_NONBLOCK);
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(result);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+int parse_fdflags_setter_flags(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int64_t flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        flags = -1;
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            flags = -1;
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        }
+        else {
+            parts = pcutils_trim_spaces(parts, &parts_len);
+            if (parts_len == 0) {
+                flags = -1;
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+            }
+        }
+    }
+
+    if (flags == -1)
+        goto done;
+
+    size_t length = 0;
+    const char *part = pcutils_get_next_token_len(parts, parts_len,
+            _KW_DELIMITERS, &length);
+    do {
+        if (length == 0 || length > MAX_LEN_KEYWORD) {
+            atom = 0;
+        }
+        else {
+            char tmp[length + 1];
+            strncpy(tmp, part, length);
+            tmp[length]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        }
+
+        if (atom == keywords2atoms[K_KW_nonblock].atom) {
+            flags |= O_NONBLOCK;
+        }
+        else if (atom == keywords2atoms[K_KW_append].atom) {
+            flags |= O_APPEND;
+        }
+        else if (atom == keywords2atoms[K_KW_cloexec].atom) {
+            flags |= O_CLOEXEC;
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            flags = -1;
+            break;
+        }
+
+        if (parts_len <= length)
+            break;
+
+        parts_len -= length;
+        part = pcutils_get_next_token_len(part + length, parts_len,
+                _KW_DELIMITERS, &length);
+    } while (part);
+
+done:
+    return flags;
+}
+
+static purc_variant_t
+fdflags_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int flags = parse_fdflags_setter_flags(argv[1]);
+    if (flags == -1) {
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    if ((flags & O_CLOEXEC) && (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    if (flags & O_APPEND || flags & O_NONBLOCK) {
+        if (fcntl(fd, F_SETFL,
+                    (flags & O_APPEND) ? O_APPEND : 0 |
+                    (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static
+purc_atom_t parse_socket_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+
+    parts = purc_variant_get_string_const_ex(option, &parts_len);
+    if (parts == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    }
+    else {
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        }
+        else {
+            char tmp[parts_len + 1];
+            strncpy(tmp, parts, parts_len);
+            tmp[parts_len]= '\0';
+            atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        }
+
+        if (atom == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        }
+    }
+
+    return atom;
+}
+
+static purc_variant_t
+sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    purc_atom_t option = parse_socket_option(argv[1]);
+    if (option == 0) {
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    int optname = 0;
+
+    struct timeval timeval;
+    int intval;
+    void *optval = &intval;
+    socklen_t optlen = sizeof(intval);
+
+    if (option == keywords2atoms[K_KW_type].atom) {
+        optname = SO_TYPE;
+    }
+#if OS(Mac)
+    else if (option == keywords2atoms[K_KW_nread].atom) {
+        optname = SO_NREAD;
+    }
+    else if (option == keywords2atoms[K_KW_nwrite].atom) {
+        optname = SO_NWRITE;
+    }
+#endif
+    else if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        optval = &timeval;
+        optlen = sizeof(timeval);
+        optname = SO_RCVTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        optval = &timeval;
+        optlen = sizeof(timeval);
+        optname = SO_SNDTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
+        optname = SO_RCVBUF;
+    }
+    else if (option == keywords2atoms[K_KW_send_buffer].atom) {
+        optname = SO_SNDBUF;
+    }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        optname = SO_KEEPALIVE;
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    if (getsockopt(fd, SOL_SOCKET, optname, optval, &optlen) == -1) {
+        PC_DEBUG("Failed getsockopt(): %s.\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    purc_variant_t retv;
+    if (option == keywords2atoms[K_KW_type].atom) {
+        PC_ASSERT(optlen == sizeof(intval));
+
+        if (intval == SOCK_STREAM) {
+            retv = purc_variant_make_string_static("stream", false);
+        }
+        else if (intval == SOCK_DGRAM) {
+            retv = purc_variant_make_string_static("dgram", false);
+        }
+        else {
+            retv = purc_variant_make_string_static("unknown", false);
+        }
+    }
+    else if (option == keywords2atoms[K_KW_recv_timeout].atom ||
+            option == keywords2atoms[K_KW_send_timeout].atom) {
+        PC_ASSERT(optlen == sizeof(timeval));
+
+        double tmp = (double)timeval.tv_sec;
+        tmp += timeval.tv_usec/1000000.0L;
+        retv = purc_variant_make_number(tmp);
+    }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        if (intval)
+            retv = purc_variant_make_boolean(true);
+        else
+            retv = purc_variant_make_boolean(false);
+    }
+    else {
+        retv = purc_variant_make_longint(intval);
+    }
+
+    return retv;
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 3) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    purc_atom_t option = parse_socket_option(argv[1]);
+    if (option == 0) {
+        goto error;
+    }
+
+    struct timeval timeval = {};
+    int intval = 0;
+    const void *optval = &intval;
+    socklen_t optlen = sizeof(intval);
+
+    int optname = 0;
+    if (option == keywords2atoms[K_KW_recv_timeout].atom) {
+        if (!pcdvobjs_cast_to_timeval(&timeval, argv[2])) {
+            goto error;
+        }
+
+        optval = &timeval;
+        optlen = sizeof(timeval);
+        optname = SO_RCVTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_send_timeout].atom) {
+        if (!pcdvobjs_cast_to_timeval(&timeval, argv[2])) {
+            goto error;
+        }
+
+        optval = &timeval;
+        optlen = sizeof(timeval);
+        optname = SO_SNDTIMEO;
+    }
+    else if (option == keywords2atoms[K_KW_recv_buffer].atom) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
+            goto error;
+        }
+
+        intval = (int)tmp;
+        optname = SO_RCVBUF;
+    }
+    else if (option == keywords2atoms[K_KW_send_buffer].atom) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
+            goto error;
+        }
+
+        intval = (int)tmp;
+        optname = SO_SNDBUF;
+    }
+    else if (option == keywords2atoms[K_KW_keep_alive].atom) {
+        if (purc_variant_booleanize(argv[2]))
+            intval = 1;
+        else
+            intval = 0;
+        optname = SO_KEEPALIVE;
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    if (setsockopt(fd, SOL_SOCKET, optname, optval, optlen) == -1) {
+        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+    if (close(fd) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -1895,6 +2571,11 @@ purc_variant_t purc_dvobj_system_new (void)
         { "env",        env_getter,         env_setter },
         { "random",     random_getter,      random_setter },
         { "random_sequence", random_sequence_getter, NULL },
+        { "remove",     remove_getter,      NULL },
+        { "pipe",       pipe_getter,        NULL },
+        { "fdflags",    fdflags_getter,     fdflags_setter },
+        { "sockopt",    sockopt_getter,     sockopt_setter },
+        { "close",      close_getter,       NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

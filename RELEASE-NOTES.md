@@ -23,6 +23,7 @@ gantt
 
 # Release Notes
 
+- [Version 0.9.22](#version-0922)
 - [Version 0.9.20](#version-0920)
 - [Version 0.9.19](#version-0919)
 - [Version 0.9.18](#version-0918)
@@ -41,6 +42,30 @@ gantt
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.22
+
+On May 31, 2025, HVML Community announces the availability of PurC 0.9.22,
+   which is also the 17th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.22
+
+In this version, we fixed a few bugs and made some major enhancements:
+
+* CHANGES:
+* ENHANCEMENTS:
+   - Support for `$SOCKET`: both datagram and stream sockets.
+   - Complete implementation of `$STREAM`.
+   - Enhance the extension protocol `websocket` for stream socket and provide support for SSL/TLS.
+   - Enhance or tune for xGUI.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix some memory leaks and race condition crashes.
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.20
 

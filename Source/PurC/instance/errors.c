@@ -183,7 +183,11 @@ static const char *except_messages[] = {
     /* PURC_EXCEPT_UNAVAILABLE_LEGALLY */
     "UnavailableLegally",
     /* PURC_EXCEPT_UNMET_PRECONDITION */
-    "UnmetPrecondition"
+    "UnmetPrecondition",
+    /* PURC_EXCEPT_PROTOCOL_VIOLATION */
+    "ProtocolViolation",
+    /* PURC_EXCEPT_TLS_FAILURE */
+    "TLSFailure",
 };
 
 
@@ -740,6 +744,12 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
+#ifdef EADDRINUSE
+    case EADDRINUSE:
+        return PURC_ERROR_CONFLICT;
+        break;
+#endif
+
 #ifdef EWOULDBLOCK
     case EWOULDBLOCK:
         return PCRWSTREAM_ERROR_IO;
@@ -825,10 +835,14 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
-    default:
-        return PURC_ERROR_BAD_SYSTEM_CALL;
+#ifdef EBADF
+    case EBADF: /* Since 0.9.22 */
+        return PURC_ERROR_INVALID_VALUE;
+        break;
+#endif
     }
-    return PURC_ERROR_OK;
+
+    return PURC_ERROR_BAD_SYSTEM_CALL;
 }
 
 void

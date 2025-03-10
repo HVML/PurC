@@ -44,7 +44,7 @@ purc_fetcher_instance_t purc_fetcher_init(const char* app_name, const char* runn
     UNUSED_PARAM(runner_name);
     UNUSED_PARAM(extra_info);
 
-    if ((inst = calloc(sizeof(struct purc_fetcher_instance), 1)) == NULL)
+    if ((inst = calloc(1, sizeof(struct purc_fetcher_instance))) == NULL)
         goto error;
 
     // TODO: initialize modules here.

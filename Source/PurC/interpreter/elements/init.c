@@ -557,7 +557,7 @@ static void on_sync_complete(
     case PCFETCHER_RESP_TYPE_HEADER:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ctxt->ret_code = resp_header->ret_code;
         if (resp_header->mime_type) {
             ctxt->mime_type = strdup(resp_header->mime_type);
@@ -580,7 +580,7 @@ static void on_sync_complete(
     case PCFETCHER_RESP_TYPE_ERROR:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ctxt->ret_code = resp_header->ret_code;
 
         if (ctxt->co->stack.exited) {
@@ -1027,7 +1027,7 @@ static void on_async_complete(
     case PCFETCHER_RESP_TYPE_HEADER:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ld->ret_code = resp_header->ret_code;
         if (resp_header->mime_type) {
             ld->mime_type = strdup(resp_header->mime_type);
@@ -1050,7 +1050,7 @@ static void on_async_complete(
     case PCFETCHER_RESP_TYPE_ERROR:
     {
         struct pcfetcher_resp_header *resp_header =
-            (struct pcfetcher_resp_header *)data;
+            (struct pcfetcher_resp_header *)(void *)data;
         ld->ret_code = resp_header->ret_code;
 
         if (ld->co->stack.exited) {

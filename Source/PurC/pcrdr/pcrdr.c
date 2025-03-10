@@ -325,10 +325,11 @@ failed:
 static char* generate_unique_rid(const char* name)
 {
     static atomic_ullong atomic_accumulator;
-    char *buf = malloc(strlen(name) + 5); // name-xxx
+    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
+    char *buf = malloc(buf_len); // name-xxx
 
     unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
-    sprintf(buf, "%s-%03lld", name, accumulator);
+    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
     return buf;
 }
 
@@ -336,9 +337,10 @@ static char* generate_unique_rid(const char* name)
 
 static char* generate_unique_rid(const char* name)
 {
-    static atomic_ullong atomic_accumulator;
-    char *buf = malloc(strlen(name) + 5); // name-xxx
-    sprintf(buf, "%s-%03lld", name, accumulator);
+    static unsigned long long accumulator;
+    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
+    char *buf = malloc(buf_len); // name-xxx
+    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
     accumulator++;
     return buf;
 }
@@ -361,19 +363,30 @@ connect_to_renderer(struct pcinst *inst,
             extra_info ? extra_info->renderer_uri : NULL,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
+#if 0
     else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
-        msg = pcrdr_socket_connect(extra_info->renderer_uri,
-            inst->app_name, inst->runner_name, &conn_to_rdr);
-    }
-    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
-        // rdr_comm = PURC_RDRCOMM_THREAD;
-        msg = pcrdr_thread_connect(extra_info->renderer_uri,
+        // TODO: use pcrdr_socket_connect() instead.
+        msg = pcrdr_local_socket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
+        // TODO: use pcrdr_socket_connect() instead.
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+#else
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
+        // Since 0.9.22: merge support for local socket and web socket
+        // into pcrdr_socket_connect().
+        msg = pcrdr_socket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &conn_to_rdr);
+    }
+#endif
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
+        // rdr_comm = PURC_RDRCOMM_THREAD;
+        msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
     else {
@@ -510,10 +523,11 @@ connect_to_renderer(struct pcinst *inst,
     bool set_page_groups = (conn_to_rdr->caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
             conn_to_rdr->caps->workspace != 0) {
-        /* send `createWorkspace` */
+        /* send `createWorkspace`;
+           Since PURCMC 120, send workspace name via element. */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
                 PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
-                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_ID, extra_info->workspace_name, NULL,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
         if (msg == NULL) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -521,13 +535,16 @@ connect_to_renderer(struct pcinst *inst,
         }
 
         msg->data = purc_variant_make_object_0();
-        purc_variant_t value = purc_variant_make_string_static(
+        purc_variant_t value;
+#if 0
+        value = purc_variant_make_string_static(
                 extra_info->workspace_name, true);
         if (value == PURC_VARIANT_INVALID) {
             goto failed;
         }
         purc_variant_object_set_by_static_ckey(msg->data, "name", value);
         purc_variant_unref(value);
+#endif
 
         if (extra_info->workspace_title) {
             value = purc_variant_make_string_static(
@@ -703,11 +720,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         msg = pcrdr_socket_connect(uri,
             inst->app_name, inst->runner_name, &n_conn_to_rdr);
     }
+    /* XXX: Removed since 0.9.22
     else if (strcasecmp(comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(uri,
             inst->app_name, inst->runner_name, &n_conn_to_rdr);
-    }
+    } */
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -994,9 +1012,10 @@ rdr_comm(struct pcrdr_conn *rdr)
         comm = PURC_RDRCOMM_NAME_HBDBUS;
         break;
 
+    /* XXX: Removed since 0.9.22
     case PURC_RDRCOMM_WEBSOCKET:
         comm = PURC_RDRCOMM_NAME_WEBSOCKET;
-        break;
+        break; */
     }
 
 out:
@@ -1126,11 +1145,12 @@ connect_to_renderer_async(struct pcinst *inst,
         msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
     }
+    /* XXX: Removed since 0.9.22
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &conn_to_rdr);
-    }
+    } */
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);

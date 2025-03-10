@@ -167,7 +167,7 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 }
 
-static void shutdown_instance(purc_atom_t requester,
+static int shutdown_instance(purc_atom_t requester,
         const pcrdr_msg *msg, pcrdr_msg *response)
 {
     purc_atom_t self_atom;
@@ -191,7 +191,7 @@ static void shutdown_instance(purc_atom_t requester,
                 (strcmp(rqst_app_name, PCRUN_INSTMGR_APP_NAME) &&
                 strcmp(self_app_name, rqst_app_name))) {
             // not allowed
-            return;
+            return -1;
         }
     }
 
@@ -200,25 +200,24 @@ static void shutdown_instance(purc_atom_t requester,
     if (inst->intr_heap->cond_handler) {
         if (inst->intr_heap->cond_handler(PURC_COND_SHUTDOWN_ASKED,
                 (void*)msg, NULL) == 0) {
-            inst->intr_heap->keep_alive = 0;
+            inst->keep_alive = 0;
+        }
+        else {
+            inst->keep_alive = 1;
         }
     }
     else {
-        inst->intr_heap->keep_alive = 0;
-    }
-
-    if (inst->intr_heap->keep_alive == 0 && list_empty(&inst->intr_heap->crtns)
-            && list_empty(&inst->intr_heap->stopped_crtns)) {
-        purc_runloop_stop(inst->running_loop);
+        inst->keep_alive = 0;
     }
 
     response->type = PCRDR_MSG_TYPE_RESPONSE;
     response->requestId = purc_variant_ref(msg->requestId);
     response->sourceURI = purc_variant_make_string(self_ept, false);
-    response->retCode = PCRDR_SC_OK;
+    response->retCode = inst->keep_alive ? PCRDR_SC_FORBIDDEN : PCRDR_SC_OK;
     response->resultValue = 0;
     response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
     response->data = PURC_VARIANT_INVALID;
+    return 0;
 }
 
 /*
@@ -279,6 +278,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     PC_DEBUG("%s got `%s` request from %s\n",
             purc_get_endpoint(NULL), op, source_uri);
 
+    int ok_to_shutdown = -1;
     if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
         if (strcmp(op, PCRUN_OPERATION_createCoroutine) == 0) {
             create_coroutine(msg, response);
@@ -293,7 +293,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             purc_log_warn("Not implemented operation: %s\n", op);
         }
         else if (strcmp(op, PCRUN_OPERATION_shutdownInstance) == 0) {
-            shutdown_instance(requester, msg, response);
+            ok_to_shutdown = shutdown_instance(requester, msg, response);
         }
         else {
             struct pcinst *inst = pcinst_current();
@@ -342,6 +342,14 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     }
 
     pcrdr_release_message(response);
+
+    struct pcinst *inst = pcinst_current();
+    if (ok_to_shutdown == 0 && inst->keep_alive == 0 &&
+            list_empty(&inst->intr_heap->crtns) &&
+            list_empty(&inst->intr_heap->stopped_crtns)) {
+        purc_runloop_stop(inst->running_loop);
+        PC_DEBUG("Called purc_runloop_stop()\n");
+    }
 }
 
 pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
@@ -442,6 +450,11 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.renderer_comm = (purc_rdrcomm_k)u64;
     }
 
+    tmp = purc_variant_object_get_by_ckey(request->data, "keepAlive");
+    if (tmp && purc_variant_is_boolean(tmp)) {
+        info.keep_alive = purc_variant_booleanize(tmp);
+    }
+
     tmp = purc_variant_object_get_by_ckey(request->data, "allowSwitchingRdr");
     if (tmp && purc_variant_is_boolean(tmp)) {
         info.allow_switching_rdr = purc_variant_booleanize(tmp);
@@ -457,6 +470,7 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.renderer_uri = purc_variant_get_string_const(tmp);
     }
 
+    /* XXX: Removed since 0.9.22
     tmp = purc_variant_object_get_by_ckey(request->data, "sslCert");
     if (tmp) {
         info.ssl_cert = purc_variant_get_string_const(tmp);
@@ -465,7 +479,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     tmp = purc_variant_object_get_by_ckey(request->data, "sslKey");
     if (tmp) {
         info.ssl_key = purc_variant_get_string_const(tmp);
-    }
+    } */
 
     tmp = purc_variant_object_get_by_ckey(request->data, "workspaceName");
     if (tmp) {
@@ -840,6 +854,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
         purc_variant_object_set_by_static_ckey(data, "rendererProt", tmp);
         purc_variant_unref(tmp);
 
+        tmp = purc_variant_make_boolean(extra_info->keep_alive);
+        purc_variant_object_set_by_static_ckey(data, "keepAlive", tmp);
+        purc_variant_unref(tmp);
+
         tmp = purc_variant_make_boolean(extra_info->allow_switching_rdr);
         purc_variant_object_set_by_static_ckey(data, "allowSwitchingRdr", tmp);
         purc_variant_unref(tmp);
@@ -855,6 +873,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
             purc_variant_unref(tmp);
         }
 
+        /* XXX: Removed since 0.9.22
         if (extra_info->ssl_cert) {
             tmp = purc_variant_make_string_static(extra_info->ssl_cert,
                     false);
@@ -867,7 +886,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
                     false);
             purc_variant_object_set_by_static_ckey(data, "sslKey", tmp);
             purc_variant_unref(tmp);
-        }
+        } */
 
         if (extra_info->workspace_name) {
             tmp = purc_variant_make_string_static(extra_info->workspace_name,
@@ -1096,20 +1115,23 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
 
     pcrdr_msg *request_msg = pcrdr_make_request_message(
             PCRDR_MSG_TARGET_INSTANCE, inst,
-            PCRUN_OPERATION_shutdownInstance, NULL,
+            PCRUN_OPERATION_shutdownInstance, PCRDR_REQUESTID_NORETURN,
             purc_get_endpoint(NULL),
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
             NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
-    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
     size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
     if (n == 0) {
         purc_log_warn("Failed to send request message\n");
-        return PCRDR_SC_OK;
+        return -1;
     }
 
+#if 1
+    return PCRDR_SC_OK;
+#else
+    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
@@ -1129,6 +1151,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
     }
 
     return retv;
+#endif
 }
 
 purc_atom_t

@@ -19,11 +19,8 @@
 
 
 #include "purc/purc.h"
-#include "private/utils.h"
-#include "private/interpreter.h"
-#include "private/debug.h"
 
-#include "../helpers.h"
+#include "helpers.h"
 #include "tools.h"
 
 #include <glob.h>
@@ -95,7 +92,7 @@ intr_util_comp_docs(purc_document_t doc_l, purc_document_t doc_r, int *diff)
     if (pl && pr) {
         *diff = strcmp(pl, pr);
         if (*diff) {
-            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
+            purc_log_debug("diff:\n%s\n%s", pl, pr);
         }
         retp = pl;
     }
@@ -129,10 +126,113 @@ comp_sample_destroy(struct comp_sample_data *sample)
     free(sample);
 }
 
-static int comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
+static ssize_t
+cb_stdio_write(void *ctxt, const void *buf, size_t count)
+{
+    FILE *fp = (FILE *)ctxt;
+    return fwrite(buf, 1, count, fp);
+}
+
+static const char *cond_names[] = {
+    "PURC_COND_STARTED",
+    "PURC_COND_STOPPED",
+    "PURC_COND_NOCOR",
+    "PURC_COND_IDLE",
+    "PURC_COND_COR_CREATED",
+    "PURC_COND_COR_ONE_RUN",
+    "PURC_COND_COR_EXITED",
+    "PURC_COND_COR_TERMINATED",
+    "PURC_COND_COR_DESTROYED",
+    "PURC_COND_UNK_REQUEST",
+    "PURC_COND_UNK_EVENT",
+    "PURC_COND_SHUTDOWN_ASKED",
+};
+
+int client_cond_handler(purc_cond_k event, void *arg, void *data)
+{
+    (void)data;
+
+    if (event == PURC_COND_STARTED) {
+        purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
+        // purc_instance_extra_info *info = (purc_instance_extra_info *)data;
+
+        const char *endpoint = purc_atom_to_string(sid);
+        assert(endpoint);
+
+        char host_name[PURC_LEN_HOST_NAME + 1];
+        purc_extract_host_name(endpoint, host_name);
+        assert(strcmp(host_name, PCRDR_LOCALHOST) == 0);
+
+        char app_name[PURC_LEN_APP_NAME + 1];
+        purc_extract_app_name(endpoint, app_name);
+        assert(strcmp(app_name, APP_NAME) == 0);
+
+        char run_name[PURC_LEN_RUNNER_NAME + 1];
+        purc_extract_runner_name(endpoint, run_name);
+        assert(strncmp(run_name, "client", 6) == 0);
+    }
+    else if (event == PURC_COND_STOPPED) {
+        purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
+        assert(sid != 0);
+
+        const char *endpoint = purc_atom_to_string(sid);
+        assert(endpoint);
+
+        char host_name[PURC_LEN_HOST_NAME + 1];
+        purc_extract_host_name(endpoint, host_name);
+        assert(strcmp(host_name, PCRDR_LOCALHOST) == 0);
+
+        char app_name[PURC_LEN_APP_NAME + 1];
+        purc_extract_app_name(endpoint, app_name);
+        assert(strcmp(app_name, APP_NAME) == 0);
+
+        char run_name[PURC_LEN_RUNNER_NAME + 1];
+        purc_extract_runner_name(endpoint, run_name);
+        assert(strncmp(run_name, "client", 6) == 0);
+    }
+    else if (event == PURC_COND_SHUTDOWN_ASKED) {
+        purc_log_info("condition: %s\n", cond_names[event]);
+    }
+    else if (event == PURC_COND_COR_TERMINATED) {
+
+        purc_coroutine_t cor = (purc_coroutine_t)arg;
+        struct purc_cor_term_info *info = (struct purc_cor_term_info *)data;
+        purc_atom_t cid = purc_coroutine_identifier(cor);
+
+        fprintf(stdout,
+                "A coroutine (%s) in client instance terminated due to `%s`.\n",
+                purc_atom_to_string(cid), purc_atom_to_string(info->except));
+
+        purc_rwstream_t dump_stm;
+        dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
+        fprintf(stdout, ">> The executing stack frame(s):\n");
+        purc_coroutine_dump_stack(cor, dump_stm);
+        fprintf(stdout, "\n");
+        purc_rwstream_destroy(dump_stm);
+    }
+
+    return 0;
+}
+
+static int
+comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
-    if (event == PURC_COND_COR_EXITED) {
+    if (event == PURC_COND_COR_ONE_RUN) {
+        struct purc_cor_run_info *info = (struct purc_cor_run_info *)data;
+        if (info->run_idx == 0) {
+            uintptr_t p = 0;
+
+            purc_get_local_data(FN_AFTER_FIRST_RUN, &p, NULL);
+            after_first_run_fn after_first_run = (after_first_run_fn)p;
+
+            if (after_first_run) {
+                purc_log_info("Going to call after_first_run()\n");
+                after_first_run(cor, info);
+            }
+        }
+    }
+    else if (event == PURC_COND_COR_EXITED) {
         void *user_data = purc_coroutine_get_user_data(cor);
         if (!user_data) {
             return -1;
@@ -190,6 +290,30 @@ static int comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
                 << std::endl;
         }
     }
+    else if (event == PURC_COND_COR_TERMINATED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct comp_sample_data *sample = (struct comp_sample_data*)user_data;
+
+        struct purc_cor_term_info *info = (struct purc_cor_term_info *)data;
+        ADD_FAILURE()
+            << sample->file << std::endl
+            << "The coroutine terminated due to an exception: "
+            << TCS_YELLOW
+            << purc_atom_to_string(info->except)
+            << TCS_NONE
+            << std::endl;
+
+            purc_rwstream_t dump_stm;
+            dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
+            fprintf(stdout, ">> The executing stack frame(s):\n");
+            purc_coroutine_dump_stack(cor, dump_stm);
+            fprintf(stdout, "\n");
+            purc_rwstream_destroy(dump_stm);
+    }
     else if (event == PURC_COND_COR_DESTROYED) {
         void *user_data = purc_coroutine_get_user_data(cor);
         if (!user_data) {
@@ -205,7 +329,7 @@ static int comp_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 }
 
 static int
-comp_add_sample(struct comp_sample_data *sample)
+comp_add_sample(struct comp_sample_data *sample, purc_variant_t request)
 {
     purc_vdom_t vdom;
     vdom = purc_load_hvml_from_string(sample->input_hvml);
@@ -221,42 +345,12 @@ comp_add_sample(struct comp_sample_data *sample)
         return -1;
     }
     else {
-        purc_coroutine_t cor = purc_schedule_vdom_null(vdom);
+        purc_coroutine_t cor = purc_schedule_vdom(vdom, 0, request,
+            PCRDR_PAGE_TYPE_NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         purc_coroutine_set_user_data(cor, sample);
     }
 
     return 0;
-}
-
-static int
-comp_read_file(char *buf, size_t nr, const char *file)
-{
-    FILE *f = fopen(file, "r");
-    if (!f) {
-        ADD_FAILURE()
-            << "Failed to open file [" << file << "]" << std::endl;
-        return -1;
-    }
-
-    size_t n = fread(buf, 1, nr, f);
-    if (ferror(f)) {
-        ADD_FAILURE()
-            << "Failed read file [" << file << "]" << std::endl;
-        fclose(f);
-        return -1;
-    }
-
-    fclose(f);
-
-    if (n == sizeof(buf)) {
-        ADD_FAILURE()
-            << "Too small buffer to read file [" << file << "]" << std::endl;
-        return -1;
-    }
-
-    buf[n] = '\0';
-
-    return n;
 }
 
 static purc_variant_t
@@ -322,24 +416,28 @@ comp_eval_expected_result(const char *code)
 }
 
 static int
-comp_process_file(const char *file)
+comp_process_file(const char *file, purc_variant_t request)
 {
     std::cout << std::endl << "Running " << file << std::endl;
 
-    char buf[8192];
-    int n = comp_read_file(buf, sizeof(buf), file);
-    if (n == -1)
+    size_t n;
+    char *buf = purc_load_file_contents(file, &n);
+    if (buf == NULL)
         return -1;
 
     struct comp_sample_data *sample =
         (struct comp_sample_data *)calloc(1, sizeof(*sample));
 
     sample->file = strdup(file);
-    sample->input_hvml = strdup(buf);
+    sample->input_hvml = buf;
     sample->expected_result = comp_eval_expected_result(buf);
 
-    return comp_add_sample(sample);
+    return comp_add_sample(sample, request);
 }
+
+#ifndef PATH_MAX
+#   define PATH_MAX 4096
+#endif
 
 void
 go_comp_test(const char *files)
@@ -350,7 +448,7 @@ go_comp_test(const char *files)
     glob_t globbuf;
     memset(&globbuf, 0, sizeof(globbuf));
 
-    char path[PATH_MAX+1];
+    char path[PATH_MAX];
     const char *env = "SOURCE_FILES";
     const char *rel = files;
     test_getpath_from_env_or_rel(path, sizeof(path),
@@ -375,7 +473,7 @@ go_comp_test(const char *files)
                 break;
 
             for (size_t i=0; i<globbuf.gl_pathc; ++i) {
-                int ret = comp_process_file(globbuf.gl_pathv[i]);
+                int ret = comp_process_file(globbuf.gl_pathv[i], NULL);
                 if (ret == 0)
                     purc_run((purc_cond_handler)comp_cond_handler);
             }
@@ -384,5 +482,42 @@ go_comp_test(const char *files)
     }
 
     // std::cerr << "env: " << env << "=" << path << std::endl;
+}
+
+void run_one_comp_test(const char *file, const char *query)
+{
+    char path[PATH_MAX];
+    const char *env = "SOURCE_FILES";
+    const char *rel = file;
+    test_getpath_from_env_or_rel(path, sizeof(path),
+        env, rel);
+
+    purc_variant_t request = PURC_VARIANT_INVALID;
+    if (query)
+        request = purc_make_object_from_query_string(query, false);
+
+    int ret = comp_process_file(path, request);
+    if (ret == 0)
+        purc_run((purc_cond_handler)comp_cond_handler);
+
+    if (request)
+        purc_variant_unref(request);
+}
+
+
+char *make_query_with_base(const char *format)
+{
+    char path[PATH_MAX];
+    const char *env = "SOURCE_FILES";
+    const char *rel = "renderer/hvml/";
+    test_getpath_from_env_or_rel(path, sizeof(path), env, rel);
+    char *base = purc_url_encode_alloc(path, true);
+    assert(base);
+
+    char *query;
+    asprintf(&query, format, base);
+    free(base);
+
+    return query;
 }
 

@@ -1,0 +1,52 @@
+#!/usr/bin/purc
+
+# RESULT: 'closed'
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        $RUNNER.enablelog('all', 'stderr')
+
+        <define as 'logMsg'>
+            <inherit>
+                $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+
+        <title>Client: Time</title>
+
+        <update on $TIMERS to 'unite'>
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+                { "id" : "exit", "interval" : 5000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <include with $logMsg on 'The client is running...' />
+
+        <h1>Client: Time</h1>
+        <p>Current Time: <input id="clock"></input><p>
+
+        <ul>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+
+        <observe on $TIMERS for "expired:clock">
+            <include with $logMsg on 'clock timer expired' />
+            <update on '#clock' at 'textContent' with $DATETIME.time_prt() />
+        </observe>
+
+        <observe on $TIMERS for "expired:exit">
+            <exit with 'timeout' />
+        </observe>
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
+    </body>
+</hvml>

@@ -34,10 +34,6 @@ bool is_file_exists(const char* file)
 
 TEST(observe, basic)
 {
-    // TODO: reopen
-    if (1)
-        return;
-
     const char *hvml =
     "<!DOCTYPE hvml>"
     "<hvml target=\"html\" lang=\"en\">"
@@ -56,17 +52,22 @@ TEST(observe, basic)
     "                <h2 id=\"c_title\">Stream observe<br/>"
     "                    <span id=\"content\">$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S', null)</span>"
     "                </h2>"
-    "                <init as='stream_pipe' with=\"$STREAM.open('pipe:///var/tmp/test_stream_observe_write', 'write nonblock')\"/>"
+    "                <init as='stream_fifo' with=\"$STREAM.open('fifo:///tmp/test_stream_observe_write', 'write nonblock')\"/>"
     ""
-    "                <observe on=\"$stream_pipe\" for=\"event:writable\">"
-    "                    <update on=\"#content\" at=\"textContent\" with=\"$DATA.stringify($stream_pipe.writelines('write to pipe'))\" />"
-    "                    <forget on=\"$stream_pipe\" for=\"event:writable\"/>"
+    "                <observe on=\"$stream_fifo\" for=\"stream:writable\">"
+    "                    <inherit>"
+    "                        $STREAM.stdout.writelines('writeable event')"
+    "                    </inherit>"
+    "                    <update on=\"#content\" at=\"textContent\" with=\"$DATA.stringify($stream_fifo.writelines('write to fifo'))\" />"
+    "                    <forget on=\"$stream_fifo\" for=\"stream:writable\"/>"
     "                </observe>"
     ""
-    ""
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
+    "                    <inherit>"
+    "                        $STREAM.stdout.writelines('timer event')"
+    "                    </inherit>"
     "                    <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
-    "                    <update on=\"#content\" at=\"textContent\" with=\"$DATA.stringify($STREAM.open('pipe:///var/tmp/test_stream_observe_write', 'read').readbytes(4096))\" />"
+    "                    <update on=\"#content\" at=\"textContent\" with=\"$DATA.stringify($STREAM.open('fifo:///tmp/test_stream_observe_write', 'read').readbytes(4096))\" />"
     "                </observe>"
     ""
     "                <p>this is after observe</p>"
@@ -80,7 +81,7 @@ TEST(observe, basic)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    const char *file = "/var/tmp/test_stream_observe_write";
+    const char *file = "/tmp/test_stream_observe_write";
 
     // initial purc
     ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
@@ -116,6 +117,9 @@ TEST(observe, basic)
 
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);
+
+    purc_coroutine_t cor = purc_schedule_vdom_null(vdom);
+    ASSERT_NE(cor, nullptr);
 
     purc_run(NULL);
 

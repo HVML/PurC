@@ -869,11 +869,16 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     }
 
     err = purc_get_last_error();
-    if (!result && silently) {
+    if (result && !silently && err) {
+        purc_clr_error();
+    }
+    else if (!result && silently) {
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
             result = PURC_VARIANT_INVALID;
         }
-        result = purc_variant_make_undefined();
+        else {
+            result = purc_variant_make_undefined();
+        }
     }
 
     if (ctxt) {

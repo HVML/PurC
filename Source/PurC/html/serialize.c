@@ -1543,8 +1543,8 @@ html_serialize_pretty_send_escaping_string(
             int c0ctrls = opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS;
             if (c0ctrls == PCHTML_HTML_SERIALIZE_OPT_READABLE_C0CTRLS) {
                 char buff[16];
-                sprintf(buff, "&#%d;", uc);
-                html_serialize_send(buff, strlen(buff), ctx);
+                int len = snprintf(buff, sizeof(buff), "&#%d;", uc);
+                html_serialize_send(buff, len, ctx);
                 sent = true;
             }
             else if (c0ctrls == PCHTML_HTML_SERIALIZE_OPT_IGNORE_C0CTRLS) {

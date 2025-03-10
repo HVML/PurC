@@ -9,6 +9,8 @@ add_subdirectory(WTF)
 
 add_subdirectory(CodeTools)
 
+add_subdirectory(ThirdParty/ebtree)
+
 add_subdirectory(PurC)
 
 add_subdirectory(ExtDVObjs)
@@ -31,7 +33,9 @@ if (ENABLE_API_TESTS)
     if (NOT GTest_FOUND)
         add_subdirectory(ThirdParty/gtest)
         set(GTEST_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/gtest/googletest/include")
-        set(GTEST_LIBRARIES gtest gtest_main)
+        set(GTEST_LIBRARIES gtest)
+        set(GTEST_MAIN_LIBRARIES gtest_main)
+        set(GTEST_BOTH_LIBRARIES gtest_main gtest)
     endif()
     add_subdirectory(valgrind)
     add_subdirectory(test)

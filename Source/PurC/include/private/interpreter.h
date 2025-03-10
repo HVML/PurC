@@ -149,8 +149,10 @@ struct pcintr_heap {
     pcintr_timer_t     *event_timer;    // 10ms
 
     purc_cond_handler   cond_handler;
-    unsigned int        keep_alive:1;
     double              timestamp;
+
+    // move to instance since 0.9.22.
+    // unsigned int        keep_alive:1;
 };
 
 struct pcintr_stack_frame;
@@ -546,7 +548,10 @@ struct pcintr_observer {
 
     pcintr_stack_t              stack;
     // the observed variant.
-    purc_variant_t observed;
+    purc_variant_t              observed;
+
+    // object: _observedAgainst, _observedOn, _observedIn and so on
+    purc_variant_t              implicit_data;
 
     // the type of the message observed (cloned from the `for` attribute)
     char* type;
@@ -741,6 +746,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
         int                         cor_stage,
         int                         cor_state,
         purc_variant_t              observed,
+        purc_variant_t              implicit_data,
         const char                 *type,
         const char                 *sub_type,
         pcvdom_element_t            scope,

@@ -105,6 +105,13 @@ check_change(purc_variant_t tuple, size_t idx, purc_variant_t val)
     return -1;
 }
 
+static size_t tuple_extra_size(size_t argc)
+{
+    size_t extra_size = sizeof(struct variant_tuple);
+    extra_size += sizeof(purc_variant_t) * argc;
+    return extra_size;
+}
+
 purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
 {
     purc_variant_t vrt = pcvariant_get(PVT(_TUPLE));
@@ -130,7 +137,6 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
     vrt->sz_ptr[0] = (uintptr_t)argc;   /* real size of the tuple */
     vrt->sz_ptr[1] = (uintptr_t)data;
 
-
     size_t inited = 0;
     if (argv) {
         for (size_t n = 0; n < argc; n++) {
@@ -152,6 +158,8 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
     vrt->type = PURC_VARIANT_TYPE_TUPLE;
     vrt->flags = PCVRNT_FLAG_EXTRA_SIZE;
     vrt->refc = 1;
+
+    pcvariant_stat_set_extra_size(vrt, tuple_extra_size(argc));
     return vrt;
 }
 
@@ -269,6 +277,8 @@ void pcvariant_tuple_release(purc_variant_t tuple)
 
     free(data->members);
     free(data);
+
+    pcvariant_stat_set_extra_size(tuple, 0);
 }
 
 static void
@@ -482,5 +492,19 @@ pcvar_tuple_break_rue_downward(purc_variant_t tuple)
         pcvar_break_edge_to_parent(v, &edge);
         pcvar_break_rue_downward(v);
     }
+}
+
+size_t
+pcvariant_tuple_children_memsize(purc_variant_t tuple)
+{
+    size_t sz;
+    purc_variant_t *members = tuple_members(tuple, &sz);
+
+    size_t memsize = 0;
+    for (size_t n = 0; n < sz; n++) {
+        memsize += purc_variant_get_memory_size(members[n]);
+    }
+
+    return memsize;
 }
 

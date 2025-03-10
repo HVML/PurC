@@ -477,7 +477,7 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     max = estimate_buffer_size(timeformat);
     // PC_DEBUG("buffer size for %s: %lu\n", timeformat, max);
 
-    result = malloc(max+1);
+    result = malloc(max + 1);
     if (result == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -545,7 +545,7 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
 
     handle_braces(result, max, on_found, &usec);
 
-    return purc_variant_make_string_reuse_buff(result, max, false);
+    return purc_variant_make_string_reuse_buff(result, max + 1, false);
 }
 
 static purc_variant_t

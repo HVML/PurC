@@ -48,6 +48,7 @@
 
 #include "hvml-attr.h"
 
+#include <unistd.h>
 #include <dlfcn.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -1586,9 +1587,8 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcutils_map_erase(heap->token_crtn_map, co->token);
     coroutine_destroy(co);
 
-    if (heap->keep_alive == 0 && list_empty(&heap->crtns)
-            && list_empty(&heap->stopped_crtns))
-    {
+    if (inst->keep_alive == 0 && list_empty(&heap->crtns)
+            && list_empty(&heap->stopped_crtns)) {
         purc_runloop_stop(inst->running_loop);
     }
 
@@ -1766,22 +1766,15 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     PC_ASSERT(inst && inst == heap->owner);
     PC_ASSERT(inst->runner_name);
 
-    size_t len = PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4;
-    char *p = (char*)malloc(len);
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
+    char buff[PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4];
 
     unsigned long id = pcintr_gen_crtn_id();
-
-    sprintf(p, "%s/%ld", inst->endpoint_name, id);
-    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
+    snprintf(buff, sizeof(buff), "%s/%ld", inst->endpoint_name, id);
+    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, buff);
     if (pcutils_map_get_size(heap->token_crtn_map) == 0) {
         coroutine->is_main = 1;
     }
-    sprintf(coroutine->token, "%ld", id);
-    free(p);
+    snprintf(coroutine->token, sizeof(coroutine->token), "%ld", id);
 
     return 0;
 }
@@ -1868,7 +1861,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->stopped_timeout = -1;
     co->avl.key = co;
-    co->sending_document_by_url = 1;    // 0.9.18
+    co->sending_document_by_url = 0;    // 0.9.18
     return co;
 
 fail_clr_fetcher_session:
@@ -2132,7 +2125,6 @@ purc_run(purc_cond_handler handler)
         return -1;
     }
 
-    heap->keep_alive = 0;
     heap->cond_handler = handler;
     g_purc_run_monotonic_ms = pcutils_get_monotoic_time_ms();
     purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);
@@ -3378,7 +3370,8 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
 
         char *ssv = pcutils_stringbuilder_build(&sb);
         if (ssv) {
-            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
+            ud->val = purc_variant_make_string_reuse_buff(ssv,
+                    strlen(ssv) + 1, true);
             PC_ASSERT(v);
         }
         pcutils_stringbuilder_reset(&sb);

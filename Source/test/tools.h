@@ -26,7 +26,7 @@
 
 #include "config.h"
 
-#if OS(LINUX)
+#if OS(UNIX)
     #define TCS_NONE            "\e[0m"
     #define TCS_BLACK           "\e[0;30m"
     #define TCS_BOLD_BLACK      "\e[1;30m"
@@ -78,6 +78,11 @@
     #define TCS_CLRLINE         ""
 #endif
 
+#define FN_AFTER_FIRST_RUN      "after_first_run"
+
+typedef void (*after_first_run_fn)(purc_coroutine_t cor,
+        struct purc_cor_run_info *info);
+
 PCA_EXTERN_C_BEGIN
 
 char *
@@ -88,6 +93,14 @@ intr_util_comp_docs(purc_document_t doc_l, purc_document_t doc_r, int *diff);
 
 void
 go_comp_test(const char *files);
+
+void
+run_one_comp_test(const char *file, const char *query = NULL);
+
+int
+client_cond_handler(purc_cond_k event, void *arg, void *data);
+
+char *make_query_with_base(const char *format);
 
 PCA_EXTERN_C_END
 

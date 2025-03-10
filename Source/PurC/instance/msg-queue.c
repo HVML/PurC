@@ -438,7 +438,7 @@ pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
     }
     size_t n = strlen(event_type) + 1;
     if (event_sub_type) {
-        n = n +  strlen(event_sub_type) + 2;
+        n = n + strlen(event_sub_type) + 2;
     }
 
     char *p = (char*)malloc(n);
@@ -447,14 +447,14 @@ pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
         return -1;
     }
     if (event_sub_type) {
-        sprintf(p, "%s:%s", event_type, event_sub_type);
+        snprintf(p, n, "%s:%s", event_type, event_sub_type);
     }
     else {
-        sprintf(p, "%s", event_type);
+        snprintf(p, n, "%s", event_type);
     }
 
     purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
-            strlen(p), true);
+            strlen(p) + 1, true);
     if (!event_name) {
         free(p);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

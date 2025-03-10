@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 5UL
+# RESULT: 5L
 
 <!DOCTYPE hvml>
 <hvml target="void">

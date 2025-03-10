@@ -434,7 +434,7 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
         goto out_unref_values;
     }
 
-    sprintf(vcm_ev->const_method_name, "%s%s", vcm_ev->method_name,
+    snprintf(vcm_ev->const_method_name, nr + 1, "%s%s", vcm_ev->method_name,
             PCVCM_EV_CONST_SUFFIX);
 
     v = purc_variant_make_native(vcm_ev, &ops);

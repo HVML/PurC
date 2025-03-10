@@ -65,6 +65,7 @@ endif ()
 
 set_target_properties(purc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    INSTALL_RPATH "${LIB_INSTALL_DIR}/"
 )
 
 PURC_COMPUTE_SOURCES(purc)

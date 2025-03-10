@@ -1,6 +1,6 @@
 #!/usr/local/bin/purc
 
-# RESULT: [ 14UL, 6UL ]
+# RESULT: [ 14L, 6L ]
 
 <hvml target="html">
 

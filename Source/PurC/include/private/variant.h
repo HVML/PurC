@@ -39,7 +39,7 @@ PCA_EXTERN_C_BEGIN
 #define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT
 #define PCVRNT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
-#define PCVRNT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
+#define PCVRNT_FLAG_STATIC_DATA   (0x01 << 2)  // make_string_static
 
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
 #define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
@@ -126,6 +126,9 @@ struct purc_variant {
         struct list_head    reserved;
     };
 
+    /* This field saves the extra size for variant. Since 0.9.22. */
+    size_t      extra_size;
+
     /* value */
     union {
         /* for boolean */
@@ -158,7 +161,8 @@ struct purc_variant {
               - `sz_ptr[1]` stores the pointer.
 
            for long string,
-              - `sz_ptr[0]` stores the length in characters;
+              - `sz_ptr[0]` stores the length in bytes
+                (including the terminating null byte);
               - `sz_ptr[1]` stores the pointer.
 
            for exception and atom string,
@@ -178,7 +182,6 @@ struct purc_variant {
         uintptr_t           extra_uintptr;
         intptr_t            extra_intptr;
         void               *extra_data;
-        size_t              extra_size;
 
         /* other aliases */
         /* the real length of `extra_bytes` is `sizeof(void*)` */
@@ -190,6 +193,9 @@ struct purc_variant {
     };
 
 };
+
+#define SZ_SPACE_IN_WRAPPER     \
+    (MAX(sizeof(long double), sizeof(void *) * 2) + sizeof(void *))
 
 #define USE_LOOP_BUFFER_FOR_RESERVED    0
 

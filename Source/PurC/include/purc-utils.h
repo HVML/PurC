@@ -860,6 +860,11 @@ PCA_EXPORT const char *
 pcutils_get_next_token_len(const char *str, size_t str_len,
         const char *delims, size_t *length);
 
+/** Get the pointer of the next valid line and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_line_len(const char *str, size_t str_len,
+        const char *seperator, size_t *length);
+
 /** Escape a string for JSON */
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
@@ -1350,6 +1355,14 @@ static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
 
 int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
         const unsigned char *mchar, size_t mchar_len);
+
+static inline int
+pcutils_mystring_append_string(struct pcutils_mystring *mystr,
+        const char *str) {
+    return pcutils_mystring_append_mchar(mystr,
+        (const unsigned char *)str, 0);
+}
+
 int pcutils_mystring_append_uchar(struct pcutils_mystring *mystr,
         uint32_t uchar, size_t n);
 int pcutils_mystring_done(struct pcutils_mystring *mystr);

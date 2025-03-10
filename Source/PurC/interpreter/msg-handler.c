@@ -46,6 +46,10 @@ destroy_task(struct pcintr_observer_task *task)
         return;
     }
 
+    if (task->implicit_data) {
+        purc_variant_unref(task->implicit_data);
+    }
+
     if (task->observed) {
         purc_variant_unref(task->observed);
     }
@@ -178,6 +182,13 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     if (task->request_id) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
                 PCINTR_EXCLAMATION_EVENT_REQUEST_ID, task->request_id);
+    }
+
+    if (task->implicit_data) {
+        purc_variant_t k, v;
+        foreach_key_value_in_variant_object(task->implicit_data, k, v) {
+            purc_variant_object_set(exclamation_var, k, v);
+        } end_foreach;
     }
 
     // scheduler by pcintr_schedule
@@ -675,9 +686,10 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
         else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
             extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
         }
+        /* XXX: Removed since 0.9.22
         else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
             extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
-        }
+        } */
         else {
             PC_WARN("Invalid '%s' comm.", s_comm);
             return;
@@ -897,15 +909,17 @@ pcintr_post_event_by_ctype(purc_atom_t rid, purc_atom_t cid,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
+
+    int len;
     if (event_sub_type) {
-        sprintf(p, "%s:%s", event_type, event_sub_type);
+        len = snprintf(p, n, "%s:%s", event_type, event_sub_type);
     }
     else {
-        sprintf(p, "%s", event_type);
+        len = snprintf(p, n, "%s", event_type);
     }
 
     purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
-            strlen(p), true);
+            len + 1, true);
     if (!event_name) {
         free(p);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

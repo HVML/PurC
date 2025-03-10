@@ -1,0 +1,166 @@
+#!/usr/bin/purc
+
+# RESULT: { 'client0': 'Hello from client0', 'client1': 'Hello from client1', 'client2': 'Hello from client2', 'client3': 'Hello from client3', 'success': 4L, 'error': 0L, 'except': 0L }
+
+<hvml target="void">
+    <body>
+
+        <init as 'got'>
+            {
+                'client0': '',
+                'client1': '',
+                'client2': '',
+                'client3': '',
+                'success': 0L,
+                'error': 0L,
+                'except': 0L,
+            }
+        </init>
+
+        <init as 'clients' with {} />
+
+        <init as 'streamSocket' with $SOCKET.stream($STR.join($REQ.schema, '://localhost:7788'), 'nonblock') >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+
+            <observe on $streamSocket for 'socket:connAttempt' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:connAttempt event')
+                </inherit>
+
+                <choose on $streamSocket.accept('default')>
+
+                    <test with $L.not($DATA.isequal($?, null)) >
+
+                        <init as 'clientName' with $?.peerAddr temp />
+
+                        <update on $clients to 'merge' with { $clientName : $? } />
+
+                        <observe on $clients[$clientName] for 'stream:readable'>
+                            $clientName
+
+                            <inherit>
+                                $STREAM.stdout.writelines('Got stream:readable event')
+                            </inherit>
+
+                            <inherit>
+                                $STREAM.stdout.writelines("Current client: $_observedContent")
+                            </inherit>
+
+                            <choose on $_observedOn.readlines(1) >
+
+                                <init as 'client' with $STR.strstr($?[0], 'client') temp />
+
+                                <inherit>
+                                    $STREAM.stdout.writelines("Server got: $client")
+                                </inherit>
+
+                                <update on $got at ".$client" with $?[0] } />
+
+                                <!-- echo -->
+                                <choose on $_observedOn.writelines($?) >
+
+                                    <choose on $_observedOn.close() />
+
+                                    <catch for `ANY`>
+                                        <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                    </catch>
+                                </choose>
+
+                                <catch for `ANY`>
+                                    <exit with "Server failed with $?.name when calling stream.readlines(1)" />
+                                </catch>
+                            </choose>
+                        </observe>
+
+                        <differ>
+                            $STREAM.stdout.writelines("No connections are present to be accepted.")
+                        </differ>
+                    </test>
+
+                    <catch for `ANY`>
+                        <exit with "Server failed with $?.name when accepting the client." />
+                    </catch>
+
+                </choose>
+            </observe>
+        </init>
+
+        <define as 'commWithServer' >
+            <init as 'stream' with $STREAM.open("$schema://localhost:7788", 'nameless read write cloexec') temp >
+                <catch for `ANY`>
+                    <return with "Client $2?.name failed with $?.name when calling SOCKET.open()" />
+                </catch>
+            </init>
+
+            <choose on $stream.writelines("Hello from $name") >
+                <catch for `ANY`>
+                    <return with "Client $2?.name failed with $?.name when calling stream.writelines()" />
+                </catch>
+            </choose>
+
+            <choose on $stream.readlines(1) >
+
+                <inherit>
+                    $STREAM.stdout.writelines("Client $name $stream got $DATA.serialize($?) and is going to close.")
+                </inherit>
+
+                <choose on $stream.close() >
+                    <catch for `ANY`>
+                        <return with "Client $name $stream failed with $?.name when calling stream.close()" />
+                    </catch>
+                </choose>
+
+                <return with $?[0] />
+
+                <catch for `ANY`>
+                    <return with "Client $name $stream failed with $?.name when calling stream.readlines()" />
+                </catch>
+            </choose>
+        </define>
+
+        <iterate on ['client0', 'client1', 'client2', 'client3'] >
+
+            <inherit>
+                $STREAM.stdout.writelines("Calling commWithServer for $?")
+            </inherit>
+
+            <init as 'clientName' with "$?" />
+
+            <call on $commWithServer within $clientName with { name: $clientName, schema: $REQ.schema } as $clientName concurrently asynchronously />
+            <observe on ${$clientName} for 'callState:success'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns: $?")
+                </inherit>
+                <update on $got at ".$clientName" with $? />
+                <update on $got at '.success' with $DATA.arith('+', $got['success'], 1) />
+            </observe>
+
+            <observe on ${$clientName} for 'callState:error/*'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns with an error: $_eventSubName")
+                </inherit>
+                <update on $got at '.error' with $DATA.arith('+', $got['error'], 1) />
+            </observe>
+
+            <observe on ${$clientName} for 'callState:except/*'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns with an exception: $_eventSubName")
+                </inherit>
+                <update on $got at '.except' with $DATA.arith('+', $got['except'], 1) />
+            </observe>
+        </iterate>
+
+        <observe on $CRTN for 'idle'>
+
+            <test with $L.eq($DATA.arith('+', $got['success'], $DATA.arith('+', $got['error'], $got['except'])), 4) >
+                <exit with $got />
+            </test>
+
+        </observe>
+
+    </body>
+
+</hvml>
+

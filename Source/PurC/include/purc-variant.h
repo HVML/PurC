@@ -44,7 +44,6 @@ typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
-
 #define PURC_VARIANT_BADSIZE            ((ssize_t)(-1))
 
 PCA_EXTERN_C_BEGIN
@@ -101,6 +100,18 @@ purc_variant_ref(purc_variant_t value);
  */
 PCA_EXPORT unsigned int
 purc_variant_unref(purc_variant_t value);
+
+/**
+ * purc_variant_get_memory_size:
+ *
+ * @value: A variant value to calculate.
+ *
+ * Get the memory size occupied by the specified variant.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT size_t
+purc_variant_get_memory_size(purc_variant_t value);
 
 /**
  * purc_variant_make_undefined:
@@ -279,7 +290,7 @@ purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
  * @sz_buff: The size of the buffer (not the length of the string).
  * @check_encoding: Whether to check the encoding.
  *
- * Creates a variant which represents a null-terminated static string in
+ * Create a variant which represents a null-terminated string in
  * UTF-8 encoding. Note that the new variant will take the ownership of
  * the buffer which containing the string. The buffer will be released by
  * calling free() when the variant is destroyed ultimately.
@@ -378,10 +389,10 @@ purc_variant_string_bytes(purc_variant_t value, size_t *length);
  *
  * @value: A string, an atom, or an exception variant.
  *
- * Gets the length of the string contained in the specified variant
+ * Get the length of the string contained in the specified variant
  * if the variant represents a string, an atom, or an exception variant.
  *
- * Returns: The length in bytes (not including the terminating null byte)
+ * Returns: The length in bytes (including the terminating null byte)
  *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the value
  *  is not a string, an atom, or an exception variant.
  *
@@ -555,20 +566,89 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_empty(void);
 
 /**
- * purc_variant_get_bytes_const:
+ * purc_variant_make_byte_sequence_empty_ex:
  *
- * @value: The bsequence variant.
+ * @sz_buf: The size of the buffer desired in bytes.
+ *
+ * Creates a variant which represents an empty byte sequence but has
+ * the specified buffer length.
+ *
+ * Returns: An empty bsequence variant if success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_empty_ex(size_t sz_buf);
+
+/**
+ * purc_variant_bsequence_buffer:
+ *
+ * @sequence: The bsequence variant.
  * @nr_bytes: The pointer to a size_t buffer to receive the length in bytes
  *      of the byte sequence.
+ * @sz_buf: The pointer to a size_t buffer to receive the size in bytes
+ *      of the buffer.
  *
- * Gets the pointer to the bytes array contained in a bsequence variant.
+ * Gets the pointer to the buffer of the sequence. If it is a byte sequence
+ * created from a static buffer, the size of the buffer will be zero.
  *
  * Returns: The pointer to the bytes array on success, or %NULL on failure.
  *
- * Since: 0.0.1
+ * Since: 0.9.22
  */
-PCA_EXPORT const unsigned char*
-purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
+PCA_EXPORT unsigned char *
+purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
+        size_t *sz_buf);
+
+/**
+ * purc_variant_bsequence_set_bytes:
+ *
+ * @sequence: The bsequence variant.
+ * @nr_bytes: The new bytes valid in the buffer.
+ *
+ * Set the new number of valid bytes in the buffer.
+ *
+ * Returns: %true for success, or %false for failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT bool
+purc_variant_bsequence_set_bytes(purc_variant_t sequence, size_t nr_bytes);
+
+/**
+ * purc_variant_bsequence_append:
+ *
+ * @sequence: The bsequence variant.
+ * @bytes: The pointer to the new byte array to be appended to the sequence.
+ * @nr_bytes: The length in bytes of the new byte array.
+ *
+ * Append a new byte array to the byte sequence which has an enough long buffer.
+ *
+ * Returns: %true for success, or %false for failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT bool
+purc_variant_bsequence_append(purc_variant_t sequence,
+        const unsigned char *bytes, size_t nr_bytes);
+
+/**
+ * purc_variant_bsequence_roll:
+ *
+ * @sequence: The bsequence variant.
+ * @offset: The offset starting roll the byte sequence.
+ *
+ * Roll a byte sequence from the specified position. The left bytes starting
+ * from @offset will be copied to the head of the buffer. It will empty
+ * the byte sequence if @offset is less than 0.
+ *
+ * Returns: The number of bytes rolled actually, or -1 for failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT ssize_t
+purc_variant_bsequence_roll(purc_variant_t sequence, ssize_t offset);
 
 /**
  * purc_variant_bsequence_bytes:
@@ -606,6 +686,23 @@ purc_variant_bsequence_length(purc_variant_t bsequence)
         return PURC_VARIANT_BADSIZE;
     return len;
 }
+
+/**
+ * purc_variant_get_bytes_const:
+ *
+ * @value: The bsequence or string variant.
+ * @nr_bytes: The pointer to a size_t buffer to receive the length in bytes
+ *      of the byte sequence.
+ *
+ * Gets the pointer to the bytes array contained in a bsequence or
+ * a string variant.
+ *
+ * Returns: The pointer to the bytes array on success, or %NULL on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT const unsigned char *
+purc_variant_get_bytes_const(purc_variant_t value, size_t *nr_bytes);
 
 #define PCVRT_CALL_FLAG_NONE            0x0000
 #define PCVRT_CALL_FLAG_SILENTLY        0x0001
@@ -747,7 +844,7 @@ struct purc_native_ops {
  *      indicates the name of the native entity. If it is %NULL, the native
  *      entity will have the default name `anonymous`.
  *
- * Creates a variant which represents a native entity.
+ * Create a variant which represents a native entity.
  *
  * Returns: A desired native entity variant,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -756,7 +853,7 @@ struct purc_native_ops {
  */
 PCA_EXPORT purc_variant_t
 purc_variant_make_native_entity(void *native_entity,
-    const struct purc_native_ops *ops, const char *name);
+    struct purc_native_ops *ops, const char *name);
 
 /**
  * purc_variant_make_native:
@@ -765,7 +862,7 @@ purc_variant_make_native_entity(void *native_entity,
  * @ops (nullable): The pointer to the operation set structure
  *      (#purc_native_ops) for the native entity.
  *
- * Creates a variant which represents the native entity.
+ * Create a variant which represents the native entity.
  *
  * Returns: A desired native entity variant,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -773,8 +870,7 @@ purc_variant_make_native_entity(void *native_entity,
  * Since: 0.0.2
  */
 static inline purc_variant_t
-purc_variant_make_native(void *native_entity,
-    const struct purc_native_ops *ops)
+purc_variant_make_native(void *native_entity, struct purc_native_ops *ops)
 {
     return purc_variant_make_native_entity(native_entity, ops, NULL);
 }
@@ -801,7 +897,7 @@ purc_variant_native_get_entity(purc_variant_t native);
  *
  * @native: A native entity variant.
  *
- * Gets the pointer to the operation set of the native entity variant @native.
+ * Get the pointer to the operation set of the native entity variant @native.
  *
  * Returns: The pointer to the native pointer. On failure, it returns %NULL
  *      and sets error code %PCVRNT_ERROR_INVALID_TYPE.
@@ -818,17 +914,36 @@ purc_variant_native_get_ops(purc_variant_t native);
  *
  * @native: A native entity variant.
  *
- * Gets the pointer to the name of the native entity variant @native.
+ * Get the pointer to the name of the native entity variant @native.
  *
- * Returns: The pointer to the native pointer. On failure, it returns %NULL
- *      and sets error code %PCVRNT_ERROR_INVALID_TYPE.
- *      Note that, the pointer to the entity can be %NULL for a valid native
- *      entity variant.
+ * Returns: The pointer to the native name string. On failure, it returns %NULL
+ *      and sets error code %PCVRNT_ERROR_INVALID_TYPE. Note that, the pointer
+ *      to the entity name can be %NULL for a valid native entity variant.
  *
  * Since: 0.9.8
  */
 PCA_EXPORT const char *
 purc_variant_native_get_name(purc_variant_t native);
+
+/**
+ * purc_variant_native_set_ops:
+ *
+ * @native: A native entity variant.
+ * @ops (nullable): The pointer to the new operation set structure
+ *      (#purc_native_ops) for the native entity.
+ *
+ * Set the operation set of the given native entity variant @native.
+ *
+ * Returns: The pointer to the old native operation set. On failure, it returns
+ *      %NULL and sets error code %PCVRNT_ERROR_INVALID_TYPE. Note that,
+ *      the pointer to the operation set can be %NULL for a valid native
+ *      entity variant.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT struct purc_native_ops *
+purc_variant_native_set_ops(purc_variant_t native,
+        struct purc_native_ops *ops);
 
 /**
  * purc_variant_make_array:
@@ -1167,7 +1282,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * @key: The key of the property to set.
  * @value: The new property value.
  *
- * Sets the value of the property given by a static null-terminated
+ * Set the value of the property given by a static null-terminated
  * string @key to @value, in the object variant @obj.
  *
  * If there is no property in @obj specified by @key, this function will

@@ -1,0 +1,149 @@
+#!/usr/bin/purc
+
+# RESULT: "Hello"
+
+<hvml target="void">
+    <body id='server' >
+        <init as 'clientClosed' with false />
+        <init as 'got' with '' />
+
+        <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', {{ $REQ.mode || 'default' }}) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+            <observe on $streamSocket for 'socket:connAttempt' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:connAttempt event')
+                </inherit>
+
+                <choose on $streamSocket.accept('default') >
+
+                    <test with $L.not($DATA.isequal($?, null)) >
+
+                        <init as 'stream' with $? />
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Return type of accept(): $DATA.type($stream)")
+                        </inherit>
+
+                        <observe on $stream for 'stream:hangup'>
+                            <inherit>
+                                $STREAM.stdout.writelines("Got stream:hangup event for {$stream} .")
+                            </inherit>
+
+                            <choose on $stream.close() />
+                            <init as 'clientClosed' at '#server' with true />
+                        </observe>
+
+                        <observe on $stream for 'stream:readable'>
+                            <inherit>
+                                $STREAM.stdout.writelines("Got stream:readable event for $stream; going to call readlines(1)")
+                            </inherit>
+
+                            <choose on $stream.readlines(1) >
+                                <inherit>
+                                    $STREAM.stdout.writelines("Data returned by readlines(1): $DATA.serialize($?)")
+                                </inherit>
+
+                                <!-- echo -->
+                                <test with $DATA.count($?) >
+                                    <choose on $stream.writelines($?[0])>
+                                        <inherit>
+                                            $STREAM.stdout.writelines("Data echo to client: {$2?[0]}")
+                                        </inherit>
+                                        <catch for `ANY`>
+                                            <exit with "Server failed with $?.name when calling stream.writelines(1)" />
+                                        </catch>
+                                    </choose>
+                                </test>
+
+                                <catch for `BrokenPipe`>
+                                    <inherit>
+                                        $STREAM.stdout.writelines("Server: the client has been closed .")
+                                    </inherit>
+
+                                    <choose on $stream.close() />
+                                    <init as 'clientClosed' at '#server' with true />
+                                </catch>
+
+                                <catch>
+                                    <exit with "Server failed with $?.name when calling stream.readlines(1)" />
+                                </catch>
+                            </choose>
+                        </observe>
+
+                        <differ>
+                            $STREAM.stdout.writelines("No connections are present to be accepted.")
+                        </differ>
+                    </test>
+
+                    <catch for `ANY`>
+                        <exit with "Server failed with $?.name when calling streamSocket.accept()" />
+                    </catch>
+
+                </choose>
+            </observe>
+        </init>
+
+        <load from "#client" within 'client' onto 'null:' as 'client' async >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when loading client" />
+            </catch>
+        </load>
+
+        <observe on $client for "corState:exited" >
+            <inherit>
+                $STREAM.stdout.writelines('Server: client exited')
+            </inherit>
+
+            <init as 'got' at '#server' with $? />
+        </observe>
+
+        <observe against 'clientClosed' for 'change:displaced'>
+            <inherit>
+                $STREAM.stdout.writelines('Server: client closed')
+            </inherit>
+
+            <exit with $got />
+        </observe>
+
+    </body>
+
+    <body id="client">
+
+        <init as 'stream' with $STREAM.open('local:///var/tmp/hvml-stream-server', 'nameless read write cloexec') >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <choose on $stream.writelines('Hello')>
+                <inherit>
+                    $STREAM.stdout.writelines('Client sent "Hello"')
+                </inherit>
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling stream.writelines()" />
+                </catch>
+            </choose>
+
+            <observe on $stream for 'stream:readable' >
+                <choose on $stream.readlines(1)>
+
+                    <inherit>
+                        $STREAM.stdout.writelines("Client got $DATA.serialize($?) from server and is exiting...")
+                    </inherit>
+
+                    <choose on $stream.close() />
+
+                    <exit with $?[0] />
+
+                    <catch for `ANY`>
+                        <exit with "Client failed with $?.name when calling stream.writelines()" />
+                    </catch>
+                </choose>
+            </observe>
+        </init>
+
+    </body>
+</hvml>
+

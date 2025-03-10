@@ -32,7 +32,7 @@ set(test_vcm_eval_SOURCES
 
 set(test_vcm_eval_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -61,7 +61,7 @@ set(test_interpreter_SOURCES
 
 set(test_interpreter_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -89,7 +89,7 @@ set(test_observe_SOURCES
 
 set(test_observe_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -118,7 +118,7 @@ if (0)
 
     set(test_observe_named_LIBRARIES
         PurC::PurC
-        "${GTEST_LIBRARIES}"
+        "${GTEST_MAIN_LIBRARIES}"
         pthread
     )
 
@@ -142,13 +142,13 @@ list(APPEND test_doc_var_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_doc_var)
 
 set(test_doc_var_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_doc_var.cpp
 )
 
 set(test_doc_var_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -176,7 +176,7 @@ set(test_test_SOURCES
 
 set(test_test_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -199,13 +199,13 @@ list(APPEND test_intr_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_intr_samples)
 
 set(test_intr_samples_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_intr_samples.cpp
 )
 
 set(test_intr_samples_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -233,7 +233,7 @@ set(test_attach_rdr_SOURCES
 
 set(test_attach_rdr_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -256,13 +256,13 @@ list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_samples)
 
 set(test_samples_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_samples.cpp
 )
 
 set(test_samples_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -287,13 +287,13 @@ list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_hvml_tag)
 
 set(test_hvml_tag_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_hvml_tag.cpp
 )
 
 set(test_hvml_tag_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -323,7 +323,7 @@ set(test_simple_runner_SOURCES
 
 set(test_simple_runner_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -351,7 +351,7 @@ set(test_runners_SOURCES
 
 set(test_runners_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -379,7 +379,7 @@ set(test_void_document_SOURCES
 
 set(test_void_document_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -401,13 +401,13 @@ list(APPEND test_comprehensive_programs_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_comprehensive_programs)
 
 set(test_comprehensive_programs_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_comprehensive_programs.cpp
 )
 
 set(test_comprehensive_programs_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -434,7 +434,7 @@ set(test_quit_main_runner_SOURCES
 
 set(test_quit_main_runner_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 
@@ -457,13 +457,13 @@ list(APPEND test_inherit_document_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_inherit_document)
 
 set(test_inherit_document_SOURCES
-    tools.cpp
+    ../tools.cpp
     test_inherit_document.cpp
 )
 
 set(test_inherit_document_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

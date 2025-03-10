@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: 'failure'
+
+<hvml target="void">
+    <body>
+
+        <load from "#errorPage" within 'client' onto 'null:' as "error" async />
+
+        <observe on $error for "corState:exited" >
+            <exit with $? />
+        </observe>
+
+    </body>
+
+    <body id="errorPage">
+
+        <p>We encountered a fatal error!</p>
+        <exit with "failure" />
+
+    </body>
+</hvml>

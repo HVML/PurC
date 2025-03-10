@@ -170,6 +170,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 stack->co->keep_contents = purc_variant_ref(keep_contents);
             }
         }
+
+        purc_clr_error();
     }
 
 

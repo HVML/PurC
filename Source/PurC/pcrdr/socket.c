@@ -535,7 +535,7 @@ static int my_ping_peer (pcrdr_conn* conn)
             err_code = PCRDR_ERROR_IO;
         }
     }
-    else if (conn->type == CT_WEB_SOCKET) {
+    else if (conn->type == CT_INET_SOCKET) {
         if (ws_ping(conn->fd) != 0) {
             PC_DEBUG ("Error when ping WebSocket: %s\n", strerror (errno));
             err_code = PCRDR_ERROR_IO;
@@ -568,7 +568,7 @@ static int my_disconnect (pcrdr_conn* conn)
             err_code = PCRDR_ERROR_IO;
         }
     }
-    else if (conn->type == CT_WEB_SOCKET) {
+    else if (conn->type == CT_INET_SOCKET) {
         if (ws_close(conn->fd) != 0) {
             PC_DEBUG ("Error when close WebSocket: %s\n", strerror (errno));
             err_code = PCRDR_ERROR_IO;
@@ -628,7 +628,8 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     memset (&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
     /* On Linux sun_path is 108 bytes in size */
-    sprintf (unix_addr.sun_path, "%s%s-%05d", CLI_PATH, peer_name, getpid());
+    snprintf (unix_addr.sun_path, sizeof (unix_addr.sun_path),
+            "%s%s-%05d", CLI_PATH, peer_name, getpid());
     len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path) + 1;
 
     unlink (unix_addr.sun_path);        /* in case it already exists */
@@ -960,15 +961,15 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
         return -1;
     }
 
-    char s_port[11];
-    sprintf(s_port, "%d", port);
+    char s_port[16];
+    snprintf(s_port, sizeof(s_port), "%d", port);
     if ((fd = ws_open_connection(host_name, s_port)) < 0) {
         PC_WARN("ws_open_connection failed %s:%s\n", host_name, s_port);
         goto error;
     }
 
-    (*conn)->prot = PURC_RDRCOMM_WEBSOCKET;
-    (*conn)->type = CT_WEB_SOCKET;
+    (*conn)->prot = PURC_RDRCOMM_SOCKET;
+    (*conn)->type = CT_INET_SOCKET;
     (*conn)->fd = fd;
 
     if (ws_handshake(*conn, host_name, s_port, app_name,
@@ -1113,7 +1114,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
             err_code = PCRDR_ERROR_PROTOCOL;
         }
     }
-    else if (conn->type == CT_WEB_SOCKET) {
+    else if (conn->type == CT_INET_SOCKET) {
         WSFrameHeader header;
 
         if (ws_read_frame_header(conn, &header) != 0) {
@@ -1353,7 +1354,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
             goto done;
         }
     }
-    else if (conn->type == CT_WEB_SOCKET) {
+    else if (conn->type == CT_INET_SOCKET) {
         WSFrameHeader header;
 
         if (ws_read_frame_header(conn, &header) != 0) {
@@ -1535,7 +1536,7 @@ int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
                 retv = conn_write (conn->fd, text, len);
         }
     }
-    else if (conn->type == CT_WEB_SOCKET) {
+    else if (conn->type == CT_INET_SOCKET) {
         if (len > PCRDR_MAX_INMEM_PAYLOAD_SIZE) {
             PC_DEBUG("Sending a too large packet, size: %lu\n", len);
             retv = PCRDR_ERROR_TOO_LARGE;
@@ -1583,7 +1584,7 @@ int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
 
 #define SCHEMA_UNIX_SOCKET  "unix://"
 
-pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
@@ -1626,7 +1627,7 @@ failed:
 
 #else   /* for OS not Linux or Unix */
 
-pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     purc_set_error(PCRDR_ERROR_NOT_IMPLEMENTED);

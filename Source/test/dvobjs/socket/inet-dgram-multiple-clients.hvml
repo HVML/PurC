@@ -1,0 +1,127 @@
+#!/usr/bin/purc
+
+# RESULT: { 'client10000': bx00112233445566778899AABBCC, 'client10001': bx112233445566778899AABBCCDD, 'client10002': bx2233445566778899AABBCCDDEE, 'client10003': bx33445566778899AABBCCDDEEFF, 'success': 4L, 'error': 0L, 'except': 0L }
+
+
+<hvml target="void">
+    <body id='result' >
+
+        <init as 'got'>
+            {
+                'client10000': bx,
+                'client10001': bx,
+                'client10002': bx,
+                'client10003': bx,
+                'success': 0L,
+                'error': 0L,
+                'except': 0L,
+            }
+        </init>
+
+        <init as 'dgramSocket' with $SOCKET.dgram('inet://localhost:8080', 'default') >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.dgram()" />
+            </catch>
+            <observe on $dgramSocket for 'socket:newDatagram' >
+                <inherit>
+                    $STREAM.stdout.writelines('Got socket:newDatagram event')
+                </inherit>
+
+                <choose on $dgramSocket.recvfrom('dontwait', 13) >
+                    <inherit>
+                        $STREAM.stdout.writelines("Return values of recvfrom(): $?.recved | $?.errorname | $?['sourceaddr'] | $?['sourceport']")
+                    </inherit>
+
+                    <test with $L.gt($?.recved, 0) >
+                        <init as 'clientName' with "client{$?['sourceport']}" temp />
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Client name: $clientName")
+                        </inherit>
+
+                        <update on $got at ".$clientName" with $DATA.pack("bytes:0 bytes:{$?.recved}", $got[$clientName], $?.bytes) />
+
+                        <differ>
+                            $STREAM.stdout.writelines("Do nothing")
+                        </differ>
+                    </test>
+
+                    <catch for `ANY`>
+                        <exit with "Server failed with $?.name when calling dgramSocket.recvfrom()" />
+                    </catch>
+                </choose>
+            </observe>
+        </init>
+
+        <define as 'sendDatagram' >
+            <init as 'dgramSocket' with $SOCKET.dgram('inet://localhost:$?.port', 'default') >
+                <catch for `ANY`>
+                    <return with "Client $2?.port failed with $?.name when calling SOCKET.dgram()" />
+                </catch>
+            </init>
+
+            <choose on $dgramSocket.sendto('inet://localhost:8080', 'default', $?.bytes) >
+                <inherit>
+                    $STREAM.stdout.writelines("Client $2?.port sent bytes: $?.sent")
+                </inherit>
+
+                <return with 'success' />
+
+                <catch for `ANY`>
+                    <return with "Client $2?.port failed with $?.name when calling dgramSocket.sendto()" />
+                </catch>
+            </choose>
+        </define>
+
+        <init as 'datagrams'>
+            {
+                '10000': bx00112233445566778899AABBCC,
+                '10001': bx112233445566778899AABBCCDD,
+                '10002': bx2233445566778899AABBCCDDEE,
+                '10003': bx33445566778899AABBCCDDEEFF
+            }
+        </init>
+
+        <iterate on $datagrams by 'KEY: ALL FOR KV' >
+
+            <inherit>
+                $STREAM.stdout.writelines("Calling sendDatagram for $?.k")
+            </inherit>
+
+            <init as 'clientName' with "client$?.k" />
+
+            <call on $sendDatagram within $clientName with {port: $?.k, bytes: $?.v} as $clientName concurrently asynchronously />
+            <observe on ${$clientName} for 'callState:success'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns: $?")
+                </inherit>
+                <update on $got at '.success' with $DATA.arith('+', $got['success'], 1) />
+            </observe>
+
+            <observe on ${$clientName} for 'callState:error/*'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns with an error: $_eventSubName")
+                </inherit>
+                <update on $got at '.error' with $DATA.arith('+', $got['error'], 1) />
+            </observe>
+
+            <observe on ${$clientName} for 'callState:except/*'>
+                <inherit>
+                    $STREAM.stdout.writelines("Client returns with an exception: $_eventSubName")
+                </inherit>
+                <update on $got at '.except' with $DATA.arith('+', $got['except'], 1) />
+            </observe>
+        </iterate>
+
+        <observe on $CRTN for 'idle'>
+
+            <test with $L.eq($DATA.arith('+', $got['success'], $DATA.arith('+', $got['error'], $got['except'])), 4) >
+                <exit with $got />
+            </test>
+
+        </observe>
+
+    </body>
+
+</hvml>
+

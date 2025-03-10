@@ -26,7 +26,7 @@ set(test_wtf_SOURCES
 
 set(test_wtf_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

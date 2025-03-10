@@ -422,9 +422,10 @@ conn_renderer_getter(purc_variant_t root, size_t nr_args,
     else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
     }
+    /* XXX: Removed since 0.9.22
     else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
-    }
+    } */
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
@@ -476,6 +477,123 @@ failed:
     return purc_variant_make_boolean(ret);
 }
 
+static struct pcdvobjs_option_to_atom enablelog_levels_skws[] = {
+    { "all",        0,  PURC_LOG_MASK_ALL },
+    { "default",    0,  PURC_LOG_MASK_DEFAULT },
+};
+
+static struct pcdvobjs_option_to_atom enablelog_levels_ckws[] = {
+    { "emerg",      0, PURC_LOG_MASK_EMERG },
+    { "alert",      0, PURC_LOG_MASK_ALERT },
+    { "crit",       0, PURC_LOG_MASK_CRIT },
+    { "error",      0, PURC_LOG_MASK_ERR},
+    { "warning",    0, PURC_LOG_MASK_WARNING },
+    { "notice",     0, PURC_LOG_MASK_NOTICE },
+    { "info",       0, PURC_LOG_MASK_INFO },
+    { "debug",      0, PURC_LOG_MASK_DEBUG },
+};
+
+static struct pcdvobjs_option_to_atom enablelog_level_skws[] = {
+    { "emerg",      0, PURC_LOG_EMERG },
+    { "alert",      0, PURC_LOG_ALERT },
+    { "crit",       0, PURC_LOG_CRIT },
+    { "error",      0, PURC_LOG_ERR},
+    { "warning",    0, PURC_LOG_WARNING },
+    { "notice",     0, PURC_LOG_NOTICE },
+    { "info",       0, PURC_LOG_INFO },
+    { "debug",      0, PURC_LOG_DEBUG },
+};
+
+static struct pcdvobjs_option_to_atom enablelog_facility_skws[] = {
+    { "stdout",     0, PURC_LOG_FACILITY_STDOUT },
+    { "stderr",     0, PURC_LOG_FACILITY_STDERR },
+    { "syslog",     0, PURC_LOG_FACILITY_SYSLOG },
+    { "file",       0, PURC_LOG_FACILITY_FILE },
+};
+
+static purc_variant_t
+enablelog_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    int levels = pcdvobjs_parse_options(argv[0],
+            enablelog_levels_skws, PCA_TABLESIZE(enablelog_levels_skws),
+            enablelog_levels_ckws, PCA_TABLESIZE(enablelog_levels_ckws),
+            0, 0);
+    if (levels == 0) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    int facility = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            enablelog_facility_skws, PCA_TABLESIZE(enablelog_facility_skws),
+            NULL, 0, PURC_LOG_FACILITY_STDOUT, -1);
+    if (facility == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(purc_enable_log_ex(levels, facility));
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+logmsg_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *msg;
+    if ((msg = purc_variant_get_string_const(argv[0])) == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int level = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            enablelog_level_skws, PCA_TABLESIZE(enablelog_level_skws),
+            NULL, 0, PURC_LOG_INFO, -1);
+    if (level == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    const char *tag = NULL;
+    if (nr_args > 2) {
+        tag = purc_variant_get_string_const(argv[2]);
+    }
+
+    purc_log_with_tag_f(level, tag, "%s\n", msg);
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 purc_dvobj_runner_new(void)
 {
@@ -496,7 +614,9 @@ purc_dvobj_runner_new(void)
         { "chan",               chan_getter,            chan_setter },
         { "duplicateRenderers", duplicate_renderers_getter, NULL },
         { "connRenderer",       conn_renderer_getter,   NULL },
-        { "disconnRenderer",    disconn_renderer_getter, NULL },
+        { "disconnRenderer",    disconn_renderer_getter,NULL },
+        { "enablelog",          enablelog_getter,       NULL },
+        { "logmsg",             logmsg_getter,          NULL },
 #if ENABLE(CHINESE_NAMES)
         { "用户",               user_getter,            user_setter },
         { "应用名",             app_getter,             NULL },
@@ -513,6 +633,26 @@ purc_dvobj_runner_new(void)
         { "断开渲染器",         disconn_renderer_getter, NULL },
 #endif
     };
+
+    static struct dvobjs_option_set {
+        struct pcdvobjs_option_to_atom *opts;
+        size_t sz;
+    } opts_set[] = {
+        { enablelog_levels_skws,    PCA_TABLESIZE(enablelog_levels_skws) },
+        { enablelog_levels_ckws,    PCA_TABLESIZE(enablelog_levels_ckws) },
+        { enablelog_level_skws,     PCA_TABLESIZE(enablelog_level_skws) },
+        { enablelog_facility_skws,  PCA_TABLESIZE(enablelog_facility_skws) },
+    };
+
+    for (size_t i = 0; i < PCA_TABLESIZE(opts_set); i++) {
+        struct pcdvobjs_option_to_atom *opts = opts_set[i].opts;
+        if (opts[0].atom == 0) {
+            for (size_t j = 0; j < opts_set[i].sz; j++) {
+                opts[j].atom = purc_atom_from_static_string_ex(
+                        ATOM_BUCKET_DVOBJ, opts[j].option);
+            }
+        }
+    }
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
     if (retv == PURC_VARIANT_INVALID) {

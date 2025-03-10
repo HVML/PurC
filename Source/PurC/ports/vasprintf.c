@@ -2,7 +2,7 @@
  * @file vasprintf.c
  * @author Vincent Wei (https://github.com/VincentWei)
  * @date 2021/07/02
- * @brief The instance of PurC.
+ * @brief The implementation of vasprintf().
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *

@@ -56,6 +56,14 @@
 #include <string.h>
 #include <time.h>
 
+#if OS(UNIX)
+#   include <signal.h>
+#endif
+
+#if HAVE(OPENSSL)
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
 
 #include "generic_err_msgs.inc"
 
@@ -133,6 +141,8 @@ static struct const_str_atom _except_names[] = {
     { "TooEarly", 0 },
     { "UnavailableLegally", 0 },
     { "UnmetPrecondition", 0 },
+    { "ProtocolViolation", 0 },
+    { "TLSFailure", 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
@@ -284,6 +294,20 @@ struct pcmodule* _pc_modules[] = {
     &_module_renderer,
 };
 
+static void cleanup_once(void)
+{
+#if HAVE(OPENSSL)
+    CRYPTO_cleanup_all_ex_data();
+    CRYPTO_set_id_callback(NULL);
+    CRYPTO_set_locking_callback(NULL);
+    ERR_free_strings();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    ERR_remove_state(0);
+#endif
+    EVP_cleanup();
+#endif
+}
+
 static bool _init_ok = false;
 static void _init_once(void)
 {
@@ -291,6 +315,28 @@ static void _init_once(void)
      __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
     atexit(free_locale_c);
 #endif
+
+#if OS(UNIX)
+    /* Ignore SIGPIPE since 0.9.22 */
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGPIPE, &sa, NULL) != 0) {
+        perror("sigaction(SIGPIPE, SIG_IGN)");
+    }
+#endif
+
+#if HAVE(OPENSSL)
+    /* TODO: Move to global initialization ?*/
+    SSL_load_error_strings();
+    /* Ciphers and message digests */
+    OpenSSL_add_ssl_algorithms();
+#endif
+
+    atexit(cleanup_once);
 
     /* call once initializers of modules */
     for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {
@@ -359,7 +405,8 @@ static void enable_log_on_demand(void)
                 strcasecmp(env_value, "true") == 0);
     }
 
-    purc_enable_log_ex(log_mask, use_syslog);
+    purc_enable_log_ex(log_mask,
+            use_syslog ? PURC_LOG_FACILITY_SYSLOG : PURC_LOG_FACILITY_STDERR);
 }
 
 static int init_modules(struct pcinst *curr_inst,
@@ -417,10 +464,11 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
+    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG
+            && curr_inst->fp_log != stdout && curr_inst->fp_log != stderr) {
         fclose(curr_inst->fp_log);
-        curr_inst->fp_log = NULL;
     }
+    curr_inst->fp_log = NULL;
 
     if (curr_inst->bt) {
         pcdebug_backtrace_unref(curr_inst->bt);

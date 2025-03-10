@@ -158,7 +158,7 @@ AccessDenied
     flags: None
     msg: "Access denied"
 
-IoFailure
+IOFailure
     except: IOFailure
     flags: None
     msg: "IO Failure"
@@ -182,7 +182,6 @@ SysFault
     except: SysFault
     flags: None
     msg: "System fault"
-
 
 TooLong
     except: TooLong
@@ -252,12 +251,12 @@ Unknown
 RequestFailed
     except: RequestFailed
     flags: None
-    msg: "RequestFailed"
+    msg: "Request Failed"
 
 ChildTerminated
     except: ChildTerminated
     flags: None
-    msg: "ChildTerminated"
+    msg: "Child terminated"
 
 Conflict
     except: Conflict
@@ -272,35 +271,45 @@ Gone
 MismatchedVersion
     except: MismatchedVersion
     flags: None
-    msg: "MismatchedVersion"
+    msg: "Version Mismatched"
 
 NotAcceptable
     except: NotAcceptable
     flags: None
-    msg: "NotAcceptable"
+    msg: "Not acceptable"
 
 NotAllowed
     except: NotAllowed
     flags: None
-    msg: "NotAllowed"
+    msg: "Not allowed"
 
 NotFound
     except: NotFound
     flags: None
-    msg: "NotFound"
+    msg: "Not found"
 
 TooEarly
     except: TooEarly
     flags: None
-    msg: "TooEarly"
+    msg: "Too early"
 
 UnavailableLegally
     except: UnavailableLegally
     flags: None
-    msg: "UnavailableLegally"
+    msg: "Unavailable legally"
 
 UnmetPrecondition
     except: UnmetPrecondition
     flags: None
-    msg: "UnmetPrecondition"
+    msg: "Unmet precondition"
+
+ProtocolViolation
+    except: ProtocolViolation
+    flags: None
+    msg: "Protocol violation"
+
+TLSFailure
+    except: TLSFailure
+    flags: None
+    msg: "TLS (Transport Layer Security) failure"
 

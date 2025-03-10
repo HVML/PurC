@@ -24,7 +24,7 @@ set(test_vdom_SOURCES
 
 set(test_vdom_LIBRARIES
     PurC::PurC
-    ${GTEST_LIBRARIES}
+    ${GTEST_MAIN_LIBRARIES}
     pthread
 )
 
@@ -54,7 +54,7 @@ set(test_vdom_gen_SOURCES
 
 set(test_vdom_gen_LIBRARIES
     PurC::PurC
-    "${GTEST_LIBRARIES}"
+    "${GTEST_MAIN_LIBRARIES}"
     pthread
 )
 

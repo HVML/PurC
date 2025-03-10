@@ -305,7 +305,8 @@ fibo_next(purc_variant_t it)
     return v;
 }
 
-struct purc_iterator_ops _fibo_it_ops = {
+/* Use static to avoid AddressSanitizer: odr-violation */
+static struct purc_iterator_ops _fibo_it_ops = {
     .begin           = fibo_begin,
     .next            = fibo_next,
 };

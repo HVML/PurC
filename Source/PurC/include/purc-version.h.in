@@ -170,5 +170,10 @@ PCA_EXTERN_C_END
 #define HVML_INTRPR_VERSION             PURC_VERSION_STRING
 #define HVML_INTRPR_RELEASE             "立春"
 
+// Mozilla/5.0 (<system-information>) <platform> (<platform-details>) <extensions>
+#define PURC_USER_AGENT     "PurC/@PROJECT_VERSION@ (@PORT@)"
+#define FOIL_USER_AGENT     \
+    "Mozilla/5.0 (@PORT@) Foil/@PROJECT_VERSION@ purc/@PROJECT_VERSION@"
+
 #endif /* not defined PURC_PURC_VERSION_H */
 

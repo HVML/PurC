@@ -1,0 +1,120 @@
+#!/usr/bin/purc
+
+# RESULT: 'No any clients'
+
+<hvml target="void">
+    <head>
+        $RUNNER.enablelog('all', 'stderr')
+
+        <define as 'logMsg'>
+            <inherit>
+                    $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+
+        <base href=$CRTN.base(! "file://$REQ.base" ) hvml:silently />
+    </head>
+
+    <body id='server' >
+
+        <define as 'mainFuncs' from 'controller/main.hvml' />
+        <include with $mainFuncs />
+
+        <define as 'purcmcFuncs' from 'controller/purcmc.hvml' />
+        <include with $purcmcFuncs />
+
+        <include with $logMsg on 'The server is running...' />
+
+        <init as 'msgSettings' >
+            {
+                'noresptimetoping': 3,
+                'noresptimetoclose': 6,
+            }
+        </init>
+
+        <include with $logMsg on $msgSettings />
+
+        <init as 'clients' at '_topmost' with {} />
+        <init as 'workspaces' at '_topmost' with {} />
+        <init as 'plainwindows' at '_topmost' with {} />
+
+        <init as 'srvListenSocket' with $SOCKET.stream('local:///var/tmp/hvml-test-renderer.sock', 'default', 32) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+        </init>
+
+        <include with $logMsg on 'The server is accepting...' />
+
+        <observe on $clients for 'shrink'>
+            <include with $logMsg on 'clients shrunken:' />
+            <include with $logMsg on $clients />
+
+            <test with $DATA.count()>
+                <differ>
+                    <exit with 'No any clients' />
+                </differ>
+            </test>
+        </observe>
+
+        <observe on $srvListenSocket for 'socket:connAttempt'>
+
+            <include with $logMsg on "Server got a new socket:connAttempt event" />
+
+            <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
+                <catch for `ANY`>
+                    <exit with "Server failed with $?.name when calling accept()" />
+                </catch>
+
+                <test with $L.not($DATA.isequal($?, null)) >
+
+                    <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+
+                    <init as 'clientId' with $DATA.stringify($DATA.key($?)) />
+
+                    <update on $clients to 'merge' with { $clientId : { stream: $? } } />
+
+                    <!-- send initial response to the client -->
+                    <call on $sendResponse with { clientId: $clientId, requestId: '0', retCode: 200, resultValue: 0 } />
+
+                    <observe on $clients[$clientId].stream for 'message'>
+                        $clientId
+
+                        <include with $logMsg on "Server got a MESSAGE event from $_observedContent" />
+
+                        <call on $parseMessage with { message: $? } >
+
+                            <test with $L.streq('case', $?.type, 'request') >
+                                <call on ${$?.operation} with { clientId: $_observedContent, parsedMsg: $? } />
+                            </test>
+                        </call>
+                    </observe>
+
+                    <observe on $clients[$clientId].stream for 'error'>
+                        $clientId
+
+                        <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
+                        <include with $logMsg on $? />
+
+                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <forget on $_observedOn for '*' />
+                    </observe>
+
+                    <observe on $clients[$clientId].stream for 'close'>
+                        $clientId
+
+                        <include with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
+                        <include with $logMsg on $? />
+
+                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <forget on $_observedOn for '*' />
+                    </observe>
+
+                </test>
+            </choose>
+        </observe>
+
+    </body>
+
+</hvml>
+

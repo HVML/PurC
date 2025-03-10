@@ -29,11 +29,15 @@
 #include "private/debug.h"
 #include "purc-variant.h"
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
 #define STREAM_SIZE 1024
+
+char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 
 struct pcdvobjs_logical_param {
     int result;
@@ -42,13 +46,11 @@ struct pcdvobjs_logical_param {
     purc_variant_t variables;
 };
 
-bool pcdvobjs_wildcard_cmp (const char *str1,
-        const char *pattern) WTF_INTERNAL;
-
-const char *pcdvobjs_remove_space (char * buffer) WTF_INTERNAL;
-
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
+
+bool pcdvobjs_wildcard_cmp(const char *pattern, const char *str) WTF_INTERNAL;
+bool pcdvobjs_regex_cmp(const char *pattern, const char *str) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

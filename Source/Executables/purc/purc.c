@@ -58,7 +58,8 @@
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
 #define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
-#define DEF_RDR_URI_WEBSOCKET   "ws://localhost:" PCRDR_PURCMC_WS_PORT
+/* XXX: Removed since 0.9.22
+#define DEF_RDR_URI_WEBSOCKET   "ws://localhost:" PCRDR_PURCMC_WS_PORT */
 
 #define KEY_FLAG_REQUEST        "request"
 
@@ -142,13 +143,12 @@ static void print_usage(FILE *fp)
         "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
-        "  -c --rdr-comm=< headless | thread | socket | websocket>\n"
+        "  -c --rdr-comm=< headless | thread | socket >\n"
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
         "            - `headless`: use the built-in headless renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
-        "            - `socket`: use the remote UNIX domain socket-based renderer;\n"
-        "            - `websocket`: use the remote websocket-based renderer;\n"
-        "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
+        "            - `socket`: use the remote UNIX/local-domain-socket-based renderer or WebSocket-based renderer.\n"
+        "              `purc` will connect to the renderer via UNIX/local Socket or WebSocket.\n"
         "\n"
         "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri or shortname:\n"
@@ -159,8 +159,6 @@ static void print_usage(FILE *fp)
         "              `foil` if Foil is enabled, otherwise `seeker`.\n"
         "            - For the renderer comm method `socket`,\n"
         "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
-        "            - For the renderer comm method `websocket`,\n"
-        "              the default value is `ws://localhost:7702`.\n"
         "\n"
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
@@ -527,9 +525,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             else if (strcmp(optarg, "socket") == 0) {
                 opts->rdr_prot = "socket";
             }
+            /* XXX: Removed since 0.9.22
             else if (strcmp(optarg, "websocket") == 0) {
                 opts->rdr_prot = "websocket";
-            }
+            } */
             else {
                 goto bad_arg;
             }
@@ -969,8 +968,9 @@ fill_run_rdr_info(struct my_opts *opts,
                 rdr_info->renderer_comm = PURC_RDRCOMM_THREAD;
             else if (strcmp(str, "socket") == 0)
                 rdr_info->renderer_comm = PURC_RDRCOMM_SOCKET;
+            /* XXX: Removed since 0.9.22
             else if (strcmp(str, "websocket") == 0)
-                rdr_info->renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+                rdr_info->renderer_comm = PURC_RDRCOMM_WEBSOCKET; */
         }
     }
 
@@ -978,13 +978,14 @@ fill_run_rdr_info(struct my_opts *opts,
     if (tmp)
         rdr_info->renderer_uri = purc_variant_get_string_const(tmp);
 
+    /* XXX: Removed since 0.9.22
     tmp = purc_variant_object_get_by_ckey(rdr, "sslCert");
     if (tmp)
         rdr_info->ssl_cert = purc_variant_get_string_const(tmp);
 
     tmp = purc_variant_object_get_by_ckey(rdr, "sslKey");
     if (tmp)
-        rdr_info->ssl_key = purc_variant_get_string_const(tmp);
+        rdr_info->ssl_key = purc_variant_get_string_const(tmp); */
 
     tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName");
     if (tmp)
@@ -1949,12 +1950,13 @@ int main(int argc, char** argv)
             return EXIT_FAILURE;
         }
     }
+    /* XXX: Removed since 0.9.22
     else if (strcmp(opts->rdr_prot, "websocket") == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_WEBSOCKET);
         }
-    }
+    } */
     else {
         if (strcmp(opts->rdr_prot, "socket")) {
             fprintf(stderr, "Unknown renderer communication method: %s\n",

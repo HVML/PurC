@@ -1,0 +1,121 @@
+# test cases for websocket
+positive:
+    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    true
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket')
+    ArgumentMissed
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket', null)
+    WrongDataType
+
+negative:
+    $STREAM.open('inet4://localhost:8080', 'default', 'websocket', {})
+    InvalidValue
+
+positive:
+    $DATA.type($STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
+    'native'
+
+positive:
+    $RUNNER.user(! 'inetStreamSocket', undefined )
+    true
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', null)
+    WrongDataType
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, null)
+    WrongDataType
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, {'sslkey': 'foobar.key', 'sslcert': 'foobar.crt' })
+    OSFailure
+
+#'sslsessioncacheid':       < string: `Use the external SSL session cache to enable sharing the sessions between processes.` >
+#'sslsessioncacheusers':    < ['group || other'] | undefined: `Specify the extra users who can access the shared SSL session cache except the owner.` >
+#'sslsessioncachesize':     < real = 256: `Specify the size of the cache: how many sessions to cache.` >
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'hvml-test', 'sslsessioncacheusers': 'foo', 'sslsessioncachesize': null })
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'foo', 'sslsessioncachesize': null })
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': null })
+    InvalidValue
+
+negative:
+    $SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': -32 })
+    InvalidValue
+
+positive:
+    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }))
+    'native'
+
+positive:
+    $DATA.type($SOCKET.stream('inet4://localhost:8080', 'default', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt', 'sslsessioncacheid': 'test', 'sslsessioncacheusers': 'group', 'sslsessioncachesize': 32 }))
+    'native'
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none') )
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}))
+    true
+
+positive:
+    $RUNNER.myObj.cliStreamSocket.send('Hello')
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }) )
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', { 'secure': true }) )
+    true
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}) )
+    true
+
+negative:
+    $RUNNER.myObj.cliStreamSocket.send('Hello')
+    NotReady
+
+positive:
+    $RUNNER.user(! 'srvStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'cliStreamSocket', undefined)
+    true
+
+positive:
+    $RUNNER.user(! 'srvListenSocket', undefined)
+    true
+

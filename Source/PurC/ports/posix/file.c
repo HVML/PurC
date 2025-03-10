@@ -41,7 +41,7 @@ bool pcutils_file_md5(const char *pathname, unsigned char *md5_buf, size_t *sz)
         return false;
 
     char buff[128];
-    sprintf(buff, "%llx-%llx-%llx-%llx",
+    snprintf(buff, sizeof(buff), "%llx-%llx-%llx-%llx",
             (unsigned long long)statbuf.st_dev,
             (unsigned long long)statbuf.st_ino,
             (unsigned long long)statbuf.st_size,

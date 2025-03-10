@@ -104,6 +104,9 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "STREAM") == 0) {
         dvobj = purc_dvobj_stream_new();
     }
+    else if (strcmp(name, "SOCKET") == 0) {
+        dvobj = purc_dvobj_socket_new();
+    }
 #if ENABLE(CHINESE_NAMES) && defined(PURC_PREDEF_VARNAME_RUNNER_ZH)
     else if (strcmp(name, PURC_PREDEF_VARNAME_RUNNER_ZH) == 0) {
         dvobj = purc_dvobj_runner_new();

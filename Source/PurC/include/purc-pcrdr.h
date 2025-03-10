@@ -284,15 +284,18 @@ typedef enum {
 #define PURC_RDRCOMM_NAME_SOCKET        "SOCKET"
     PURC_RDRCOMM_HBDBUS,
 #define PURC_RDRCOMM_NAME_HBDBUS        "HBDBUS"
+    /* XXX: Removed since 0.9.22
     PURC_RDRCOMM_WEBSOCKET,
-#define PURC_RDRCOMM_NAME_WEBSOCKET     "WEBSOCKET"
+#define PURC_RDRCOMM_NAME_WEBSOCKET     "WEBSOCKET" */
 } purc_rdrcomm_k;
 
 /* Connection types */
 enum {
     CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
-    CT_WEB_SOCKET,
+    CT_INET_SOCKET,
+    /* XXX: Removed since 0.9.22
+    CT_WEB_SOCKET = CT_INET_SOCKET, */
     CT_MOVE_BUFFER,
 };
 
@@ -587,8 +590,8 @@ pcrdr_conn_fd(pcrdr_conn *conn);
  * Returns the type of the renderer connection.
  *
  * Returns: \a CT_PLAIN_FILE for plain file,
- *          \a CT_UNIX_SOCKET for UnixSocket,
- *          \a CT_WEB_SOCKET for WebSocket.
+ *          \a CT_UNIX_SOCKET for UNIX/local socket,
+ *          \a CT_INET_SOCKET for INET socket.
  *      and \a CT_MOVE_BUFFER for move buffer (shared eDOM).
  *
  * Since: 0.1.0
@@ -1228,7 +1231,26 @@ pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
+ * Connect to a socket-based renderer, including UNIX/local socket,
+ * or a websocket.
+ *
+ * @param renderer_uri: the URI of the renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
+ *
  * Connect to a socket-based renderer.
+ *
+ * Returns: The initial response message; NULL on error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_socket_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+
+/**
+ * Connect to a local-socket-based renderer.
  *
  * @param renderer_uri: the URI of the renderer.
  * @param app_name: the app name.
@@ -1242,8 +1264,13 @@ pcrdr_thread_connect(const char* renderer_uri,
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-pcrdr_socket_connect(const char* renderer_uri,
+pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
+/* TODO: make this as an inline function of pcrdr_socket_connect()
+{
+    return pcrdr_socket_connect(renderer_uri, app_name, runner_name, conn);
+}
+*/
 
 /**
  * Connect to a websocket-based renderer.
@@ -1262,6 +1289,11 @@ pcrdr_socket_connect(const char* renderer_uri,
 PCA_EXPORT pcrdr_msg *
 pcrdr_websocket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
+/* TODO: make this as an inline function of pcrdr_socket_connect()
+{
+    return pcrdr_socket_connect(renderer_uri, app_name, runner_name, conn);
+}
+*/
 
 /**@}*/
 

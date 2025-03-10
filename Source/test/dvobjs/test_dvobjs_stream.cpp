@@ -30,18 +30,37 @@
 
 TEST(dvobjs, stream)
 {
+    const char *files_to_remove_before_testing[] = {
+        "/tmp/test_stream_not_exist",
+        "/tmp/test_stream_bytes",
+        "/tmp/test_stream_lines",
+        "/tmp/test_stream_struct",
+        "/tmp/test_stream_seek",
+        "/tmp/test_stream_readstring",
+    };
+
+    for (size_t i = 0; i < PCA_TABLESIZE(files_to_remove_before_testing); i++) {
+        remove(files_to_remove_before_testing[i]);
+    }
+
     TestDVObj tester;
     tester.run_testcases_in_file("stream");
 }
 
+#if OS(UNIX)
 TEST(dvobjs, stream_pipe)
 {
-#if OS(LINUX) || OS(DARWIN)
     if (access("/usr/bin/bc", F_OK)) {
         return;
     }
     TestDVObj tester;
     tester.run_testcases_in_file("stream_pipe");
-#endif
 }
+
+TEST(dvobjs, stream_local)
+{
+    TestDVObj tester;
+    tester.run_testcases_in_file("stream_local");
+}
+#endif
 

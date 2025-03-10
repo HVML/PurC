@@ -620,6 +620,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 {
     PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
 
+    purc_rwstream_t out = NULL;
+
     /* supress update opeations */
     if (cor && cor->supressed) {
         goto failed;
@@ -632,7 +634,6 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
     uint64_t target_value;
     pcrdr_msg_data_type data_type = doc->def_text_type;// VW
     purc_variant_t req_data = PURC_VARIANT_INVALID;
-    purc_rwstream_t out = NULL;
     struct pcintr_coroutine_rdr_conn *rdr_conn;
     rdr_conn = pcintr_coroutine_get_rdr_conn(cor, conn);
 
@@ -706,15 +707,16 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
                 &sz_buff, false);
 
-        char path[PATH_MAX + 1];
-        sprintf(path, "/tmp/%s_%s.html", inst->app_name, inst->runner_name);
+        char path[NAME_MAX + 10];
+        snprintf(path, sizeof(path), "/tmp/%s_%s.html",
+                inst->app_name, inst->runner_name);
 
         FILE *fp = fopen(path, "w");
         fwrite(p, 1, sz_content, fp);
         fclose(fp);
 
-        char url[2 * PATH_MAX + 1];
-        sprintf(url, "hvml://localhost/_filesystem/_file/-%s", path);
+        char url[NAME_MAX + 64];
+        snprintf(url, sizeof(url), "hvml://localhost/_filesystem/_file/-%s", path);
 
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
         req_data = purc_variant_make_string(url, false);
@@ -1113,7 +1115,7 @@ pcintr_rdr_send_dom_req(struct pcinst *inst,
     struct pcrdr_conn *curr_conn;
 
     pcrdr_msg *result_msg = NULL;
-    pcrdr_msg *response_msg;
+    pcrdr_msg *response_msg = NULL;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
     uint64_t target_value;
     char elem[LEN_BUFF_LONGLONGINT];

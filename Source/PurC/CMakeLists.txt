@@ -72,6 +72,8 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
+    "${PURC_DIR}/ports/strerrorname_np.c"
+    "${PURC_DIR}/ports/strnstr.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`
@@ -93,12 +95,21 @@ if (ENABLE_WEBSOCKET)
     )
     list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
     )
-    list(APPEND PurC_SOURCES 
+    list(APPEND PurC_SOURCES
     )
 endif ()
 
 if (HAVE_OPENSSL)
-    list(APPEND PurC_LIBRARIES OpenSSL::SSL)
+    list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
+        "${EBTREE_INCLUDE_DIRS}"
+    )
+    list(APPEND PurC_SOURCES
+        "${PURC_DIR}/optional/openssl-shared-context.c"
+    )
+    list(APPEND PurC_LIBRARIES
+        ebtree
+        OpenSSL::SSL
+    )
 endif ()
 
 if (ENABLE_SCHEMA_LSQL)

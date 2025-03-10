@@ -23,7 +23,7 @@
 #include "private/interpreter.h"
 
 #include "../helpers.h"
-#include "tools.h"
+#include "../tools.h"
 
 #include <glob.h>
 #include <gtest/gtest.h>

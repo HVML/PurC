@@ -260,7 +260,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
             free(next);
             goto out;
         }
-        sprintf(buf, "%s.%s", prev, next);
+        snprintf(buf, nr, "%s.%s", prev, next);
 
         ret_var = purc_variant_make_string_reuse_buff(buf, nr, true);
 
