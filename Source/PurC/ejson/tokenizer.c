@@ -588,10 +588,10 @@ print_parser_state(struct pcejson *parser)
     const char *tbuf = tkz_buffer_get_bytes(parser->temp_buffer);
     if (parser->enable_log) {
         PLOG(
-                "in %-60s|uc=%2s|hex=0x%04X"
+                "in %-60s|uc=%2s|hex=0x%04X|utf8=%s"
                 "|top=%1c|stack.size=%2ld|stack=%s|node=%s|tmp_buffer=%s|"
                 "line=%d|column=%d\n",
-                parser->state_name, buf, character,
+                parser->state_name, buf, character, uc->utf8_buf,
                 type, nr_stack, s_stack, node, tbuf, uc->line, uc->column
             );
     }

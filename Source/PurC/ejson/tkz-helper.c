@@ -57,6 +57,8 @@ struct tkz_reader {
     size_t nr_consumed_list;
 
     struct tkz_uc curr_uc;
+    struct tkz_lc *lc;
+
     int line;
     int column;
     int consumed;
@@ -111,6 +113,11 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
     if (!reader) {
         return NULL;
     }
+    reader->lc = tkz_lc_new(TKZ_LINE_CACHE_MAX_SIZE);
+    if (!reader->lc) {
+        goto out_clear_reader;
+    }
+
     INIT_LIST_HEAD(&reader->reconsume_list);
     INIT_LIST_HEAD(&reader->consumed_list);
     reader->line = 1;
@@ -119,7 +126,12 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
 
     reader->hee_line = hee_line;
     reader->hee_column = hee_column;
+
     return reader;
+
+out_clear_reader:
+    PCHVML_FREE(reader);
+    return NULL;
 }
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader,
@@ -144,9 +156,19 @@ tkz_reader_read_from_rwstream(struct tkz_reader *reader)
     reader->curr_uc.line = reader->line;
     reader->curr_uc.column = reader->column;
     reader->curr_uc.position = reader->consumed;
+    strcpy((char *)reader->curr_uc.utf8_buf, c);
+
     if (uc == '\n') {
+        if (reader->lc) {
+            tkz_lc_commit(reader->lc, reader->line);
+        }
         reader->line++;
         reader->column = 0;
+    }
+    else {
+        if (reader->lc) {
+            tkz_lc_append_bytes(reader->lc, c, strlen(c));
+        }
     }
     return &reader->curr_uc;
 }
@@ -262,8 +284,31 @@ void tkz_reader_destroy(struct tkz_reader *reader)
             list_del_init(&puc->list);
             tkz_uc_destroy(puc);
         }
+
+        if (reader->lc) {
+            tkz_lc_destroy(reader->lc);
+        }
         PCHVML_FREE(reader);
     }
+}
+
+struct tkz_buffer *tkz_reader_get_line_from_cache(struct tkz_reader *reader,
+        int line_num)
+{
+    if (reader->lc && line_num >= 0) {
+        return tkz_lc_get_line(reader->lc, line_num);
+    }
+    return NULL;
+}
+
+struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader)
+{
+    return reader->lc ? tkz_lc_get_current(reader->lc) : NULL;
+}
+
+int tkz_reader_get_line_number(struct tkz_reader *reader)
+{
+    return reader->line;
 }
 
 // tokenizer buffer
@@ -518,6 +563,151 @@ void tkz_buffer_destroy(struct tkz_buffer *buffer)
         free(buffer);
     }
 }
+
+/* line cache begin */
+struct tkz_lc *
+tkz_lc_new(size_t max_size)
+{
+    struct tkz_lc *lc = (struct tkz_lc *)calloc(1, sizeof(*lc));
+    if (!lc) {
+        PC_ERROR("Failed to allocate memory for line cache (%zu)\n", sizeof(*lc));
+        goto out;
+    }
+
+    lc->current = tkz_buffer_new();
+    if (!lc) {
+        PC_ERROR("Failed to allocate memory for line cache current (%zu)\n",
+                sizeof(*lc->current));
+        goto clear_lc;
+    }
+
+    lc->size = 0;
+    lc->max_size = max_size;
+    INIT_LIST_HEAD(&lc->cache);
+
+    return lc;
+
+clear_lc:
+    PCHVML_FREE(lc);
+
+out:
+    return lc;
+}
+
+void
+tkz_lc_destroy(struct tkz_lc *lc)
+{
+    if (!lc) {
+        return;
+    }
+
+    if (lc->current) {
+        tkz_buffer_destroy(lc->current);
+        lc->current = NULL;
+    }
+
+    struct tkz_lc_node *p, *n;
+    list_for_each_entry_safe(p, n, &lc->cache, ln) {
+        list_del(&p->ln);
+        if (p->buf) {
+            tkz_buffer_destroy(p->buf);
+        }
+        free(p);
+    }
+
+    free(lc);
+}
+
+int
+tkz_lc_append(struct tkz_lc *lc, char c)
+{
+    assert(lc);
+    tkz_buffer_append_bytes(lc->current, &c, 1);
+    return 0;
+}
+
+int
+tkz_lc_append_bytes(struct tkz_lc *lc, const char *bytes, size_t nr_bytes)
+{
+    assert(lc && bytes && nr_bytes);
+    tkz_buffer_append_bytes(lc->current, bytes, nr_bytes);
+    return 0;
+}
+
+int
+tkz_lc_commit(struct tkz_lc *lc, int line_num)
+{
+    assert(lc && line_num >= 0);
+
+    int ret = -1;
+    size_t nr_bytes = tkz_buffer_get_size_in_bytes(lc->current);
+    if (nr_bytes == 0) {
+        ret = 0;
+        goto out;
+    }
+
+    /* create new line cache node */
+    struct tkz_lc_node *node = (struct tkz_lc_node *)calloc(1, sizeof(*node));
+    if (!node) {
+        PC_ERROR("Failed to allocate memory for line cache node(%zu)\n",
+                sizeof(*node));
+        ret = -1;
+        goto out;
+    }
+
+    node->buf = tkz_buffer_new();
+    if (!node->buf) {
+        PC_ERROR("Failed to allocate memory for line cache node buf (%zu)\n",
+                sizeof(*node->buf));
+        goto out_clear_node;
+    }
+
+    tkz_buffer_append_another(node->buf, lc->current);
+    node->line = line_num;
+
+    list_add(&node->ln, &lc->cache);
+    lc->size++;
+
+    /* clear old node */
+    while (lc->size > lc->max_size) {
+        struct tkz_lc_node *last =
+            list_last_entry(&lc->cache, struct tkz_lc_node, ln);
+        list_del(&last->ln);
+        tkz_buffer_destroy(last->buf);
+        free(last);
+        lc->size--;
+    }
+
+    tkz_buffer_reset(lc->current);
+    ret = 0;
+
+    return ret;
+
+out_clear_node:
+    free(node);
+
+out:
+    return ret;
+}
+
+struct tkz_buffer *
+tkz_lc_get_line(const struct tkz_lc *lc, int line_num)
+{
+    struct tkz_lc_node *node;
+    list_for_each_entry(node, &lc->cache, ln) {
+        if (node->line == line_num)
+            return node->buf;
+    }
+    return NULL;
+}
+
+struct tkz_buffer *
+tkz_lc_get_current(const struct tkz_lc *lc)
+{
+    return lc ? lc->current : NULL;
+}
+
+/* line cache end */
 
 struct tkz_sbst {
     const pcutils_sbst_entry_static_t *strt;

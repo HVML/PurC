@@ -65,10 +65,19 @@
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
+        int line = tkz_reader_get_line_number(parser->reader);              \
+        struct tkz_buffer *pre_line =                                       \
+            tkz_reader_get_line_from_cache(parser->reader, line - 1);       \
+        struct tkz_buffer *curr_line =                                      \
+            tkz_reader_get_curr_line(parser->reader);                       \
         PLOG(                                                               \
-            "in %s|uc=%c|hex=0x%X|fh=%d\n",                                 \
+            "in %s|uc=%c|hex=0x%X|utf8=%s|fh=%d|line=\n%s\n%s\n",           \
             curr_state_name, character, character,                          \
-            parser->is_in_file_header);                                     \
+            parser->curr_uc->utf8_buf,                                      \
+            parser->is_in_file_header,                                      \
+            pre_line ? tkz_buffer_get_bytes(pre_line) : NULL,               \
+            curr_line ? tkz_buffer_get_bytes(curr_line) : NULL              \
+            );                                                              \
     }
 
 #define SET_ERR(err)    do {                                                \

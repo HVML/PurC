@@ -40,11 +40,15 @@
 
 #define TKZ_END_OF_FILE          0
 #define TKZ_INVALID_CHARACTER    0xFFFFFFFF
+#define UTF8_BUF_LEN             8
+
+#define TKZ_LINE_CACHE_MAX_SIZE  3
 
 struct tkz_reader;
 struct tkz_uc {
     struct list_head list;
     uint32_t character;
+    uint8_t  utf8_buf[UTF8_BUF_LEN];
     int line;
     int column;
     int position;
@@ -55,6 +59,22 @@ struct tkz_buffer {
     uint8_t *here;
     uint8_t *stop;
     size_t nr_chars;
+};
+
+struct tkz_lc_node {
+    struct list_head    ln;
+    int                 line;
+    struct tkz_buffer  *buf;
+};
+
+/* line cache */
+struct tkz_lc {
+    struct list_head    cache;
+    size_t              size;
+    size_t              max_size;
+
+    struct tkz_buffer  *current; /* current line */
+
 };
 
 struct tkz_sbst;
@@ -271,6 +291,13 @@ int tkz_reader_hee_column(struct tkz_reader *reader);
 
 void tkz_reader_destroy(struct tkz_reader *reader);
 
+struct tkz_buffer *tkz_reader_get_line_from_cache(struct tkz_reader *reader,
+        int line_num);
+
+struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader);
+
+int tkz_reader_get_line_number(struct tkz_reader *reader);
+
 
 
 // tokenizer buffer
@@ -362,6 +389,29 @@ tkz_buffer_reset(struct tkz_buffer *buffer);
 
 void
 tkz_buffer_destroy(struct tkz_buffer *buffer);
+
+/* line cache begin */
+struct tkz_lc *
+tkz_lc_new(size_t max_size);
+
+void
+tkz_lc_destroy(struct tkz_lc *lc);
+
+int
+tkz_lc_append(struct tkz_lc *lc, char c);
+
+int
+tkz_lc_append_bytes(struct tkz_lc *lc, const char *bytes, size_t nr_bytes);
+
+int
+tkz_lc_commit(struct tkz_lc *lc, int line_num);
+
+struct tkz_buffer *
+tkz_lc_get_line(const struct tkz_lc *lc, int line_num);
+
+struct tkz_buffer *
+tkz_lc_get_current(const struct tkz_lc *lc);
+/* line cache end */
 
 // sbst
 struct tkz_sbst *tkz_sbst_new_char_ref(void);
