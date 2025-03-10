@@ -793,8 +793,8 @@ again:
         pcrdr_release_message(msg);
     }
 
-    if (!busy) {
-        size_t count =  pcinst_msg_queue_count(co->mq);
+    if (!busy && !msg_observed) {
+        size_t count = pcinst_msg_queue_count(co->mq);
         if (count > 0) {
             busy = true;
         }
@@ -816,10 +816,11 @@ dispatch_event(struct pcinst *inst)
     bool is_busy = false;
 
 #if 1
+    clock_gettime(CLOCK_MONOTONIC, &begin);
 again:
     is_busy = false;
-    clock_gettime(CLOCK_MONOTONIC, &begin);
 #endif
+
     check_and_dispatch_event_from_conn(inst);
 
     bool co_is_busy = false;
