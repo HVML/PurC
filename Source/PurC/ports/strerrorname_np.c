@@ -150,7 +150,7 @@ const char *strerrorname_np(int errnum)
     case ERANGE:
         name = "ERANGE";   // Numerical result out of range
         break;
-#if EDEADLK != EDEADLOCK
+#ifndef EDEADLOCK
     case EDEADLK:
         name = "EDEADLK";  // Resource deadlock avoided
         break;
