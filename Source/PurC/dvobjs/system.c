@@ -2761,16 +2761,28 @@ done:
 /* posix_spawnattr_setflags only uses a short for flags */
 #define SPAWN_FLAG_SEARCH       (0x01 << 16)
 
+#ifndef POSIX_SPAWN_SETSCHEDPARAM    // Linux only
+#define POSIX_SPAWN_SETSCHEDPARAM 0
+#endif
+
+#ifndef POSIX_SPAWN_SETSCHEDULER     // Linux only
+#define POSIX_SPAWN_SETSCHEDULER 0
+#endif
+
+#ifndef POSIX_SPAWN_CLOEXEC_DEFAULT  // Apple extension
+#define POSIX_SPAWN_CLOEXEC_DEFAULT 0
+#endif
+
 static struct pcdvobjs_option_to_atom spawn_flags_ckws[] = {
     { "search",     0, SPAWN_FLAG_SEARCH },
     { "resetids",   0, POSIX_SPAWN_RESETIDS },
     { "setsid",     0, POSIX_SPAWN_SETSID },
-    { "pgroup",     0, POSIX_SPAWN_SETPGROUP },
-    { "sigdef",     0, POSIX_SPAWN_SETSID },
-    { "sigmask",    0, POSIX_SPAWN_SETSIGMASK },
-    { "schedparam",     0, POSIX_SPAWN_SETSCHEDPARAM },
-    { "setscheduler",   0, POSIX_SPAWN_SETSCHEDULER },
-
+    { "setpgroup",  0, POSIX_SPAWN_SETPGROUP },
+    { "setsigdef",  0, POSIX_SPAWN_SETSID },
+    { "setsigmask", 0, POSIX_SPAWN_SETSIGMASK },
+    { "setschedparam",      0, POSIX_SPAWN_SETSCHEDPARAM },
+    { "setscheduler",       0, POSIX_SPAWN_SETSCHEDULER },
+    { "cloexec-default",    0, POSIX_SPAWN_CLOEXEC_DEFAULT },
 };
 
 static int
