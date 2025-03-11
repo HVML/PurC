@@ -515,7 +515,8 @@ char *make_query_with_base(const char *format)
     assert(base);
 
     char *query;
-    asprintf(&query, format, base);
+    if (asprintf(&query, format, base) < 0)
+        return NULL;
     free(base);
 
     return query;
