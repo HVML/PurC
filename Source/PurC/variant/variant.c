@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
+#include <errno.h>
 
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
