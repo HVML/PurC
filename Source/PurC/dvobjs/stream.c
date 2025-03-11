@@ -1618,6 +1618,7 @@ static int get_stream_type_by_fd(int fd)
 {
     struct stat stat;
     if (fstat(fd, &stat)) {
+        PC_DEBUG("Failed fstat(): %s\n", strerror(errno));
         return -1;
     }
 
@@ -2744,7 +2745,8 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto error;
     }
-    ext_prot = purc_variant_get_string_const(argv[2]);
+    else if (nr_args > 2)
+        ext_prot = purc_variant_get_string_const(argv[2]);
 
     return dvobjs_create_stream_from_fd(fd, option, ext_prot,
             (nr_args > 3) ? argv[3] : PURC_VARIANT_INVALID);
