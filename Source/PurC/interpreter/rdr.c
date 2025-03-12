@@ -967,28 +967,6 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
 
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
-    if (cor->keep_contents) {
-        int errors = 0;
-        data_type = PCRDR_MSG_DATA_TYPE_JSON;
-        data = purc_variant_make_object_0();
-        if (cor->keep_contents) {
-            if (!purc_variant_object_set_by_static_ckey(data,
-                        KEEP_CONTENTS_KEY,
-                        cor->keep_contents)) {
-                errors++;
-            }
-        }
-
-        if (errors > 0) {
-            purc_log_error("Failed to create data for page.\n");
-            if (data) {
-                purc_variant_unref(data);
-            }
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-    }
-
 
     pcrdr_msg *response_msg;
     /* revoke */

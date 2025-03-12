@@ -158,22 +158,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         with = purc_variant_ref(ctxt->with);
     }
 
-    if (purc_variant_is_object(with)) {
-        purc_variant_t rdr =
-            purc_variant_object_get_by_ckey(with, "_renderer");
-        if (rdr && purc_variant_is_object(rdr)) {
-            purc_variant_t keep_contents = purc_variant_object_get_by_ckey(rdr,
-                    "keepContents");
-            if (keep_contents && purc_variant_is_object(keep_contents)) {
-                PURC_VARIANT_SAFE_CLEAR(stack->co->keep_contents);
-                stack->co->keep_contents = purc_variant_ref(keep_contents);
-            }
-        }
-
-        purc_clr_error();
-    }
-
-
     pcintr_set_exit(with);
 
     PURC_VARIANT_SAFE_CLEAR(with);
