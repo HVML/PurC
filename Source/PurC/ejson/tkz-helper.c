@@ -113,10 +113,6 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
     if (!reader) {
         return NULL;
     }
-    reader->lc = tkz_lc_new(TKZ_LINE_CACHE_MAX_SIZE);
-    if (!reader->lc) {
-        goto out_clear_reader;
-    }
 
     INIT_LIST_HEAD(&reader->reconsume_list);
     INIT_LIST_HEAD(&reader->consumed_list);
@@ -128,16 +124,17 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
     reader->hee_column = hee_column;
 
     return reader;
-
-out_clear_reader:
-    PCHVML_FREE(reader);
-    return NULL;
 }
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader,
         purc_rwstream_t rws)
 {
     reader->rws = rws;
+}
+
+void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc)
+{
+    reader->lc = lc;
 }
 
 static struct tkz_uc*
@@ -285,9 +282,6 @@ void tkz_reader_destroy(struct tkz_reader *reader)
             tkz_uc_destroy(puc);
         }
 
-        if (reader->lc) {
-            tkz_lc_destroy(reader->lc);
-        }
         PCHVML_FREE(reader);
     }
 }
@@ -616,6 +610,23 @@ tkz_lc_destroy(struct tkz_lc *lc)
     }
 
     free(lc);
+}
+
+void
+tkz_lc_reset(struct tkz_lc *lc)
+{
+    assert(lc);
+    tkz_buffer_reset(lc->current);
+    struct tkz_lc_node *p, *n;
+    list_for_each_entry_safe(p, n, &lc->cache, ln) {
+        list_del(&p->ln);
+        if (p->buf) {
+            tkz_buffer_destroy(p->buf);
+        }
+        free(p);
+    }
+    lc->size = 0;
+    INIT_LIST_HEAD(&lc->cache);
 }
 
 int

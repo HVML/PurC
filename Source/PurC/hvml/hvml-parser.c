@@ -90,6 +90,7 @@ struct pcmodule _module_hvml = {
 #define PURC_ENVV_HVML_LOG_ENABLE   "PURC_HVML_LOG_ENABLE"
 #define EJSON_PARSER_MAX_DEPTH      512
 #define EJSON_PARSER_FLAGS          1
+#define HVML_PARSER_LC_SIZE         3
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
@@ -100,6 +101,8 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
             sizeof(struct pchvml_parser));
     parser->state = 0;
     parser->reader = tkz_reader_new (0, 0);
+    parser->lc = tkz_lc_new (HVML_PARSER_LC_SIZE);
+    tkz_reader_set_lc(parser->reader, parser->lc);
     parser->temp_buffer = tkz_buffer_new ();
     parser->tag_name = tkz_buffer_new ();
     parser->string_buffer = tkz_buffer_new ();
@@ -132,6 +135,8 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->state = 0;
     tkz_reader_destroy (parser->reader);
     parser->reader = tkz_reader_new (0, 0);
+    tkz_lc_reset (parser->lc);
+    tkz_reader_set_lc(parser->reader, parser->lc);
     tkz_buffer_reset (parser->temp_buffer);
     tkz_buffer_reset (parser->tag_name);
     tkz_buffer_reset (parser->string_buffer);
@@ -156,6 +161,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
         tkz_reader_destroy (parser->reader);
+        tkz_lc_destroy (parser->lc);
         tkz_buffer_destroy (parser->temp_buffer);
         tkz_buffer_destroy (parser->tag_name);
         tkz_buffer_destroy (parser->string_buffer);

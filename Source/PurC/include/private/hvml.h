@@ -57,6 +57,7 @@ struct pchvml_parser {
 
     struct tkz_uc* curr_uc;
     struct tkz_reader* reader;
+    struct tkz_lc*     lc;
     struct tkz_buffer* temp_buffer;
     struct tkz_buffer* tag_name;
     struct tkz_buffer* string_buffer;

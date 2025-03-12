@@ -279,6 +279,8 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column);
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
 
+void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc);
+
 struct tkz_uc *tkz_reader_current(struct tkz_reader *reader);
 
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
@@ -396,6 +398,9 @@ tkz_lc_new(size_t max_size);
 
 void
 tkz_lc_destroy(struct tkz_lc *lc);
+
+void
+tkz_lc_reset(struct tkz_lc *lc);
 
 int
 tkz_lc_append(struct tkz_lc *lc, char c);
