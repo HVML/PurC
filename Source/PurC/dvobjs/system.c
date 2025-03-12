@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <spawn.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -1858,6 +1859,63 @@ random_sequence_getter(purc_variant_t root,
 }
 #endif  /* !OS(LINUX) */
 
+static struct pcdvobjs_option_to_atom access_mode_ckws[] = {
+    { "read",       0,  R_OK },
+    { "write",      0,  W_OK },
+    { "execute",    0,  X_OK },
+    { "existence",  0,  F_OK },
+};
+
+static purc_variant_t
+access_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    const char *path;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if ((path = purc_variant_get_string_const(argv[0])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (access_mode_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(access_mode_ckws); i++) {
+            access_mode_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, access_mode_ckws[i].option);
+        }
+    }
+
+    int mode;
+    mode = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID, NULL, 0,
+            access_mode_ckws, PCA_TABLESIZE(access_mode_ckws), F_OK, -1);
+    if (mode == -1) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    if (access(path, mode) == -1) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
 remove_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -2006,7 +2064,7 @@ pipe_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 #endif
 
     purc_variant_t fd1 = purc_variant_make_longint(fds[0]);
-    purc_variant_t fd2 = purc_variant_make_longint(fds[0]);
+    purc_variant_t fd2 = purc_variant_make_longint(fds[1]);
     if (!fd1 || !fd2) {
         if (fd1)
             purc_variant_unref(fd1);
@@ -2556,6 +2614,480 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static int
+handle_file_action_close(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(fa, "fd");
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    switch (posix_spawn_file_actions_addclose(file_actions,
+                (int)tmp_l)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+static struct pcdvobjs_option_to_atom open_flags_ckws[] = {
+    { "read",       0,  O_RDONLY },
+    { "write",      0,  O_WRONLY },
+    { "append",     0,  O_APPEND },
+    { "create",     0,  O_CREAT },
+    { "excl",       0,  O_EXCL },
+    { "truncate",   0,  O_TRUNC },
+    { "cloexec",    0,  O_CLOEXEC },
+    { "nonblock",   0,  O_NONBLOCK },
+};
+
+static int
+handle_file_action_open(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(fa, "fd");
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+    int fd = (int)tmp_l;
+
+    if ((v = purc_variant_object_get_by_ckey(fa, "path")) == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    const char *path = purc_variant_get_string_const(v);
+    if (path == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if ((v = purc_variant_object_get_by_ckey(fa, "oflags")) == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if (open_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
+            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
+        }
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(v, NULL, 0,
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws), 0, -1);
+    if (flags == -1) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    mode_t mode;
+    if ((v = purc_variant_object_get_by_ckey(fa, "cmode"))) {
+        const char *cmode = purc_variant_get_string_const(v);
+        if (cmode == NULL) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        }
+
+        if (cmode[0] == '0') {
+            long tmp;
+            char *endp;
+            tmp = strtol(cmode, &endp, 8);
+
+            if (errno == ERANGE) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto done;
+            }
+
+            if (endp == cmode) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto done;
+            }
+
+            mode = (mode_t)tmp;
+        }
+        else {
+            /* TODO: for u+rwx,go+rx */
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        }
+    }
+    else {
+        mode = 0666;
+    }
+
+    switch (posix_spawn_file_actions_addopen(file_actions,
+                fd, path, flags, mode)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+static int
+handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey(fa, "fd");
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    int fd = (int)tmp_l;
+
+    v = purc_variant_object_get_by_ckey(fa, "newfd");
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    int newfd = (int)tmp_l;
+
+    switch (posix_spawn_file_actions_adddup2(file_actions,
+                fd, newfd)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+/* posix_spawnattr_setflags only uses a short for flags */
+#define SPAWN_FLAG_SEARCH       (0x01 << 16)
+
+#ifndef POSIX_SPAWN_SETSCHEDPARAM    // Linux only
+#define POSIX_SPAWN_SETSCHEDPARAM 0
+#endif
+
+#ifndef POSIX_SPAWN_SETSCHEDULER     // Linux only
+#define POSIX_SPAWN_SETSCHEDULER 0
+#endif
+
+#ifndef POSIX_SPAWN_CLOEXEC_DEFAULT  // Apple extension
+#define POSIX_SPAWN_CLOEXEC_DEFAULT 0
+#endif
+
+static struct pcdvobjs_option_to_atom spawn_flags_ckws[] = {
+    { "search",     0, SPAWN_FLAG_SEARCH },
+    { "resetids",   0, POSIX_SPAWN_RESETIDS },
+    { "setsid",     0, POSIX_SPAWN_SETSID },
+    { "setpgroup",  0, POSIX_SPAWN_SETPGROUP },
+    { "setsigdef",  0, POSIX_SPAWN_SETSID },
+    { "setsigmask", 0, POSIX_SPAWN_SETSIGMASK },
+    { "setschedparam",      0, POSIX_SPAWN_SETSCHEDPARAM },
+    { "setscheduler",       0, POSIX_SPAWN_SETSCHEDULER },
+    { "cloexec-default",    0, POSIX_SPAWN_CLOEXEC_DEFAULT },
+};
+
+static int
+handle_spawn_attr(posix_spawnattr_t *attr, bool *se_path,
+        purc_variant_t flags, purc_variant_t extra_options)
+{
+    (void)extra_options;    // TODO
+
+    int ec = PURC_ERROR_OK;
+
+    if (spawn_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(spawn_flags_ckws); i++) {
+            spawn_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, spawn_flags_ckws[i].option);
+        }
+    }
+
+    int spawn_flags;
+    spawn_flags = pcdvobjs_parse_options(flags, NULL, 0,
+            spawn_flags_ckws, PCA_TABLESIZE(spawn_flags_ckws), 0, -1);
+    if (spawn_flags == -1) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if (spawn_flags & SPAWN_FLAG_SEARCH)
+        *se_path = true;
+    else
+        *se_path = false;
+
+    if (posix_spawnattr_setflags(attr, (short)spawn_flags)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+    }
+
+done:
+    return ec;
+
+}
+
+/*
+$SYS.spawn(
+    <string $program: `The path or the filename of the executable program.`>
+    <array | tuple $file_actions: `A linear container which speicifies the
+            file-related actions to be performed in the child between the
+            fork(2) and exec(3) steps.`>
+    <array | tuple $argv: `The arguments will be passed to the program.`>
+    [, <array $env = [! ]: `The environment (*key=value* strings) will be kept
+            for child process.`>
+        [, <['search | resetids || setsid ] $flags: `The flags for spawning.`
+            - 'search': `The executable file is specified as a simple filename;
+                    the system searches for this file in the list of
+                    directories specified by PATH.
+            - 'resetids': `Reset the effective UID and GID to the real UID and
+                    GID of the parent process.`
+            - `setsid': `The child process shall create a new session and
+                    become the session leader.` >
+            [, < object $extra_options : `The extra options for spawning.` >
+        ]
+    ]
+) longint | false
+ */
+static purc_variant_t
+spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+    const char **spawn_argv = NULL;
+    const char **spawn_envp = NULL;
+
+    if (nr_args < 3) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *program;
+    program = purc_variant_get_string_const(argv[0]);
+    if (program == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_file_actions;
+    if (!purc_variant_linear_container_size(argv[1], &sz_file_actions)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_spawn_argv;
+    if (!purc_variant_linear_container_size(argv[2], &sz_spawn_argv)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_spawn_env = 0;
+    if (nr_args > 3 && !purc_variant_linear_container_size(argv[3],
+                &sz_spawn_env)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    const char *flags = NULL;
+    if (nr_args > 4 && (flags = purc_variant_get_string_const(argv[4])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    purc_variant_t extra_opts = (nr_args > 5) ? argv[5] : PURC_VARIANT_INVALID;
+    if (extra_opts && !purc_variant_is_object(argv[5])) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    posix_spawn_file_actions_t file_actions;
+    if (posix_spawn_file_actions_init(&file_actions) == ENOMEM) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    for (size_t i = 0; i < sz_file_actions; i++) {
+        purc_variant_t fa = purc_variant_linear_container_get(argv[1], i);
+
+        if (!purc_variant_is_object(fa)) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey(fa, "action");
+        const char *action = purc_variant_get_string_const(v);
+        if (action == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+
+        if (strcmp(action, "close") == 0) {
+            if ((ec = handle_file_action_close(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+        else if (strcmp(action, "open") == 0) {
+            if ((ec = handle_file_action_open(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+        else if (strcmp(action, "dup2") == 0) {
+            if ((ec = handle_file_action_dup2(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+    }
+
+    spawn_argv = calloc(sz_spawn_argv == 0 ? 2 : sz_spawn_argv + 1,
+            sizeof(const char *));
+    if (spawn_argv == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error_file_actions_inited;
+    }
+
+    for (size_t i = 0; i < sz_spawn_argv; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(argv[2], i);
+        spawn_argv[i] = purc_variant_get_string_const(v);
+        if (spawn_argv[i] == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+    }
+
+    // give a default argv[0]
+    if (sz_spawn_argv == 0) {
+        spawn_argv[0] = "spawned-by-hvml";
+        spawn_argv[1] = NULL;
+    }
+    else {
+        spawn_argv[sz_spawn_argv] = NULL;
+    }
+
+    if (sz_spawn_env > 0) {
+        spawn_envp = calloc(sz_spawn_env + 1, sizeof(const char *));
+        if (spawn_envp == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error_file_actions_inited;
+        }
+
+        for (size_t i = 0; i < sz_spawn_env; i++) {
+            purc_variant_t v = purc_variant_linear_container_get(argv[3], i);
+            spawn_envp[i] = purc_variant_get_string_const(v);
+            if (spawn_envp[i] == NULL) {
+                ec = PURC_ERROR_WRONG_DATA_TYPE;
+                goto error_file_actions_inited;
+            }
+        }
+        spawn_envp[sz_spawn_env] = NULL;
+    }
+
+    posix_spawnattr_t attr;
+    if (posix_spawnattr_init(&attr)) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error_file_actions_inited;
+    }
+
+    bool use_path;
+    if ((ec = handle_spawn_attr(&attr, &use_path,
+                    nr_args > 4 ? argv[4] : PURC_VARIANT_INVALID,
+                    nr_args > 5 ? argv[5] : PURC_VARIANT_INVALID)))
+        goto error_spawn_attr_inited;
+
+    int ret;
+    pid_t pid;
+    if (strchr(program, '/') == NULL || use_path) {
+        ret = posix_spawnp(&pid, program, &file_actions, &attr,
+                (char * const *)spawn_argv, (char * const *)spawn_envp);
+    }
+    else {
+        ret = posix_spawn(&pid, program, &file_actions, &attr,
+                (char * const *)spawn_argv, (char * const *)spawn_envp);
+    }
+
+    if (ret) {
+        ec = purc_error_from_errno(ret);
+        goto error_spawn_attr_inited;
+    }
+
+    free(spawn_argv);
+    if (spawn_envp)
+        free(spawn_envp);
+    posix_spawnattr_destroy(&attr);
+    posix_spawn_file_actions_destroy(&file_actions);
+
+    purc_clr_error();
+    return purc_variant_make_longint(pid);
+
+error_spawn_attr_inited:
+    posix_spawnattr_destroy(&attr);
+
+error_file_actions_inited:
+    posix_spawn_file_actions_destroy(&file_actions);
+
+error:
+    if (spawn_argv)
+        free(spawn_argv);
+    if (spawn_envp)
+        free(spawn_envp);
+
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -2571,11 +3103,13 @@ purc_variant_t purc_dvobj_system_new (void)
         { "env",        env_getter,         env_setter },
         { "random",     random_getter,      random_setter },
         { "random_sequence", random_sequence_getter, NULL },
+        { "access",     access_getter,      NULL },
         { "remove",     remove_getter,      NULL },
         { "pipe",       pipe_getter,        NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
         { "close",      close_getter,       NULL },
+        { "spawn",      spawn_getter,       NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

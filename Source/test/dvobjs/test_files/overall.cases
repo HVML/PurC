@@ -1612,3 +1612,63 @@ positive:
     $DATA.serialize($DATA.parse(']'))
     '"<undefined>"'
 
+negative:
+    $SYS.access
+    ArgumentMissed
+
+negative:
+    $SYS.access(null)
+    WrongDataType
+
+positive:
+    $SYS.access('/tmp/file-not-exists')
+    false
+
+positive:
+    $SYS.access('/bin/ls', 'read execute existence')
+    true
+
+positive:
+    $SYS.access('/root', 'read execute')
+    false
+
+negative:
+    $SYS.spawn
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null)
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null, null)
+    WrongDataType
+
+negative:
+    $SYS.spawn('file-not-exists', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], null)
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'}, null ],  ['ls', '/'], ['A=B'])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B', null])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'foo': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B'])
+    InvalidValue
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'foo'} ],  ['ls', '/'], ['A=B'])
+    InvalidValue
+
+positive:
+    $DATA.type($SYS.spawn('bc', [], []))
+    'longint'
+
+positive:
+    {{ $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'close', 'fd': 1 }, { 'action': 'close', 'fd': 2 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/']) && $SYS.access('/tmp/stdout-ls') }}
+    true
+

@@ -660,3 +660,32 @@ PURC_COMPUTE_SOURCES(test_message_good_client)
 PURC_FRAMEWORK(test_message_good_client)
 GTEST_DISCOVER_TESTS(test_message_good_client DISCOVERY_TIMEOUT 10)
 
+# test_spawn
+PURC_EXECUTABLE_DECLARE(test_spawn)
+
+list(APPEND test_spawn_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_spawn)
+
+set(test_spawn_SOURCES
+    test_spawn.cpp
+    ../tools.cpp
+)
+
+set(test_spawn_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_spawn)
+PURC_FRAMEWORK(test_spawn)
+GTEST_DISCOVER_TESTS(test_spawn DISCOVERY_TIMEOUT 10)
+
+
