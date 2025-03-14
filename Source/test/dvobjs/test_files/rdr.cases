@@ -17,5 +17,9 @@ positive:
 
 positive:
     $RDR.state.prot
+    "PURCMC"
+
+positive:
+    $RDR.info().name
     "HEADLESS"
 
