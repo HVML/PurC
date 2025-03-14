@@ -471,3 +471,33 @@ PURC_COMPUTE_SOURCES(test_inherit_document)
 PURC_FRAMEWORK(test_inherit_document)
 GTEST_DISCOVER_TESTS(test_inherit_document DISCOVERY_TIMEOUT 10)
 
+# test_run_idx
+PURC_EXECUTABLE_DECLARE(test_run_idx)
+
+list(APPEND test_run_idx_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_run_idx)
+
+set(test_run_idx_SOURCES
+    ../tools.cpp
+    test_run_idx.cpp
+)
+
+set(test_run_idx_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+target_compile_definitions(test_run_idx PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
+PURC_COMPUTE_SOURCES(test_run_idx)
+PURC_FRAMEWORK(test_run_idx)
+GTEST_DISCOVER_TESTS(test_run_idx DISCOVERY_TIMEOUT 10)
