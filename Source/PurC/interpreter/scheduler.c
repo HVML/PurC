@@ -374,7 +374,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
         // CO_STAGE_FIRST_RUN or
         // observing finished (only HVML tag in stack)
-        one_run = true;
+        if (!co->stack.last_msg_read) {
+            one_run = true;
+        }
     }
 
     /* send doc to rdr */
