@@ -43,3 +43,7 @@ positive:
     $RDR.info.vendor
     'FMSoft'
 
+negative:
+    $RDR.info.foo
+    InvalidValue
+
