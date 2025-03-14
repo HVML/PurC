@@ -83,6 +83,9 @@ public:
     }
 };
 
+testing::Environment* const _env =
+    testing::AddGlobalTestEnvironment(new TestCaseEnv);
+
 static inline void
 add_test_case(std::vector<struct TestCase*> &test_cases,
     std::vector<char*> &test_cases_name,
@@ -96,30 +99,6 @@ add_test_case(std::vector<struct TestCase*> &test_cases,
 
     test_cases.push_back(data);
     test_cases_name.push_back(data->name);
-}
-
-char* trim(char* str)
-{
-    if (!str) {
-        return NULL;
-    }
-    char* end;
-
-    while (isspace((unsigned char)*str)) {
-        str++;
-    }
-
-    if (*str == 0) {
-        return str;
-    }
-
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
-        end--;
-    }
-
-    end[1] = '\0';
-    return str;
 }
 
 class TestRunIdx : public testing::TestWithParam<struct TestCase*> {
