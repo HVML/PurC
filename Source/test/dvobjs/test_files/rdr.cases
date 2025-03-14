@@ -20,6 +20,26 @@ positive:
     "PURCMC"
 
 positive:
-    $RDR.info().name
+    $RDR.info
+    {"displayDensity":null,"html":"5.3","locale":null,"name":"HEADLESS","version":"1.0"}
+
+positive:
+    $RDR.info.name
     "HEADLESS"
+
+positive:
+    $RDR.info.version
+    "1.0"
+
+positive:
+    $RDR.info.html
+    "5.3"
+
+positive:
+    $RDR.info.locale
+    null
+
+positive:
+    $RDR.info.displayDensity
+    null
 
