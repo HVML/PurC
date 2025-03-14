@@ -1065,8 +1065,8 @@ pcrdr_data(pcrdr_conn *conn)
 
     struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     if (rdr_caps) {
-        char buf[21];
-        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", rdr_caps->prot_version);
         vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
         vs[3] = purc_variant_make_string(buf, false);
         vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);

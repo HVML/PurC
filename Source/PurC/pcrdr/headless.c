@@ -56,7 +56,10 @@
     "workspace:" __STRING(8)                                \
     "/tabbedWindow:" __STRING(8)                            \
     "/widgetInTabbedWindow:" __STRING(32)                   \
-    "/plainWindow:" __STRING(256)
+    "/plainWindow:" __STRING(256) "\n"                      \
+    "vendor:FMSoft\n"                                       \
+    "locale:en\n"                                           \
+    "docLoadingMethod:direct"
 
 struct tabbedwin_info {
     // the group identifier of the tabbedwin

@@ -52,7 +52,7 @@
 #define KEY_version             "version"
 #define KEY_locale              "locale"
 #define KEY_html                "html"
-#define KEY_displayDensity      "displayDensity"
+#define KEY_vendor              "vendor"
 
 static purc_variant_t
 info_getter(purc_variant_t root,
@@ -96,9 +96,9 @@ info_getter(purc_variant_t root,
                 purc_variant_make_null();
             goto done;
         }
-        else if (strcmp(item, KEY_displayDensity) == 0) {
-            retv = rdr_caps->display_density ?
-                purc_variant_make_string_static(rdr_caps->display_density,
+        else if (strcmp(item, KEY_vendor) == 0) {
+            retv = rdr_caps->vendor ?
+                purc_variant_make_string_static(rdr_caps->vendor,
                         false): purc_variant_make_null();
             goto done;
         }
@@ -130,9 +130,9 @@ info_getter(purc_variant_t root,
     vs[7] = rdr_caps->locale ?
         purc_variant_make_string_static(rdr_caps->locale, false):
         purc_variant_make_null();
-    vs[8] = purc_variant_make_string_static(KEY_displayDensity, false);
-    vs[9] = rdr_caps->display_density ?
-        purc_variant_make_string_static(rdr_caps->display_density, false):
+    vs[8] = purc_variant_make_string_static(KEY_vendor, false);
+    vs[9] = rdr_caps->vendor ?
+        purc_variant_make_string_static(rdr_caps->vendor, false):
         purc_variant_make_null();
 
     if (vs[9] == PURC_VARIANT_INVALID) {
@@ -253,8 +253,8 @@ state_getter(purc_variant_t root,
 
     struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     if (rdr_caps) {
-        char buf[21];
-        snprintf(buf, sizeof(buf), "%ld", rdr_caps->prot_version);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", rdr_caps->prot_version);
         vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
         vs[3] = purc_variant_make_string(buf, false);
         vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);

@@ -21,7 +21,7 @@ positive:
 
 positive:
     $RDR.info
-    {"displayDensity":null,"html":"5.3","locale":null,"name":"HEADLESS","version":"1.0"}
+    {"vendor":"FMSoft","html":"5.3","locale":"en","name":"HEADLESS","version":"1.0"}
 
 positive:
     $RDR.info.name
@@ -37,9 +37,9 @@ positive:
 
 positive:
     $RDR.info.locale
-    null
+    'en'
 
 positive:
-    $RDR.info.displayDensity
-    null
+    $RDR.info.vendor
+    'FMSoft'
 

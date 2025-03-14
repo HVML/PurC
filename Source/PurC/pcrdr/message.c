@@ -1290,6 +1290,23 @@ pcrdr_parse_renderer_capabilities(const char *data)
             else if (strcasecmp(cap, "displayDensity") == 0) {  // Since 160
                 rdr_caps->display_density = strdup(value);
             }
+            else if (strcasecmp(cap, "vendor") == 0) {          // Since 170
+                rdr_caps->vendor = strdup(value);
+            }
+            else if (strcasecmp(cap, "jsToInject") == 0) {      // Since 170
+                rdr_caps->js_to_inject = strdup(value);
+            }
+            else if (strcasecmp(cap, "docLoadingMethod") == 0) { // Since 170
+                if (strcasecmp(value, PCRDR_DLM_direct)) {
+                    rdr_caps->doc_loading_method = PCRDR_K_DLM_direct;
+                }
+                else if (strcasecmp(value, PCRDR_DLM_url)) {
+                    rdr_caps->doc_loading_method = PCRDR_K_DLM_url;
+                }
+                else {
+                    PC_WARN("Unknown document loading method: %s\n", value);
+                }
+            }
             else {
                 PC_WARN("Unknown renderer capability: %s\n", cap);
                 break;
