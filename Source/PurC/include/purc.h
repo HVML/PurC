@@ -87,7 +87,7 @@ typedef struct purc_instance_extra_info {
      *
      * If the renderer acts as a socket client, and the interpreter
      * instance inherits the socket connection from the renderer and
-     * acts as a worker proecess at server-side, you can specify the URI
+     * acts as a worker process at server-side, you can specify the URI
      * like this:
      *      - UNIX domain socket: `local://_inherited:<fd>@<hostname>/var/tmp/xxx.sock`
      *      - WebSocket: `inet://_inherited:<fd>@<hostname>/renderer/?handshake=false`
