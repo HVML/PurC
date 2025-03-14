@@ -49,8 +49,9 @@
 
 #define __STRING(x) #x
 
-#define RENDERER_FEATURES                                   \
-    "HEADLESS:" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n"   \
+#define RENDERER_FEATURES                                                    \
+    PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \
+    "HEADLESS:1.0\n"                                        \
     "HTML:5.3/XGML:1.0/XML:1.0\n"                           \
     "workspace:" __STRING(8)                                \
     "/tabbedWindow:" __STRING(8)                            \
