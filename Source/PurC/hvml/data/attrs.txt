@@ -59,7 +59,7 @@ on
     type: prep
 
 once
-    type: prep
+    type: adverb
 
 to
     type: prep
@@ -139,3 +139,7 @@ wholly
 
 template
     type: prep
+
+via
+    type: prep
+
