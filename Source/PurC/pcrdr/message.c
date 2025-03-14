@@ -1281,7 +1281,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     }
                 }
             }
-            else if (strcasecmp(cap, "challengeCode") == 0) {   // Since v160
+            else if (strcasecmp(cap, "challengeCode") == 0) {   // Since 160
                 rdr_caps->challenge_code = strdup(value);
             }
             else if (strcasecmp(cap, "locale") == 0) {          // Since 160
