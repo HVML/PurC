@@ -1,0 +1,6 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+    <!-- initialize some runner-level variables for the request handler -->
+    <init as MATH at '_runner' from 'MATH' via 'LOAD' />
+    <init as FS at '_runner' from 'FS' for 'FS' via 'LOAD' />
+</hvml>
