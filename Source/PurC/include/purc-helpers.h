@@ -261,6 +261,16 @@ PCA_EXPORT bool
 purc_is_valid_loose_token(const char *token, int max_len);
 
 /**
+ * Generate a global unique unsigned long long integer.
+ *
+ * Returns: the unique integer.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT unsigned long long
+purc_generate_unique_ulongint(void);
+
+/**
  * Generate an unique identifier.
  *
  * @param id_buff: the buffer to save the identifier.

@@ -683,15 +683,42 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             check_response_for_suppressed(inst, cor, response_msg);
         }
     }
-    /* TODO: WEBSOCKET with sending_document_by_url */
-    else if (conn_type == CT_UNIX_SOCKET && cor->sending_document_by_url) {
-        unsigned opt = 0;
+    /* Use rdr_caps->doc_loading_method since PURCMC 170 */
+    else if (conn->caps->doc_loading_method == PCRDR_K_DLM_url) {
+        char *path;
+        int path_len;
+        /* try to use /app/<app_name>/exported/tmp/ first */
+        if ((path_len = asprintf(&path, PCRDR_PATH_FORMAT_DOC,
+                        inst->app_name)) < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
 
-        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (access(path, W_OK | X_OK) == 0) {
+            char file_name[PURC_LEN_RUNNER_NAME + 32];
+            snprintf(file_name, sizeof(file_name), "%s-%llu.html",
+                    inst->runner_name, pcinst_get_unique_ull(inst));
+            path = realloc(path, path_len + sizeof(file_name));
+            if (path == NULL) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
+            }
+
+            strcat(path, file_name);
+        }
+        else {
+            /* use /tmp instead; the size of path will be enough. */
+            snprintf(path, path_len, "/tmp/%s-%s-%llu.html",
+                    inst->app_name, inst->runner_name,
+                    pcinst_get_unique_ull(inst));
+        }
+
+        out = purc_rwstream_new_from_file(path, "w");
         if (out == NULL) {
             goto failed;
         }
 
+        unsigned opt = 0;
         opt |= PCDOC_SERIALIZE_OPT_UNDEF;
         opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
         opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
@@ -701,25 +728,22 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
             goto failed;
         }
+        purc_rwstream_destroy(out);
+        out = NULL;
 
-        size_t sz_content = 0;
-        size_t sz_buff = 0;
-        char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
-                &sz_buff, false);
+        char *url;
+        int url_len = asprintf(&url,
+                "hvml://localhost/_filesystem/_file/-%s", path);
+        if (url_len < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
 
-        char path[NAME_MAX + 10];
-        snprintf(path, sizeof(path), "/tmp/%s_%s.html",
-                inst->app_name, inst->runner_name);
-
-        FILE *fp = fopen(path, "w");
-        fwrite(p, 1, sz_content, fp);
-        fclose(fp);
-
-        char url[NAME_MAX + 64];
-        snprintf(url, sizeof(url), "hvml://localhost/_filesystem/_file/-%s", path);
+        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
+                pcintr_tick_count(), url);
 
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
-        req_data = purc_variant_make_string(url, false);
+        req_data = purc_variant_make_string_reuse_buff(url, url_len + 1, false);
         if (req_data == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
@@ -734,14 +758,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             check_response_for_suppressed(inst, cor, response_msg);
         }
 
-        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
-                pcintr_tick_count(), url);
         purc_variant_unref(req_data);
-
-        if (out) {
-            purc_rwstream_destroy(out);
-            out = NULL;
-        }
     }
     else {
         unsigned opt = 0;
@@ -794,14 +811,10 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
                 check_response_for_suppressed(inst, cor, response_msg);
             }
         }
-        PC_INFO("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
-                pcintr_tick_count(), sz_content);
         purc_variant_unref(req_data);
 
-        if (out) {
-            purc_rwstream_destroy(out);
-            out = NULL;
-        }
+        purc_rwstream_destroy(out);
+        out = NULL;
     }
 
     if (response_msg == NULL) {

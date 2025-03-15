@@ -1297,14 +1297,16 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 rdr_caps->js_to_inject = strdup(value);
             }
             else if (strcasecmp(cap, "docLoadingMethod") == 0) { // Since 170
-                if (strcasecmp(value, PCRDR_DLM_direct)) {
+                if (strcasecmp(value, PCRDR_DLM_direct) == 0) {
                     rdr_caps->doc_loading_method = PCRDR_K_DLM_direct;
                 }
-                else if (strcasecmp(value, PCRDR_DLM_url)) {
+                else if (strcasecmp(value, PCRDR_DLM_url) == 0) {
                     rdr_caps->doc_loading_method = PCRDR_K_DLM_url;
                 }
                 else {
-                    PC_WARN("Unknown document loading method: %s\n", value);
+                    rdr_caps->doc_loading_method = PCRDR_K_DLM_direct;
+                    PC_WARN("Unknown document loading method: %s; "
+                            "fallback to direct\n", value);
                 }
             }
             else {

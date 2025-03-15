@@ -412,6 +412,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#if 0 // Removed since 0.9.22
 static purc_variant_t
 sending_document_by_url_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
@@ -458,6 +459,7 @@ failed:
 
     return PURC_VARIANT_INVALID;
 }
+#endif
 
 static purc_variant_t
 cid_getter(purc_variant_t root,
@@ -876,8 +878,9 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
             max_recursion_depth_getter, max_recursion_depth_setter },
         { "maxEmbeddedLevels",
             max_embedded_levels_getter, max_embedded_levels_setter },
-        { "sendingDocumentByURL",   // TODO: remove in 0.9.24
-            sending_document_by_url_getter, sending_document_by_url_setter },
+        /* Removed since 0.9.22
+        { "sendingDocumentByURL",   // 
+            sending_document_by_url_getter, sending_document_by_url_setter }, */
         { "timeout", timeout_getter, timeout_setter },
         { "cid",     cid_getter,     NULL },
         { "uri",     uri_getter,     NULL },

@@ -410,7 +410,8 @@ struct pcintr_coroutine {
 
     /* misc. flags go here */
     uint32_t                    is_main:1;
-    uint32_t                    sending_document_by_url:1;
+    /* removed; use capability of renderer instead
+    uint32_t                    sending_document_by_url:1; */
     uint32_t                    supressed;
 };
 

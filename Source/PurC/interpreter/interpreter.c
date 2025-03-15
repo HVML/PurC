@@ -1861,7 +1861,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->stopped_timeout = -1;
     co->avl.key = co;
-    co->sending_document_by_url = 0;    // 0.9.18
+    /* removed since 0.9.22
+       co->sending_document_by_url = 0; */
     return co;
 
 fail_clr_fetcher_session:

@@ -318,34 +318,13 @@ failed:
     return -1;
 }
 
-#if HAVE(STDATOMIC_H)
-
-#include <stdatomic.h>
-
-static char* generate_unique_rid(const char* name)
+static char* generate_unique_rid(struct pcinst *inst, const char* name)
 {
-    static atomic_ullong atomic_accumulator;
-    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
-    char *buf = malloc(buf_len); // name-xxx
-
-    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
-    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
+    char *buf;
+    asprintf(&buf, "%s-%llx", name, pcinst_get_unique_ull(inst));
+    //asprintf(&buf, "%s-%llx", name, purc_generate_unique_ulongint());
     return buf;
 }
-
-#else /* HAVE(STDATOMIC_H) */
-
-static char* generate_unique_rid(const char* name)
-{
-    static unsigned long long accumulator;
-    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
-    char *buf = malloc(buf_len); // name-xxx
-    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
-    accumulator++;
-    return buf;
-}
-
-#endif
 
 static pcrdr_conn *
 connect_to_renderer(struct pcinst *inst,
@@ -490,7 +469,7 @@ connect_to_renderer(struct pcinst *inst,
                     conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(conn_to_rdr->name);
+                uid = generate_unique_rid(inst, conn_to_rdr->name);
             }
             else {
                 uid = strdup(conn_to_rdr->name);
@@ -811,7 +790,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
                     n_conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(n_conn_to_rdr->name);
+                uid = generate_unique_rid(inst, n_conn_to_rdr->name);
             }
             else {
                 uid = strdup(n_conn_to_rdr->name);
@@ -1305,7 +1284,7 @@ int connect_to_renderer_response_handler(pcrdr_conn *conn_to_rdr,
                     conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(conn_to_rdr->name);
+                uid = generate_unique_rid(inst, conn_to_rdr->name);
             }
             else {
                 uid = strdup(conn_to_rdr->name);
