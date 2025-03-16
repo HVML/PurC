@@ -853,7 +853,7 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
-static int replace_helper(purc_rwstream_t rwstream, const char *subject,
+static int do_replace_case(purc_rwstream_t rwstream, const char *subject,
         const char *search, size_t len_search,
         const char *replace, size_t len_replace)
 {
@@ -870,6 +870,30 @@ static int replace_helper(purc_rwstream_t rwstream, const char *subject,
         }
         else
             break;
+    }
+
+    return 0;
+}
+
+static int do_replace_caseless(purc_rwstream_t rwstream, const char *subject,
+        const char *search, size_t len_search,
+        const char *replace, size_t len_replace)
+{
+    const char *found;
+
+    while ((found = pcutils_strcasestr(subject, search))) {
+        size_t before = found - subject;
+        if (before > 0) {
+            purc_rwstream_write(rwstream, subject, before);
+            subject += before;
+        }
+
+        purc_rwstream_write(rwstream, replace, len_replace);
+        subject += len_search;
+    }
+
+    if (subject[0]) {
+        purc_rwstream_write(rwstream, subject, strlen(subject));
     }
 
     return 0;
@@ -966,6 +990,12 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     if (nr_replaces == 0) nr_replaces = 1;
 
+    int (*do_replace)(purc_rwstream_t, const char *,
+        const char *, size_t, const char *, size_t) = do_replace_case;
+    if (nr_args > 3 && purc_variant_booleanize(argv[3])) {
+        do_replace = do_replace_caseless;
+    }
+
     if (nr_subjects == 0) {
         purc_rwstream_t rwstream;
         rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
@@ -973,7 +1003,7 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             const char *search = searches[i];
             const char *replace = (i < nr_replaces) ? replaces[i] : "";
 
-            replace_helper(rwstream, subjects[0], search, strlen(search),
+            do_replace(rwstream, subjects[0], search, strlen(search),
                 replace, strlen(replace));
         }
 
@@ -1000,11 +1030,11 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         for (size_t i = 0; i < nr_subjects; i++) {
             purc_rwstream_t rwstream;
             rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
-            for (size_t i = 0; i < nr_searches; i++) {
-                const char *search = searches[i];
-                const char *replace = (i < nr_replaces) ? replaces[i] : "";
+            for (size_t j = 0; j < nr_searches; j++) {
+                const char *search = searches[j];
+                const char *replace = (j < nr_replaces) ? replaces[j] : "";
 
-                replace_helper(rwstream, subjects[0], search, strlen(search),
+                do_replace(rwstream, subjects[i], search, strlen(search),
                     replace, strlen(replace));
             }
 
@@ -1125,7 +1155,7 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             int cs_len = conversion_specification(conv_spec,
                     sizeof(conv_spec), format + i);
 
-            printf("conversion specification: %s (%s) (%d) for arg %zu\n",
+            PC_DEBUG("conversion specification: %s (%s) (%d) for arg %zu\n",
                     conv_spec, format + i, cs_len, j);
             if (conv_spec[cs_len - 1] == '\0') {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1289,6 +1319,11 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 purc_rwstream_write(rwstream, buff, len);
                 arg_used = 0;
                 break;
+
+            default:
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto error;
+                break;
             }
 
             i += cs_len;
@@ -1297,8 +1332,6 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else
             i++;
-
-        printf("%zu %zu, (%zu)\n", i, j, format_len);
     }
 
     if (i != start)

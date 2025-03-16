@@ -1,0 +1,12 @@
+positive:
+    $STR.format_c('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
+    'Tom is 009 years old, while Jerry is 007 years old.'
+
+positive:
+    $STR.replace('tom, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
+    'Tom, Tom, Tom, and Jerry'
+
+positive:
+    $STR.replace(['tom and Jerray', 'TOM and Amy'], 'TOM', 'Tom', true)
+    ['Tom and Jerray', 'Tom and Amy']
+
