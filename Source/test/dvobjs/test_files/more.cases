@@ -10,3 +10,7 @@ positive:
     $STR.replace(['tom and Jerray', 'TOM and Amy'], 'TOM', 'Tom', true)
     ['Tom and Jerray', 'Tom and Amy']
 
+positive:
+    $STR.replace('Amy, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
+    'Amy, Tom, Tom, and Jerry'
+
