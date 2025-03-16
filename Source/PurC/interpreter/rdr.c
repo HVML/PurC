@@ -35,8 +35,10 @@
 #include "private/pcrdr.h"
 #include "pcrdr/connect.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define ID_KEY                  "id"
 #define NAME_KEY                "name"
@@ -697,8 +699,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 
         if (access(path, W_OK | X_OK) == 0) {
             char file_name[PURC_LEN_RUNNER_NAME + 32];
-            snprintf(file_name, sizeof(file_name), "%s-%llu.html",
-                    inst->runner_name, pcinst_get_unique_ull(inst));
+            snprintf(file_name, sizeof(file_name), "%s-XXXXXX.html",
+                    inst->runner_name);
             path = realloc(path, path_len + sizeof(file_name));
             if (path == NULL) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -709,12 +711,17 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         }
         else {
             /* use /tmp instead; the size of path will be enough. */
-            snprintf(path, path_len, "/tmp/%s-%s-%llu.html",
-                    inst->app_name, inst->runner_name,
-                    pcinst_get_unique_ull(inst));
+            snprintf(path, path_len, "/tmp/%s-%s-XXXXXX.html",
+                    inst->app_name, inst->runner_name);
         }
 
-        out = purc_rwstream_new_from_file(path, "w");
+        int fd = mkstemps(path, 5);
+        if (fd < 0) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+
+        out = purc_rwstream_new_from_unix_fd(fd);
         if (out == NULL) {
             goto failed;
         }
@@ -730,6 +737,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             goto failed;
         }
         purc_rwstream_destroy(out);
+        close(fd);
         out = NULL;
 
         char *url;
