@@ -84,7 +84,7 @@ In this version, we fixed a few bugs and made some major enhancements:
    - Implement `$DATA.key()` method.
    - Implement `$STR.trim()` method.
    - Implement `$STR.strstr()` method.
-   - Refactor `$STR.explode()`, `$STR.implode()`, and `format_c()` methods.
+   - Refactor `$STR.explode()`, `$STR.implode()`, `$STR.format_c()`, and `$STR.replace()` methods.
    - Enhance `$STREAM.readlines()` to support the customized line seperator.
    - Rename `$DATA.size()` to `$DATA.memsize()`.
 * OPTIMIZATIONS:
