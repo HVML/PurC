@@ -36,6 +36,7 @@
 #include "pcrdr/connect.h"
 
 #include <string.h>
+#include <unistd.h>
 
 #define ID_KEY                  "id"
 #define NAME_KEY                "name"

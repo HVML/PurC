@@ -103,7 +103,7 @@ string:"";
 string:" ";
 string:"";
 param_end
-invalid:;
+string:"";
 test_end
 
 test_begin
