@@ -23,8 +23,6 @@
  */
 
 #define _GNU_SOURCE
-#undef NDEBUG
-
 #include "config.h"
 
 #include "private/errors.h"
