@@ -1,0 +1,330 @@
+#!/usr/bin/purc
+
+# RESULT: 'Good Client'
+
+<hvml target="void">
+    <head>
+        <define as 'logMsg'>
+            $RUNNER.enablelog('info', 'stderr')
+
+            <inherit>
+                $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+    </head>
+
+    <body id='server' >
+
+        <include with $logMsg on 'The server is running...request: ' />
+        <include with $logMsg on $REQ />
+
+        <init as 'sslSettings' with {} />
+        <test with $L.streq('caseless', $REQ.secure, 'true') >
+            <update on $sslSettings to 'merge'>
+                {
+                    'sslkey': "$REQ.base/localhost.key",
+                    'sslcert': "$REQ.base/localhost.crt",
+                }
+            </update>
+        </test>
+
+        <init as 'wsSettings' with {} />
+        <test with $STR.contains($REQ.client, 'ltnr') >
+            <update on $wsSettings to 'merge'>
+                {
+                    'noresptimetoping': 3,
+                    'noresptimetoclose': 6,
+                }
+            </update>
+        </test>
+
+        <test with $L.streq('caseless', $REQ.client, 'tlmsg') >
+            <update on $wsSettings to 'merge'>
+                {
+                    'maxmessagesize': 4096,
+                }
+            </update>
+        </test>
+
+        <include with $logMsg on $DATA.serialize($sslSettings) />
+        <include with $logMsg on $DATA.serialize($wsSettings) />
+
+        <init as 'clients' with {} />
+
+        <init as 'srvListenSocket' with $SOCKET.stream('inet://localhost:8080', 'none', 32, $sslSettings) >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
+            </catch>
+        </init>
+
+        <load from "#{$REQ.client}" within 'client' onto 'null:' as 'client' async >
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when loading client" />
+            </catch>
+        </load>
+
+        <observe on $client for "corState:exited" >
+            <inherit>
+                $STREAM.stdout.writelines("Client exited with $?")
+            </inherit>
+        </observe>
+
+        <include with $logMsg on 'The server is accepting...' />
+
+        <choose on $srvListenSocket.accept('default', 'websocket', $wsSettings)>
+            <catch for `ANY`>
+                <exit with "Server failed with $?.name when calling accept()" />
+            </catch>
+
+            <test with $L.not($DATA.isequal($?, null)) >
+
+                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+
+                <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
+
+                <update on $clients to 'merge' with { $clientId : $? } />
+
+                <observe on $clients[$clientId] for 'handshake'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Server got HANDSHAKE event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                        $_observedOn.send_handshake_resp(101);
+                    }}
+                    </inherit>
+                </observe>
+
+                <observe on $clients[$clientId] for 'error'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Server got ERROR event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                    }}
+                    </inherit>
+
+                    <exit with 'Bad Client' />
+                </observe>
+
+                <observe on $clients[$clientId] for 'message'>
+                    $clientId
+
+                    <test with $L.streq('case', $?, 'Bye')>
+                        <inherit>
+                            $_observedOn.close();
+                        </inherit>
+
+                        <exit with 'Good Client' />
+
+                        <differ>
+
+                            <inherit>
+                            {{
+                                $STREAM.stdout.writelines("Server got MESSAGE event from `$_observedContent`; payload:");
+                                $STREAM.stdout.writelines($DATA.serialize($?));
+                                $_observedOn.send("Hello from the server");
+                            }}
+                            </inherit>
+
+                        </differ>
+                    </test>
+                </observe>
+
+                <observe on $clients[$clientId] for 'close'>
+                    $clientId
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Server got CLOSE event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?))
+                    }}
+                    </inherit>
+
+                    <exit with 'Good Client' />
+                </observe>
+            </test>
+        </choose>
+
+    </body>
+
+    <!-- A plain client -->
+    <body id="plain">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: false } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+        </init>
+
+        <observe on $cliStreamSocket for 'handshake'>
+            <include with $logMsg on 'Client got HANDKSHAKE event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to send some words.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Hello from a good client.");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+        </observe>
+
+        <observe on $cliStreamSocket for 'message'>
+            <include with $logMsg on 'Client got MESSAGE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Bye");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+        </observe>
+
+        <observe on $cliStreamSocket for 'close'>
+            <include with $logMsg on 'Client got CLOSE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+    </body>
+
+    <!-- A secure client -->
+    <body id="secure">
+
+        <include with $logMsg on 'Client is running...' />
+
+        <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
+            <catch for `ANY`>
+                <exit with "Client failed with $?.name when calling STREAM.open()" />
+            </catch>
+
+            <include with $logMsg on 'Client has connected to the server.' />
+
+        </init>
+
+        <observe on $cliStreamSocket for 'handshake'>
+            <include with $logMsg on 'Client got HANDKSHAKE event' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to send some words.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Hello from a good client.");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+        </observe>
+
+        <observe on $cliStreamSocket for 'message'>
+            <include with $logMsg on 'Client got MESSAGE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to say bye.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.send("Bye");
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+        </observe>
+
+        <observe on $cliStreamSocket for 'close'>
+            <include with $logMsg on 'Client got CLOSE event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+
+        <observe on $cliStreamSocket for 'error'>
+            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on $DATA.serialize($?) />
+
+            <include with $logMsg on 'Client is going to exit.' />
+
+            <inherit>
+                {{
+                     $cliStreamSocket.close()
+                 }}
+
+                <catch for `ANY`>
+                    <exit with "Client failed with $?.name when calling cliStreamSocket.close()" />
+                </catch>
+            </inherit>
+
+            <exit with 'Bye' />
+        </observe>
+    </body>
+
+</hvml>
+
