@@ -553,7 +553,8 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             PCVRNT_SERIALIZE_OPT_RUNTIME_STRING |
             PCVRNT_SERIALIZE_OPT_PLAIN |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
-            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING;
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
+            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE;
     }
     else {
         vrt = argv[0];
