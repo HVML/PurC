@@ -596,15 +596,15 @@ opt_failed:
 static void
 destroy_ssl_ctx(struct pcdvobjs_socket *socket)
 {
+    if (socket->ssl_ctx) {
+        SSL_CTX_free(socket->ssl_ctx);
+        socket->ssl_ctx = NULL;
+    }
+
     if (socket->ssl_shctx_wrapper) {
         openssl_shctx_destroy(socket->ssl_shctx_wrapper);
         free(socket->ssl_shctx_wrapper);
         socket->ssl_shctx_wrapper = NULL;
-    }
-
-    if (socket->ssl_ctx) {
-        SSL_CTX_free(socket->ssl_ctx);
-        socket->ssl_ctx = NULL;
     }
 }
 #endif  // HAVE(OPENSSL)
