@@ -48,7 +48,7 @@ TEST(spawn, plain_websocket_worker)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    char *query = make_query_with_base("client=plain&secure=false&base=%s");
+    char *query = make_query_with_base("client=plain&secure=false&base=%s", "dvobjs/");
     run_one_comp_test("dvobjs/spawn/spawn-websocket-worker.hvml", query);
     free(query);
 
@@ -72,7 +72,7 @@ TEST(spawn, secure_websocket_worker)
             "client", client_cond_handler, NULL);
     assert(client_inst != 0);
 
-    char *query = make_query_with_base("client=secure&secure=true&base=%s");
+    char *query = make_query_with_base("client=secure&secure=true&base=%s", "dvobjs/");
     run_one_comp_test("dvobjs/spawn/spawn-websocket-worker.hvml", query);
     free(query);
 

@@ -1,0 +1,21 @@
+#!/usr/bin/purc
+
+# RESULT: 'closed'
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <head>
+        $RUNNER.enablelog('all', 'stderr')
+
+        <define as 'logMsg'>
+            <inherit>
+                $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+        <include with $logMsg on 'The worker is running...' />
+
+    </body>
+</hvml>

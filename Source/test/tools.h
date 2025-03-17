@@ -100,7 +100,7 @@ run_one_comp_test(const char *file, const char *query = NULL);
 int
 client_cond_handler(purc_cond_k event, void *arg, void *data);
 
-char *make_query_with_base(const char *format);
+char *make_query_with_base(const char *format, const char *rel = "renderer/hvml/");
 
 PCA_EXTERN_C_END
 
