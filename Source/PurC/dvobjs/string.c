@@ -949,6 +949,49 @@ error:
 }
 
 static purc_variant_t
+replace_one_subject(const char *orig_subject,
+        const char **searches, size_t nr_searches,
+        const char **replaces, size_t nr_replaces,
+        int (*do_replace)(purc_rwstream_t, const char *,
+        const char *, size_t, const char *, size_t))
+{
+    purc_rwstream_t rwstream;
+    rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+
+    const char *subject = orig_subject;
+    for (size_t i = 0; i < nr_searches; i++) {
+        const char *search = searches[i];
+        const char *replace = (i < nr_replaces) ? replaces[i] : "";
+
+        do_replace(rwstream, subject, search, strlen(search),
+                replace, strlen(replace));
+        purc_rwstream_write(rwstream, "", 1);
+
+        char *replaced = purc_rwstream_get_mem_buffer(rwstream, NULL);
+        if (subject != orig_subject)
+            free((char *)subject);
+
+        subject = strdup(replaced);
+        purc_rwstream_seek(rwstream, SEEK_SET, 0);
+    }
+    if (subject != orig_subject)
+        free((char *)subject);
+
+    size_t rw_size = 0;
+    char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
+            NULL, &rw_size, true);
+    if (rw_string == NULL) {
+        purc_rwstream_destroy(rwstream);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_string_reuse_buff(rw_string,
+            rw_size, false);
+    purc_rwstream_destroy(rwstream);
+    return retv;
+}
+
+static purc_variant_t
 replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -962,7 +1005,7 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char **subjects = NULL, **searches = NULL, **replaces = NULL;
     size_t nr_subjects, nr_searches, nr_replaces;
 
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
         goto error;
     }
@@ -978,6 +1021,7 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     for (size_t i = 0; i < nr_searches; i++) {
         if (searches[i][0] == 0) {
+            PC_WARN("Got an empty search string\n");
             ec = PURC_ERROR_INVALID_VALUE;
             goto error;
         }
@@ -995,28 +1039,12 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_subjects == 0) {
-        purc_rwstream_t rwstream;
-        rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
-        for (size_t i = 0; i < nr_searches; i++) {
-            const char *search = searches[i];
-            const char *replace = (i < nr_replaces) ? replaces[i] : "";
-
-            do_replace(rwstream, subjects[0], search, strlen(search),
-                replace, strlen(replace));
-        }
-
-        size_t rw_size = 0;
-        char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
-                NULL, &rw_size, true);
-        if (rw_string == NULL) {
-            purc_rwstream_destroy(rwstream);
+        retv = replace_one_subject(subjects[0], searches, nr_searches,
+                replaces, nr_replaces, do_replace);
+        if (retv == PURC_VARIANT_INVALID) {
             ec = PURC_ERROR_OUT_OF_MEMORY;
             goto error;
         }
-
-        retv = purc_variant_make_string_reuse_buff(rw_string,
-                    rw_size, false);
-        purc_rwstream_destroy(rwstream);
     }
     else {
         retv = purc_variant_make_array_0();
@@ -1026,31 +1054,16 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         for (size_t i = 0; i < nr_subjects; i++) {
-            purc_rwstream_t rwstream;
-            rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
-            for (size_t j = 0; j < nr_searches; j++) {
-                const char *search = searches[j];
-                const char *replace = (j < nr_replaces) ? replaces[j] : "";
-
-                do_replace(rwstream, subjects[i], search, strlen(search),
-                    replace, strlen(replace));
-            }
-
-            size_t rw_size = 0;
-            char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
-                    NULL, &rw_size, true);
-            if (rw_string == NULL) {
-                purc_rwstream_destroy(rwstream);
+            purc_variant_t tmp;
+            tmp = replace_one_subject(subjects[i], searches, nr_searches,
+                    replaces, nr_replaces, do_replace);
+            if (tmp == PURC_VARIANT_INVALID) {
                 ec = PURC_ERROR_OUT_OF_MEMORY;
                 goto error;
             }
 
-            purc_variant_t tmp;
-            tmp = purc_variant_make_string_reuse_buff(rw_string,
-                    rw_size, false);
             purc_variant_array_append(retv, tmp);
             purc_variant_unref(tmp);
-            purc_rwstream_destroy(rwstream);
         }
     }
 
@@ -1070,6 +1083,7 @@ error:
     if (retv)
         purc_variant_unref(retv);
 
+    purc_set_error(ec);
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_string_static("", false);
     return PURC_VARIANT_INVALID;
@@ -1135,8 +1149,8 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
 
     size_t start = 0, i = 0, j = 0;
-    while (*(format + i) != 0x00) {
-        if (*(format + i) == '%') {
+    while (format[i]) {
+        if (format[i] == '%') {
             purc_variant_t item = PURC_VARIANT_INVALID;
             if (is_array) {
                 if (j < sz_array) {
@@ -1302,6 +1316,13 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto error;
                 }
+
+                if (!pcutils_string_check_utf8(buff_alloc, -1, NULL, NULL)) {
+                    free(buff_alloc);
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
+                    goto error;
+                }
+
                 purc_rwstream_write(rwstream, buff_alloc, len);
                 free(buff_alloc);
                 break;

@@ -2,6 +2,22 @@ positive:
     $STR.format_c('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
     'Tom is 009 years old, while Jerry is 007 years old.'
 
+negative:
+    $STR.replace(null)
+    ArgumentMissed
+
+negative:
+    $STR.replace(null, null, null)
+    WrongDataType
+
+negative:
+    $STR.replace('美国、英国', ['美国', null], ['中国'])
+    WrongDataType
+
+negative:
+    $STR.replace('美国、英国', ['美国', ''], ['中国'])
+    InvalidValue
+
 positive:
     $STR.replace('tom, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
     'Tom, Tom, Tom, and Jerry'
@@ -13,4 +29,24 @@ positive:
 positive:
     $STR.replace('Amy, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
     'Amy, Tom, Tom, and Jerry'
+
+positive:
+    $STR.replace('美国、英国', ['美国', '英国'], ['中国', '中国'])
+    '中国、中国'
+
+positive:
+    $STR.replace('美国、英国', ['美国', '英国'], ['中国'])
+    '中国、'
+
+positive:
+    $STR.replace('Hello World of HVML', ["a", "e", "i", "o", "u", "A", "E", "I", "O", "U"], '')
+    'Hll Wrld f HVML'
+
+positive:
+    $STR.replace('You should eat fruits, vegetables, and fiber every day.', ["fruits", "vegetables", "fiber"], ["pizza", "beer", "ice cream"])
+    'You should eat pizza, beer, and ice cream every day.'
+
+positive:
+    $STR.replace('A', ['A', 'B', 'C', 'D', 'E'], ['B', 'C', 'D', 'E', 'F'])
+    'F'
 
