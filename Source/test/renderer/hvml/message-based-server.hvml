@@ -4,7 +4,7 @@
 
 <hvml target="void">
     <head>
-        $RUNNER.enablelog('all', 'stderr')
+        $RUNNER.enablelog('info error', 'stderr')
 
         <define as 'logMsg'>
             <inherit>
@@ -50,7 +50,7 @@
             <include with $logMsg on 'clients shrunken:' />
             <include with $logMsg on $clients />
 
-            <test with $DATA.count()>
+            <test with $DATA.count($clients)>
                 <differ>
                     <exit with 'No any clients' />
                 </differ>

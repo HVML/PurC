@@ -41,11 +41,12 @@ $data
         <init as 'dataType' at '_nexttolast' with 'plain' temp />
 
         <init as 'data' at '_nexttolast' temp>
-"""PURCMC:160
+"""PURCMC:170
 HVMLSimulator:1.0
 HTML:5.3
 workspace:0/tabbedWindow:0/plainWindow:-1/widgetInTabbedWindow:0
 DOMElementSelectors:id,css,handle,handles
+docLoadingMethod:$REQ.docLoadingMethod
 """
         </init>
     </test>
@@ -74,6 +75,8 @@ dataLen: $dataLen
 $data
 """
     </init>
+
+    <include with $logMsg on $message />
 
     <inherit>
         $clients[$clientId].stream.send($message)

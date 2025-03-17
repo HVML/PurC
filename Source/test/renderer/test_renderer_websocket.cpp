@@ -47,12 +47,10 @@ TEST(renderer, plain_websocket)
 {
     PurCInstance purc(false);
 
-    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
-
     purc_set_local_data(FN_AFTER_FIRST_RUN,
             (uintptr_t)my_after_first_run_plain, NULL);
 
-    char *query = make_query_with_base("secure=false&base=%s&client=plain");
+    char *query = make_query_with_base("secure=false&base=%s&docLoadingMethod=direct");
     run_one_comp_test("renderer/hvml/websocket-based-server.hvml", query);
     free(query);
 
@@ -72,24 +70,11 @@ TEST(renderer, secure_websocket)
 {
     PurCInstance purc(false);
 
-    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
-
     purc_set_local_data(FN_AFTER_FIRST_RUN,
             (uintptr_t)my_after_first_run_secure, NULL);
 
-    char *query = make_query_with_base("secure=true&base=%s&client=plain");
+    char *query = make_query_with_base("secure=true&base=%s&docLoadingMethod=direct");
     run_one_comp_test("renderer/hvml/websocket-based-server.hvml", query);
     free(query);
-
-#if 0
-    purc_inst_ask_to_shutdown(client_inst);
-    unsigned int seconds = 0;
-    while (purc_atom_to_string(client_inst)) {
-        purc_log_info("Wait for termination of client instance...\n");
-        sleep(1);
-        seconds++;
-        ASSERT_LT(seconds, 10);
-    }
-#endif
 }
 
