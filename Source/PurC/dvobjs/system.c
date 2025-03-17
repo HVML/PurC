@@ -2661,6 +2661,50 @@ static struct pcdvobjs_option_to_atom open_flags_ckws[] = {
     { "nonblock",   0,  O_NONBLOCK },
 };
 
+#define DEF_OPEN_FLAGS (O_RDONLY | O_WRONLY | O_CLOEXEC)
+
+static mode_t
+parse_file_mode(purc_variant_t mode_vrt, int *ec)
+{
+    mode_t mode;
+    if (mode_vrt) {
+        const char *cmode = purc_variant_get_string_const(mode_vrt);
+        if (cmode == NULL) {
+            *ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+
+        if (cmode[0] == '0') {
+            long tmp;
+            char *endp;
+            tmp = strtol(cmode, &endp, 8);
+
+            if (errno == ERANGE) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            if (endp == cmode) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            mode = (mode_t)tmp;
+        }
+        else {
+            /* TODO: for u+rwx,go+rx */
+            *ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+    else {
+        mode = 0666;
+    }
+
+error:
+    return mode;
+}
+
 static int
 handle_file_action_open(posix_spawn_file_actions_t *file_actions,
         purc_variant_t fa)
@@ -2697,54 +2741,19 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
         goto done;
     }
 
-    if (open_flags_ckws[0].atom == 0) {
-        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
-            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
-                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
-        }
-    }
-
     int flags;
     flags = pcdvobjs_parse_options(v, NULL, 0,
-            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws), 0, -1);
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
     if (flags == -1) {
-        ec = PURC_ERROR_INVALID_VALUE;
+        ec = purc_get_last_error();
         goto done;
     }
 
     mode_t mode;
-    if ((v = purc_variant_object_get_by_ckey(fa, "cmode"))) {
-        const char *cmode = purc_variant_get_string_const(v);
-        if (cmode == NULL) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto done;
-        }
-
-        if (cmode[0] == '0') {
-            long tmp;
-            char *endp;
-            tmp = strtol(cmode, &endp, 8);
-
-            if (errno == ERANGE) {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto done;
-            }
-
-            if (endp == cmode) {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto done;
-            }
-
-            mode = (mode_t)tmp;
-        }
-        else {
-            /* TODO: for u+rwx,go+rx */
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto done;
-        }
-    }
-    else {
-        mode = 0666;
+    mode = parse_file_mode(purc_variant_object_get_by_ckey(fa, "cmode"), &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto done;
     }
 
     switch (posix_spawn_file_actions_addopen(file_actions,
@@ -2942,7 +2951,8 @@ spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     const char *flags = NULL;
-    if (nr_args > 4 && (flags = purc_variant_get_string_const(argv[4])) == NULL) {
+    if (nr_args > 4 &&
+            (flags = purc_variant_get_string_const(argv[4])) == NULL) {
         ec = PURC_ERROR_WRONG_DATA_TYPE;
         goto error;
     }
@@ -3088,6 +3098,77 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$SYS.open(
+    <string $file_path: `The path of the file to open.`>
+    [,
+        <'[read || write || append || create || excl || truncate ||
+            nonblock || cloexec]' $oflags = 'read write cloexec':
+            < `The open flags.` >
+        [,
+            < 'string $cmode: `The permission string like '0644' or
+                'u+rwx,go+rx' when creating a new file.` >
+        ]
+    ]
+) longint | false
+*/
+
+static purc_variant_t
+open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *path;
+    path = purc_variant_get_string_const(argv[0]);
+    if (path == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (path[0] == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(nr_args > 1 ? argv[1] : NULL, NULL, 0,
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
+    if (flags == -1) {
+        ec = purc_get_last_error();
+        goto error;
+    }
+
+    mode_t mode;
+    mode = parse_file_mode(nr_args > 2 ? argv[2] : NULL, &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto error;
+    }
+
+    int fd = open(path, flags, mode);
+    if (fd < 0) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    purc_clr_error();
+    return purc_variant_make_longint(fd);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -3110,6 +3191,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "sockopt",    sockopt_getter,     sockopt_setter },
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
+        { "open",       open_getter,        NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -3120,6 +3202,14 @@ purc_variant_t purc_dvobj_system_new (void)
         }
 
     }
+
+    if (open_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
+            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
+        }
+    }
+
 
 #if HAVE(RANDOM_R)
     /* allocate data for state of the random generator */
