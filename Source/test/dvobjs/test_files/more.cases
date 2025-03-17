@@ -43,8 +43,8 @@ positive:
     'Hll Wrld f HVML'
 
 positive:
-    $STR.replace('You should eat fruits, vegetables, and fiber every day.', ["fruits", "vegetables", "fiber"], ["pizza", "beer", "ice cream"])
-    'You should eat pizza, beer, and ice cream every day.'
+    $STR.replace('You should eat fruits, vegetables, and fiber every day.', ['should', "fruits", "vegetables", "fiber"], ['should not', "pizza", "beer", "ice cream"])
+    'You should not eat pizza, beer, and ice cream every day.'
 
 positive:
     $STR.replace('A', ['A', 'B', 'C', 'D', 'E'], ['B', 'C', 'D', 'E', 'F'])
