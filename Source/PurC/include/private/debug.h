@@ -46,16 +46,15 @@ extern "C" {
 #define __STRING(x) #x
 #endif
 
-#ifdef NDEBUG
+#define PC_ENABLE_DEBUG(x)  purc_enable_log(x, true)
+#define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
+#define PC_ERROR(x, ...)    purc_log_error(x, ##__VA_ARGS__)
+#define PC_WARN(x, ...)     purc_log_warn(x, ##__VA_ARGS__)
+#define PC_NOTICE(x, ...)   purc_log_notice(x, ##__VA_ARGS__)
+#define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
+#define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
 
-#define PC_ASSERT(cond)                                 \
-    do {                                                \
-        if (0 && !(cond)) {                             \
-            /* do nothing */                            \
-        }                                               \
-    } while (0)
-
-#else /* define NDEBUG */
+#ifndef NDEBUG
 
 #define PC_ASSERT(cond)                                                 \
     do {                                                                \
@@ -67,42 +66,41 @@ extern "C" {
         }                                                               \
     } while (0)
 
-#endif /* not defined NDEBUG */
-
-#define PC_ENABLE_DEBUG(x)  purc_enable_log(x, true)
-#define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
-#define PC_ERROR(x, ...)    purc_log_error(x, ##__VA_ARGS__)
-#define PC_WARN(x, ...)     purc_log_warn(x, ##__VA_ARGS__)
-#define PC_NOTICE(x, ...)   purc_log_notice(x, ##__VA_ARGS__)
-#define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
+#define PC_DEBUGX(x, ...)                                                  \
+    purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 
 #define PC_TIMESTAMP(x, ...)                                                \
     do {                                                                    \
         FILE* fp = fopen("/tmp/purc_run.log", "a+");                        \
-        fprintf(fp, "timestamp: %ld : %s[%d]:%s(): " x ,                     \
+        fprintf(fp, "timestamp: %ld : %s[%d]:%s(): " x ,                    \
             pcutils_get_monotoic_time_ms(),                                 \
             pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__); \
         fclose(fp);    \
     } while (0)
 
-#ifndef NDEBUG
-
-#define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
-
-#define PC_DEBUGX(x, ...)                                                  \
-    purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
-            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
-
 #else /* not defined NDEBUG */
 
-#define PC_DEBUG(x, ...)                \
-    if (0)                              \
-        purc_log_debug(x, ##__VA_ARGS__)
+#define PC_ASSERT(cond)                                 \
+    do {                                                \
+        if (0 && !(cond)) {                             \
+            /* do nothing */                            \
+        }                                               \
+    } while (0)
 
 #define PC_DEBUGX(x, ...)                                                   \
     if (0)                                                                  \
         purc_log_debug("%s[%d]:%s(): " x "\n",                              \
                 pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+
+#define PC_TIMESTAMP(x, ...)                                                \
+    while (0) {                                                             \
+        FILE* fp = fopen("/tmp/purc_run.log", "a+");                        \
+        fprintf(fp, "timestamp: %ld : %s[%d]:%s(): " x ,                    \
+            pcutils_get_monotoic_time_ms(),                                 \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__); \
+        fclose(fp);    \
+    }
 
 #endif /* defined NDEBUG */
 
@@ -131,3 +129,4 @@ void
 pcdebug_backtrace_dump(struct pcdebug_backtrace *bt) WTF_INTERNAL;
 
 #endif /* PURC_PRIVATE_DEBUG_H */
+
