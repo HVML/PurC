@@ -90,7 +90,6 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     size_t sz_pending = stream->ext0.msg_ops->sz_pending(stream);
     r = poll(fds, sz_pending > 0 ? 2 : 1, timeout_ms < 0 ? -1 : timeout_ms);
     if (r < 0) {
-        PC_ERROR("Failed poll(): %s\n", strerror(errno));
         goto done;
     }
     else if (r == 0) {
@@ -130,11 +129,18 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     }
 
     if (!ret_read || !ret_write) {
-        PC_ERROR("Failed read of write: %s\n", strerror(errno));
         return -1;
     }
 
 done:
+    if (r >= 0) {
+        if (conn->prot_data && list_empty(&conn->prot_data->msgs)) {
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
     return r;
 }
 
@@ -229,11 +235,19 @@ static int my_ping_peer(pcrdr_conn* conn)
 
 static int my_disconnect(pcrdr_conn* conn)
 {
+    PC_INFO("%s called\n", __func__);
+
     if (conn->prot_data && conn->prot_data->stream->ext0.msg_ops) {
         struct pcdvobjs_stream *stream = conn->prot_data->stream;
         stream->ext0.msg_ops->shut_off(stream);
+
+        PC_INFO("Going to unref stream object\n");
         purc_variant_unref(conn->prot_data->dvobj);
         return 0;
+    }
+    else if (conn->prot_data) {
+        free(conn->prot_data);
+        conn->prot_data = NULL;
     }
 
     return -1;
@@ -252,8 +266,9 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     }
 
     pcrdr_msg *msg = NULL;
-    if (pcrdr_parse_packet(payload, len, &msg) < 0)
+    if (pcrdr_parse_packet(payload, len, &msg) < 0) {
         return -1;
+    }
 
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     list_add_tail(&hdr->ln, &conn->prot_data->msgs);
@@ -301,6 +316,8 @@ static void on_release_stream_vrt(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
     struct purc_native_ops *super_ops = stream->ext1.super_ops;
+
+    PC_INFO("called for entity: %p\n", entity);
 
     cleanup_extension(stream);
     if (super_ops->on_release) {
@@ -454,7 +471,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         url = (const char *)pcutils_url_assemble(bdurl, true);
     }
 
-    pcutils_broken_down_url_delete(bdurl);
+    pcutils_broken_down_url_delete(bdurl); bdurl = NULL;
     normalize_extra_options(extra_opts);
 
     purc_variant_t stream_vrt;
@@ -462,7 +479,7 @@ pcrdr_socket_connect(const char* renderer_uri,
         stream_vrt = dvobjs_create_stream_from_fd(fd, PURC_VARIANT_INVALID,
                 prot, extra_opts);
         if (stream_vrt == PURC_VARIANT_INVALID) {
-            PC_DEBUG ("Failed to create DVOBJ stream from fd: %d\n", fd);
+            PC_ERROR("Failed to create DVOBJ stream from fd: %d\n", fd);
             goto failed;
         }
     }
@@ -470,17 +487,20 @@ pcrdr_socket_connect(const char* renderer_uri,
         stream_vrt = dvobjs_create_stream_from_url(url, PURC_VARIANT_INVALID,
                 prot, extra_opts);
         if (stream_vrt == PURC_VARIANT_INVALID) {
-            PC_DEBUG("Failed to create DVOBJ stream from url: %s\n", url);
+            PC_ERROR("Failed to create DVOBJ stream from url: %s\n", url);
             goto failed;
         }
     }
 
-    if (url && url != renderer_uri)
+    if (url && url != renderer_uri) {
         free((void *)url);
+        url = NULL;
+    }
     purc_variant_unref(extra_opts);
+    extra_opts = PURC_VARIANT_INVALID;
 
     if ((*conn = calloc(1, sizeof(pcrdr_conn))) == NULL) {
-        PC_DEBUG ("Failed to callocate space for connection\n");
+        PC_ERROR("Failed to callocate space for connection\n");
         purc_set_error(PCRDR_ERROR_NOMEM);
         goto failed;
     }
@@ -541,10 +561,11 @@ pcrdr_socket_connect(const char* renderer_uri,
 
     list_head_init(&(*conn)->pending_requests);
 
-    /* Got the initial message from the renderer */
+    /* Wait for the initial response from the renderer */
     msg = my_read_message_timeout(*conn, 5000);  /* five seconds */
-    if (msg)
+    if (msg) {
         return msg;
+    }
     else
         PC_ERROR("Failed to get the initial message from the renderer in 5s.\n");
 
