@@ -1,52 +1,105 @@
-positive:
-    $STR.format_c('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
-    'Tom is 009 years old, while Jerry is 007 years old.'
-
+# test cases for $SYS
 negative:
-    $STR.replace(null)
+    $SYS.remove()
     ArgumentMissed
 
 negative:
-    $STR.replace(null, null, null)
+    $SYS.remove(null)
+    WrongDataType
+
+positive:
+    $SYS.remove("/root")
+    false
+
+positive:
+    $SYS.remove("/tmp/file-not-exists")
+    false
+
+negative:
+    $SYS.access
+    ArgumentMissed
+
+negative:
+    $SYS.access(null)
+    WrongDataType
+
+positive:
+    $SYS.access('/tmp/file-not-exists')
+    false
+
+positive:
+    $SYS.access('/bin/ls', 'read execute existence')
+    true
+
+positive:
+    $SYS.access('/root', 'read execute')
+    false
+
+negative:
+    $SYS.spawn
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null)
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null, null)
     WrongDataType
 
 negative:
-    $STR.replace('美国、英国', ['美国', null], ['中国'])
+    $SYS.spawn('file-not-exists', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], null)
     WrongDataType
 
 negative:
-    $STR.replace('美国、英国', ['美国', ''], ['中国'])
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'}, null ],  ['ls', '/'], ['A=B'])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B', null])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'foo': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B'])
+    InvalidValue
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'foo'} ],  ['ls', '/'], ['A=B'])
     InvalidValue
 
 positive:
-    $STR.replace('tom, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
-    'Tom, Tom, Tom, and Jerry'
+    {{ $SYS.remove('/tmp/stdout-ls') && $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
+    true
 
 positive:
-    $STR.replace(['tom and Jerray', 'TOM and Amy'], 'TOM', 'Tom', true)
-    ['Tom and Jerray', 'Tom and Amy']
+    $DATA.type($SYS.spawn('bc', [{ 'action': 'open', 'fd': 0, 'path': '/tmp/stdout-ls', 'oflags': 'read' }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-bc', 'oflags': 'write create truncate'}, { 'action': 'open', 'fd': 2, 'path': '/tmp/stderr-bc', 'oflags': 'write create truncate'} ],  ['bc'], [], 'setsid'))
+    'longint'
+
+negative:
+    $SYS.open()
+    ArgumentMissed
+
+negative:
+    $SYS.open(null)
+    WrongDataType
+
+negative:
+    $SYS.open('', null)
+    InvalidValue
+
+negative:
+    $SYS.open('/file-not-exist', 'read', null)
+    WrongDataType
+
+negative:
+    $SYS.open('/file-not-exist', 'read write create')
+    AccessDenied
 
 positive:
-    $STR.replace('Amy, TOM, ToM, and Jerry', 'TOM', 'Tom', true)
-    'Amy, Tom, Tom, and Jerry'
+    $DATA.type($SYS.open('/tmp/new-empty-file', 'read write create truncate', '0666'))
+    'longint'
 
 positive:
-    $STR.replace('美国、英国', ['美国', '英国'], ['中国', '中国'])
-    '中国、中国'
-
-positive:
-    $STR.replace('美国、英国', ['美国', '英国'], ['中国'])
-    '中国、'
-
-positive:
-    $STR.replace('Hello World of HVML', ["a", "e", "i", "o", "u", "A", "E", "I", "O", "U"], '')
-    'Hll Wrld f HVML'
-
-positive:
-    $STR.replace('You should eat fruits, vegetables, and fiber every day.', ['should', "fruits", "vegetables", "fiber"], ['should not', "pizza", "beer", "ice cream"])
-    'You should not eat pizza, beer, and ice cream every day.'
-
-positive:
-    $STR.replace('A', ['A', 'B', 'C', 'D', 'E'], ['B', 'C', 'D', 'E', 'F'])
-    'F'
+    $SYS.remove('/tmp/new-empty-file')
+    true
 
