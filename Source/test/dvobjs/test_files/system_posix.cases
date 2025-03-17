@@ -1,4 +1,4 @@
-# test cases for socket
+# test cases POSIX methods of $SYS
 negative:
     $SYS.pipe(null)
     WrongDataType
@@ -217,5 +217,109 @@ positive:
 
 positive:
     $RUNNER.user(! 'inetDgramSocket', undefined )
+    true
+
+negative:
+    $SYS.remove()
+    ArgumentMissed
+
+negative:
+    $SYS.remove(null)
+    WrongDataType
+
+positive:
+    $SYS.remove("/root")
+    false
+
+positive:
+    $SYS.remove("/tmp/file-not-exists")
+    false
+
+negative:
+    $SYS.access
+    ArgumentMissed
+
+negative:
+    $SYS.access(null)
+    WrongDataType
+
+positive:
+    $SYS.access('/tmp/file-not-exists')
+    false
+
+positive:
+    $SYS.access('/bin/ls', 'read execute existence')
+    true
+
+positive:
+    $SYS.access('/root', 'read execute')
+    false
+
+negative:
+    $SYS.spawn
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null)
+    ArgumentMissed
+
+negative:
+    $SYS.spawn(null, null, null)
+    WrongDataType
+
+negative:
+    $SYS.spawn('file-not-exists', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], null)
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'}, null ],  ['ls', '/'], ['A=B'])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B', null])
+    WrongDataType
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'foo': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'read'} ],  ['ls', '/'], ['A=B'])
+    InvalidValue
+
+negative:
+    $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'foo'} ],  ['ls', '/'], ['A=B'])
+    InvalidValue
+
+positive:
+    {{ $SYS.remove('/tmp/stdout-ls') && $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
+    true
+
+positive:
+    $DATA.type($SYS.spawn('bc', [{ 'action': 'open', 'fd': 0, 'path': '/tmp/stdout-ls', 'oflags': 'read' }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-bc', 'oflags': 'write create truncate'}, { 'action': 'open', 'fd': 2, 'path': '/tmp/stderr-bc', 'oflags': 'write create truncate'} ],  ['bc'], [], 'setsid'))
+    'longint'
+
+negative:
+    $SYS.open()
+    ArgumentMissed
+
+negative:
+    $SYS.open(null)
+    WrongDataType
+
+negative:
+    $SYS.open('', null)
+    InvalidValue
+
+negative:
+    $SYS.open('/file-not-exist', 'read', null)
+    WrongDataType
+
+negative:
+    $SYS.open('/file-not-exist', 'read write create')
+    AccessDenied
+
+positive:
+    $DATA.type($SYS.open('/tmp/new-empty-file', 'read write create truncate', '0666'))
+    'longint'
+
+positive:
+    $SYS.remove('/tmp/new-empty-file')
     true
 
