@@ -1665,10 +1665,10 @@ negative:
     InvalidValue
 
 positive:
-    $DATA.type($SYS.spawn('bc', [], []))
-    'longint'
+    {{ $SYS.remove('/tmp/stdout-ls') && $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
+    true
 
 positive:
-    {{ $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'close', 'fd': 1 }, { 'action': 'close', 'fd': 2 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/']) && $SYS.access('/tmp/stdout-ls') }}
-    true
+    $DATA.type($SYS.spawn('bc', [{ 'action': 'open', 'fd': 0, 'path': '/tmp/stdout-ls', 'oflags': 'read' }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-bc', 'oflags': 'write create truncate'}, { 'action': 'open', 'fd': 2, 'path': '/tmp/stderr-bc', 'oflags': 'write create truncate'} ],  ['bc'], [], 'setsid'))
+    'longint'
 
