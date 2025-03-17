@@ -710,19 +710,25 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             strcat(path, file_name);
         }
         else {
-            /* use /tmp instead; the size of path will be enough. */
+            /* use /tmp instead; make sure the buffer is enough. */
+            path_len += PURC_LEN_RUNNER_NAME + 32;
+            path = realloc(path, path_len);
             snprintf(path, path_len, "/tmp/%s-%s-XXXXXX.html",
                     inst->app_name, inst->runner_name);
         }
 
         int fd = mkstemps(path, 5);
         if (fd < 0) {
+            PC_ERROR("Failed to open a temp file: %s (%d): %s\n",
+                    path, fd, strerror(errno));
+            free(path);
             purc_set_error(purc_error_from_errno(errno));
             goto failed;
         }
 
         out = purc_rwstream_new_from_unix_fd(fd);
         if (out == NULL) {
+            free(path);
             goto failed;
         }
 
@@ -734,6 +740,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
         if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+            free(path);
             goto failed;
         }
         purc_rwstream_destroy(out);
@@ -743,6 +750,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         char *url;
         int url_len = asprintf(&url,
                 "hvml://localhost/_filesystem/_file/-%s", path);
+        free(path);
         if (url_len < 0) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
