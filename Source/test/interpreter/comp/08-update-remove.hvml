@@ -1,0 +1,30 @@
+#!/usr/bin/env purc
+
+# RESULT: {age:10UL}
+
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    <body id="id_main">
+        <inherit>
+            $STREAM.stdout.writelines("begin main hvml")
+        </inherit>
+
+        <init as anObj with {name:"cc", age:10UL} />
+        <update on $anObj at '.name' to remove silently />
+        <inherit>
+            $STREAM.stdout.writelines("after remove name $anObj ")
+        </inherit>
+
+        <update on $anObj at '.xxx' to remove silently />
+
+        <inherit>
+            $STREAM.stdout.writelines("end main hvml $anObj ")
+        </inherit>
+
+        <exit with $anObj />
+    </body>
+
+</hvml>
+
+

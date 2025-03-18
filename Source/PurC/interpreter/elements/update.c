@@ -1136,6 +1136,11 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             goto out;
         }
         ultimate = purc_variant_object_get(dest, k);
+        if (!ultimate && frame->silently) {
+            purc_variant_unref(k);
+            purc_clr_error(); /* clear no such key */
+            goto out;
+        }
         purc_variant_unref(k);
     }
     else {
