@@ -1291,7 +1291,6 @@ handle_pending_rw_ssl(struct pcdvobjs_stream *stream, int rwflag)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    PC_INFO("In %s().\n", __func__);
     if (ext->sslstatus & WS_TLS_CONNECTING && ext->sslstatus & rwflag) {
         PC_INFO("SSL still in connecting.\n");
         handle_connect_ssl(stream);
@@ -1570,7 +1569,6 @@ io_callback_for_write(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
-    PC_INFO("In %s()\n", __func__);
     if (event & PCRUNLOOP_IO_HUP) {
         PC_ERROR("Got hang up event on fd (%d).\n", fd);
         stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
@@ -1723,7 +1721,6 @@ static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    PC_INFO("In %s()\n", __func__);
     ssize_t bytes = ext->writer(stream, buffer, len);
     if (bytes > 0 && (size_t)bytes < len) {
         /* did not send all of it... buffer it for a later attempt */
@@ -1749,7 +1746,6 @@ static ssize_t ws_write_pending(struct pcdvobjs_stream *stream)
         ssize_t bytes;
         ws_pending_data *pending = (ws_pending_data *)p;
 
-        PC_INFO("In %s()\n", __func__);
         bytes = ext->writer(stream, pending->data + pending->szsent,
                 pending->szdata - pending->szsent);
 
@@ -1797,7 +1793,6 @@ static ssize_t ws_write_or_queue(struct pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext0.data;
     ssize_t bytes = 0;
 
-    PC_INFO("In %s()\n", __func__);
     /* attempt to send the whole buffer */
     if (list_empty(&ext->pending)) {
         bytes = ws_write_data(stream, buffer, len);
@@ -1945,7 +1940,6 @@ static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, int opcode,
     int mask_int;
     const uint8_t *mask = (uint8_t *)&mask_int;
 
-    PC_INFO("In %s(%d)\n", __func__, opcode);
     if (payload != NULL && sz_payload > 125) {
         PC_WARN("Too long payload for a control frame: %zu; truncated\n",
                 sz_payload);
@@ -2299,12 +2293,13 @@ failed:
 
 static int ws_handle_reads(struct pcdvobjs_stream *stream)
 {
+    struct stream_extended_data *ext = stream->ext0.data;
+
 #if HAVE(OPENSSL)
-    if (handle_pending_rw_ssl(stream, WS_TLS_WANT_READ) == 0)
+    if (ext->ssl && handle_pending_rw_ssl(stream, WS_TLS_WANT_READ) == 0)
         return 0;
 #endif
 
-    struct stream_extended_data *ext = stream->ext0.data;
     int retv;
     int owner_taken; // indicate wheter the owner of message has been taken.
 
@@ -2925,7 +2920,6 @@ send_handshake_resp(void *entity, const char *property_name,
 
 done:
     /* Send the handshake response to the client */
-    PC_INFO("In %s()\n", __func__);
     nr_bytes = ws_write_data(stream, response, len);
     pcutils_mystring_free(&mystr);
 
@@ -3031,7 +3025,9 @@ sync_getter(void *entity, const char *property_name,
     }
 
 #if HAVE(OPENSSL)
-    while (SSL_want_nothing(ext->ssl) == 0);
+    if (ext->ssl) {
+        while (SSL_want_nothing(ext->ssl) == 0);
+    }
 #endif
 
     return purc_variant_make_boolean(true);
@@ -3436,6 +3432,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             if (ssl_session_cache_id) {
                 /* This is a server-side worker process. */
 
+                SSL_CTX_set_options(ext->ssl_ctx,
+                        SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
                 ext->ssl_shctx_wrapper = calloc(1,
                         sizeof(*ext->ssl_shctx_wrapper));
                 if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
@@ -3468,7 +3466,11 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
                 goto failed;
             }
 
-            if (ssl_session_cache_id == NULL) {
+            if (ssl_session_cache_id) {
+                /* This is a server-side worker process. */
+                SSL_set_accept_state(ext->ssl);
+            }
+            else {
                 /* This is a client process. */
                 ext->prot_opts = purc_variant_ref(extra_opts);
                 if (handle_connect_ssl(stream) != 0) {

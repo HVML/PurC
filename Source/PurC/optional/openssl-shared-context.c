@@ -259,7 +259,6 @@ shctx_new_cb(SSL *ssl, SSL_SESSION *sess)
     unsigned data_len;
     unsigned char encsess[SHSESS_MAX_ENCODED_LEN];
 
-    PC_DEBUG("%s() called\n", __func__);
     AN(ssl);
 
     ssl_ctx = SSL_get_SSL_CTX(ssl);
@@ -337,7 +336,6 @@ shctx_get_cb(SSL *ssl, const unsigned char *key, int key_len, int *do_copy)
     time_t cdate;
     SSL_SESSION *sess;
 
-    PC_DEBUG("%s() called\n", __func__);
     AN(ssl);
     ssl_ctx = SSL_get_SSL_CTX(ssl);
     wrapper = SSL_CTX_get_app_data(ssl_ctx);
@@ -393,7 +391,6 @@ shctx_remove_cb(SSL_CTX *ctx, SSL_SESSION *sess)
     const unsigned char *key;
     unsigned keylen;
 
-    PC_DEBUG("%s() called\n", __func__);
     AN(ctx);
     wrapper = SSL_CTX_get_app_data(ctx);
     assert(wrapper);
@@ -418,7 +415,6 @@ openssl_shctx_sess_add(struct openssl_shctx_wrapper *wrapper,
 {
     struct shared_session *shsess;
 
-    PC_DEBUG("%s() called\n", __func__);
     /* check buffer is at least padded key long + 1 byte
         and data_len not too long */
     if (len <= SSL_MAX_SSL_SESSION_ID_LENGTH ||
@@ -453,7 +449,6 @@ void
 openssl_shsess_set_new_cbk(struct openssl_shctx_wrapper *wrapper,
         shsess_new_f *func)
 {
-    PC_DEBUG("%s() called\n", __func__);
     AN(func);
     wrapper->shared_session_new_cbk = func;
 }

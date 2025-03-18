@@ -119,9 +119,9 @@
 
                 <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
 
-                <update on $clients to 'merge' with { $clientId : $? } />
+                <update on $clients to 'merge' with { $clientId : { wsStream: $? }} />
 
-                <observe on $clients[$clientId] for 'handshake'>
+                <observe on $clients[$clientId].wsStream for 'handshake'>
                     $clientId
 
                     <init as clientId with $_observedContent temp />
@@ -139,8 +139,6 @@
 
                         <test with $L.strne('case', $DATA.type($?), 'string') >
 
-                            <inherit on $_observedOn.finish() />
-
                             <init as 'stdout' with $STREAM.from($?[0], 'keep') temp >
                                 <catch for `ANY`>
                                     <exit with "Server failed with $?.name when calling \$STREAM.from()" />
@@ -153,13 +151,17 @@
                                 </catch>
                             </init>
 
-                            <update on $clients at ".$clientId" to 'displace' with [! $stdout, $stderr ] />
+                            <update on $clients at ".$clientId" to 'merge' with { stdoutStream: $stdout, stderrStream: $stderr } />
 
                             <observe on $stdout for 'stream:readable'>
                                 $clientId
 
                                 <choose on $_observedOn.readlines(1) >
                                     <include with $logMsg on $?[0] />
+                                    <test with $L.streq('caseless', $?[0], 'Ready') >
+                                        <inherit on $clients[$_observedContent].wsStream.finish() />
+                                    </test>
+
                                     <catch for `BrokenPipe`>
                                         <inherit on $_observedOn.close() />
                                         <forget on $_observedOn for '*' />
@@ -186,7 +188,7 @@
 
                 </observe>
 
-                <observe on $clients[$clientId] for 'error'>
+                <observe on $clients[$clientId].wsStream for 'error'>
                     $clientId
 
                     <inherit>
@@ -199,7 +201,7 @@
                     <exit with 'Bad Client' />
                 </observe>
 
-                <!-- observe on $clients[$clientId] for 'message'>
+                <!-- observe on $clients[$clientId].wsStream for 'message'>
                     $clientId
 
                     <test with $L.streq('case', $?, 'Bye')>
@@ -223,7 +225,7 @@
                     </test>
                 </observe -->
 
-                <observe on $clients[$clientId] for 'close'>
+                <observe on $clients[$clientId].wsStream for 'close'>
                     $clientId
 
                     <inherit>

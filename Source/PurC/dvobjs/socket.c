@@ -550,6 +550,9 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
             SSL_MODE_ENABLE_PARTIAL_WRITE);
 
     if (ssl_session_cache_id) {
+        SSL_CTX_set_options(ctx,
+                SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+
         socket->ssl_shctx_wrapper = calloc(1, sizeof(*socket->ssl_shctx_wrapper));
 
         switch (openssl_shctx_create(socket->ssl_shctx_wrapper,

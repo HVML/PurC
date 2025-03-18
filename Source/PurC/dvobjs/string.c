@@ -1167,8 +1167,6 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             int cs_len = conversion_specification(conv_spec,
                     sizeof(conv_spec), format + i);
 
-            PC_DEBUG("conversion specification: %s (%s) (%d) for arg %zu\n",
-                    conv_spec, format + i, cs_len, j);
             if (conv_spec[cs_len - 1] == '\0') {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto error;
@@ -1793,7 +1791,7 @@ static int trim_utf8_chars(purc_rwstream_t rwstream,
             assert(utf8_len < sizeof(utf8));
 
             strncpy(utf8, left, utf8_len);
-            PC_DEBUG("characters: '%s', utf8: '%s', strstr:  %s\n",
+            PC_NONE("characters: '%s', utf8: '%s', strstr:  %s\n",
                     characters, utf8,
                     strstr(characters, utf8) ? "true" : "false");
             /* work-around: strstr(" 中国", " ") may return NULL */
@@ -1816,8 +1814,8 @@ static int trim_utf8_chars(purc_rwstream_t rwstream,
             assert(utf8_len < sizeof(utf8));
 
             strncpy(utf8, p, utf8_len);
-            PC_DEBUG("Right string: %s, Previouse char: %s\n", right, utf8);
-            PC_DEBUG("characters: '%s', utf8: '%s', strstr:  %s\n",
+            PC_NONE("Right string: %s, Previouse char: %s\n", right, utf8);
+            PC_NONE("characters: '%s', utf8: '%s', strstr:  %s\n",
                     characters, utf8,
                     strstr(characters, utf8) ? "true" : "false");
             if ((utf8_len == 1 && strchr(characters, utf8[0])) ||

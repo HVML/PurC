@@ -32,6 +32,8 @@
             </catch>
         </init>
 
+        <inherit on $STREAM.stdout.writelines('Ready') />
+
         <observe on $wsStream for 'error'>
             <inherit>
             {{
@@ -44,6 +46,8 @@
         </observe>
 
         <observe on $wsStream for 'message'>
+            <include with $logMsg on "Worker got message:" />
+            <include with $logMsg on $? />
 
             <test with $L.streq('case', $?, 'Bye')>
                 <inherit>
