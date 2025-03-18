@@ -230,6 +230,14 @@ process_attr_to(struct pcintr_stack_frame *frame,
             }
             return post_process_to_by_atom(frame, element, name, atom);
         }
+
+        int64_t back_level = (int64_t)purc_variant_numerify(val);
+        if (back_level <= 0) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "<%s to = %s>", element->tag_name, s_to);
+            return -1;
+        }
+        return process_back_level(frame, element, name, back_level);
     }
     else if (purc_variant_is_ulongint(val)) {
         return process_back_level(frame, element, name, val->u64);
