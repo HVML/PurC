@@ -1312,11 +1312,15 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     ctxt->step = STEP_BEFORE_ITERATE;
     int err = step_after_iterate(stack, frame, ctxt);
+    bool ret = ctxt->stop;
     if (err) {
-        return false;
+        ret = false;
     }
 
-    return ctxt->stop;
+    if (stack->back_anchor) {
+        ret = true;
+    }
+    return ret;
 }
 
 static int
@@ -1420,11 +1424,13 @@ select_child(pcintr_stack_t stack, void* ud)
         return NULL;
     }
 
-    if (frame->ctxt == NULL)
+    if (frame->ctxt == NULL) {
         return NULL;
+    }
 
-    if (stack->back_anchor)
+    if (stack->back_anchor) {
         return NULL;
+    }
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;

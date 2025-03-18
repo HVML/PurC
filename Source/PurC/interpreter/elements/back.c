@@ -130,9 +130,14 @@ process_back_level(struct pcintr_stack_frame *frame,
             }
         }
 
-        if (p->pos == NULL && frame->silently) {
+        if (parent->pos == NULL) {
+            if (frame->silently) {
+                break;
+            }
+            p = NULL;
             break;
         }
+
         p = parent;
     }
 
