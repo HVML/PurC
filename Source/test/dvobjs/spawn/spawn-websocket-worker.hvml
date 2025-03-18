@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 'Good Client'
+# RESULT: 'All workers exited'
 
 <hvml target="void">
     <head>
@@ -8,7 +8,7 @@
             $RUNNER.enablelog('all', 'stderr')
 
             <inherit>
-                $RUNNER.logmsg($?)
+                $RUNNER.logmsg($DATA.serialize($?))
             </inherit>
         </define>
     </head>
@@ -16,7 +16,7 @@
     <body id='server' >
 
         <include with $logMsg on 'The server is running...request: ' />
-        <include with $logMsg on $DATA.serialize($REQ) />
+        <include with $logMsg on $REQ />
 
         <init as 'sslSettings' with {} />
         <test with $L.streq('caseless', $REQ.secure, 'true') >
@@ -29,27 +29,82 @@
             </update>
         </test>
 
-        <include with $logMsg on $DATA.serialize($sslSettings) />
+        <include with $logMsg on $sslSettings />
+
+        <define as spawnWorker>
+            <init as stdout_pipe with $SYS.pipe() temp>
+                <catch for `ANY`>
+                    <return with "Server failed with $?.name when calling \$SYS.pipe() for stdout" />
+                </catch>
+            </init>
+
+            <init as stderr_pipe with $SYS.pipe() temp>
+                <catch for `ANY`>
+                    <return with "Server failed with $?.name when calling \$SYS.pipe() for stderr." />
+                </catch>
+            </init>
+
+            <init as file_actions temp>
+            [!
+                { action: 'close', fd: 0 },
+                { action: 'dup2',  fd: $stdout_pipe[1], newfd: 1 },
+                { action: 'close', fd: $stdout_pipe[0] },
+                { action: 'dup2',  fd: $stderr_pipe[1], newfd: 2 },
+                { action: 'close', fd: $stderr_pipe[0] },
+            ]
+            </init>
+
+            <init as argv temp>
+            [!
+                'purc',
+                '-a', 'cn.fmsoft.hvml.test',
+                '-r', 'worker',
+                '-q', $STR.format_c("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $fd),
+                "$REQ.base/spawn/worker.hvml"
+            ]
+            </init>
+
+            <inherit>
+                {{
+                    $SYS.spawn("$SYS.cwd/bin/purc", $file_actions, $argv) &&
+                    $SYS.close($stdout_pipe[1]) &&
+                    $SYS.close($stderr_pipe[1])
+                }}
+            </inherit>
+
+            <return with [! $stdout_pipe[0], $stderr_pipe[0] ] />
+        </define>
 
         <init as 'clients' with {} />
 
+        <observe on $clients for 'shrink'>
+            <include with $logMsg on 'clients shrunken:' />
+            <include with $logMsg on $clients />
+
+            <test with $DATA.count($clients)>
+                <differ>
+                    <exit with 'All workers exited' />
+                </differ>
+            </test>
+        </observe>
+
         <init as 'srvListenSocket' with $SOCKET.stream('inet://localhost:8080', 'none', 32, $sslSettings) >
-            <catch for `ANY`>
-                <exit with "Server failed with $?.name when calling SOCKET.stream()" />
-            </catch>
         </init>
 
-        <load from "#{$REQ.client}" within 'client' onto 'null:' as 'client' async >
-            <catch for `ANY`>
-                <exit with "Server failed with $?.name when loading client" />
-            </catch>
-        </load>
+        <!-- iterate on [! 'client0', 'client1', 'client2', 'client3' ] -->
+            <load from "#{$REQ.client}" within 'client' onto 'null:' as 'client' async >
+                <catch for `ANY`>
+                    <exit with "Server failed with $?.name when loading client" />
+                </catch>
+            </load>
 
-        <observe on $client for "corState:exited" >
-            <inherit>
-                $STREAM.stdout.writelines("Client exited with $?")
-            </inherit>
-        </observe>
+            <observe on $client for "corState:exited" >
+
+                <inherit>
+                    $STREAM.stdout.writelines("Client exited with $?")
+                </inherit>
+            </observe>
+        <!-- /iterate -->
 
         <include with $logMsg on 'The server is accepting...' />
 
@@ -69,18 +124,62 @@
                 <observe on $clients[$clientId] for 'handshake'>
                     $clientId
 
+                    <init as clientId with $_observedContent temp />
+
                     <inherit>
                     {{
                         $STREAM.stdout.writelines("Server got HANDSHAKE event from `$_observedContent`; payload:");
                         $STREAM.stdout.writelines($DATA.serialize($?));
                         $_observedOn.send_handshake_resp(101);
-                        $SYS.spawn("$SYS.cwd/bin/purc", [! ], [! 'purc', '-a', 'cn.fmsoft.hvml.test', '-r', 'worker', '-q', $STR.format_c("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $_observedOn.fd), "$REQ.base/spawn/worker.hvml"])
                     }}
                     </inherit>
 
-                    <catch for `ANY`>
-                        <exit with "Server failed with $?.name when spawning the work proecess." />
-                    </catch>
+                    <call on $spawnWorker with { fd: $_observedOn.fd() } >
+
+                        <include with $logMsg on $? />
+                        <test with $L.strne('case', $DATA.type($?), 'string') >
+
+                            <init as 'stdout' with $STREAM.from($?[0], 'keep') temp >
+                                <catch for `ANY`>
+                                    <exit with "Server failed with $?.name when calling \$STREAM.from()" />
+                                </catch>
+                            </init>
+
+                            <init as 'stderr' with $STREAM.from($?[1], 'keep') temp >
+                                <catch for `ANY`>
+                                    <exit with "Server failed with $?.name when calling \$STREAM.from()" />
+                                </catch>
+                            </init>
+
+                            <update on $clients at ".$clientId" to 'displace' with {{ $_observedOn.close() && [! $stdout, $stderr ] }} />
+
+                            <observe on $stdout for 'stream:readable'>
+                                $clientId
+
+                                <choose on $_observedOn.readlines(1) >
+                                    <include with $logMsg on $?[0] />
+                                    <catch for `BrokenPipe`>
+                                        <forget on $_observedOn for '*' />
+                                    </catch>
+                                </choose>
+
+                            </observe>
+
+                            <observe on $stderr for 'stream:readable'>
+                                $clientId
+
+                                <choose on $_observedOn.readlines(1) >
+                                    <include with $logMsg on $?[0] />
+                                    <catch for `BrokenPipe`>
+                                        <include with $logMsg on "Removing $_observedContent" />
+                                        <update on $clients at ".$_observedContent" to 'remove' silently />
+                                        <forget on $_observedOn for '*' />
+                                    </catch>
+                                </choose>
+                            </observe>
+                        </test>
+                    </call>
+
                 </observe>
 
                 <observe on $clients[$clientId] for 'error'>
@@ -96,7 +195,7 @@
                     <exit with 'Bad Client' />
                 </observe>
 
-                <observe on $clients[$clientId] for 'message'>
+                <!-- observe on $clients[$clientId] for 'message'>
                     $clientId
 
                     <test with $L.streq('case', $?, 'Bye')>
@@ -118,7 +217,7 @@
 
                         </differ>
                     </test>
-                </observe>
+                </observe -->
 
                 <observe on $clients[$clientId] for 'close'>
                     $clientId

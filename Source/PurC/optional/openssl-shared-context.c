@@ -46,6 +46,7 @@
 #include <time.h>
 #include <assert.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
@@ -514,6 +515,10 @@ int openssl_shctx_create(struct openssl_shctx_wrapper *wrapper,
 
     ret = snprintf(name, sizeof(name), SHSESS_NAME_PATTERN, shctxid);
     assert(ret > 0 && (size_t)ret < sizeof(name));
+
+    if (shm_unlink(name) == -1 && errno != ENOENT) {
+        return HELPER_RETV_BAD_SYSCALL;
+    }
 
     strcpy(wrapper->shctxid, shctxid);
     int fd = shm_open(name, O_CREAT | O_RDWR | O_EXCL, mode);

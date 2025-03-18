@@ -5,7 +5,7 @@
 <!DOCTYPE hvml>
 <hvml target="void">
     <head>
-        $RUNNER.enablelog('all', 'stderr')
+        $RUNNER.enablelog('info error', 'stderr')
 
         <define as 'logMsg'>
             <inherit>
@@ -15,7 +15,8 @@
     </head>
 
     <body>
-        <include with $logMsg on 'The worker is running...' />
+        <include with $logMsg on 'The worker is running; request: ' />
+        <include with $logMsg on $REQ />
 
     </body>
 </hvml>

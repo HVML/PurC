@@ -566,6 +566,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         }
 
         if (error) {
+            PC_ERROR("Failed openssl_shctx_create(): %s\n",
+                    purc_get_error_message(error));
             goto ssl_failed;
         }
     }
@@ -577,16 +579,14 @@ skip:
     return 0;
 
 ssl_failed:
-    if (socket->ssl_shctx_wrapper) {
-        free(socket->ssl_shctx_wrapper);
-        socket->ssl_shctx_wrapper = NULL;
-    }
-
     if (ctx) {
         SSL_CTX_free(ctx);
     }
 
-    error = PURC_ERROR_BAD_STDC_CALL;
+    if (socket->ssl_shctx_wrapper) {
+        free(socket->ssl_shctx_wrapper);
+        socket->ssl_shctx_wrapper = NULL;
+    }
 
 opt_failed:
     purc_set_error(error);

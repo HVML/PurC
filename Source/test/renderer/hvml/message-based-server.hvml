@@ -96,7 +96,7 @@
                         <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
                         <include with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 
@@ -106,7 +106,7 @@
                         <include with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
                         <include with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 
