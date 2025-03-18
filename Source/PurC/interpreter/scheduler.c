@@ -372,6 +372,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             pcintr_coroutine_set_state(co, CO_STATE_READY);
             return;
         }
+
+        /* back on observe will reatch here */
+        if (frame == co->stack.back_anchor) {
+            co->stack.back_anchor = NULL;
+        }
+
         // CO_STAGE_FIRST_RUN or
         // observing finished (only HVML tag in stack)
         if (!co->stack.last_msg_read) {

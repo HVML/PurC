@@ -125,9 +125,19 @@ process_back_level(struct pcintr_stack_frame *frame,
         }
 
         if (back_level == -1) {
-            if (parent == NULL)
+            if (parent == NULL) {
                 break;
+            }
         }
+
+        if (parent->pos == NULL) {
+            if (frame->silently) {
+                break;
+            }
+            p = NULL;
+            break;
+        }
+
         p = parent;
     }
 
@@ -233,9 +243,14 @@ process_attr_to(struct pcintr_stack_frame *frame,
 
         int64_t back_level = (int64_t)purc_variant_numerify(val);
         if (back_level <= 0) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "<%s to = %s>", element->tag_name, s_to);
-            return -1;
+            if (frame->silently) {
+                back_level = -1;
+            }
+            else {
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "<%s to = %s>", element->tag_name, s_to);
+                return -1;
+            }
         }
         return process_back_level(frame, element, name, back_level);
     }
@@ -245,9 +260,15 @@ process_attr_to(struct pcintr_stack_frame *frame,
     else if (purc_variant_is_longint(val)) {
         int64_t back_level = val->i64;
         if (back_level <= 0) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "<%s to = %lld>", element->tag_name, (long long)back_level);
-            return -1;
+            if (frame->silently) {
+                back_level = -1;
+            }
+            else {
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "<%s to = %lld>", element->tag_name,
+                        (long long)back_level);
+                return -1;
+            }
         }
         return process_back_level(frame, element, name, back_level);
     }
@@ -255,9 +276,14 @@ process_attr_to(struct pcintr_stack_frame *frame,
         uint64_t back_level = 0;
         if (!purc_variant_cast_to_ulongint(val, &back_level, true) ||
                 back_level <= 0) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "<%s to = invalid number", element->tag_name);
-            return -1;
+            if (frame->silently) {
+                back_level = -1;
+            }
+            else {
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "<%s to = invalid number", element->tag_name);
+                return -1;
+            }
         }
         return process_back_level(frame, element, name, back_level);
     }
