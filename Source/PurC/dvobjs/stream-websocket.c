@@ -774,6 +774,7 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         return READ_WHOLE;
     }
 
+    PC_DEBUG("Read some handshake data, continue reading...\n");
     return READ_SOME;
 }
 
@@ -1290,6 +1291,7 @@ handle_pending_rw_ssl(struct pcdvobjs_stream *stream, int rwflag)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
+    PC_INFO("In %s().\n", __func__);
     if (ext->sslstatus & WS_TLS_CONNECTING && ext->sslstatus & rwflag) {
         PC_INFO("SSL still in connecting.\n");
         handle_connect_ssl(stream);
@@ -1568,6 +1570,7 @@ io_callback_for_write(int fd, int event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
+    PC_INFO("In %s()\n", __func__);
     if (event & PCRUNLOOP_IO_HUP) {
         PC_ERROR("Got hang up event on fd (%d).\n", fd);
         stream->ext0.msg_ops->on_error(stream, PURC_ERROR_BROKEN_PIPE);
@@ -1720,6 +1723,7 @@ static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
+    PC_INFO("In %s()\n", __func__);
     ssize_t bytes = ext->writer(stream, buffer, len);
     if (bytes > 0 && (size_t)bytes < len) {
         /* did not send all of it... buffer it for a later attempt */
@@ -1745,6 +1749,7 @@ static ssize_t ws_write_pending(struct pcdvobjs_stream *stream)
         ssize_t bytes;
         ws_pending_data *pending = (ws_pending_data *)p;
 
+        PC_INFO("In %s()\n", __func__);
         bytes = ext->writer(stream, pending->data + pending->szsent,
                 pending->szdata - pending->szsent);
 
@@ -1792,6 +1797,7 @@ static ssize_t ws_write_or_queue(struct pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext0.data;
     ssize_t bytes = 0;
 
+    PC_INFO("In %s()\n", __func__);
     /* attempt to send the whole buffer */
     if (list_empty(&ext->pending)) {
         bytes = ws_write_data(stream, buffer, len);
@@ -1939,6 +1945,7 @@ static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, int opcode,
     int mask_int;
     const uint8_t *mask = (uint8_t *)&mask_int;
 
+    PC_INFO("In %s(%d)\n", __func__, opcode);
     if (payload != NULL && sz_payload > 125) {
         PC_WARN("Too long payload for a control frame: %zu; truncated\n",
                 sz_payload);
@@ -2918,6 +2925,7 @@ send_handshake_resp(void *entity, const char *property_name,
 
 done:
     /* Send the handshake response to the client */
+    PC_INFO("In %s()\n", __func__);
     nr_bytes = ws_write_data(stream, response, len);
     pcutils_mystring_free(&mystr);
 
@@ -3007,6 +3015,81 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+sync_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+#if HAVE(OPENSSL)
+    while (SSL_want_nothing(ext->ssl) == 0);
+#endif
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+finish_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+#if 0
+    if (ext->ping_timer) {
+        pcintr_timer_stop(ext->ping_timer);
+        pcintr_timer_destroy(ext->ping_timer);
+        ext->ping_timer = NULL;
+    }
+
+    if (stream->monitor4r) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4r);
+        stream->monitor4r = 0;
+    }
+
+    if (stream->monitor4w) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4w);
+        stream->monitor4w = 0;
+    }
+#else
+    cleanup_extension(stream);
+#endif
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
@@ -3016,11 +3099,22 @@ property_getter(void *entity, const char *name)
     assert(name);
 
     struct stream_extended_data *ext = stream->ext0.data;
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto gone;
+    }
+
     if (strcmp(name, "send") == 0) {
         method = send_getter;
     }
     else if (strcmp(name, "close") == 0) {
         method = close_getter;
+    }
+    else if (strcmp(name, "sync") == 0) {
+        method = sync_getter;
+    }
+    else if (strcmp(name, "finish") == 0) {
+        method = finish_getter;
     }
     else if ((ext->role == WS_ROLE_SERVER ||
                 ext->role == WS_ROLE_SERVER_WORKER) &&
@@ -3041,6 +3135,7 @@ property_getter(void *entity, const char *name)
 
 failed:
     purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+gone:
     return NULL;
 }
 
@@ -3324,12 +3419,39 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
         if (secure) {
 #if HAVE(OPENSSL)
-            ext->ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+            tmp = purc_variant_object_get_by_ckey(extra_opts,
+                    "sslsessioncacheid");
+            const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
+                purc_variant_get_string_const(tmp);
+
+            ext->ssl_ctx = SSL_CTX_new(ssl_session_cache_id ?
+                    SSLv23_server_method() : SSLv23_client_method());
             if (ext->ssl_ctx == NULL) {
                 PC_ERROR("Failed SSL_CTX_new(): %s\n",
                         ERR_error_string(ERR_get_error(), NULL));
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 goto failed;
+            }
+
+            if (ssl_session_cache_id) {
+                /* This is a server-side worker process. */
+
+                ext->ssl_shctx_wrapper = calloc(1,
+                        sizeof(*ext->ssl_shctx_wrapper));
+                if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
+                            ssl_session_cache_id, ext->ssl_ctx)) {
+                    PC_ERROR("Failed openssl_shctx_attach(): %s.\n",
+                            strerror(errno));
+                    free(ext->ssl_shctx_wrapper);
+                    ext->ssl_shctx_wrapper = NULL;
+                    purc_set_error(purc_error_from_errno(errno));
+                    goto failed;
+                }
+
+                SSL_CTX_set_session_id_context(ext->ssl_ctx,
+                        (const unsigned char *)ssl_session_cache_id,
+                        strlen(ssl_session_cache_id));
+                PC_INFO("Succeed openssl_shctx_attach()\n");
             }
 
             if (!(ext->ssl = SSL_new(ext->ssl_ctx))) {
@@ -3346,27 +3468,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
                 goto failed;
             }
 
-            tmp = purc_variant_object_get_by_ckey(extra_opts,
-                    "sslsessioncacheid");
-            const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
-                purc_variant_get_string_const(tmp);
-
-            if (ssl_session_cache_id) {
-                /* This is a server-side worker process. */
-
-                ext->ssl_shctx_wrapper = calloc(1,
-                        sizeof(*ext->ssl_shctx_wrapper));
-                if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
-                            ssl_session_cache_id, ext->ssl_ctx)) {
-                    PC_ERROR("Failed openssl_shctx_attach(): %s.\n",
-                            strerror(errno));
-                    free(ext->ssl_shctx_wrapper);
-                    ext->ssl_shctx_wrapper = NULL;
-                    purc_set_error(purc_error_from_errno(errno));
-                    goto failed;
-                }
-            }
-            else {
+            if (ssl_session_cache_id == NULL) {
                 /* This is a client process. */
                 ext->prot_opts = purc_variant_ref(extra_opts);
                 if (handle_connect_ssl(stream) != 0) {
@@ -3393,7 +3495,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         tmp = purc_variant_object_get_by_ckey(extra_opts, "handshake");
         if (tmp) {
             /* this is a server-side worker process. */
-            if (purc_variant_booleanize(tmp)) {
+            if (!purc_variant_booleanize(tmp)) {
                 ext->role = WS_ROLE_SERVER_WORKER_WOHS;
                 ext->on_readable = ws_handle_handshake_request;
                 ext->on_writable = ws_handle_writes;

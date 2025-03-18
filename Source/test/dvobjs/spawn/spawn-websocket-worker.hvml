@@ -134,10 +134,12 @@
                     }}
                     </inherit>
 
+                    <inherit on $_observedOn.sync() />
                     <call on $spawnWorker with { fd: $_observedOn.fd() } >
 
-                        <include with $logMsg on $? />
                         <test with $L.strne('case', $DATA.type($?), 'string') >
+
+                            <inherit on $_observedOn.finish() />
 
                             <init as 'stdout' with $STREAM.from($?[0], 'keep') temp >
                                 <catch for `ANY`>
@@ -151,7 +153,7 @@
                                 </catch>
                             </init>
 
-                            <update on $clients at ".$clientId" to 'displace' with {{ $_observedOn.close() && [! $stdout, $stderr ] }} />
+                            <update on $clients at ".$clientId" to 'displace' with [! $stdout, $stderr ] />
 
                             <observe on $stdout for 'stream:readable'>
                                 $clientId
@@ -159,6 +161,7 @@
                                 <choose on $_observedOn.readlines(1) >
                                     <include with $logMsg on $?[0] />
                                     <catch for `BrokenPipe`>
+                                        <inherit on $_observedOn.close() />
                                         <forget on $_observedOn for '*' />
                                     </catch>
                                 </choose>
@@ -171,6 +174,7 @@
                                 <choose on $_observedOn.readlines(1) >
                                     <include with $logMsg on $?[0] />
                                     <catch for `BrokenPipe`>
+                                        <inherit on $_observedOn.close() />
                                         <include with $logMsg on "Removing $_observedContent" />
                                         <update on $clients at ".$_observedContent" to 'remove' silently />
                                         <forget on $_observedOn for '*' />
@@ -187,7 +191,7 @@
 
                     <inherit>
                     {{
-                        $STREAM.stdout.writelines("Server got ERROR event from `$_observedContent`; payload:");
+                        $STREAM.stdout.writelines("Server got ERROR event for `$_observedContent`; payload:");
                         $STREAM.stdout.writelines($DATA.serialize($?));
                     }}
                     </inherit>
@@ -305,7 +309,7 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on 'Client got ERROR event:' />
             <include with $logMsg on $DATA.serialize($?) />
 
             <include with $logMsg on 'Client is going to exit.' />
@@ -393,7 +397,7 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event from the server:' />
+            <include with $logMsg on 'Client got ERROR event:' />
             <include with $logMsg on $DATA.serialize($?) />
 
             <include with $logMsg on 'Client is going to exit.' />

@@ -565,6 +565,9 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
                 break;
         }
 
+        SSL_CTX_set_session_id_context(ctx,
+                (const unsigned char *)ssl_session_cache_id,
+                strlen(ssl_session_cache_id));
         if (error) {
             PC_ERROR("Failed openssl_shctx_create(): %s\n",
                     purc_get_error_message(error));
