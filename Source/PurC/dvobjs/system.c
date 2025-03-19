@@ -2666,7 +2666,7 @@ static struct pcdvobjs_option_to_atom open_flags_ckws[] = {
 static mode_t
 parse_file_mode(purc_variant_t mode_vrt, int *ec)
 {
-    mode_t mode;
+    mode_t mode = 0666;
     if (mode_vrt) {
         const char *cmode = purc_variant_get_string_const(mode_vrt);
         if (cmode == NULL) {
@@ -2696,9 +2696,6 @@ parse_file_mode(purc_variant_t mode_vrt, int *ec)
             *ec = PURC_ERROR_INVALID_VALUE;
             goto error;
         }
-    }
-    else {
-        mode = 0666;
     }
 
 error:

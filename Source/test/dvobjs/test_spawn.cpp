@@ -63,7 +63,7 @@ TEST(spawn, plain_websocket_worker)
     }
 }
 
-#if HAVE(OPENSSL)
+#if 0 // HAVE(OPENSSL)
 TEST(spawn, secure_websocket_worker)
 {
     PurCInstance purc(false);

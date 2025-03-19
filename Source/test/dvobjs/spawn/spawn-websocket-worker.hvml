@@ -130,11 +130,9 @@
                     {{
                         $STREAM.stdout.writelines("Server got HANDSHAKE event from `$_observedContent`; payload:");
                         $STREAM.stdout.writelines($DATA.serialize($?));
-                        $_observedOn.send_handshake_resp(101);
                     }}
                     </inherit>
 
-                    <inherit on $_observedOn.sync() />
                     <call on $spawnWorker with { fd: $_observedOn.fd() } >
 
                         <test with $L.strne('case', $DATA.type($?), 'string') >
@@ -159,6 +157,7 @@
                                 <choose on $_observedOn.readlines(1) >
                                     <include with $logMsg on $?[0] />
                                     <test with $L.streq('caseless', $?[0], 'Ready') >
+                                        <inherit on $clients[$_observedContent].wsStream.send_handshake_resp(101) />
                                         <inherit on $clients[$_observedContent].wsStream.finish() />
                                     </test>
 

@@ -1432,7 +1432,7 @@ static void ws_clear_pending_data(struct stream_extended_data *ext)
     ws_update_mem_stats(ext);
 }
 
-static void cleanup_extension(struct pcdvobjs_stream *stream)
+static void finish_extension(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
@@ -1442,16 +1442,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
             pcintr_timer_destroy(ext->ping_timer);
             ext->ping_timer = NULL;
         }
-
-#if 0
-        purc_atom_t target = ext->event_cids[K_EVENT_TYPE_CLOSE];
-        if (target != 0) {
-            pcintr_coroutine_post_event(target,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        }
-#endif
 
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -1464,16 +1454,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
                     stream->monitor4w);
             stream->monitor4w = 0;
         }
-
-        if (stream->fd4r >= 0) {
-            close(stream->fd4r);
-        }
-
-        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
-            close(stream->fd4w);
-        }
-        stream->fd4r = -1;
-        stream->fd4w = -1;
 
         if (ext->prot_opts) {
             purc_variant_unref(ext->prot_opts);
@@ -1521,13 +1501,30 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         }
 #endif
 
+    }
+}
+
+static void cleanup_extension(struct pcdvobjs_stream *stream)
+{
+    finish_extension(stream);
+
+    if (stream->ext0.data) {
+        if (stream->fd4r >= 0) {
+            close(stream->fd4r);
+        }
+
+        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
+            close(stream->fd4w);
+        }
+        stream->fd4r = -1;
+        stream->fd4w = -1;
+
         free(stream->ext0.data);
         stream->ext0.data = NULL;
 
         free(stream->ext0.msg_ops);
         stream->ext0.msg_ops = NULL;
     }
-
 }
 
 static bool
@@ -3055,27 +3052,7 @@ finish_getter(void *entity, const char *property_name,
         goto failed;
     }
 
-#if 0
-    if (ext->ping_timer) {
-        pcintr_timer_stop(ext->ping_timer);
-        pcintr_timer_destroy(ext->ping_timer);
-        ext->ping_timer = NULL;
-    }
-
-    if (stream->monitor4r) {
-        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                stream->monitor4r);
-        stream->monitor4r = 0;
-    }
-
-    if (stream->monitor4w) {
-        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
-                stream->monitor4w);
-        stream->monitor4w = 0;
-    }
-#else
-    cleanup_extension(stream);
-#endif
+    finish_extension(stream);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -3432,8 +3409,40 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             if (ssl_session_cache_id) {
                 /* This is a server-side worker process. */
 
+#if 0
+    const char *ssl_cert = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.crt";
+    const char *ssl_key = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.key";
+
+    /* set certificate */
+    if (!SSL_CTX_use_certificate_file(ext->ssl_ctx, ssl_cert, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_certificate_file(%s): %s\n",
+                ssl_cert, ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+
+    /* ssl private key */
+    if (!SSL_CTX_use_PrivateKey_file(ext->ssl_ctx, ssl_key, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_PrivateKey_file(%s): %s\n",
+                ssl_key, ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+
+    if (!SSL_CTX_check_private_key(ext->ssl_ctx)) {
+        PC_ERROR("Failed SSL_CTX_check_private_key(): %s\n",
+                ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+#endif
+
+                SSL_CTX_set_mode(ext->ssl_ctx,
+                        SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
+                        SSL_MODE_ENABLE_PARTIAL_WRITE);
                 SSL_CTX_set_options(ext->ssl_ctx,
                         SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+
                 ext->ssl_shctx_wrapper = calloc(1,
                         sizeof(*ext->ssl_shctx_wrapper));
                 if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
@@ -3469,6 +3478,20 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             if (ssl_session_cache_id) {
                 /* This is a server-side worker process. */
                 SSL_set_accept_state(ext->ssl);
+                if (SSL_renegotiate(ext->ssl) <= 0) {
+                    PC_ERROR("Failed SSL_renegotiate()\n");
+                    purc_set_error(PURC_ERROR_TLS_FAILURE);
+                    goto failed;
+                }
+
+                int ret;
+                if ((ret = SSL_do_handshake(ext->ssl)) <= 0) {
+                    int err = SSL_get_error(ext->ssl, ret);
+                    log_return_message_ssl(ret, err, "SSL_do_handshake");
+                    PC_ERROR("Failed SSL_do_handshake()\n");
+                    purc_set_error(PURC_ERROR_TLS_FAILURE);
+                    goto failed;
+                }
             }
             else {
                 /* This is a client process. */
