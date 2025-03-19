@@ -514,7 +514,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     SSL_CTX *ctx = NULL;
 
     /* ssl context */
-    if (!(ctx = SSL_CTX_new(SSLv23_server_method()))) {
+    if (!(ctx = SSL_CTX_new(TLS_server_method()))) {
         PC_ERROR("Failed SSL_CTX_new(): %s\n",
                 ERR_error_string(ERR_get_error(), NULL));
         error = PURC_ERROR_TLS_FAILURE;
