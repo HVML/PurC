@@ -323,3 +323,19 @@ positive:
     $SYS.remove('/tmp/new-empty-file')
     true
 
+negative:
+    $SYS.sendfile
+    ArgumentMissed
+
+negative:
+    $SYS.sendfile(null)
+    ArgumentMissed
+
+negative:
+    $SYS.sendfile(null, null)
+    WrongDataType
+
+positive:
+    $L.gt($SYS.sendfile($SYS.open('/tmp/copy-of-stdout-ls', 'read write create truncate', '0666'), $SYS.open('/tmp/stdout-ls', 'read')), 0)
+    true
+

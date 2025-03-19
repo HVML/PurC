@@ -46,6 +46,10 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 
+#if OS(LINUX)
+#include <sys/sendfile.h>
+#endif
+
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
 #define MSG_TYPE_CHANGE           "change"
@@ -3166,6 +3170,129 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$SYS.sendfile(
+    <longint $out_fd: `The output file descriptor.`>,
+    <longint $in_fd: `The input file descriptor.`>
+    [,
+        <ulongint $offset = null: `The file offset from which the method will
+                start reading data from $in_fd. If $offset is @null, then data
+                will be read from $in_fd starting at the file offset, and the
+                file offset will be updated by the call.` >
+        [,
+            <ulongint $count = 4096UL: `The number of bytes to copy between
+            the file descriptors. `>
+        ]
+    ]
+) [! longint $bytes_copied, longint $new_offset ] | false
+*/
+
+static purc_variant_t
+sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int out_fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int in_fd = (int)tmp_l;
+
+    int64_t offset = -1;
+    if (nr_args > 2) {
+        if (!purc_variant_is_type(argv[2], PURC_VARIANT_TYPE_NULL) &&
+                !purc_variant_cast_to_longint(argv[2], &offset, false)) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+
+    int64_t count = 4096;
+    if (nr_args > 3 &&
+            !purc_variant_cast_to_longint(argv[3], &count, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    if (count < 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    ssize_t sbytes;
+#if OS(LINUX)
+    off_t off = offset;
+    sbytes = sendfile(out_fd, in_fd, offset >= 0 ? &off : NULL,
+            (size_t)count);
+#else
+#error Unimplement
+#endif
+    if (sbytes == -1) {
+        PC_ERROR("Failed sendfile(%d, %d, %p, %zu): %s.\n",
+                out_fd, in_fd, offset >= 0 ? &off : NULL, (size_t)count,
+                strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    purc_clr_error();
+
+    if (offset >= 0) {
+        purc_variant_t items[2] = {
+            purc_variant_make_longint(sbytes),
+            purc_variant_make_longint(off),
+        };
+
+        if (!items[0] || !items[1]) {
+            if (items[0])
+                purc_variant_unref(items[0]);
+            if (items[1])
+                purc_variant_unref(items[1]);
+            return PURC_VARIANT_INVALID;
+        }
+
+        purc_variant_t retv = purc_variant_make_tuple(2, items);
+        purc_variant_unref(items[0]);
+        purc_variant_unref(items[1]);
+
+        return retv;
+    }
+
+    /* only sbytes returned */
+    return purc_variant_make_longint(sbytes);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -3189,6 +3316,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
         { "open",       open_getter,        NULL },
+        { "sendfile",   sendfile_getter,    NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
