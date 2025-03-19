@@ -288,7 +288,7 @@ negative:
     InvalidValue
 
 positive:
-    {{ $SYS.remove('/tmp/stdout-ls') && $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
+    {{ $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
     true
 
 positive:
