@@ -468,7 +468,7 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
     n = us_read_socket(stream, buf + ext->sz_read_header,
             ext->sz_header - ext->sz_read_header);
     if (n > 0) {
-        PC_DEBUG("Got %zd bytes from Unix socket\n", n);
+        PC_NONE("Got %zd bytes from Unix socket\n", n);
         ext->sz_read_header += n;
         if (ext->sz_read_header == ext->sz_header) {
             ext->sz_read_header = 0;
@@ -517,7 +517,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         if (n > 0) {
             ext->sz_read_payload += n;
 
-            PC_DEBUG("Read payload: %u/%u; message (%u/%u)\n",
+            PC_NONE("Read payload: %u/%u; message (%u/%u)\n",
                     (unsigned)ext->sz_read_payload,
                     (unsigned)ext->header.sz_payload,
                     (unsigned)ext->sz_read_message,
@@ -580,7 +580,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                 goto failed;
             }
 
-            PC_DEBUG("Got a frame header: %d\n", ext->header.op);
+            PC_NONE("Got a frame header: %d\n", ext->header.op);
             switch (ext->header.op) {
             case US_OPCODE_PING:
                 ext->msg_type = MT_PING;
@@ -655,7 +655,7 @@ us_handle_reads(int fd, int event, void *ctxt)
         else if (ext->status & US_WAITING4PAYLOAD) {
 
             retv = try_to_read_payload(stream);
-            PC_DEBUG("Got a new payload: %d\n", retv);
+            PC_NONE("Got a new payload: %d\n", retv);
             if (retv == READ_WHOLE) {
                 ext->status &= ~US_WAITING4PAYLOAD;
 
@@ -663,7 +663,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                     if (ext->msg_type == MT_TEXT) {
                         ext->message[ext->sz_message] = 0;
                         ext->sz_message++;
-                        PC_DEBUG("Got a text payload: %s\n", ext->message);
+                        PC_NONE("Got a text payload: %s\n", ext->message);
                     }
 
                     int owner_taken = 0;
@@ -997,7 +997,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     purc_variant_t data = PURC_VARIANT_INVALID;
     const char *event = NULL;
 
-    PC_DEBUG("Got a message and prepare to fire a MESSAGE event\n");
+    PC_NONE("Got a message and prepare to fire a MESSAGE event\n");
 
     switch (type) {
         case MT_TEXT:

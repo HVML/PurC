@@ -166,7 +166,7 @@ doc_init(pcintr_stack_t stack)
     }
 
     const char *target_name = purc_variant_get_string_const(target);
-    PC_DEBUG("Retrieved target name: %s\n", target_name);
+    PC_NONE("Retrieved target name: %s\n", target_name);
     stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
     purc_variant_unref(target);
 
@@ -531,7 +531,7 @@ static void _cleanup_instance(struct pcinst* inst)
 
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
-        PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
+        PC_INFO("Instance is quiting, %u messages discarded\n", (unsigned)n);
         heap->move_buff = 0;
     }
 
@@ -1647,13 +1647,13 @@ bool pcintr_is_ready_for_event(void)
 
     pcintr_heap_t heap = pcintr_get_heap();
     if (!heap) {
-        PC_DEBUG("purc instance not fully initialized\n");
+        PC_ERROR("purc instance not fully initialized\n");
         abort();
     }
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (!co) {
-        PC_DEBUG(
+        PC_ERROR(
                 "running in a purc thread "
                 "but not in a correct coroutine context\n"
                 );

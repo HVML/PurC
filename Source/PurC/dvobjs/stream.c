@@ -1618,7 +1618,7 @@ static int get_stream_type_by_fd(int fd)
 {
     struct stat stat;
     if (fstat(fd, &stat)) {
-        PC_DEBUG("Failed fstat(): %s\n", strerror(errno));
+        PC_ERROR("Failed fstat(): %s\n", strerror(errno));
         return -1;
     }
 
@@ -2347,7 +2347,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     }
 
     if (!file_exists(url->path)) {
-        PC_DEBUG("Path does not exist: %s\n", url->path);
+        PC_ERROR("Path does not exist: %s\n", url->path);
         purc_set_error(PURC_ERROR_NOT_EXISTS);
         goto error;
     }
@@ -2384,13 +2384,13 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
 
         unlink(unix_addr.sun_path);        /* in case it already exists */
         if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-            PC_DEBUG("Failed to call `bind`: %s\n", strerror(errno));
+            PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
 
         if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
-            PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
+            PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
@@ -2399,7 +2399,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     if (timeout) {
         socklen_t optlen = sizeof(struct timeval);
         if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout, optlen) == -1) {
-            PC_DEBUG("Failed setsockopt(): %s\n", strerror(errno));
+            PC_ERROR("Failed setsockopt(): %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
@@ -2411,7 +2411,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     strcpy(unix_addr.sun_path, url->path);
     len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG("Failed to call `connect`: %s\n",strerror(errno));
+        PC_ERROR("Failed connect(): %s\n",strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
@@ -2468,7 +2468,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
     }
 
     if (port <= 0 || port > 65535) {
-        PC_DEBUG("Bad port value: (%d)\n", port);
+        PC_WARN("Bad port value: (%d)\n", port);
         goto done;
     }
 
@@ -2477,7 +2477,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
 
     hints.ai_socktype = SOCK_STREAM;
     if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
-        PC_DEBUG("Error while getting address info (%s:%d)\n",
+        PC_ERROR("Error while getting address info (%s:%d)\n",
                 host, port);
         goto done;
     }
@@ -2491,7 +2491,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
             socklen_t optlen = sizeof(struct timeval);
             if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout,
                         optlen) == -1) {
-                PC_DEBUG ("Failed setsockopt(SO_RCVTIMEO)\n");
+                PC_ERROR("Failed setsockopt(SO_RCVTIMEO)\n");
                 close(fd);
                 fd = -1;
                 break;
@@ -2512,7 +2512,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
         if (0 != getnameinfo(p->ai_addr, p->ai_addrlen,
                     hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
                     NI_NUMERICHOST | NI_NUMERICSERV)) {
-            PC_DEBUG("Failed getnameinfo(%s:%d)\n", host, port);
+            PC_ERROR("Failed getnameinfo(%s:%d)\n", host, port);
             close(fd);
             fd = -1;
         }
@@ -2522,7 +2522,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
         }
     }
     else if (fd < 0) {
-        PC_DEBUG("Failed to create socket for %s:%d\n", host, port);
+        PC_ERROR("Failed to create socket for %s:%d\n", host, port);
     }
 
     freeaddrinfo(addrinfo);

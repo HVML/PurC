@@ -414,8 +414,6 @@ on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
 {
     char *result = NULL;
 
-    // PC_DEBUG("In %s: needle: %s, len: %lu\n", __func__, needle, len);
-
     if (len == 3 && needle[1] == 'm') {
         // {m}
         suseconds_t usec = *(suseconds_t *)ctxt;
@@ -475,7 +473,6 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     char *result = NULL;
 
     max = estimate_buffer_size(timeformat);
-    // PC_DEBUG("buffer size for %s: %lu\n", timeformat, max);
 
     result = malloc(max + 1);
     if (result == NULL) {
@@ -491,8 +488,6 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
         return PURC_VARIANT_INVALID;
     }
     unset_tz(tz_old);
-
-    // PC_DEBUG("formated time: %s\n", result);
 
     /* replace {m}, and {+/-HHMM:} here */
 #ifndef NDEBUG
