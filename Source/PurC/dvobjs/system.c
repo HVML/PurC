@@ -2433,7 +2433,7 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (getsockopt(fd, SOL_SOCKET, optname, optval, &optlen) == -1) {
-        PC_DEBUG("Failed getsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed getsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -2563,7 +2563,7 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (setsockopt(fd, SOL_SOCKET, optname, optval, optlen) == -1) {
-        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }

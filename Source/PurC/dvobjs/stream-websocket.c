@@ -538,11 +538,11 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
         }
     }
 
-    PC_DEBUG("parsed request: method(%s), path(%s), protocol(%s)\n",
+    PC_NONE("parsed request: method(%s), path(%s), protocol(%s)\n",
             method, path, protocol);
-    PC_DEBUG("parsed request: host(%s), upgrade(%s), connection(%s)\n",
+    PC_NONE("parsed request: host(%s), upgrade(%s), connection(%s)\n",
             host, upgrade, connection);
-    PC_DEBUG("parsed request: origin(%s), ws_key(%s), ws_ver(%s)\n",
+    PC_NONE("parsed request: origin(%s), ws_key(%s), ws_ver(%s)\n",
             origin, ws_key, ws_ver);
 
     if (path == NULL || host == NULL ||
@@ -734,7 +734,6 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    ssize_t nr_total = 0;
     do {
         if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
             if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
@@ -756,10 +755,9 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         }
 
         ext->sz_read_hsbuf += nr_one_read;
-        nr_total += nr_one_read;
-        PC_DEBUG("handshake buffer info: "
-                "sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_total(%zd)\n",
-                ext->sz_hsbuf, ext->sz_read_hsbuf, nr_total);
+        PC_NONE("handshake buffer info: "
+                "sz_hsbuf(%zu), sz_read_hsbuf(%zu)\n",
+                ext->sz_hsbuf, ext->sz_read_hsbuf);
 
 #if HAVE(OPENSSL)
     } while (ext->ssl ? SSL_pending(ext->ssl): 0);
@@ -774,7 +772,7 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         return READ_WHOLE;
     }
 
-    PC_DEBUG("Read some handshake data, continue reading...\n");
+    PC_NONE("Read some handshake data, continue reading...\n");
     return READ_SOME;
 }
 
@@ -796,7 +794,7 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
 
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
-    PC_DEBUG("Time to read handshake request.\n");
+    PC_NONE("Time to read handshake request.\n");
 
     const char *response = NULL;
     size_t resp_len = 0;
@@ -844,7 +842,7 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
     case READ_WHOLE:
         ext->status &= ~WS_WAITING4HSREQU;
         ext->on_readable = ws_handle_reads; /* switch to regular rw mode. */
-        PC_DEBUG("Got handshake request:\n%s", ext->hsbuf);
+        PC_NONE("Got handshake request:\n%s", ext->hsbuf);
         if (ws_verify_handshake_request(stream)) {
             /* Send the Invalid Request response to the client. */
             response = WS_BAD_REQUEST_STR;
@@ -857,7 +855,7 @@ ws_handle_handshake_request(struct pcdvobjs_stream *stream)
     }
 
     if (ext->role != WS_ROLE_CLIENT && response) {
-        PC_DEBUG("Sending response to client: %s", response);
+        PC_NONE("Sending response to client: %s", response);
         ws_write_data(stream, response, resp_len);
     }
 
@@ -875,7 +873,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
 
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
-    PC_DEBUG("Time to read handshake response.\n");
+    PC_NONE("Time to read handshake response.\n");
 
     int retv = 0;
     switch (try_to_read_handshake_data(stream)) {
@@ -908,7 +906,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     case READ_WHOLE:
         ext->status &= ~WS_WAITING4HSRESP;
         ext->on_readable = ws_handle_reads; /* switch to normal mode */
-        PC_DEBUG("Got handshake response:\n%s", ext->hsbuf);
+        PC_NONE("Got handshake response:\n%s", ext->hsbuf);
         if (ws_verify_handshake_response(stream)) {
             ext->status = WS_ERR_SRV | WS_CLOSING;
             retv = -1;
@@ -1398,7 +1396,7 @@ read_socket_ssl(struct pcdvobjs_stream *stream, void *buffer, size_t size)
                 done = 1;
                 break;
             case SSL_ERROR_WANT_READ:
-                PC_DEBUG("More data need to read\n");
+                PC_NONE("More data need to read\n");
                 done = 1;
                 break;
             case SSL_ERROR_SYSCALL:
@@ -1875,7 +1873,7 @@ static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin,
         p = p + 2;
     }
 
-    PC_DEBUG("Frame info: "
+    PC_NONE("Frame info: "
             "fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd, sz_payload: %zu\n",
             header.fin, header.rsv, header.op, header.mask,
             header.sz_payload, sz);
@@ -2034,7 +2032,7 @@ static int try_to_read_frame_header(struct pcdvobjs_stream *stream)
                 ext->sz_read_mask = 0;
             }
 
-            PC_DEBUG("Frame info: "
+            PC_NONE("Frame info: "
                     "fin: %x, rsv: %x, op: %x, mask: %x, sz: %zd\n",
                     header->fin, header->rsv, header->op, header->mask,
                     header->sz_payload);
@@ -2092,7 +2090,7 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
     ssize_t n;
 
     char *buf = (char *)ext->ext_paylen_buf;
-    PC_DEBUG("sz_ext_paylen: %d, sz_read_ext_paylen: %d\n",
+    PC_NONE("sz_ext_paylen: %d, sz_read_ext_paylen: %d\n",
             (int)ext->sz_ext_paylen, (int)ext->sz_read_ext_paylen);
     assert(ext->sz_ext_paylen > ext->sz_read_ext_paylen);
 
@@ -2116,7 +2114,7 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
                 assert(0);
             }
 
-            PC_DEBUG("Got payload size:: %zu\n", header->sz_payload);
+            PC_NONE("Got payload size:: %zu\n", header->sz_payload);
 
             if (header->sz_payload > ext->maxmessagesize) {
                 ws_notify_to_close(stream, WS_CLOSE_TOO_LARGE,
@@ -2193,7 +2191,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     ssize_t n;
 
     char *buf = (char *)ext->payload;
-    PC_DEBUG("sz_payload: %zu, sz_read_payload: %zu\n",
+    PC_NONE("sz_payload: %zu, sz_read_payload: %zu\n",
             ext->sz_payload, ext->sz_read_payload);
     assert(ext->sz_payload >= ext->sz_read_payload);
 
@@ -2372,7 +2370,7 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
         else if (ext->status & WS_WAITING4PAYLOAD) {
             retv = try_to_read_frame_payload(stream);
             if (retv == READ_NONE) {
-                PC_DEBUG("Got no any data for payload. Wait for new data...\n");
+                PC_NONE("Got no any data for payload. Wait for new data...\n");
                 break;
             }
             else if (retv == READ_SOME) {
