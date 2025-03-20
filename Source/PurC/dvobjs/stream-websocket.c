@@ -2704,9 +2704,10 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    PC_DEBUG("ping timer elapsed: %f\n", elapsed);
 
     if (elapsed > ext->noresptimetoclose) {
+        PC_WARN("long time no response: %s:%s\n",
+                stream->peer_addr, stream->peer_port);
         if (ext->on_readable == ws_handle_reads) {
             ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
         }
