@@ -3267,10 +3267,13 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     off = offset;
     off_t len;
     int ret = sendfile(in_fd, out_fd, off, &len, NULL, 0);
-    if (ret == -1)
+    if (ret == -1) {
         sbytes = -1;
-    else
+    }
+    else {
         sbytes = len;
+        off = off + len;
+    }
 #endif
 
     if (sbytes == -1) {
