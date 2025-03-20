@@ -1,0 +1,50 @@
+                    <observe on $_observedOn for 'error'>
+                        $_observedContent
+
+                        <inherit>
+                        {{
+                            $STREAM.stdout.writelines("Server got ERROR event from `$_observedContent`; payload:");
+                            $STREAM.stdout.writelines($DATA.serialize($?));
+                        }}
+                        </inherit>
+
+                        <exit with 'Bad Client' />
+                    </observe>
+
+                    <observe on $_observedOn for 'message'>
+                        $_observedContent
+
+                        <test with $L.streq('case', $?, 'Bye')>
+                            <inherit>
+                                $_observedOn.close();
+                            </inherit>
+
+                            <exit with 'Good Client' />
+
+                            <differ>
+
+                                <inherit>
+                                {{
+                                    $STREAM.stdout.writelines("Server got MESSAGE event from `$_observedContent`; payload:");
+                                    $STREAM.stdout.writelines($DATA.serialize($?));
+                                    $_observedOn.send("Hello from the server");
+                                }}
+                                </inherit>
+
+                            </differ>
+                        </test>
+                    </observe>
+
+                    <observe on $_observedOn for 'close'>
+                        $_observedContent
+
+                        <inherit>
+                        {{
+                            $STREAM.stdout.writelines("Server got CLOSE event from `$_observedContent`; payload:");
+                            $STREAM.stdout.writelines($DATA.serialize($?))
+                        }}
+                        </inherit>
+
+                        <exit with 'Good Client' />
+                    </observe>
+
