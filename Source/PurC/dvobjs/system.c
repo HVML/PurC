@@ -42,12 +42,15 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <spawn.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 
 #if OS(LINUX)
 #include <sys/sendfile.h>
+#elif OS(Mac)
+#include <sys/uio.h>
 #endif
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
@@ -275,7 +278,7 @@ failed:
 #define _OS_NAME    "tvOS"
 #elif OS(WATCHOS)
 #define _OS_NAME    "watchOS"
-#elif OS(MAC_OS_X)
+#elif OS(Mac_OS_X)
 #define _OS_NAME    "macOS"
 #elif OS(DARWIN)
 #define _OS_NAME    "Darwin"
@@ -3222,6 +3225,7 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     int in_fd = (int)tmp_l;
 
+#if OS(LINUX)
     int64_t offset = -1;
     if (nr_args > 2) {
         if (!purc_variant_is_type(argv[2], PURC_VARIANT_TYPE_NULL) &&
@@ -3230,6 +3234,16 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto error;
         }
     }
+#elif OS(DARWIN)
+    int64_t offset = 0;
+    if (nr_args > 2) {
+        if (!purc_variant_is_type(argv[2], PURC_VARIANT_TYPE_NULL) &&
+                !purc_variant_cast_to_longint(argv[2], &offset, false)) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+#endif
 
     int64_t count = 4096;
     if (nr_args > 3 &&
@@ -3244,13 +3258,21 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     ssize_t sbytes;
-#if OS(LINUX)
     off_t off = offset;
+#if OS(LINUX)
     sbytes = sendfile(out_fd, in_fd, offset >= 0 ? &off : NULL,
             (size_t)count);
-#else
-#error Unimplement
+#elif OS(DARWIN)
+    assert(offset >= 0);
+    off = offset;
+    off_t len;
+    int ret = sendfile(in_fd, out_fd, off, &len, NULL, 0);
+    if (ret == -1)
+        sbytes = -1;
+    else
+        sbytes = len;
 #endif
+
     if (sbytes == -1) {
         PC_ERROR("Failed sendfile(%d, %d, %p, %zu): %s.\n",
                 out_fd, in_fd, offset >= 0 ? &off : NULL, (size_t)count,
@@ -3258,7 +3280,6 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ec = purc_error_from_errno(errno);
         goto error;
     }
-
     purc_clr_error();
 
     if (offset >= 0) {
