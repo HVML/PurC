@@ -830,6 +830,25 @@ init_exclamation_symval(struct pcintr_stack_frame *frame)
 }
 
 static int
+init_question_symval(struct pcintr_stack_frame *frame)
+{
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->edom_element)
+        return 0;
+
+    purc_variant_t v = pcintr_get_question_var(parent);
+    if (v == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    int r;
+    r = pcintr_set_question_var(frame, v);
+
+    return r ? -1 : 0;
+}
+
+static int
 init_undefined_symvals(struct pcintr_stack_frame *frame)
 {
     purc_variant_t undefined = purc_variant_make_undefined();
@@ -861,6 +880,10 @@ init_symvals_with_vals(struct pcintr_stack_frame *frame)
 
     // $0!
     if (init_exclamation_symval(frame))
+        return -1;
+
+    // $0?
+    if (init_question_symval(frame))
         return -1;
 
     return 0;
