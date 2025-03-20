@@ -1,0 +1,44 @@
+#!/usr/bin/purc
+
+# RESULT: ["last nexttolast topmost tmp_last tmp_nexttolast tmp_topmost","nexttolast topmost tmp_nexttolast tmp_topmost","tmp_last invalid","topmost tmp_topmost","nexttolast invalid","topmost tmp_topmost"]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as val with [] />
+
+    <div>
+        <div>
+            <div>
+                <init as 'var_last' with 'last' at '_last' />
+                <init as 'var_nexttolast' with 'nexttolast' at '_nexttolast' />
+                <init as 'var_topmost' with 'topmost' at '_topmost' />
+
+                <init as 'tmp_last' with 'tmp_last' at '_last' temp />
+                <init as 'tmp_nexttolast' with 'tmp_nexttolast' at '_nexttolast' temp />
+                <init as 'tmp_topmost' with 'tmp_topmost' at '_topmost' temp />
+
+                <update on $val to 'append' with "$var_last $var_nexttolast $var_topmost $tmp_last $tmp_nexttolast $tmp_topmost"  />
+            </div>
+            <update on $val to 'append' with "$var_nexttolast $var_topmost $tmp_nexttolast $tmp_topmost"  />
+            <update on $val to 'append' with "$tmp_last">
+                <catch for `EntityNotFound` >
+                    <update on $val to 'append' with "tmp_last invalid" />
+                </catch>
+            </update>
+        </div>
+        <update on $val to 'append' with "$var_topmost $tmp_topmost"  />
+        <update on $val to 'append' with "$var_nexttolast">
+            <catch for `EntityNotFound` >
+                <update on $val to 'append' with "nexttolast invalid" />
+            </catch>
+        </update>
+    </div>
+    <update on $val to 'append' with "$var_topmost $tmp_topmost" />
+
+
+    <exit with $val>
+
+</hvml>
+
+
