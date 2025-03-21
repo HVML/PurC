@@ -56,7 +56,7 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(0)
-    []
+    ["This is the string to write", "Second line"]
 
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(1)

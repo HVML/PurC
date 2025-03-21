@@ -860,7 +860,8 @@ PCA_EXPORT const char *
 pcutils_get_next_token_len(const char *str, size_t str_len,
         const char *delims, size_t *length);
 
-/** Get the pointer of the next valid line and length in a string */
+/** Get the line length in a string and return
+    the pointer to the next line. */
 PCA_EXPORT const char *
 pcutils_get_next_line_len(const char *str, size_t str_len,
         const char *seperator, size_t *length);

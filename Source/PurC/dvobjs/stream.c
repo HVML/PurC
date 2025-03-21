@@ -50,8 +50,6 @@
 #include <sys/un.h>
 #include <netdb.h>
 
-#define BUFFER_SIZE                 1024
-
 #define ENDIAN_PLATFORM             0
 #define ENDIAN_LITTLE               1
 #define ENDIAN_BIG                  2
@@ -235,6 +233,12 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
                     stream->monitors[i]);
             stream->monitors[i] = 0;
         }
+    }
+
+    if (stream->fp) {
+        fclose(stream->fp);
+        stream->fp = NULL;
+        stream->fd4r = -1; /* fclose will close the file descriptor */
     }
 
     if (stream->fd4r >= 0) {
@@ -481,19 +485,21 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+#if 0
+#define _LINE_BUFFER_SIZE                 1024
+
 static int read_lines(struct pcdvobjs_stream *entity, int line_num,
         purc_variant_t array, const char *line_seperator)
 {
     purc_rwstream_t stream = entity->stm4r;
     size_t total_read = 0;
-    unsigned char buffer[BUFFER_SIZE + 1];
+    unsigned char buffer[_LINE_BUFFER_SIZE + 1];
     ssize_t read_size = 0;
     size_t length = 0;
     const char *head = NULL;
-    const char *end = NULL;
 
     while (line_num) {
-        read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);
+        read_size = purc_rwstream_read(stream, buffer, _LINE_BUFFER_SIZE);
         if (read_size == 0) {
             if (total_read == 0) {
                 if (entity->type == STREAM_TYPE_FILE) {
@@ -519,17 +525,22 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
             }
         }
         else {
-            buffer[read_size] = '\0';// terminating null byte.
+            buffer[read_size] = '\0';   // terminating null byte.
         }
 
         total_read += read_size;
-        end = (const char*)(buffer + read_size);
 
-        head = pcutils_get_next_line_len((const char*)buffer, read_size,
-                line_seperator, &length);
-        while (head && head < end) {
-            purc_variant_t var = purc_variant_make_string_ex(head, length,
-                    false);
+        const char *line = (const char*)buffer, *next_line;
+        size_t left = read_size;
+        while ((next_line = pcutils_get_next_line_len(line, left,
+                        line_seperator, &length))) {
+
+            purc_variant_t var;
+            if (length == 0)
+                var = purc_variant_make_string_static("", false);
+            else
+                var = purc_variant_make_string_ex(line, length, false);
+
             if (!var) {
                 return -1;
             }
@@ -543,10 +554,11 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcutils_get_next_line_len(head + length, end - head - length,
-                line_seperator, &length);
+            left -= next_line - line;
+            line = next_line;
         }
-        if (read_size < BUFFER_SIZE)           // to the end
+
+        if (read_size < _LINE_BUFFER_SIZE)           // to the end
             break;
 
         if (line_num == 0)
@@ -559,6 +571,110 @@ failed:
     return -1;
 }
 
+#else
+
+static int read_lines(struct pcdvobjs_stream *entity, int line_num,
+        purc_variant_t array, const char *line_seperator)
+{
+    size_t total_ucs = 0;
+
+    if (entity->fp == NULL) {
+        entity->fp = fdopen(entity->fd4r, "r");
+        if (entity->fp == NULL) {
+            PC_ERROR("Failed fdopen(%d): %s\n", entity->fd4r, strerror(errno));
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+    }
+
+    size_t sep_len = strlen(line_seperator);
+    size_t sep_ucs = pcutils_string_utf8_chars(line_seperator, sep_len);
+
+    struct pcutils_mystring mystr;
+    pcutils_mystring_init(&mystr);
+
+    while (line_num) {
+
+        unsigned char utf8ch[6];
+        int uchlen = 0;
+        int c = fgetc(entity->fp);
+        if (c == EOF) {
+            if (total_ucs == 0) {
+                goto nothing;
+            }
+            else
+                break;
+        }
+        else {
+            uchlen = _pcutils_utf8_skip[(unsigned char)c];
+            if (uchlen > 1) {
+                ungetc(c, entity->fp);
+                int n = (int)fread(utf8ch, 1, uchlen, entity->fp);
+                if (n < uchlen) {
+                    if (feof(entity->fp)) {
+                        if (total_ucs == 0)
+                            goto nothing;
+                        else
+                            break;
+                    }
+                    else {
+                        for (int i = 0; i < n; i++)
+                            ungetc(utf8ch[n - i - 1], entity->fp);
+                        break;
+                    }
+                }
+
+            }
+            else {
+                utf8ch[0] = (unsigned char)c;
+            }
+        }
+
+        total_ucs++;
+        pcutils_mystring_append_mchar(&mystr, utf8ch, uchlen);
+
+        if (total_ucs > 0 && (total_ucs % sep_ucs) == 0 &&
+                strncmp(mystr.buff + mystr.nr_bytes - sep_len,
+                    line_seperator, sep_len) == 0) {
+            mystr.buff[mystr.nr_bytes - sep_len] = 0;
+
+            purc_variant_t var;
+            var = purc_variant_make_string_reuse_buff(mystr.buff,
+                    mystr.sz_space, false);
+            pcutils_mystring_init(&mystr);
+
+            purc_variant_array_append(array, var);
+            purc_variant_unref(var);
+            line_num--;
+        }
+    }
+
+    if (mystr.nr_bytes > 0) {
+        purc_variant_t var;
+        pcutils_mystring_done(&mystr);
+        var = purc_variant_make_string_reuse_buff(mystr.buff,
+                mystr.sz_space, false);
+        purc_variant_array_append(array, var);
+        purc_variant_unref(var);
+    }
+
+    return 0;
+
+nothing:
+    if (entity->type == STREAM_TYPE_FILE) {
+        PC_WARN("Reached the EOF.\n");
+        purc_set_error(PURC_ERROR_NO_DATA);
+    }
+    else {
+        PC_WARN("The peer has been closed.\n");
+        purc_set_error(PURC_ERROR_BROKEN_PIPE);
+    }
+
+failed:
+    return -1;
+}
+#endif
+
 #define NEWLINE_SEPERATOR   "\n"
 
 static purc_variant_t
@@ -569,13 +685,8 @@ readlines_getter(void *native_entity, const char *property_name,
 
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
-    int64_t line_num = 0;
+    uint64_t line_num = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
 
     stream = get_stream(native_entity);
     rwstream = stream->stm4r;
@@ -596,11 +707,14 @@ readlines_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    if (!purc_variant_cast_to_longint(argv[0], &line_num, false)) {
+    if (!purc_variant_cast_to_ulongint(argv[0], &line_num, false)) {
         PC_ERROR("failed purc_variant_cast_to_longint()\n");
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
+
+    if (line_num == 0)
+        line_num = UINT64_MAX; // Read all available lines
 
     const char *line_seperator = NEWLINE_SEPERATOR;
     if (nr_args > 1) {
