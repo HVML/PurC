@@ -3057,7 +3057,18 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     }
 }
 
-static struct purc_native_ops ops_vdom = {};
+static void
+on_vdom_wrap_release(void* native_entity)
+{
+    pcvdom_element_t vdom_elem = (pcvdom_element_t)native_entity;
+    struct pcvdom_document *doc = pcvdom_document_from_node(&vdom_elem->node);
+    assert(doc);
+    pcvdom_document_unref(doc);
+}
+
+static struct purc_native_ops ops_vdom = {
+    .on_release = on_vdom_wrap_release
+};
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom)
@@ -3066,6 +3077,12 @@ pcintr_wrap_vdom(pcvdom_element_t vdom)
 
     purc_variant_t val;
     val = purc_variant_make_native(vdom, &ops_vdom);
+
+    if (val) {
+        struct pcvdom_document *doc = pcvdom_document_from_node(&vdom->node);
+        assert(doc);
+        pcvdom_document_ref(doc);
+    }
 
     return val;
 }
