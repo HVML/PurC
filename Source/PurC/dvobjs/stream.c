@@ -611,6 +611,8 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
                 ungetc(c, entity->fp);
                 int n = (int)fread(utf8ch, 1, uchlen, entity->fp);
                 if (n < uchlen) {
+                    PC_WARN("fread() returns less bytes %d for a uchar (%d)\n",
+                            n, uchlen);
                     if (feof(entity->fp)) {
                         if (total_ucs == 0)
                             goto nothing;
