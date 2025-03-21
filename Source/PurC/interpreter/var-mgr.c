@@ -395,8 +395,16 @@ static purc_variant_t
 _find_named_scope_var(purc_coroutine_t cor,
         struct pcintr_stack_frame *frame, const char* name, pcvarmgr_t* mgr)
 {
-    if (frame->scope)
-        return _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+    pcvdom_element_t scope = NULL;
+    purc_variant_t v;
+    if (frame->scope) {
+        v =  _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+        if (v) {
+            return v;
+        }
+        scope = frame->scope;
+        goto find_parent_vdom;
+    }
 
     pcvdom_element_t elem = frame->pos;
 
@@ -406,7 +414,7 @@ _find_named_scope_var(purc_coroutine_t cor,
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v;
+    struct pcintr_stack_frame *parent = frame;
 
 again:
 
@@ -418,16 +426,37 @@ again:
         return v;
     }
 
-    frame = pcintr_stack_frame_get_parent(frame);
-    if (frame) {
-        if (frame->scope)
-            return _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+    parent = pcintr_stack_frame_get_parent(parent);
+    if (parent) {
+        if (parent->scope) {
+            v = _find_named_scope_var_in_vdom(cor, parent->scope, name, mgr);
+            if (v) {
+                return v;
+            }
+            scope = parent->scope;
+            goto find_parent_vdom;
+        }
 
-        elem = frame->pos;
+        elem = parent->pos;
         if (elem)
             goto again;
     }
 
+    scope = frame->pos;
+
+find_parent_vdom:
+    parent = pcintr_find_prev_include_frame(cor, frame, scope);
+    if (parent == NULL || parent->pos == NULL) {
+        goto out;
+    }
+
+    /* clear PCVRNT_ERROR_NOT_FOUND */
+    purc_clr_error();
+
+    elem = parent->pos;
+    goto again;
+
+out:
     purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }

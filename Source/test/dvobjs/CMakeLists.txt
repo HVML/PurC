@@ -604,6 +604,35 @@ PURC_COMPUTE_SOURCES(test_websocket_good_client)
 PURC_FRAMEWORK(test_websocket_good_client)
 GTEST_DISCOVER_TESTS(test_websocket_good_client DISCOVERY_TIMEOUT 10)
 
+# test_websocket_include_module
+PURC_EXECUTABLE_DECLARE(test_websocket_include_module)
+
+list(APPEND test_websocket_include_module_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_websocket_include_module)
+
+set(test_websocket_include_module_SOURCES
+    test_websocket_include_module.cpp
+    ../tools.cpp
+)
+
+set(test_websocket_include_module_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_websocket_include_module)
+PURC_FRAMEWORK(test_websocket_include_module)
+GTEST_DISCOVER_TESTS(test_websocket_include_module DISCOVERY_TIMEOUT 10)
+
+
 # test_message_bad_client
 PURC_EXECUTABLE_DECLARE(test_message_bad_client)
 

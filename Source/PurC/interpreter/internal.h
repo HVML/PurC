@@ -540,6 +540,11 @@ int
 pcintr_common_handle_attr_in(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame);
 
+/* find vdom(elem) not equals co->stack->vdom from frame */
+struct pcintr_stack_frame *
+pcintr_find_prev_include_frame(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, pcvdom_element_t elem);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

@@ -830,6 +830,25 @@ init_exclamation_symval(struct pcintr_stack_frame *frame)
 }
 
 static int
+init_question_symval(struct pcintr_stack_frame *frame)
+{
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->edom_element)
+        return 0;
+
+    purc_variant_t v = pcintr_get_question_var(parent);
+    if (v == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    int r;
+    r = pcintr_set_question_var(frame, v);
+
+    return r ? -1 : 0;
+}
+
+static int
 init_undefined_symvals(struct pcintr_stack_frame *frame)
 {
     purc_variant_t undefined = purc_variant_make_undefined();
@@ -861,6 +880,10 @@ init_symvals_with_vals(struct pcintr_stack_frame *frame)
 
     // $0!
     if (init_exclamation_symval(frame))
+        return -1;
+
+    // $0?
+    if (init_question_symval(frame))
         return -1;
 
     return 0;
@@ -3034,7 +3057,18 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     }
 }
 
-static struct purc_native_ops ops_vdom = {};
+static void
+on_vdom_wrap_release(void* native_entity)
+{
+    pcvdom_element_t vdom_elem = (pcvdom_element_t)native_entity;
+    struct pcvdom_document *doc = pcvdom_document_from_node(&vdom_elem->node);
+    assert(doc);
+    pcvdom_document_unref(doc);
+}
+
+static struct purc_native_ops ops_vdom = {
+    .on_release = on_vdom_wrap_release
+};
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom)
@@ -3043,6 +3077,12 @@ pcintr_wrap_vdom(pcvdom_element_t vdom)
 
     purc_variant_t val;
     val = purc_variant_make_native(vdom, &ops_vdom);
+
+    if (val) {
+        struct pcvdom_document *doc = pcvdom_document_from_node(&vdom->node);
+        assert(doc);
+        pcvdom_document_ref(doc);
+    }
 
     return val;
 }
