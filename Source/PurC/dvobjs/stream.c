@@ -662,7 +662,10 @@ writelines_getter(void *native_entity, const char *property_name,
 
     const char *lt = NEWLINE_SEPERATOR;
     size_t sz_lt = sizeof(NEWLINE_SEPERATOR) - 1;
-    if (nr_args > 1) {
+
+    /* Only if the first argument is a linear container */
+    if (purc_variant_linear_container_get_size(argv[0]) >= 0 &&
+            nr_args > 1) {
         lt = purc_variant_get_string_const_ex(argv[1], &sz_lt);
         if (lt == NULL) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -681,7 +684,8 @@ writelines_getter(void *native_entity, const char *property_name,
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
             {
-                size_t sz_container = purc_variant_linear_container_get_size(data);
+                size_t sz_container =
+                    purc_variant_linear_container_get_size(data);
                 for (size_t i = 0; i < sz_container; i++) {
                     if (!purc_variant_is_string(
                                 purc_variant_linear_container_get(data, i))) {
@@ -698,8 +702,7 @@ writelines_getter(void *native_entity, const char *property_name,
 
         const char *buf = NULL;
         size_t sz_buf = 0;
-        if (purc_variant_is_string(data)) {
-            buf = purc_variant_get_string_const_ex(data, &sz_buf);
+        if ((buf = purc_variant_get_string_const_ex(data, &sz_buf))) {
             if (buf && sz_buf > 0) {
                 nr_written = purc_rwstream_write(rwstream, buf, sz_buf);
                 if (nr_written < 0) {
