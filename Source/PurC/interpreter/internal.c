@@ -256,6 +256,37 @@ get_temp_by_level(struct pcintr_stack_frame *frame,
     return get_from_frame(p, name);
 }
 
+static struct pcvdom_element *
+find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        uint64_t level)
+{
+    /* avoid bind variable on the 'hvml' node of other vdom  */
+    struct pcvdom_element *p = frame->pos;
+    for (; level > 0; level--) {
+        if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
+                || p->tag_id == PCHVML_TAG_HVML) {
+            break;
+        }
+        p = pcvdom_element_parent(p);
+    }
+
+    if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
+                || p->tag_id == PCHVML_TAG_HVML) {
+
+        struct pcintr_stack_frame *parent =
+            pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+
+        if (parent == NULL || parent->pos == NULL) {
+            goto out;
+        }
+
+        p = find_bind_position(stack, parent, level);
+    }
+
+out:
+    return p;
+}
+
 static int
 bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val, uint64_t level,
@@ -272,18 +303,12 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_document_get_root(stack->vdom);
     }
     else {
-        for (uint64_t i = 0; i < level; ++i) {
-            if (p == NULL) {
-                break;
-            }
-            p = pcvdom_element_parent(p);
-        }
+        p = find_bind_position(stack, frame, level);
     }
     purc_clr_error();
 
     if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        int ret = bind_at_element(stack->co, p, name, val, mgr);
-        return ret;
+        return bind_at_element(stack->co, p, name, val, mgr);
     }
 
     if (silently) {
@@ -467,6 +492,14 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     purc_clr_error();
     if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
         return bind_at_element(stack->co, dest, name, val, mgr);
+    }
+
+    /* prev level vdom */
+    struct pcintr_stack_frame *ance_frame =
+        pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+    if (ance_frame) {
+        return bind_by_elem_id(stack, ance_frame, id, name,
+                temporarily, val, mgr);
     }
 
     if (frame->silently) {
@@ -1821,5 +1854,31 @@ pcintr_common_handle_attr_in(pcintr_coroutine_t co,
 
 out:
     return ret;
+}
+
+struct pcintr_stack_frame *
+pcintr_find_prev_include_frame(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, pcvdom_element_t elem)
+{
+    assert(elem);
+    struct pcintr_stack_frame *result = NULL;
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&elem->node);
+    if (vdom == co->stack.vdom) {
+        goto out;
+    }
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    while (parent && parent->pos &&
+            parent->pos->tag_id != PCHVML_TAG_INCLUDE) {
+        parent = pcintr_stack_frame_get_parent(parent);
+    }
+    if (parent == NULL || parent->pos == NULL) {
+        goto out;
+    }
+
+    result = parent;
+out:
+    return result;
 }
 

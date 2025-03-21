@@ -1,3 +1,10 @@
+                    <!-- test define and access variable   -->
+                    <include with $logMsg on "The ws module is loading..." />
+                    <include with $logMsg on "The ws module read \$varDefOnMain : $varDefOnMain " />
+
+                    <init as varDefOnModule with "var define on ws module by _nextolast" at '_nexttolast' />
+                    <init as varDefOnModuleBindById with "var define on ws module by #server" at '#server' />
+
                     <observe on $_observedOn for 'error'>
                         $_observedContent
 

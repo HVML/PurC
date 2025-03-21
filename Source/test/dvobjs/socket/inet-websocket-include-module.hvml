@@ -16,7 +16,10 @@
     <body id='server' >
 
         <include with $logMsg on 'The server is running...' />
-        <include with $logMsg on "The server is running...$REQ.module" />
+        <include with $logMsg on "The server load module : $REQ.module" />
+
+        <init as varDefOnMain with "var define on server" />
+
         <define as "wsModule" from "$REQ.module" />
 
         <init as 'sslSettings' with {} />
@@ -96,6 +99,10 @@
                     }}
                     </inherit>
                     <include with $wsModule />
+
+                    <!-- test access variable   -->
+                    <include with $logMsg on "The server access variable define on module \$varDefOnModule : $varDefOnModule" />
+                    <include with $logMsg on "The server access variable define on module \$varDefOnModuleBindById : $varDefOnModuleBindById" />
 
                 </observe>
 
