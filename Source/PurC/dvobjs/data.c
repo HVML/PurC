@@ -153,6 +153,51 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
+nr_children_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    size_t n;
+
+    if (nr_args == 0) {
+        n = 0;  // treat as undefined
+    }
+    else {
+        switch (purc_variant_get_type(argv[0])) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            n = 0;
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            n = purc_variant_object_get_size(argv[0]);
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            n = purc_variant_linear_container_get_size(argv[0]);
+            break;
+        }
+    }
+
+    return purc_variant_make_ulongint(n);
+}
+
+static purc_variant_t
 is_container_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -3707,6 +3752,7 @@ purc_variant_t purc_dvobj_data_new(void)
         { "is_container",   is_container_getter, NULL },
         { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },
+        { "nr_children",nr_children_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },
         { "numerify",   numerify_getter, NULL },

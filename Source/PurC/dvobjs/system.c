@@ -3177,15 +3177,11 @@ error:
 $SYS.sendfile(
     <longint $out_fd: `The output file descriptor.`>,
     <longint $in_fd: `The input file descriptor.`>
+    <ulongint $offset: `The file offset from which the method will
+            start reading data from $in_fd.` >
     [,
-        <ulongint $offset = null: `The file offset from which the method will
-                start reading data from $in_fd. If $offset is @null, then data
-                will be read from $in_fd starting at the file offset, and the
-                file offset will be updated by the call.` >
-        [,
-            <ulongint $count = 4096UL: `The number of bytes to copy between
-            the file descriptors. `>
-        ]
+        <ulongint $count = 4096UL: `The number of bytes to copy between
+        the file descriptors. `>
     ]
 ) [! longint $bytes_copied, longint $new_offset ] | false
 */
@@ -3197,7 +3193,7 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     int ec = PURC_ERROR_OK;
 
-    if (nr_args < 2) {
+    if (nr_args < 3) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
         goto error;
     }
@@ -3225,34 +3221,15 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     int in_fd = (int)tmp_l;
 
-#if OS(LINUX)
-    int64_t offset = -1;
-    if (nr_args > 2) {
-        if (!purc_variant_is_type(argv[2], PURC_VARIANT_TYPE_NULL) &&
-                !purc_variant_cast_to_longint(argv[2], &offset, false)) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-    }
-#elif OS(DARWIN)
-    int64_t offset = 0;
-    if (nr_args > 2) {
-        if (!purc_variant_is_type(argv[2], PURC_VARIANT_TYPE_NULL) &&
-                !purc_variant_cast_to_longint(argv[2], &offset, false)) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-    }
-#endif
-
-    int64_t count = 4096;
-    if (nr_args > 3 &&
-            !purc_variant_cast_to_longint(argv[3], &count, false)) {
+    uint64_t offset = 0;
+    if (!purc_variant_cast_to_ulongint(argv[2], &offset, false)) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto error;
     }
 
-    if (count < 0) {
+    uint64_t count = 4096UL;
+    if (nr_args > 3 &&
+            !purc_variant_cast_to_ulongint(argv[3], &count, false)) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto error;
     }
@@ -3260,8 +3237,7 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ssize_t sbytes;
     off_t off = offset;
 #if OS(LINUX)
-    sbytes = sendfile(out_fd, in_fd, offset >= 0 ? &off : NULL,
-            (size_t)count);
+    sbytes = sendfile(out_fd, in_fd, &off, (size_t)count);
 #elif OS(DARWIN)
     assert(offset >= 0);
     off = offset;
@@ -3277,37 +3253,32 @@ sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 #endif
 
     if (sbytes == -1) {
-        PC_ERROR("Failed sendfile(%d, %d, %p, %zu): %s.\n",
-                out_fd, in_fd, offset >= 0 ? &off : NULL, (size_t)count,
+        PC_ERROR("Failed sendfile(%d, %d, %zu, %zu): %s.\n",
+                out_fd, in_fd, (size_t)offset, (size_t)count,
                 strerror(errno));
         ec = purc_error_from_errno(errno);
         goto error;
     }
     purc_clr_error();
 
-    if (offset >= 0) {
-        purc_variant_t items[2] = {
-            purc_variant_make_longint(sbytes),
-            purc_variant_make_longint(off),
-        };
+    purc_variant_t items[2] = {
+        purc_variant_make_longint(sbytes),
+        purc_variant_make_longint(off),
+    };
 
-        if (!items[0] || !items[1]) {
-            if (items[0])
-                purc_variant_unref(items[0]);
-            if (items[1])
-                purc_variant_unref(items[1]);
-            return PURC_VARIANT_INVALID;
-        }
-
-        purc_variant_t retv = purc_variant_make_tuple(2, items);
-        purc_variant_unref(items[0]);
-        purc_variant_unref(items[1]);
-
-        return retv;
+    if (!items[0] || !items[1]) {
+        if (items[0])
+            purc_variant_unref(items[0]);
+        if (items[1])
+            purc_variant_unref(items[1]);
+        return PURC_VARIANT_INVALID;
     }
 
-    /* only sbytes returned */
-    return purc_variant_make_longint(sbytes);
+    purc_variant_t retv = purc_variant_make_tuple(2, items);
+    purc_variant_unref(items[0]);
+    purc_variant_unref(items[1]);
+
+    return retv;
 
 error:
     purc_set_error(ec);
