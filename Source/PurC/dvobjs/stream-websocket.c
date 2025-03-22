@@ -2443,8 +2443,8 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 case MT_TEXT:
                     if (!pcutils_string_check_utf8_len(ext->message,
                             ext->sz_message, NULL, NULL)) {
-                        PC_ERROR("Invalid UTF-8 text message: %s (%zu).\n",
-                                ext->message, ext->sz_message);
+                        PC_ERROR("Got an invalid UTF-8 text message: (%zu).\n",
+                                ext->sz_message);
                         ws_notify_to_close(stream, WS_CLOSE_INVALID_UTF8, NULL);
                         ext->status = WS_ERR_MSG | WS_CLOSING;
                         goto failed;
@@ -2706,7 +2706,7 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
 
     if (elapsed > ext->noresptimetoclose) {
-        PC_WARN("long time no response: %s:%s\n",
+        PC_WARN("Long time no response: %s:%s\n",
                 stream->peer_addr, stream->peer_port);
         if (ext->on_readable == ws_handle_reads) {
             ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
@@ -2824,6 +2824,9 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     event, NULL,
                     data, PURC_VARIANT_INVALID);
+        else
+            PC_WARN("Got a message but not observed: `%s`\n", event);
+
         if (data)
             purc_variant_unref(data);
     }
