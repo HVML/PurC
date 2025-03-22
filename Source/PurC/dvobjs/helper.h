@@ -35,7 +35,8 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define STREAM_SIZE 1024
+/* TODO: may change this via a runner/coroutine property */
+#define MAX_SIZE_BUFSTM     4096
 
 char *pcdvobjs_remove_space(char *buffer) WTF_INTERNAL;
 

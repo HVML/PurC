@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+#define _GNU_SOURCE
+// #undef NDEBUG
 
 #include "purc.h"
 #include "config.h"

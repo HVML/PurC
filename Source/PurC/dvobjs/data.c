@@ -405,6 +405,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *str_static = NULL;
     char buff_in_stack[128];
     char *buff = NULL;
+    size_t sz_buff = 0;
     size_t n = 0;
 
     if (nr_args == 0) {
@@ -432,7 +433,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
-            n = purc_variant_stringify_alloc(&buff, argv[0]);
+            n = purc_variant_stringify_alloc_ex(&buff, argv[0], &sz_buff);
             if (n == (size_t)-1) {
                 // Keep the error code set by purc_variant_stringify_alloc.
                 goto fatal;
@@ -447,13 +448,12 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             assert(str);
 
             if (n > 0) {
-                buff = malloc(n+1);
+                buff = strdup(str);
                 if (buff == NULL) {
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     goto fatal;
                 }
-                memcpy(buff, str, n);
-                buff[n] = '\0';
+                sz_buff = n + 1;
             }
             else
                 str_static = "";
@@ -484,7 +484,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_string(buff, false);
     }
     else if (buff != NULL) {
-        return purc_variant_make_string_reuse_buff(buff, n, false);
+        return purc_variant_make_string_reuse_buff(buff, sz_buff, false);
     }
     else {
         assert(0);

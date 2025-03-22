@@ -824,7 +824,7 @@ implode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         seperator = purc_variant_get_string_const_ex(argv[1], &sep_len);
     }
 
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer(32, 0);
     for (size_t i = 0; i < array_size; i++) {
         purc_variant_t tmp;
         tmp = purc_variant_linear_container_get(argv[0], i);
@@ -843,6 +843,7 @@ implode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             &sz_rwbuf, true);
     purc_rwstream_destroy(rwstream);
 
+    PC_INFO("sz_content(%zd), sz_buff(%zd)\n", sz_content, sz_rwbuf);
     return purc_variant_make_string_reuse_buff(rw_string, sz_rwbuf, false);
 
 error:
@@ -956,7 +957,7 @@ replace_one_subject(const char *orig_subject,
         const char *, size_t, const char *, size_t))
 {
     purc_rwstream_t rwstream;
-    rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
 
     const char *subject = orig_subject;
     for (size_t i = 0; i < nr_searches; i++) {
@@ -1146,7 +1147,7 @@ format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         is_array = true;
     }
 
-    rwstream = purc_rwstream_new_buffer(32, STREAM_SIZE);
+    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
 
     size_t start = 0, i = 0, j = 0;
     while (format[i]) {
@@ -1390,7 +1391,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *format = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t tmp_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
+    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
     int type = 0;
     char buffer[32];
     int index = 0;
@@ -1457,7 +1458,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 return PURC_VARIANT_INVALID;
             }
 
-            serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
+            serialize = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
             purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
             buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
@@ -1494,7 +1495,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 return PURC_VARIANT_INVALID;
             }
 
-            serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
+            serialize = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
             purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
             buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
