@@ -321,8 +321,8 @@ failed:
 static char* generate_unique_rid(struct pcinst *inst, const char* name)
 {
     char *buf;
-    asprintf(&buf, "%s-%llx", name, pcinst_get_unique_ull(inst));
-    //asprintf(&buf, "%s-%llx", name, purc_generate_unique_ulongint());
+    if (asprintf(&buf, "%s-%llx", name, pcinst_get_unique_ull(inst)) < 0)
+        return NULL;
     return buf;
 }
 
@@ -473,6 +473,12 @@ connect_to_renderer(struct pcinst *inst,
             }
             else {
                 uid = strdup(conn_to_rdr->name);
+            }
+
+            if (uid == NULL) {
+                PC_ERROR("Failed to allocate memory.\n");
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
             }
 
             atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
