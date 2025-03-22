@@ -3432,6 +3432,27 @@ PCA_EXPORT ssize_t
 purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
 
 /**
+ * purc_variant_stringify_alloc_ex:
+ *
+ * @strp: The pointer to a char * buffer to receive the pointer to
+ *      the allocated space.
+ * @value: The variant value to be stringified.
+ * @sz_buff_p (nullable): The pointer to a size_t buffer to received the size of
+ *  the buffer.
+ *
+ * Stringifies a variant value in the similar way as `asprintf` does.
+ *
+ * Returns: Totol number of result content in bytes that has been succesfully
+ *      written or shall be written if the buffer is large enough,
+ *      or -1 in case of other failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT ssize_t
+purc_variant_stringify_alloc_ex(char **strp, purc_variant_t value,
+        size_t *sz_buff);
+
+/**
  * purc_variant_stringify_alloc:
  *
  * @strp: The pointer to a char * buffer to receive the pointer to
@@ -3446,8 +3467,10 @@ purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
  *
  * Since: 0.0.3
  */
-PCA_EXPORT ssize_t
-purc_variant_stringify_alloc(char **strp, purc_variant_t value);
+static inline ssize_t
+purc_variant_stringify_alloc(char **strp, purc_variant_t value) {
+    return purc_variant_stringify_alloc_ex(strp, value, NULL);
+}
 
 /**
  * A flag for the purc_variant_stringify() function which causes

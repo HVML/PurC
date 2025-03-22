@@ -2814,7 +2814,8 @@ purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
 }
 
 ssize_t
-purc_variant_stringify_alloc(char **strp, purc_variant_t value)
+purc_variant_stringify_alloc_ex(char **strp, purc_variant_t value,
+        size_t *sz_buff_p)
 {
     purc_rwstream_t stream;
     stream = purc_rwstream_new_buffer(0, 0);
@@ -2846,6 +2847,8 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value)
     p[sz_content] = '\0';
 
     *strp = p;
+    if (sz_buff_p)
+        *sz_buff_p = sz_buff;
 
     return sz_content;
 }
