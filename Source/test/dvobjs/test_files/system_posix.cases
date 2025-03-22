@@ -340,6 +340,6 @@ negative:
     WrongDataType
 
 positive:
-    {{ $L.streq('case', $SYS.uname_prt, 'Darwin') || $L.gt($SYS.sendfile($SYS.open('/tmp/copy-of-stdout-ls', 'read write create truncate', '0666'), $SYS.open('/tmp/stdout-ls', 'read')), 0) }}
+    {{ $L.streq('case', $SYS.uname_prt, 'Darwin') || $L.gt($SYS.sendfile($SYS.open('/tmp/copy-of-stdout-ls', 'read write create truncate', '0666'), $SYS.open('/tmp/stdout-ls', 'read'), 0)[0], 0) }}
     true
 
