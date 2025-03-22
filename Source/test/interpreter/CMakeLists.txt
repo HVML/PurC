@@ -501,3 +501,32 @@ target_compile_definitions(test_run_idx PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib"
 PURC_COMPUTE_SOURCES(test_run_idx)
 PURC_FRAMEWORK(test_run_idx)
 GTEST_DISCOVER_TESTS(test_run_idx DISCOVERY_TIMEOUT 10)
+
+# test_multiple_modules
+PURC_EXECUTABLE_DECLARE(test_multiple_modules)
+
+list(APPEND test_multiple_modules_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_multiple_modules)
+
+set(test_multiple_modules_SOURCES
+    test_multiple_modules.cpp
+    ../tools.cpp
+)
+
+set(test_multiple_modules_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_multiple_modules)
+PURC_FRAMEWORK(test_multiple_modules)
+GTEST_DISCOVER_TESTS(test_multiple_modules DISCOVERY_TIMEOUT 10)
+
