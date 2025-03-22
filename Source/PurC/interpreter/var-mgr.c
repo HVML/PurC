@@ -438,8 +438,13 @@ again:
         }
 
         elem = parent->pos;
-        if (elem)
+        if (elem) {
             goto again;
+        }
+
+        if (!parent->pos && !parent->scope) {
+            goto out;
+        }
     }
 
     scope = frame->pos;
