@@ -53,7 +53,12 @@ extern "C" {
 #define PC_NOTICE(x, ...)   purc_log_notice(x, ##__VA_ARGS__)
 #define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
 #define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
-#define PC_NONE(x, ...)     do { (void)x; } while(0)
+#define PC_NONE(x, ...)                         \
+    do {                                        \
+        if (0) {                                \
+            purc_log_debug(x, ##__VA_ARGS__);   \
+        }                                       \
+    } while(0)                                  \
 
 #ifndef NDEBUG
 

@@ -640,8 +640,6 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
                     line_seperator, sep_len) == 0) {
             mystr.buff[mystr.nr_bytes - sep_len] = 0;
 
-            PC_INFO("mystr1: strlen(%zd), nr_bytes (%zd), sz_space (%zd)\n",
-                    strlen(mystr.buff), mystr.nr_bytes, mystr.sz_space);
             purc_variant_t var;
             var = purc_variant_make_string_reuse_buff(mystr.buff,
                     mystr.sz_space, false);
@@ -656,8 +654,6 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
     if (mystr.nr_bytes > 0) {
         purc_variant_t var;
         pcutils_mystring_done(&mystr);
-        PC_INFO("mystr2: strlen(%zd), nr_bytes (%zd), sz_space (%zd)\n",
-                strlen(mystr.buff), mystr.nr_bytes, mystr.sz_space);
         var = purc_variant_make_string_reuse_buff(mystr.buff,
                 mystr.sz_space, false);
         purc_variant_array_append(array, var);

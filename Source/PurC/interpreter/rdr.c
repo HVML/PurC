@@ -972,7 +972,7 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
     int ret = PCRDR_ERROR_SERVER_REFUSED;
-    pcrdr_msg_target target;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_PLAINWINDOW;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
         target = PCRDR_MSG_TARGET_PLAINWINDOW;
