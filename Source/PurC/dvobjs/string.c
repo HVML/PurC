@@ -843,7 +843,6 @@ implode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             &sz_rwbuf, true);
     purc_rwstream_destroy(rwstream);
 
-    PC_INFO("sz_content(%zd), sz_buff(%zd)\n", sz_content, sz_rwbuf);
     return purc_variant_make_string_reuse_buff(rw_string, sz_rwbuf, false);
 
 error:
