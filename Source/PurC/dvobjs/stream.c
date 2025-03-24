@@ -837,6 +837,12 @@ writelines_getter(void *native_entity, const char *property_name,
                 nr_total += nr_written;
 
             }
+
+            nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+            if (nr_written < 0) {
+                goto done;
+            }
+            nr_total += nr_written;
         }
         else {
             size_t sz_container = purc_variant_linear_container_get_size(data);
@@ -851,14 +857,14 @@ writelines_getter(void *native_entity, const char *property_name,
                     }
                     nr_total += nr_written;
                 }
+                nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+                if (nr_written < 0) {
+                    goto done;
+                }
+                nr_total += nr_written;
             }
         }
 
-        nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
-        if (nr_written < 0) {
-            goto done;
-        }
-        nr_total += nr_written;
     }
 
 done:
