@@ -598,7 +598,12 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
         unsigned char utf8ch[6];
         int uchlen = 0;
         int c = fgetc(entity->fp);
-        if (c == EOF) {
+        if (c == EOF || ferror(entity->fp)) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                clearerr(entity->fp);
+                break;
+            }
+            PC_WARN("fgetc() returns EOF\n");
             if (total_ucs == 0) {
                 goto nothing;
             }
@@ -613,7 +618,12 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
                 if (n < uchlen) {
                     PC_WARN("fread() returns less bytes %d for a uchar (%d)\n",
                             n, uchlen);
-                    if (feof(entity->fp)) {
+                    if (feof(entity->fp) || ferror(entity->fp)) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            clearerr(entity->fp);
+                            break;
+                        }
+
                         if (total_ucs == 0)
                             goto nothing;
                         else
@@ -826,11 +836,6 @@ writelines_getter(void *native_entity, const char *property_name,
                 }
                 nr_total += nr_written;
 
-                nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
-                if (nr_written < 0) {
-                    goto done;
-                }
-                nr_total += nr_written;
             }
         }
         else {
@@ -845,15 +850,15 @@ writelines_getter(void *native_entity, const char *property_name,
                         goto done;
                     }
                     nr_total += nr_written;
-
-                    nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
-                    if (nr_written < 0) {
-                        goto done;
-                    }
-                    nr_total += nr_written;
                 }
             }
         }
+
+        nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+        if (nr_written < 0) {
+            goto done;
+        }
+        nr_total += nr_written;
     }
 
 done:
