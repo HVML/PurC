@@ -40,6 +40,8 @@ TEST(dvobjs, basic)
 TEST(dvobjs, channel)
 {
     TestDVObj tester(true);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
     tester.run_testcases_in_file("channel");
 }
 

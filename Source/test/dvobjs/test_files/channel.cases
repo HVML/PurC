@@ -132,7 +132,11 @@ positive:
     true
 
 positive:
-    $RUNNER.chan(! $RUNNER.myObj.tempChan, 0 )
+    $RUNNER.chan(! $RUNNER.myObj.tempChan, 10 )
+    true
+
+positive:
+    $RUNNER.chan($RUNNER.myObj.tempChan).cap(! 0 )
     true
 
 positive:

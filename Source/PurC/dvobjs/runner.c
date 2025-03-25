@@ -294,14 +294,6 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#if OS(UNIX)
-#   define TEMP_CHAN_PATH           "/tmp/"
-#   define TEMP_CHAN_PREEFIX        "_htc"
-#   define TEMP_CHAN_TEMPLATE_FILE  TEMP_CHAN_PREEFIX "XXXXXX"
-#   define TEMP_CHAN_TEMPLATE_PATH  TEMP_CHAN_PATH TEMP_CHAN_TEMPLATE_FILE
-#else
-#endif
-
 static purc_variant_t
 chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -322,7 +314,7 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 1) {
-        if (!purc_variant_cast_to_uint32(argv[1], &cap, true)) {
+        if (!purc_variant_cast_to_uint32(argv[1], &cap, false)) {
             pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
@@ -335,22 +327,6 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (!pcchan_ctrl(chan, cap)) {
             // error set by pcchan_ctrl()
             goto failed;
-        }
-
-        if (cap == 0 && strncmp(chan_name, TEMP_CHAN_PREEFIX,
-                    sizeof(TEMP_CHAN_PREEFIX) - 1) == 0 &&
-                strlen(chan_name) == sizeof(TEMP_CHAN_TEMPLATE_FILE) - 1) {
-            /* this is a temporary channel */
-            char temp_chan_path[] = TEMP_CHAN_TEMPLATE_PATH;
-            strcpy(temp_chan_path + sizeof(TEMP_CHAN_PATH) - 1,
-                    chan_name);
-            if (access(temp_chan_path, F_OK) == 0) {
-                remove(temp_chan_path);
-            }
-            else {
-                PC_WARN("The corresponding file for temporary channel dose not"
-                        "exist: %s\n", strerror(errno));
-            }
         }
     }
     else {
