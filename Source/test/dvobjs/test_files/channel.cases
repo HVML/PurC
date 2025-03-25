@@ -107,3 +107,39 @@ positive:
     $RUNNER.chan(! 'myChannel', 0)
     true
 
+negative:
+    $RUNNER.mktempchan(null)
+    WrongDataType
+
+negative:
+    $RUNNER.mktempchan(0)
+    InvalidValue
+
+positive:
+    $DATA.type($RUNNER.mktempchan(5))
+    'string'
+
+positive:
+    $RUNNER.user(! "tempChan", $RUNNER.mktempchan(5) )
+    true
+
+positive:
+    $RUNNER.chan( $RUNNER.myObj.tempChan ).cap
+    5UL
+
+positive:
+    $SYS.access( "/tmp/$RUNNER.myObj.tempChan" )
+    true
+
+positive:
+    $RUNNER.chan(! $RUNNER.myObj.tempChan, 0 )
+    true
+
+positive:
+    $RUNNER.chan( $RUNNER.myObj.tempChan )
+    undefined
+
+positive:
+    $SYS.access( "/tmp/$RUNNER.myObj.tempChan" )
+    false
+

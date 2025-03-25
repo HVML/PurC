@@ -294,6 +294,14 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#if OS(UNIX)
+#   define TEMP_CHAN_PATH           "/tmp/"
+#   define TEMP_CHAN_PREEFIX        "_htc"
+#   define TEMP_CHAN_TEMPLATE_FILE  TEMP_CHAN_PREEFIX "XXXXXX"
+#   define TEMP_CHAN_TEMPLATE_PATH  TEMP_CHAN_PATH TEMP_CHAN_TEMPLATE_FILE
+#else
+#endif
+
 static purc_variant_t
 chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -328,6 +336,22 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             // error set by pcchan_ctrl()
             goto failed;
         }
+
+        if (cap == 0 && strncmp(chan_name, TEMP_CHAN_PREEFIX,
+                    sizeof(TEMP_CHAN_PREEFIX) - 1) == 0 &&
+                strlen(chan_name) == sizeof(TEMP_CHAN_TEMPLATE_FILE) - 1) {
+            /* this is a temporary channel */
+            char temp_chan_path[] = TEMP_CHAN_TEMPLATE_PATH;
+            strcpy(temp_chan_path + sizeof(TEMP_CHAN_PATH) - 1,
+                    chan_name);
+            if (access(temp_chan_path, F_OK) == 0) {
+                remove(temp_chan_path);
+            }
+            else {
+                PC_WARN("The corresponding file for temporary channel dose not"
+                        "exist: %s\n", strerror(errno));
+            }
+        }
     }
     else {
         chan = pcchan_open(chan_name, cap);
@@ -338,6 +362,62 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+mktempchan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    uint32_t cap = 1;
+    if (nr_args > 0) {
+        if (!purc_variant_cast_to_uint32(argv[0], &cap, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (cap == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    char temp_chan[] = TEMP_CHAN_TEMPLATE_PATH;
+    int fd;
+    if ((fd = mkstemp(temp_chan)) < 0) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto failed;
+    }
+
+    close(fd);
+
+    const char *chan_name = temp_chan + sizeof(TEMP_CHAN_PATH) - 1;
+    pcchan_t chan = pcchan_retrieve(chan_name);
+
+    PC_DEBUG("%s: %s, %s\n", __func__, temp_chan, chan_name);
+
+    if (chan) {
+        if (!pcchan_ctrl(chan, cap)) {
+            // error set by pcchan_ctrl()
+            goto failed;
+        }
+    }
+    else {
+        chan = pcchan_open(chan_name, cap);
+        if (chan == NULL) {
+            // error set by pcchan_open()
+            goto failed;
+        }
+    }
+
+    return purc_variant_make_string(chan_name, false);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -612,6 +692,7 @@ purc_dvobj_runner_new(void)
         { "autoSwitchingRdr",
             auto_switching_rdr_getter, auto_switching_rdr_setter },
         { "chan",               chan_getter,            chan_setter },
+        { "mktempchan",         mktempchan_getter,      NULL },
         { "duplicateRenderers", duplicate_renderers_getter, NULL },
         { "connRenderer",       conn_renderer_getter,   NULL },
         { "disconnRenderer",    disconn_renderer_getter,NULL },
