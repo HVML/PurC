@@ -34,6 +34,7 @@
 #include "internal.h"
 
 #include <assert.h>
+#include <unistd.h> // for access()
 #include <errno.h>
 
 static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
