@@ -34,6 +34,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <unistd.h> // for access()
 
 #define MSG_TYPE_SENDABLE       "sendable"
 #define MSG_TYPE_RECEIVABLE     "receivable"
