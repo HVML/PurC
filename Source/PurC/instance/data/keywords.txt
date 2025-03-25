@@ -129,6 +129,10 @@ msg fetcherState
 msg change
 msg request
 msg response
+msg result
+msg error
+msg state
+msg call
 
 # TODO: The following event names should be removed because they are not group names.
 msg attached

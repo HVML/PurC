@@ -927,7 +927,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         if (type == ETT_VALUE) {
             struct pcejson_token *prev = tkz_prev_token();
             if (prev && prev->type == ETT_GET_ELEMENT) {
-                //XSM
                 tkz_stack_pop();
                 pcejson_token_destroy(top);
                 top = tkz_stack_pop();
@@ -1752,6 +1751,15 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '{') {
+        uint32_t last_c = tkz_buffer_get_last_char(parser->temp_buffer);
+        if (last_c != '{') {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+        }
+
+        /* {{ as CHEE */
+        tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+
          /* ETT_VALUE */
         tkz_stack_drop_top();
         top = tkz_stack_top();
@@ -1767,7 +1775,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                     (struct pctree_node*)node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_TKZ_STATE_DATA);
+
+        tkz_reader_reconsume_last_char(parser->tkz_reader);
+        tkz_reader_reconsume_last_char(parser->tkz_reader);
+        ADVANCE_TO(EJSON_TKZ_STATE_DATA);
     }
     if (character == '$') {
         if ((parser->flags & PCEJSON_FLAG_GET_VARIABLE) == 0) {

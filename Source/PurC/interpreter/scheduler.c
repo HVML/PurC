@@ -745,6 +745,7 @@ again:
 
             event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
             if (event_sub_type && !event_type) {
+                PC_INFO("Not support event %s:%s\n", type, event_sub_type);
                 pcrdr_release_message(msg);
                 msg = NULL;
                 free(type);
