@@ -734,6 +734,9 @@ again:
         if (separator) {
             event_sub_type = separator + 1;
         }
+        else {
+            event_sub_type = NULL;
+        }
 
         size_t nr_type = separator - event;
         if (nr_type) {
