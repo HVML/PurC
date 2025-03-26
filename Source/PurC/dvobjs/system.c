@@ -42,6 +42,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <spawn.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
@@ -3103,6 +3104,86 @@ error:
 }
 
 /*
+$SYS.kill(
+    <longint $pid: `The process identifier.`>
+    [, < ['HUP | INT | QUIT | ABRT | KILL | ALRM | TERM'] $signal = 'TERM':
+        `The signal to send:`
+        - 'HUP':  `hang up`
+        - 'INT':  `interrupt`
+        - 'QUIT': `quit`
+        - 'ABRT': `abort`
+        - 'KILL': `non-catchable, non-ignorable kill`
+        - 'ALRM': `alarm clock`
+        - 'TERM': `software termination signal` >
+    ]
+) true | false
+*/
+
+static struct pcdvobjs_option_to_atom signal_skws[] = {
+    { "HUP",    0, SIGHUP },
+    { "INT",    0, SIGINT },
+    { "QUIT",   0, SIGQUIT },
+    { "ABRT",   0, SIGABRT },
+    { "KILL",   0, SIGKILL },
+    { "ALRM",   0, SIGALRM },
+    { "TERM",   0, SIGTERM },
+};
+
+static purc_variant_t
+kill_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (signal_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(signal_skws); j++) {
+            signal_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, signal_skws[j].option);
+        }
+    }
+
+    int signal = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            signal_skws, PCA_TABLESIZE(signal_skws),
+            NULL, 0, SIGTERM, -1);
+    if (signal == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    if (kill(pid, signal) == -1) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $SYS.open(
     <string $file_path: `The path of the file to open.`>
     [,
@@ -3308,9 +3389,10 @@ purc_variant_t purc_dvobj_system_new (void)
         { "pipe",       pipe_getter,        NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
+        { "open",       open_getter,        NULL },
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
-        { "open",       open_getter,        NULL },
+        { "kill",       kill_getter,       NULL },
         { "sendfile",   sendfile_getter,    NULL },
     };
 
