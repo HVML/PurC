@@ -459,3 +459,7 @@ positive:
     $DATA.is_container([])
     true
 
+positive:
+    $DATA.numerify('00123')
+    123
+
