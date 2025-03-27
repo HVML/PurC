@@ -403,8 +403,8 @@ typedef enum {
  * @doc: The pointer to a document.
  * @elem: The pointer to an element.
  * @op: The operation.
- * @content: A string contains the content in the target markup language.
- * @len: The len of the content, 0 for null-terminated string.
+ * @tag: A string contains the tag name in the target markup language.
+ * @self_close: Indicate whether is a self-close element.
  *
  * This function creates a new element with specific tag and inserts it to
  * the specified position related to an existing element.
