@@ -2489,26 +2489,45 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     }
 
     if (!(flags & _O_NAMELESS)) {
-        char socket_path[33];
-        pcutils_md5_ctxt ctx;
-        unsigned char md5_digest[16];
+        char socket_prefix[20];
         struct pcinst* inst = pcinst_current();
 
+        pcutils_md5_ctxt ctx;
+        unsigned char md5_digest[16];
+
         pcutils_md5_begin(&ctx);
-        if (inst) {
-            pcutils_md5_hash(&ctx, inst->app_name, strlen(inst->app_name));
-            pcutils_md5_hash(&ctx, inst->runner_name, strlen(inst->runner_name));
-        }
+        struct timespec tp;
+        clock_gettime(CLOCK_REALTIME, &tp);
+        pcutils_md5_hash(&ctx, &tp, sizeof(tp));
         pcutils_md5_hash(&ctx, prot, strlen(prot));
         pcutils_md5_end(&ctx, md5_digest);
-        pcutils_bin2hex(md5_digest, 16, socket_path, false);
+        pcutils_bin2hex(md5_digest, 16, socket_prefix, false);
 
-        /* fill socket address structure w/our address */
+        const char *runner_name = "_unknown_";
+        if (inst) {
+            runner_name = inst->runner_name;
+        }
+
+        /* Fill socket address structure w/our address.
+           Since 0.9.22, we always include runner name. */
         memset(&unix_addr, 0, sizeof(unix_addr));
         unix_addr.sun_family = AF_UNIX;
         /* On Linux sun_path is 108 bytes in size */
-        snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path),
-                "%s%s-%05d", US_CLI_PATH, socket_path, getpid());
+        int r = snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path),
+                "%s%s-%s-%05d", US_CLI_PATH,
+                socket_prefix, runner_name, getpid());
+        if (r < 0) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+
+        if ((size_t)r >= sizeof(unix_addr.sun_path)) {
+            PC_ERROR("Too long runner name for local socket file: %s\n",
+                    runner_name);
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto error;
+        }
+
         len = sizeof(unix_addr.sun_family);
         len += strlen(unix_addr.sun_path) + 1;
 
