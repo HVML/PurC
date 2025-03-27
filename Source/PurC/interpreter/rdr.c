@@ -660,6 +660,28 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
     }
     target_value = rdr_conn->page_handle;
 
+    /* Since 0.9.22 */
+    if (conn->caps->js_to_inject) {
+        pcdoc_element_t head = purc_document_head(doc);
+        if (head) {
+            pcdoc_element_t script = pcdoc_element_new_element(doc, head,
+                    PCDOC_OP_APPEND, "script", false);
+            if (script) {
+                if (pcdoc_element_set_attribute(doc, script, PCDOC_OP_UPDATE,
+                        "src", conn->caps->js_to_inject,
+                        strlen(conn->caps->js_to_inject))) {
+                    PC_WARN("Failed to set the src attribute for injecting JS\n");
+                }
+            }
+            else {
+                PC_WARN("Failed to create <scritp> element for injecting JS\n");
+            }
+        }
+        else {
+            PC_WARN("Failed to get <head> element in the doc\n");
+        }
+    }
+
     const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     char elem[LEN_BUFF_LONGLONGINT];
     int n = snprintf(elem, sizeof(elem),
@@ -689,6 +711,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
     }
     /* Use rdr_caps->doc_loading_method since PURCMC 170 */
     else if (conn->caps->doc_loading_method == PCRDR_K_DLM_url) {
+
         char *path;
         int path_len;
         /* try to use /app/<app_name>/exported/tmp/ first */
