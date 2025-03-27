@@ -2585,6 +2585,74 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static struct pcdvobjs_option_to_atom seek_whence_skws[] = {
+    { "set",    0, SEEK_SET },
+    { "current",0, SEEK_CUR },
+    { "end",    0, SEEK_END },
+};
+
+static purc_variant_t
+seek_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    off_t offset = (off_t)tmp_l;
+
+    if (seek_whence_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(seek_whence_skws); j++) {
+            seek_whence_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, seek_whence_skws[j].option);
+        }
+    }
+
+    int whence = pcdvobjs_parse_options(
+            (nr_args > 2) ? argv[2] : PURC_VARIANT_INVALID,
+            seek_whence_skws, PCA_TABLESIZE(seek_whence_skws),
+            NULL, 0, SEEK_SET, -1);
+    if (whence == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    offset = lseek(fd, offset, whence);
+    if (offset == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_longint((int64_t)offset);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
 close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3390,9 +3458,10 @@ purc_variant_t purc_dvobj_system_new (void)
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
         { "open",       open_getter,        NULL },
+        { "seek",       seek_getter,        NULL },
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
-        { "kill",       kill_getter,       NULL },
+        { "kill",       kill_getter,        NULL },
         { "sendfile",   sendfile_getter,    NULL },
     };
 

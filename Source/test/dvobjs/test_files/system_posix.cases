@@ -363,3 +363,27 @@ negative:
     $SYS.kill(1, 'TERM')
     AccessDenied
 
+negative:
+    $SYS.seek
+    ArgumentMissed
+
+negative:
+    $SYS.seek(null)
+    ArgumentMissed
+
+negative:
+    $SYS.seek(null, null)
+    WrongDataType
+
+negative:
+    $SYS.seek(0, 0, 'foo')
+    InvalidValue
+
+positive:
+    $SYS.seek(0, 0, 'set')
+    0L
+
+positive:
+    $L.gt($SYS.seek($SYS.open('/tmp/stdout-ls'), 0, 'end'), 1)
+    true
+
