@@ -2489,7 +2489,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     }
 
     if (!(flags & _O_NAMELESS)) {
-        char socket_prefix[20];
+        char socket_prefix[33];
         struct pcinst* inst = pcinst_current();
 
         pcutils_md5_ctxt ctx;
@@ -2502,6 +2502,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
         pcutils_md5_hash(&ctx, prot, strlen(prot));
         pcutils_md5_end(&ctx, md5_digest);
         pcutils_bin2hex(md5_digest, 16, socket_prefix, false);
+        socket_prefix[16] = 0;  /* we only use the first 16 characters */
 
         const char *runner_name = "_unknown_";
         if (inst) {
