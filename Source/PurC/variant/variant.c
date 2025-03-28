@@ -2404,8 +2404,11 @@ booleanize_native(purc_variant_t value)
         return false;
 
     purc_nvariant_method getter = (ops->property_getter)(native, "__boolean");
-    if (!getter)
-        return false;
+    if (!getter) {
+        /* PURC_ERROR_NOT_SUPPORTED */
+        purc_clr_error();
+        return true;
+    }
 
     purc_variant_t v = getter(native, "__boolean", 0, NULL,
             PCVRT_CALL_FLAG_SILENTLY);
