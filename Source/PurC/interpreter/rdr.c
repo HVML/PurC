@@ -40,6 +40,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define ID_KEY                  "id"
 #define NAME_KEY                "name"
@@ -667,7 +669,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             pcdoc_element_t script = pcdoc_element_new_element(doc, head,
                     PCDOC_OP_APPEND, "script", false);
             if (script) {
-                if (pcdoc_element_set_attribute(doc, script, PCDOC_OP_UPDATE,
+                if (pcdoc_element_set_attribute(doc, script, PCDOC_OP_DISPLACE,
                         "src", conn->caps->js_to_inject,
                         strlen(conn->caps->js_to_inject))) {
                     PC_WARN("Failed to set the src attribute for injecting JS\n");
@@ -750,6 +752,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             goto failed;
         }
 
+        fchmod(fd, 0666);   /* temp file has default 0600 mode */
         out = purc_rwstream_new_from_unix_fd(fd);
         if (out == NULL) {
             free(path);

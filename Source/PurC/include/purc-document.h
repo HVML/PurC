@@ -554,7 +554,7 @@ pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
  * @doc: The pointer to a document.
  * @elem: The pointer to an element.
  * @op: The operation, can be one of the following values:
- *  - %PCDOC_OP_UPDATE: update the attribute value.
+ *  - %PCDOC_OP_DISPLACE: set or update the attribute value.
  *  - %PCDOC_OP_ERASE: remove the attribute.
  *  - %PCDOC_OP_CLEAR: clear the attribute value.
  * @name: The name of the attribute, must be null-terminated.

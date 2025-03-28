@@ -826,9 +826,9 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    PC_DEBUG("ping timer elapsed: %f\n", elapsed);
 
     if (elapsed > ext->noresptimetoclose) {
+        PC_DEBUG("It's time to ping the peer: %f\n", elapsed);
         us_notify_to_close(stream);
         ext->status = US_ERR_LTNR | US_CLOSING;
         us_handle_rwerr_close(stream);
