@@ -563,7 +563,7 @@ on_dom_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
 
         buf[0] = '#';
         strcpy(buf+1, element);
-        source = purc_variant_make_string_reuse_buff(buf, nr, true);
+        source = purc_variant_make_string_reuse_buff(buf, nr + 1, true);
         if (!source) {
             free(buf);
             goto out;

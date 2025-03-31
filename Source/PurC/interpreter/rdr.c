@@ -831,7 +831,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         fwrite(p, 1, sz_content, fp);
         fclose(fp);
 #endif
-        req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
+        req_data = purc_variant_make_string_reuse_buff(p, sz_buff, false);
         if (req_data == PURC_VARIANT_INVALID) {
             free(p);
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
