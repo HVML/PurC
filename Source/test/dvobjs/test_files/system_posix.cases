@@ -256,6 +256,34 @@ positive:
     false
 
 negative:
+    $SYS.waitpid
+    ArgumentMissed
+
+negative:
+    $SYS.waitpid(null)
+    WrongDataType
+
+negative:
+    $SYS.waitpid(1, null)
+    WrongDataType
+
+negative:
+    $SYS.waitpid(1)
+    OSFailure
+
+positive:
+    $SYS.waitpid(-1)
+    false
+
+negative:
+    $SYS.waitpid(-1, 'foo')
+    InvalidValue
+
+negative:
+    $SYS.waitpid(-1, 'none')
+    OSFailure
+
+negative:
     $SYS.spawn
     ArgumentMissed
 
@@ -292,8 +320,16 @@ positive:
     true
 
 positive:
+    $SYS.waitpid(-1).cause
+    'exited'
+
+positive:
     $DATA.type($SYS.spawn('bc', [{ 'action': 'open', 'fd': 0, 'path': '/tmp/stdout-ls', 'oflags': 'read' }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-bc', 'oflags': 'write create truncate'}, { 'action': 'open', 'fd': 2, 'path': '/tmp/stderr-bc', 'oflags': 'write create truncate'} ],  ['bc'], [], 'setsid'))
     'longint'
+
+positive:
+    $SYS.waitpid(-1).cause
+    'exited'
 
 negative:
     $SYS.open()
