@@ -206,6 +206,9 @@ static void print_usage(FILE *fp)
         "        This help.\n"
         "\n"
         "(root only options)\n"
+        "  -D --daemon\n"
+        "        Run as a daemon.\n"
+        "\n"
         "  -R --chroot <directory>\n"
         "       Change root to the specified directory\n"
         "       (default is the `/app/<app_name>/`)\n"
@@ -247,6 +250,7 @@ struct my_opts {
 
     bool parallel;
     bool verbose;
+    bool daemon;
 };
 
 static const char *archedata_header =
@@ -435,7 +439,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:DlvCVh";
     static const struct option long_opts[] = {
         { "app"                         , required_argument , NULL , 'a' },
         { "runner"                      , required_argument , NULL , 'r' },
@@ -453,6 +457,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "chroot"                      , required_argument , NULL , 'R' },
         { "setuser"                     , required_argument , NULL , 'U' },
         { "setgroup"                    , required_argument , NULL , 'G' },
+        { "daemon"                      , no_argument       , NULL , 'D' },
         { "parallel"                    , no_argument       , NULL , 'l' },
         { "verbose"                     , no_argument       , NULL , 'v' },
         { "copying"                     , no_argument       , NULL , 'C' },
@@ -605,6 +610,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'v':
             opts->verbose = true;
+            break;
+
+        case 'D':
+            opts->daemon = true;
             break;
 
         case '?':
@@ -1711,6 +1720,25 @@ static int drop_root_privilege(const struct my_opts *opts)
 {
     const char *username;
     const char *groupname;
+
+    if (opts->daemon) {
+        pid_t pid;
+
+        pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "Failed fork(): %s\n", strerror(errno));
+            return -1;
+        }
+
+        if (pid > 0) {
+            _exit(0);
+        }
+
+        if (setsid() < 0) {
+            fprintf(stderr, "Failed setsid(): %s\n", strerror(errno));
+            return -1;
+        }
+    }
 
     if (opts->setuser) {
         username = opts->setuser;

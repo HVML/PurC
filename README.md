@@ -735,6 +735,9 @@ The following options can be supplied to the command:
         This help.
 
 (root only options)
+  -D --daemon
+        Run as a daemon.
+
   -R --chroot <directory>
        Change root to the specified directory
        (default is the `/app/<app_name>/`)
