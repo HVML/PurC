@@ -47,6 +47,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #if OS(LINUX)
 #include <sys/sendfile.h>
@@ -3252,6 +3253,182 @@ failed:
 }
 
 /*
+$SYS.waitpid(
+    <longint $pid: `The process identifier.`>
+    [, < ['none || nohang || untraced || continued'] $options = 'none':
+            `The options:`
+        - 'none':    `No any options specified.`
+        - 'nohang':  `Indicate that the call should not block if there are no
+                processes that wish to report status.`
+        - 'untraced':  `Indicate that children of the current process that are
+                stopped due to a SIGTTIN, SIGTTOU, SIGTSTP, or SIGSTOP signal
+                also have their status reported.`
+        - 'continued':  `Indicate that children of the current process that are
+                continued due to a SIGCONT signal also have their status
+                reported (Linux-only).`
+    ]
+) false | object: `An object describes the exit status of one children:`
+    - 'pid':        < longint: `The process identifier .` >
+    - 'cause':      < 'exited | signaled | stopped | continued':
+            `Indicate the manner of exit of the process.` >
+    - 'exitstatus': < longint: `If the process terminated normally by a
+            call to _exit(2) or exit(3), this property evaluates to the
+            low-order 8 bits of the argument passed to _exit(2) or exit(3)
+            by the child.`
+    - 'termsignal': < longint: `If the process terminated due to receipt
+            of a signal, this property evaluates to the number of
+            the signal that caused the termination of the process.` >
+    - 'stopsignal': < boolean: `if the process has not terminated, but has
+            stopped and can be restarted, this property evaluates to
+            the number of the signal that caused the process to stop.` >
+    - 'cordump':    < boolean: `Indicate if the termination of the process was
+        accompanied by the creation of a core file containing an image of the
+        process when the signal was received.` >
+*/
+
+static struct pcdvobjs_option_to_atom waitpid_ckws[] = {
+    { "none",       0, 0 },
+    { "nohang",     0, WNOHANG },
+    { "untraced",   0, WUNTRACED },
+#if OS(LINUX)
+    { "continued",  0, WCONTINUED },
+#endif
+};
+
+static purc_variant_t
+waitpid_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    purc_variant_t retv = PURC_VARIANT_INVALID, val = PURC_VARIANT_INVALID;
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (waitpid_ckws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(waitpid_ckws); j++) {
+            waitpid_ckws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, waitpid_ckws[j].option);
+        }
+    }
+
+    int options = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            NULL, 0,
+            waitpid_ckws, PCA_TABLESIZE(waitpid_ckws), 0, -1);
+    if (options == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    pid_t exited;
+    int status;
+    if ((exited = waitpid(pid, &status, options)) == -1) {
+        PC_ERROR("Failed waitpid(%d, %x): %s.\n",
+                pid, status, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    if (options & WNOHANG && exited == 0) {
+        return purc_variant_make_boolean(false);
+    }
+
+    retv = purc_variant_make_object_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    val = purc_variant_make_longint(exited);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "pid", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WIFEXITED(status)) {
+        val = purc_variant_make_string_static("exited", false);
+    }
+    else if (WIFSIGNALED(status)) {
+        val = purc_variant_make_string_static("signaled", false);
+    }
+    else if (WIFSTOPPED(status)) {
+        val = purc_variant_make_string_static("stopped", false);
+    }
+#if OS(LINUX)
+    else if (WIFCONTINUED(status)) {
+        val = purc_variant_make_string_static("continued", false);
+    }
+#endif
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+
+    if (!purc_variant_object_set_by_static_ckey(retv, "cause", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WCOREDUMP(status))
+        val = purc_variant_make_boolean(true);
+    else
+        val = purc_variant_make_boolean(false);
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "coredump", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    const char *key = NULL;
+    if (WIFEXITED(status)) {
+        key = "exitstatus";
+        val = purc_variant_make_longint(WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status)) {
+        key = "termsignal";
+        val = purc_variant_make_longint(WTERMSIG(status));
+    }
+    else if (WIFSTOPPED(status)) {
+        key = "stopsignal";
+        val = purc_variant_make_longint(WSTOPSIG(status));
+    }
+
+    if (key == NULL || val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, key, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    return retv;
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $SYS.open(
     <string $file_path: `The path of the file to open.`>
     [,
@@ -3462,6 +3639,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
         { "kill",       kill_getter,        NULL },
+        { "waitpid",    waitpid_getter,     NULL },
         { "sendfile",   sendfile_getter,    NULL },
     };
 
