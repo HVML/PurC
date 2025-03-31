@@ -47,6 +47,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #if OS(LINUX)
 #include <sys/sendfile.h>

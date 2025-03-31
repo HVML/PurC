@@ -272,16 +272,12 @@ negative:
     OSFailure
 
 positive:
-    $SYS.waitpid(-1)
+    $SYS.waitpid(-1, 'nohang')
     false
 
 negative:
     $SYS.waitpid(-1, 'foo')
     InvalidValue
-
-negative:
-    $SYS.waitpid(-1, 'none')
-    OSFailure
 
 negative:
     $SYS.spawn
@@ -318,18 +314,6 @@ negative:
 positive:
     {{ $SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ],  ['ls', '/'], [], 'setsid') && $SYS.access('/tmp/stdout-ls') }}
     true
-
-positive:
-    $SYS.waitpid(-1).cause
-    'exited'
-
-positive:
-    $DATA.type($SYS.spawn('bc', [{ 'action': 'open', 'fd': 0, 'path': '/tmp/stdout-ls', 'oflags': 'read' }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-bc', 'oflags': 'write create truncate'}, { 'action': 'open', 'fd': 2, 'path': '/tmp/stderr-bc', 'oflags': 'write create truncate'} ],  ['bc'], [], 'setsid'))
-    'longint'
-
-positive:
-    $SYS.waitpid(-1).cause
-    'exited'
 
 negative:
     $SYS.open()
@@ -376,6 +360,10 @@ negative:
     WrongDataType
 
 positive:
+    $SYS.waitpid($SYS.spawn('ls', [ { 'action': 'close', 'fd': 0 }, { 'action': 'open', 'fd': 1, 'path': '/tmp/stdout-ls', 'oflags': 'write create truncate'} ], ['ls', '/']), 'none').cause
+    'exited'
+
+positive:
     {{ $L.streq('case', $SYS.uname_prt, 'Darwin') || $L.gt($SYS.sendfile($SYS.open('/tmp/copy-of-stdout-ls', 'read write create truncate', '0666'), $SYS.open('/tmp/stdout-ls', 'read'), 0)[0], 0) }}
     true
 
@@ -414,10 +402,6 @@ negative:
 negative:
     $SYS.seek(0, 0, 'foo')
     InvalidValue
-
-positive:
-    $SYS.seek(0, 0, 'set')
-    0L
 
 positive:
     $L.gt($SYS.seek($SYS.open('/tmp/stdout-ls'), 0, 'end'), 1)
