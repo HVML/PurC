@@ -746,7 +746,7 @@ again:
                 goto out;
             }
 
-            event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
+            event_type = purc_atom_try_string_ex(ATOM_BUCKET_EVENT, type);
             if (event_sub_type && !event_type) {
                 PC_INFO("Not support event %s:%s\n", type, event_sub_type);
                 pcrdr_release_message(msg);
@@ -755,10 +755,11 @@ again:
                 type = NULL;
                 goto again;
             }
-            if (co->stack.exited && (
-                        (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)) == event_type)
-                        || (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CORSTATE)) == event_type)
-                        )) {
+            if (co->stack.exited &&
+                    ((pchvml_keyword(PCHVML_KEYWORD_ENUM(EVENT, CALLSTATE)) ==
+                      event_type) ||
+                     (pchvml_keyword(PCHVML_KEYWORD_ENUM(EVENT, CORSTATE)) ==
+                      event_type))) {
                 pcrdr_release_message(msg);
                 msg = NULL;
                 free(type);

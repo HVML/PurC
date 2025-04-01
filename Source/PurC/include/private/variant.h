@@ -386,9 +386,9 @@ WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool
-extern purc_atom_t pcvariant_atom_grow;
-extern purc_atom_t pcvariant_atom_shrink;
-extern purc_atom_t pcvariant_atom_change;
+extern purc_atom_t pcvariant_atom_inflated;
+extern purc_atom_t pcvariant_atom_deflated;
+extern purc_atom_t pcvariant_atom_modified;
 // extern purc_atom_t pcvariant_atom_reference;
 // extern purc_atom_t pcvariant_atom_unreference;
 

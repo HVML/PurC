@@ -113,9 +113,9 @@ void pcvariant_free(purc_variant *v) {
 }
 #endif
 
-purc_atom_t pcvariant_atom_grow;
-purc_atom_t pcvariant_atom_shrink;
-purc_atom_t pcvariant_atom_change;
+purc_atom_t pcvariant_atom_inflated;
+purc_atom_t pcvariant_atom_deflated;
+purc_atom_t pcvariant_atom_modified;
 // purc_atom_t pcvariant_atom_reference;
 // purc_atom_t pcvariant_atom_unreference;
 
@@ -125,12 +125,12 @@ static int _init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
-    pcvariant_atom_grow = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "grow");
-    pcvariant_atom_shrink = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "shrink");
-    pcvariant_atom_change = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "change");
+    pcvariant_atom_inflated =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "inflated");
+    pcvariant_atom_deflated =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "deflated");
+    pcvariant_atom_modified =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "modified");
 
     return 0;
 }
