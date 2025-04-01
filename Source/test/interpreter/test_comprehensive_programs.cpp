@@ -69,3 +69,9 @@ TEST(comp_hvml, purcmc)
 {
     go_comp_test("interpreter/comp/6*.hvml");
 }
+
+TEST(comp_hvml, container_event)
+{
+    go_comp_test("interpreter/comp/7*.hvml");
+}
+

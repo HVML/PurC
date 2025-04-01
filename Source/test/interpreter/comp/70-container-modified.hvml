@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: [0, 2, 3]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as array>
+        [ 1, 2, 3 ]
+    </init>
+
+    <observe on $array for 'change:modified'>
+        <exit with $_observedOn />
+    </observe>
+
+    <update on $array at 0 to displace with 0 />
+</hvml>

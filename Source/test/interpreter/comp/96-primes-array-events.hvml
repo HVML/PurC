@@ -19,7 +19,7 @@
                 <update on $RUNNER.myObj.primes to "append" with $RUNNER.myObj[$inChannel][-1] />
                 <forget on $RUNNER.myObj[$inChannel] for "grown" />
 
-                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $RUNNER.myObj.primes[-1] } async >
+                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $RUNNER.myObj.primes[-1] } async />
             </observe>
         </iterate>
 
@@ -36,8 +36,8 @@
         <init as inChannel with "channel$REQ.idx" />
         <init as outChannel with "channel$DATA.arith('+', $REQ.idx, 1)" />
 
-        <observe on $RUNNER.myObj[$inChannel] for "grown" >
-            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
+        <observe on $RUNNER.myObj[$inChannel] for "change:inflated" >
+            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime) >
                 <update on $RUNNER.myObj[$outChannel] to "append" with $RUNNER.myObj[$inChannel][-1] />
             </test>
         </observe>
