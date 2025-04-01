@@ -150,7 +150,7 @@ regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
         *listener = purc_variant_register_post_listener(observed,
                 PCVAR_OPERATION_DEFLATED, base_variant_msg_listener, stack);
     }
-    else if (strcmp(type, MSG_TYPE_CHANGE) == 0) {
+    else if (strcmp(type, MSG_SUB_TYPE_MODIFIED) == 0) {
         *listener = purc_variant_register_post_listener(observed,
                 PCVAR_OPERATION_MODIFIED, base_variant_msg_listener, stack);
     }
@@ -499,7 +499,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     struct pcvar_listener *listener = NULL;
-    if (!regist_variant_listener(stack, on, ctxt->msg_type, &listener))
+    if (!regist_variant_listener(stack, on, ctxt->sub_type, &listener))
         return NULL;
 
     purc_variant_t at = pcintr_get_at_var(frame);

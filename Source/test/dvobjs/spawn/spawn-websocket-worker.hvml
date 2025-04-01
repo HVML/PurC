@@ -77,7 +77,7 @@
 
         <init as 'clients' with {} />
 
-        <observe on $clients for 'shrink'>
+        <observe on $clients for 'change:deflated'>
             <include with $logMsg on 'clients shrunken:' />
             <include with $logMsg on $clients />
 
