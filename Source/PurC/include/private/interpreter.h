@@ -54,9 +54,6 @@
 #define MSG_TYPE_SUB_EXIT             "subExit"
 #define MSG_TYPE_LAST_MSG             "lastMsg"
 #define MSG_TYPE_ASYNC                "async"
-#define MSG_TYPE_GROW                 "grow"
-#define MSG_TYPE_SHRINK               "shrink"
-#define MSG_TYPE_CHANGE               "change"
 #define MSG_TYPE_CORSTATE             "corState"
 #define MSG_TYPE_DESTROY              "destroy"
 #define MSG_TYPE_RDR_STATE            "rdrState"
@@ -67,6 +64,9 @@
 #define MSG_TYPE_NEW_RENDERER         "newRenderer"
 #define MSG_TYPE_DUP_RENDERER         "dupRenderer"
 
+#define MSG_SUB_TYPE_INFLATED         "inflated"
+#define MSG_SUB_TYPE_DEFLATED         "deflated"
+#define MSG_SUB_TYPE_MODIFIED         "modified"
 
 #define MSG_SUB_TYPE_ASTERISK         "*"
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"

@@ -3577,9 +3577,9 @@ typedef struct pcvar_listener pcvar_listener;
 typedef struct pcvar_listener *pcvar_listener_t;
 
 typedef enum {
-    PCVAR_OPERATION_GROW         = (0x01 << 0),
-    PCVAR_OPERATION_SHRINK       = (0x01 << 1),
-    PCVAR_OPERATION_CHANGE       = (0x01 << 2),
+    PCVAR_OPERATION_INFLATED     = (0x01 << 0),
+    PCVAR_OPERATION_DEFLATED     = (0x01 << 1),
+    PCVAR_OPERATION_MODIFIED     = (0x01 << 2),
     PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
     PCVAR_OPERATION_RELEASING    = (0x01 << 4),
     PCVAR_OPERATION_ALL          = ((0x01 << 5) - 1),
@@ -3598,11 +3598,11 @@ typedef bool (*pcvar_op_handler) (
  *
  * @v: The variant that is to be listened.
  * @op: The operations to be listened, can OR'd by the following values:
- *      - PCVAR_OPERATION_GROW:
+ *      - PCVAR_OPERATION_INFLATED:
  *        A new member will be added to the container.
- *      - PCVAR_OPERATION_SHRINK:
+ *      - PCVAR_OPERATION_DEFLATED:
  *        A member will be removed from the container.
- *      - PCVAR_OPERATION_CHANGE:
+ *      - PCVAR_OPERATION_MODIFIED:
  *        The contents of the container will change.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant will be referenced as a child of another container.
@@ -3624,11 +3624,11 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *
  * @v: The variant that is to be listened, it must be a container.
  * @op: The operations to be listened, can OR'd by the following values:
- *      - PCVAR_OPERATION_GROW:
+ *      - PCVAR_OPERATION_INFLATED:
  *        A new member has been added to the container.
- *      - PCVAR_OPERATION_SHRINK:
+ *      - PCVAR_OPERATION_DEFLATED:
  *        A member has be removed from the container.
- *      - PCVAR_OPERATION_CHANGE:
+ *      - PCVAR_OPERATION_MODIFIED:
  *        The contents of the container have changed.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant was referenced as a child of another container.

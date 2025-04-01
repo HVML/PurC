@@ -197,13 +197,13 @@ static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     switch (msg_type) {
-    case PCVAR_OPERATION_GROW:
+    case PCVAR_OPERATION_INFLATED:
         return mgr_grow_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_SHRINK:
+    case PCVAR_OPERATION_DEFLATED:
         return mgr_shrink_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_CHANGE:
+    case PCVAR_OPERATION_MODIFIED:
         return mgr_change_handler(source, msg_type, ctxt, nr_args, argv);
 
     default:
@@ -215,8 +215,8 @@ static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
 static int
 add_listener_for_co_variables(pcvarmgr_t mgr)
 {
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     mgr->listener = purc_variant_register_post_listener(mgr->object,
         (pcvar_op_t)op, mgr_handler, mgr);
     if (mgr->listener) {

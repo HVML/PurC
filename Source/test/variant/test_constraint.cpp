@@ -933,17 +933,17 @@ static bool obj_post_handler (
     PC_ASSERT(set);
 
     switch (op) {
-        case PCVAR_OPERATION_GROW:
+        case PCVAR_OPERATION_INFLATED:
             PC_ASSERT(nr_args == 2);
             PC_ASSERT(argv);
             return set_on_obj_grown(set, src, argv[0], argv[1]);
 
-        case PCVAR_OPERATION_CHANGE:
+        case PCVAR_OPERATION_MODIFIED:
             PC_ASSERT(nr_args == 4);
             PC_ASSERT(argv);
             return set_on_obj_changed(set, src, argv[0], argv[1], argv[2], argv[3]);
 
-        case PCVAR_OPERATION_SHRINK:
+        case PCVAR_OPERATION_DEFLATED:
             PC_ASSERT(nr_args == 2);
             PC_ASSERT(argv);
             return set_on_obj_shrunk(set, src, argv[0], argv[1]);
@@ -962,9 +962,9 @@ static bool set_on_grown(purc_variant_t set, purc_variant_t obj)
 
     struct pcvar_listener *listener;
 
-    int op = PCVAR_OPERATION_GROW |
-        PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED |
+        PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     listener = purc_variant_register_post_listener(obj, (pcvar_op_t)op,
             obj_post_handler, set);
     EXPECT_NE(listener, nullptr);
@@ -986,9 +986,9 @@ static bool set_on_changed(purc_variant_t set,
 
     struct pcvar_listener *listener;
 
-    int op = PCVAR_OPERATION_GROW |
-        PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED |
+        PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     listener = purc_variant_register_post_listener(_new, (pcvar_op_t)op,
             obj_post_handler, set);
     EXPECT_NE(listener, nullptr);
@@ -1023,19 +1023,19 @@ static bool set_post_handler (
     UNUSED_PARAM(argv);
 
     switch (op) {
-        case PCVAR_OPERATION_GROW:
+        case PCVAR_OPERATION_INFLATED:
             PC_ASSERT(nr_args == 1);
             PC_ASSERT(argv);
             PC_ASSERT(src == ctxt);
             return set_on_grown(src, argv[0]);
 
-        case PCVAR_OPERATION_CHANGE:
+        case PCVAR_OPERATION_MODIFIED:
             PC_ASSERT(nr_args == 2);
             PC_ASSERT(argv);
             PC_ASSERT(src == ctxt);
             return set_on_changed(src, argv[0], argv[1]);
 
-        case PCVAR_OPERATION_SHRINK:
+        case PCVAR_OPERATION_DEFLATED:
             PC_ASSERT(nr_args == 1);
             PC_ASSERT(argv);
             PC_ASSERT(src == ctxt);
@@ -1065,9 +1065,9 @@ TEST(constraint, set_change)
     EXPECT_NE(set, nullptr);
 
     struct pcvar_listener *listener;
-    int op = PCVAR_OPERATION_GROW |
-        PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED |
+        PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
 
     listener = purc_variant_register_post_listener(set, (pcvar_op_t)op,
             set_post_handler, set);

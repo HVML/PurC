@@ -377,7 +377,7 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
     // TODO: check validation of interval and active here.
 
     listener = purc_variant_register_post_listener(argv[0],
-            PCVAR_OPERATION_CHANGE, timer_listener_handler, timer);
+            PCVAR_OPERATION_MODIFIED, timer_listener_handler, timer);
     if (!listener) {
         return false;
     }
@@ -427,7 +427,7 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
 
     listener_map_remove_listener(cor->timers->listener_map, argv[0]);
     listener = purc_variant_register_post_listener(nv,
-            PCVAR_OPERATION_CHANGE, timer_listener_handler, timer);
+            PCVAR_OPERATION_MODIFIED, timer_listener_handler, timer);
     if (!listener) {
         return false;
     }
@@ -470,13 +470,13 @@ timers_set_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
         void *ctxt, size_t nr_args, purc_variant_t *argv)
 {
     switch (msg_type) {
-    case PCVAR_OPERATION_GROW:
+    case PCVAR_OPERATION_INFLATED:
         return timers_set_grow(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_SHRINK:
+    case PCVAR_OPERATION_DEFLATED:
         return timers_set_shrink(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_CHANGE:
+    case PCVAR_OPERATION_MODIFIED:
         return timers_set_change(source, msg_type, ctxt, nr_args, argv);
 
     default:
@@ -499,8 +499,8 @@ pcintr_timers_init(purc_coroutine_t cor)
         return NULL;
     }
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     struct pcintr_timers* timers = (struct pcintr_timers*) calloc(1,
             sizeof(struct pcintr_timers));
     if (!timers) {
