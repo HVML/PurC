@@ -48,7 +48,7 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     purc_variant_t tmp;
 
     purc_vdom_t vdom = NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "vdom", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "vdom", true);
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
@@ -61,7 +61,7 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 
     purc_atom_t curator = 0;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "curator", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "curator", true);
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
@@ -69,7 +69,7 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 
     pcrdr_page_type_k page_type = PCRDR_PAGE_TYPE_NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "pageType", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "pageType", true);
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
@@ -77,68 +77,68 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 
     purc_variant_t request;
-    request = purc_variant_object_get_by_ckey(msg->data, "request", true);
+    request = purc_variant_object_get_by_ckey_ex(msg->data, "request", true);
     if (request)
         purc_variant_ref(request);
 
     const char *target_workspace = NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "targetWorkspace", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "targetWorkspace", true);
     if (tmp) {
         target_workspace = purc_variant_get_string_const(tmp);
     }
 
     const char *target_group = NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "targetGroup", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "targetGroup", true);
     if (tmp) {
         target_group = purc_variant_get_string_const(tmp);
     }
 
     const char *page_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "pageName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "pageName", true);
     if (tmp) {
         page_name = purc_variant_get_string_const(tmp);
     }
 
     purc_renderer_extra_info extra_rdr_info = {};
 
-    tmp = purc_variant_object_get_by_ckey(msg->data, "class", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "class", true);
     if (tmp) {
         extra_rdr_info.klass = purc_variant_get_string_const(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(msg->data, "title", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "title", true);
     if (tmp) {
         extra_rdr_info.title = purc_variant_get_string_const(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(msg->data, "layoutStyle", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "layoutStyle", true);
     if (tmp) {
         extra_rdr_info.layout_style = purc_variant_get_string_const(tmp);
     }
 
     extra_rdr_info.toolkit_style =
-        purc_variant_object_get_by_ckey(msg->data, "toolkitStyle", true);
+        purc_variant_object_get_by_ckey_ex(msg->data, "toolkitStyle", true);
     if (extra_rdr_info.toolkit_style)
         purc_variant_ref(extra_rdr_info.toolkit_style);
 
-    tmp = purc_variant_object_get_by_ckey(msg->data, "transitionStyle", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "transitionStyle", true);
     if (tmp) {
         extra_rdr_info.transition_style = purc_variant_get_string_const(tmp);
     }
 
     extra_rdr_info.keep_contents =
-        purc_variant_object_get_by_ckey(msg->data, "keepContents", true);
+        purc_variant_object_get_by_ckey_ex(msg->data, "keepContents", true);
     if (extra_rdr_info.keep_contents) {
          purc_variant_ref(extra_rdr_info.keep_contents);
     }
 
-    tmp = purc_variant_object_get_by_ckey(msg->data, "pageGroups", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "pageGroups", true);
     if (tmp) {
         extra_rdr_info.page_groups = purc_variant_get_string_const(tmp);
     }
 
     const char *body_id = NULL;
-    tmp = purc_variant_object_get_by_ckey(msg->data, "bodyId", true);
+    tmp = purc_variant_object_get_by_ckey_ex(msg->data, "bodyId", true);
     if (tmp) {
         body_id = purc_variant_get_string_const(tmp);
     }
@@ -407,13 +407,13 @@ static void create_instance(struct instmgr_info *mgr_info,
     purc_variant_t tmp;
 
     const char *app_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "appName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "appName", true);
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
     const char *runner_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "runnerName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "runnerName", true);
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);
     }
@@ -434,7 +434,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     }
 
     purc_cond_handler cond_handler = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "condHandler", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "condHandler", true);
     if (tmp) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
@@ -443,59 +443,59 @@ static void create_instance(struct instmgr_info *mgr_info,
 
     struct purc_instance_extra_info info = {};
 
-    tmp = purc_variant_object_get_by_ckey(request->data, "rendererProt", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "rendererProt", true);
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
         info.renderer_comm = (purc_rdrcomm_k)u64;
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data, "keepAlive", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "keepAlive", true);
     if (tmp && purc_variant_is_boolean(tmp)) {
         info.keep_alive = purc_variant_booleanize(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data,
+    tmp = purc_variant_object_get_by_ckey_ex(request->data,
             "allowSwitchingRdr", true);
     if (tmp && purc_variant_is_boolean(tmp)) {
         info.allow_switching_rdr = purc_variant_booleanize(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data,
+    tmp = purc_variant_object_get_by_ckey_ex(request->data,
             "allowScalingByDensity", true);
     if (tmp && purc_variant_is_boolean(tmp)) {
         info.allow_scaling_by_density = purc_variant_booleanize(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "rendererURI", true);
     if (tmp) {
         info.renderer_uri = purc_variant_get_string_const(tmp);
     }
 
     /* XXX: Removed since 0.9.22
-    tmp = purc_variant_object_get_by_ckey(request->data, "sslCert", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "sslCert", true);
     if (tmp) {
         info.ssl_cert = purc_variant_get_string_const(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data, "sslKey", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "sslKey", true);
     if (tmp) {
         info.ssl_key = purc_variant_get_string_const(tmp);
     } */
 
-    tmp = purc_variant_object_get_by_ckey(request->data,
+    tmp = purc_variant_object_get_by_ckey_ex(request->data,
             "workspaceName", true);
     if (tmp) {
         info.workspace_name = purc_variant_get_string_const(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data,
+    tmp = purc_variant_object_get_by_ckey_ex(request->data,
             "workspaceTitle", true);
     if (tmp) {
         info.workspace_title = purc_variant_get_string_const(tmp);
     }
 
-    tmp = purc_variant_object_get_by_ckey(request->data,
+    tmp = purc_variant_object_get_by_ckey_ex(request->data,
             "workspaceLayout", true);
     if (tmp) {
         info.workspace_layout = purc_variant_get_string_const(tmp);
@@ -542,13 +542,13 @@ static void cancel_instance(struct instmgr_info *info,
     purc_variant_t tmp;
 
     const char *app_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "appName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "appName", true);
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
     const char *runner_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "runnerName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "runnerName", true);
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);
     }
@@ -611,13 +611,13 @@ static void kill_instance(struct instmgr_info *info,
     purc_variant_t tmp;
 
     const char *app_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "appName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "appName", true);
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
     const char *runner_name = NULL;
-    tmp = purc_variant_object_get_by_ckey(request->data, "runnerName", true);
+    tmp = purc_variant_object_get_by_ckey_ex(request->data, "runnerName", true);
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);
     }

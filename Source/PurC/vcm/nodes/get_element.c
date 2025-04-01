@@ -103,7 +103,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     if (purc_variant_is_object(caller_var)) {
         purc_variant_t val =
-            purc_variant_object_get(caller_var, param_var, false);
+            purc_variant_object_get_ex(caller_var, param_var, false);
         if (val == PURC_VARIANT_INVALID) {
             goto out;
         }

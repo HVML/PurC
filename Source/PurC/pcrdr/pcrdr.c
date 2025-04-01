@@ -457,7 +457,7 @@ connect_to_renderer(struct pcinst *inst,
     if (ret_code == PCRDR_SC_OK) {
         conn_to_rdr->caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
                     response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
@@ -784,7 +784,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     if (ret_code == PCRDR_SC_OK) {
         n_rdr_caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
                     response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 n_conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
@@ -1278,7 +1278,7 @@ int connect_to_renderer_response_handler(pcrdr_conn *conn_to_rdr,
     if (ret_code == PCRDR_SC_OK) {
         conn_to_rdr->caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
                     response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 conn_to_rdr->name = strdup(purc_variant_get_string_const(name));

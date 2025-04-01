@@ -148,7 +148,7 @@ add_runner_myobj_listener(purc_variant_t runner)
     }
 
     purc_variant_t my_obj =
-        purc_variant_object_get_by_ckey(runner, USER_OBJ, true);
+        purc_variant_object_get_by_ckey_ex(runner, USER_OBJ, true);
     assert(my_obj);
 
     // do not need ref

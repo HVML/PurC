@@ -416,7 +416,7 @@ pcvcm_eval_is_native_wrapper(purc_variant_t val)
         return false;
     }
 
-    if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER, true)) {
+    if (purc_variant_object_get_by_ckey_ex(val, KEY_INNER_HANDLER, true)) {
         return true;
     }
 
@@ -426,13 +426,13 @@ pcvcm_eval_is_native_wrapper(purc_variant_t val)
 purc_variant_t
 pcvcm_eval_native_wrapper_get_caller(purc_variant_t val)
 {
-    return purc_variant_object_get_by_ckey(val, KEY_CALLER_NODE, false);
+    return purc_variant_object_get_by_ckey_ex(val, KEY_CALLER_NODE, false);
 }
 
 purc_variant_t
 pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
 {
-    return purc_variant_object_get_by_ckey(val, KEY_PARAM_NODE, false);
+    return purc_variant_object_get_by_ckey_ex(val, KEY_PARAM_NODE, false);
 }
 
 

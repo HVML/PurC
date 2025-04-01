@@ -290,7 +290,7 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         return false;
     }
     bool ret = false;
-    purc_variant_t v = purc_variant_object_get(mgr->object, k, true);
+    purc_variant_t v = purc_variant_object_get_ex(mgr->object, k, true);
     if (v == PURC_VARIANT_INVALID) {
         ret = purc_variant_object_set(mgr->object, k, variant);
     }
@@ -323,7 +323,7 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
     }
 
     purc_variant_t v;
-    v = purc_variant_object_get_by_ckey(mgr->object, name, true);
+    v = purc_variant_object_get_by_ckey_ex(mgr->object, name, true);
     if (v) {
         return v;
     }
@@ -553,7 +553,7 @@ again:
             break;
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(tmp, name, false);
+        v = purc_variant_object_get_by_ckey_ex(tmp, name, false);
         if (v == PURC_VARIANT_INVALID)
             break;
 
@@ -740,7 +740,7 @@ again:
             break;
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(tmp, name, false);
+        v = purc_variant_object_get_by_ckey_ex(tmp, name, false);
         if (v == PURC_VARIANT_INVALID)
             break;
 
@@ -820,7 +820,7 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
 
-    purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG, true);
+    purc_variant_t flag = purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
     if (!flag) {
         return false;
     }
@@ -828,7 +828,7 @@ did_matched(void *native_entity, purc_variant_t val)
     struct pcvarmgr_named_variables_observe *obs =
         (struct pcvarmgr_named_variables_observe*)native_entity;
 
-    purc_variant_t name_val = purc_variant_object_get_by_ckey(val,
+    purc_variant_t name_val = purc_variant_object_get_by_ckey_ex(val,
             KEY_NAME, true);
     if (!name_val) {
         return false;
@@ -838,7 +838,7 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
 
-    purc_variant_t mgr_val = purc_variant_object_get_by_ckey(val, KEY_MGR, true);
+    purc_variant_t mgr_val = purc_variant_object_get_by_ckey_ex(val, KEY_MGR, true);
     if (!mgr_val || !purc_variant_is_native(mgr_val)) {
         return false;
     }
@@ -956,19 +956,19 @@ pcintr_is_named_var_for_event(purc_variant_t val)
         return false;
     }
 
-    purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG, true);
+    purc_variant_t flag = purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
     if (!flag) {
         return false;
     }
 
     purc_variant_t name_val =
-        purc_variant_object_get_by_ckey(val, KEY_NAME, true);
+        purc_variant_object_get_by_ckey_ex(val, KEY_NAME, true);
     if (!name_val) {
         return false;
     }
 
     purc_variant_t mgr_val =
-        purc_variant_object_get_by_ckey(val, KEY_MGR, true);
+        purc_variant_object_get_by_ckey_ex(val, KEY_MGR, true);
     if (!mgr_val || !purc_variant_is_native(mgr_val)) {
         return false;
     }

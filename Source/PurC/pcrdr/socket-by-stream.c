@@ -333,7 +333,7 @@ static struct purc_native_ops purcmc_ops = {
 };
 
 #define NORMALIZE_BOOL_PROPERTY(name)                                   \
-    tmp = purc_variant_object_get_by_ckey(extra_opts, #name, true);     \
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts, #name, true);     \
     if (tmp && !purc_variant_is_boolean(tmp)) {                         \
         /* It must be a string */                                       \
         const char *str = purc_variant_get_string_const(tmp);           \
@@ -357,7 +357,7 @@ static struct purc_native_ops purcmc_ops = {
 #define NORMALIZE_UINT_PROPERTY(name)                                   \
     do {                                                                \
         uint64_t name = 0;                                              \
-        tmp = purc_variant_object_get_by_ckey(extra_opts, #name, true); \
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts, #name, true); \
         if (tmp && purc_variant_cast_to_ulongint(tmp, &name, true)) {   \
             tmp = purc_variant_make_ulongint(name);                     \
             purc_variant_object_set_by_ckey(extra_opts, #name, tmp);    \

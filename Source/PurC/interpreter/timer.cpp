@@ -268,7 +268,7 @@ remove_timer(struct pcintr_timers* timers, const char* id)
 static pcintr_timer_t
 get_inner_timer(purc_coroutine_t cor , purc_variant_t timer_var)
 {
-    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var,
+    purc_variant_t id = purc_variant_object_get_by_ckey_ex(timer_var,
             TIMERS_STR_ID, true);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -297,7 +297,7 @@ static void
 destroy_inner_timer(purc_coroutine_t cor, purc_variant_t timer_var)
 {
     purc_variant_t id;
-    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, true);
+    id = purc_variant_object_get_by_ckey_ex(timer_var, TIMERS_STR_ID, true);
     if (!id) {
         return;
     }
@@ -321,9 +321,9 @@ timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
     purc_variant_t nv = source;
     pcintr_timer_t timer = (pcintr_timer_t)ctxt;
 
-    purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
+    purc_variant_t interval = purc_variant_object_get_by_ckey_ex(nv,
             TIMERS_STR_INTERVAL, true);
-    purc_variant_t active = purc_variant_object_get_by_ckey(nv,
+    purc_variant_t active = purc_variant_object_get_by_ckey_ex(nv,
             TIMERS_STR_ACTIVE, true);
     if (interval != PURC_VARIANT_INVALID) {
         uint64_t ret = 0;
@@ -370,9 +370,9 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
         return false;
     }
 
-    purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
+    purc_variant_t interval = purc_variant_object_get_by_ckey_ex(argv[0],
             TIMERS_STR_INTERVAL, true);
-    purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
+    purc_variant_t active = purc_variant_object_get_by_ckey_ex(argv[0],
             TIMERS_STR_ACTIVE, true);
     // TODO: check validation of interval and active here.
 
@@ -433,9 +433,9 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
     }
     listener_map_set_listener(cor->timers->listener_map, nv, listener);
 
-    purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
+    purc_variant_t interval = purc_variant_object_get_by_ckey_ex(nv,
             TIMERS_STR_INTERVAL, true);
-    purc_variant_t active = purc_variant_object_get_by_ckey(nv,
+    purc_variant_t active = purc_variant_object_get_by_ckey_ex(nv,
             TIMERS_STR_ACTIVE, true);
     if (interval != PURC_VARIANT_INVALID) {
         uint64_t ret = 0;

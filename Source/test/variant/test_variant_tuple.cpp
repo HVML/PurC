@@ -158,7 +158,7 @@ TEST(variant, tuple_as_member)
     ASSERT_NE(object, nullptr);
     bool r = purc_variant_object_set_by_static_ckey(object, "tuple", tuple);
     ASSERT_EQ(r, true);
-    purc_variant_t v = purc_variant_object_get_by_ckey(object, "tuple", true);
+    purc_variant_t v = purc_variant_object_get_by_ckey_ex(object, "tuple", true);
     ASSERT_EQ(v, tuple);
 
     purc_variant_t array = purc_variant_make_array(0, PURC_VARIANT_INVALID);

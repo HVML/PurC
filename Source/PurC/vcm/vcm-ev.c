@@ -192,7 +192,7 @@ eval_const_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    ret = purc_variant_object_get(vcm_ev->values, key, true);
+    ret = purc_variant_object_get_ex(vcm_ev->values, key, true);
     if (ret) {
         purc_variant_ref(ret);
         goto out;

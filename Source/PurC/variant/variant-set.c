@@ -380,7 +380,7 @@ _get_by_key(purc_variant_t val, const char *key)
     purc_variant_t v = PURC_VARIANT_INVALID;
 
     if (purc_variant_is_object(val)) {
-        v = purc_variant_object_get_by_ckey(val, key, true);
+        v = purc_variant_object_get_by_ckey_ex(val, key, true);
     }
 
     if (v != PURC_VARIANT_INVALID)

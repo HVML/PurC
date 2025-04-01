@@ -795,7 +795,7 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 */
 
 purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_get_by_ckey_ex(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
@@ -1266,7 +1266,7 @@ purc_variant_object_unite(purc_variant_t dst,
     ret = 0;
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k, true);
+        purc_variant_t o = purc_variant_object_get_ex(dst, k, true);
         if (!o) {
             if (!purc_variant_object_set(dst, k, v)) {
                 ret = -1;
@@ -1334,7 +1334,7 @@ purc_variant_object_intersect(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(dst, k, v)
-        purc_variant_t o = purc_variant_object_get(src, k, true);
+        purc_variant_t o = purc_variant_object_get_ex(src, k, true);
         if (!o) {
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
@@ -1376,7 +1376,7 @@ purc_variant_object_subtract(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(dst, k, v)
-        purc_variant_t o = purc_variant_object_get(src, k, true);
+        purc_variant_t o = purc_variant_object_get_ex(src, k, true);
         if (o) {
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
@@ -1418,7 +1418,7 @@ purc_variant_object_xor(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k, true);
+        purc_variant_t o = purc_variant_object_get_ex(dst, k, true);
         if (o) {
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
@@ -1464,7 +1464,7 @@ purc_variant_object_overwrite(purc_variant_t dst, purc_variant_t src,
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k, true);
+        purc_variant_t o = purc_variant_object_get_ex(dst, k, true);
         if (o) {
             if (!purc_variant_object_set(dst, k, v)) {
                 goto out;

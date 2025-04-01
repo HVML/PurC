@@ -922,7 +922,7 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
 
 #define DEFINE_STRING_VAR_FROM_OBJECT(name, alternative)            \
     const char *name;                                               \
-    tmp = purc_variant_object_get_by_ckey(extra_opts, #name, true); \
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts, #name, true); \
     name = (tmp == PURC_VARIANT_INVALID) ? alternative :            \
         purc_variant_get_string_const(tmp);                         \
     if (name == NULL) {                                             \
@@ -988,7 +988,7 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
 
         size_t nr_headers = 0, nr_wrotten = 0;
         for (size_t i = 0; i < PCA_TABLESIZE(extra_headers); i++) {
-            tmp = purc_variant_object_get_by_ckey(extra_opts,
+            tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
                     extra_headers[i].name, true);
 
             if (tmp) {
@@ -3242,7 +3242,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts,
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
             "maxframepayloadsize", true);
     uint64_t maxframepayloadsize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxframepayloadsize, false)) {
@@ -3250,7 +3250,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts,
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
             "maxmessagesize", true);
     uint64_t maxmessagesize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
@@ -3258,7 +3258,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts,
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
             "noresptimetoping", true);
     uint32_t noresptimetoping = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoping, false)) {
@@ -3266,7 +3266,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts,
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
             "noresptimetoclose", true);
     uint32_t noresptimetoclose = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoclose, false)) {
@@ -3398,13 +3398,13 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     if (stream->socket == NULL) {
         bool secure = false;
-        tmp = purc_variant_object_get_by_ckey(extra_opts, "secure", true);
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts, "secure", true);
         secure = tmp == PURC_VARIANT_INVALID ? false :
             purc_variant_booleanize(tmp);
 
         if (secure) {
 #if HAVE(OPENSSL)
-            tmp = purc_variant_object_get_by_ckey(extra_opts,
+            tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
                     "sslsessioncacheid", true);
             const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
                 purc_variant_get_string_const(tmp);
@@ -3529,7 +3529,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             ext->writer = write_socket_plain;
         }
 
-        tmp = purc_variant_object_get_by_ckey(extra_opts, "handshake", true);
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts, "handshake", true);
         if (tmp) {
             /* this is a server-side worker process. */
             if (!purc_variant_booleanize(tmp)) {

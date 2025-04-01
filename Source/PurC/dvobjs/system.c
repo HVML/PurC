@@ -790,9 +790,9 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_OBJECT) {
-        purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
+        purc_variant_t v1 = purc_variant_object_get_by_ckey_ex(argv[0],
                 _KN_sec, true);
-        purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
+        purc_variant_t v2 = purc_variant_object_get_by_ckey_ex(argv[0],
                 _KN_usec, true);
 
         if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
@@ -2698,7 +2698,7 @@ handle_file_action_close(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd", true);
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2786,7 +2786,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd", true);
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2799,7 +2799,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
     }
     int fd = (int)tmp_l;
 
-    if ((v = purc_variant_object_get_by_ckey(fa, "path", true)) == NULL) {
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "path", true)) == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
     }
@@ -2810,7 +2810,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
         goto done;
     }
 
-    if ((v = purc_variant_object_get_by_ckey(fa, "oflags", true)) == NULL) {
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "oflags", true)) == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
     }
@@ -2825,7 +2825,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
     }
 
     mode_t mode;
-    mode = parse_file_mode(purc_variant_object_get_by_ckey(fa, "cmode", true),
+    mode = parse_file_mode(purc_variant_object_get_by_ckey_ex(fa, "cmode", true),
             &ec);
     if (ec != PURC_ERROR_OK) {
         goto done;
@@ -2855,7 +2855,7 @@ handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd", true);
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2869,7 +2869,7 @@ handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
 
     int fd = (int)tmp_l;
 
-    v = purc_variant_object_get_by_ckey(fa, "newfd", true);
+    v = purc_variant_object_get_by_ckey_ex(fa, "newfd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -3053,7 +3053,7 @@ spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(fa, "action", true);
+        v = purc_variant_object_get_by_ckey_ex(fa, "action", true);
         const char *action = purc_variant_get_string_const(v);
         if (action == NULL) {
             ec = PURC_ERROR_WRONG_DATA_TYPE;

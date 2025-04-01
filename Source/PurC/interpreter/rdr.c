@@ -1569,7 +1569,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         goto out;
     }
 
-    data = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA, true);
+    data = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_DATA, true);
     if (!data) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR");
@@ -1582,7 +1582,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
 
         purc_variant_t dt;
-        if ((dt = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA_TYPE,
+        if ((dt = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_DATA_TYPE,
                         true))) {
             const char *tmp = purc_variant_get_string_const(dt);
             if (tmp == NULL) {
@@ -1645,7 +1645,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
            `plainwin:main`
          */
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME, true);
+        v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME, true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR '%s'", operation);
@@ -1661,7 +1661,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
            `userWin@main/userGroups`
          */
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME,
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
                 true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -1678,7 +1678,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
            `userWidget@main/userGroups`
          */
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME,
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
                 true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -1691,7 +1691,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME,
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
                 true);
         if (!v) {
             /*  */
@@ -1715,7 +1715,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
             goto out;
         }
 
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY, true);
+        v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_PROPERTY, true);
         purc_clr_error();
         if (v && purc_variant_is_string(v)) {
             property = purc_variant_get_string_const(v);

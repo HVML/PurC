@@ -47,11 +47,11 @@ get_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t var = purc_variant_object_get_by_ckey(root,
+    purc_variant_t var = purc_variant_object_get_by_ckey_ex(root,
             T_MAP_NAME, true);
 
     if (var) {
-        ret_var = purc_variant_object_get(var, argv[0], true);
+        ret_var = purc_variant_object_get_ex(var, argv[0], true);
         // ret_var is a reference of value
         if (ret_var == PURC_VARIANT_INVALID)
             ret_var = argv[0];

@@ -663,7 +663,7 @@ int vncc_match(struct value_number_comparing_condition *vncc,
     PC_ASSERT(k != PURC_VARIANT_INVALID); // FIXME: error code or exception???
     PC_ASSERT(curr != PURC_VARIANT_INVALID); // FIXME: error code or exception???
 
-    purc_variant_t v = purc_variant_object_get(curr, k, false); // Since 0.9.22
+    purc_variant_t v = purc_variant_object_get_ex(curr, k, false); // Since 0.9.22
     PC_ASSERT(v != PURC_VARIANT_INVALID); // FIXME: error code or exception???
     double d = purc_variant_numerify(v);
 
@@ -1351,7 +1351,7 @@ int iterative_formula_iterate(struct iterative_formula_expression *exp,
             {
                 purc_variant_t k = ife->key_name;
                 // FIXME: error code or exception???
-                purc_variant_t v = purc_variant_object_get(curr, k, false);
+                purc_variant_t v = purc_variant_object_get_ex(curr, k, false);
                 PC_ASSERT(v != PURC_VARIANT_INVALID);
                 double d = purc_variant_numerify(v);
                 ife->result = d;

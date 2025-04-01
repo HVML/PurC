@@ -298,7 +298,7 @@ out_clear_data:
 
 out:
     if (data && nr_args > 0) {
-        purc_variant_t v = purc_variant_object_get(data, argv[0], false);
+        purc_variant_t v = purc_variant_object_get_ex(data, argv[0], false);
         if (v) {
             purc_variant_ref(v);
         }

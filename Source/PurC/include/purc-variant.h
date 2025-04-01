@@ -1186,10 +1186,31 @@ purc_variant_make_object_0(void)
 }
 
 /**
+ * purc_variant_object_get_by_ckey_ex:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: Indicate whether to report the following error(s):
+ *  - PURC_ERROR_NO_SUCH_KEY
+ *
+ * Gets the property value in @obj by the key value specified with
+ * a null-terminated string @key.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_object_get_by_ckey_ex(purc_variant_t obj, const char* key,
+        bool silently);
+
+/**
  * purc_variant_object_get_by_ckey:
  *
  * @obj: An object variant.
  * @key: The key of the property to find.
+ * @silently: Indicate whether to report the following error(s):
+ *  - PURC_ERROR_NO_SUCH_KEY
  *
  * Gets the property value in @obj by the key value specified with
  * a null-terminated string @key.
@@ -1198,8 +1219,37 @@ purc_variant_make_object_0(void)
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key, bool silently);
+PCA_INLINE purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key) {
+    return purc_variant_object_get_by_ckey_ex(obj, key, true);
+}
+
+/**
+ * purc_variant_object_get_ex:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: Indicate whether to report the following error(s):
+ *  - PURC_ERROR_NO_SUCH_KEY
+ *
+ * Gets the property value in @obj by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get_ex(purc_variant_t obj, purc_variant_t key,
+        bool silently)
+{
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_get_by_ckey_ex(obj, sk, silently);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
 
 /**
  * purc_variant_object_get:
@@ -1215,11 +1265,11 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key, bool silent
  * Since: 0.0.1
  */
 PCA_INLINE purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently)
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 {
     const char *sk = purc_variant_get_string_const(key);
     if (sk) {
-        return purc_variant_object_get_by_ckey(obj, sk, silently);
+        return purc_variant_object_get_by_ckey_ex(obj, sk, true);
     }
 
     return PURC_VARIANT_INVALID;

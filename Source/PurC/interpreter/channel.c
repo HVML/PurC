@@ -692,13 +692,13 @@ did_matched(void *native_entity, purc_variant_t val)
     }
     else if (purc_variant_is_object(val)) {
         purc_variant_t flag =
-            purc_variant_object_get_by_ckey(val, KEY_FLAG, true);
+            purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
         if (!flag) {
             return false;
         }
 
         purc_variant_t name_val =
-            purc_variant_object_get_by_ckey(val, KEY_NAME, true);
+            purc_variant_object_get_by_ckey_ex(val, KEY_NAME, true);
         if (!name_val) {
             return false;
         }

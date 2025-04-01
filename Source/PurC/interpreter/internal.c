@@ -159,7 +159,7 @@ get_from_frame(struct pcintr_stack_frame *frame, const char *name)
         goto out;
     }
 
-    ret = purc_variant_object_get_by_ckey(exclamation_var, name, true);
+    ret = purc_variant_object_get_by_ckey_ex(exclamation_var, name, true);
 
 out:
     return ret;
@@ -1434,7 +1434,7 @@ pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid)
     }
 
     // XXX: silently or not?
-    purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid", true);
+    purc_variant_t v_cid = purc_variant_object_get_by_ckey_ex(v, "cid", true);
     if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
         goto out;
     }
@@ -1467,7 +1467,7 @@ bool
 pcintr_is_request_id(purc_variant_t v)
 {
     if (purc_variant_is_object(v) &&
-            purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_HANDLE, true)) {
+            purc_variant_object_get_by_ckey_ex(v, REQUEST_ID_KEY_HANDLE, true)) {
         return true;
     }
     return false;
@@ -1578,7 +1578,7 @@ pcintr_request_id_get_rid(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v,
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
             REQUEST_ID_KEY_RID, true);
     assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
@@ -1592,7 +1592,7 @@ pcintr_request_id_get_cid(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v,
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
             REQUEST_ID_KEY_CID, true);
     assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
@@ -1628,7 +1628,7 @@ pcintr_request_id_get_type(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v,
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
             REQUEST_ID_KEY_TYPE, true);
     assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
@@ -1641,7 +1641,7 @@ pcintr_request_id_get_res(purc_variant_t v)
     if (!pcintr_is_request_id(v)) {
         return 0;
     }
-    purc_variant_t val = purc_variant_object_get_by_ckey(v,
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
             REQUEST_ID_KEY_RES, true);
     if (!val) {
         return NULL;
@@ -1729,7 +1729,7 @@ pcintr_chan_post(const char *chan_name, purc_variant_t data)
         goto out;
     }
 
-    purc_variant_t v_chan = purc_variant_object_get_by_ckey(runner,
+    purc_variant_t v_chan = purc_variant_object_get_by_ckey_ex(runner,
             "chan", true);
     if (!v_chan || !purc_variant_is_dynamic(v_chan)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);

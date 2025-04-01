@@ -2930,7 +2930,7 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
     const struct timeval *timeout = NULL;
     if (extra_opts) {
         purc_variant_t tmp;
-        tmp = purc_variant_object_get_by_ckey(extra_opts,
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
                 "recv-timeout", true);
         if (tmp) {
             pcdvobjs_cast_to_timeval(&tv, tmp);

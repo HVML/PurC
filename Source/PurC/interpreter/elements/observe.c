@@ -667,19 +667,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
         ctxt->implicit_data = purc_variant_ref(exclamation_var);
 
-        purc_variant_t v = purc_variant_object_get_by_ckey(exclamation_var,
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDAGAINST, true);
         if (v) {
             ctxt->against = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDON, true);
         if (v) {
             ctxt->on = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDFOR, true);
         if (v) {
             ctxt->for_var = purc_variant_ref(v);
@@ -694,19 +694,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             }
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDIN, true);
         if (v) {
             frame->attr_in = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDWITH, true);
         if (v) {
             ctxt->with = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDCONTENT, true);
         if (v) {
             pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
@@ -872,7 +872,7 @@ on_popping(pcintr_stack_t stack, void* ud)
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (exclamation_var) {
-                observed = purc_variant_object_get_by_ckey(exclamation_var,
+                observed = purc_variant_object_get_by_ckey_ex(exclamation_var,
                         PCINTR_EXCLAMATION_EVENT_REQUEST_ID, true);
             }
             if (observed) {

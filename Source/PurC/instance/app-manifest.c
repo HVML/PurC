@@ -96,7 +96,7 @@ pcinst_load_app_manifest(const char *app_name)
 
     /* make sure that manifest contains the required properties */
     purc_variant_t v, fallback;
-    v = purc_variant_object_get_by_ckey(manifest, KEY_LABEL, true);
+    v = purc_variant_object_get_by_ckey_ex(manifest, KEY_LABEL, true);
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(label_for_unlabeled_app,
@@ -117,7 +117,7 @@ pcinst_load_app_manifest(const char *app_name)
         purc_variant_unref(fallback);
     }
 
-    v = purc_variant_object_get_by_ckey(manifest, KEY_DESC, true);
+    v = purc_variant_object_get_by_ckey_ex(manifest, KEY_DESC, true);
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(desc_for_unlabeled_app,
@@ -138,7 +138,7 @@ pcinst_load_app_manifest(const char *app_name)
         purc_variant_unref(fallback);
     }
 
-    v = purc_variant_object_get_by_ckey(manifest, KEY_ICON, true);
+    v = purc_variant_object_get_by_ckey_ex(manifest, KEY_ICON, true);
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(icon_for_unlabeled_app,
@@ -218,7 +218,7 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     if (manifest == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    v = purc_variant_object_get_by_ckey(manifest, key, true);
+    v = purc_variant_object_get_by_ckey_ex(manifest, key, true);
     assert(v);
     if (purc_variant_is_string(v))
         return v;
@@ -245,7 +245,7 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     strcat(subkey, country_region);
 
     purc_variant_t value;
-    value = purc_variant_object_get_by_ckey(v, subkey, true);
+    value = purc_variant_object_get_by_ckey_ex(v, subkey, true);
     if (value)
         return value;
 
@@ -258,18 +258,18 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
         strcpy(subkey, lang);
     }
 
-    value = purc_variant_object_get_by_ckey(v, subkey, true);
+    value = purc_variant_object_get_by_ckey_ex(v, subkey, true);
     if (value)
         return value;
 
     /* fallback */
     if (prefix) {
-        value = purc_variant_object_get_by_ckey(v, prefix, true);
+        value = purc_variant_object_get_by_ckey_ex(v, prefix, true);
         if (value == PURC_VARIANT_INVALID)
-            value = purc_variant_object_get_by_ckey(v, FALLBACK_DENSITY, true);
+            value = purc_variant_object_get_by_ckey_ex(v, FALLBACK_DENSITY, true);
     }
     else {
-        value = purc_variant_object_get_by_ckey(v, "en", true);
+        value = purc_variant_object_get_by_ckey_ex(v, "en", true);
     }
 
     return value;
@@ -338,7 +338,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
         return PURC_VARIANT_INVALID;
     }
 
-    v = purc_variant_object_get_by_ckey(manifest, KEY_RUNNERS, true);
+    v = purc_variant_object_get_by_ckey_ex(manifest, KEY_RUNNERS, true);
     if (!v) {
         v = purc_variant_make_array(0, PURC_VARIANT_INVALID);
         if (v == PURC_VARIANT_INVALID) {
@@ -356,7 +356,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
         if (!purc_variant_is_object(val)) {
             continue;
         }
-        purc_variant_t name = purc_variant_object_get_by_ckey(val, "name", true);
+        purc_variant_t name = purc_variant_object_get_by_ckey_ex(val, "name", true);
         if (!name) {
             continue;
         }
@@ -374,7 +374,7 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
         purc_variant_unref(runner);
     }
 
-    runner_label = purc_variant_object_get_by_ckey(runner, KEY_LABEL, true);
+    runner_label = purc_variant_object_get_by_ckey_ex(runner, KEY_LABEL, true);
     if (!runner_label) {
         runner_label = purc_variant_make_from_json_string(
                 label_for_unlabeled_runner,
@@ -405,19 +405,19 @@ pcinst_get_runner_label(const char *runner_name, const char *locale)
     strcat(subkey, country_region);
 
     purc_variant_t value;
-    value = purc_variant_object_get_by_ckey(runner_label, subkey, true);
+    value = purc_variant_object_get_by_ckey_ex(runner_label, subkey, true);
     if (value) {
         return value;
     }
 
     strcpy(subkey, lang);
-    value = purc_variant_object_get_by_ckey(runner_label, subkey, true);
+    value = purc_variant_object_get_by_ckey_ex(runner_label, subkey, true);
     if (value) {
         return value;
     }
 
     /* fallback */
-    value = purc_variant_object_get_by_ckey(runner_label, "en", true);
+    value = purc_variant_object_get_by_ckey_ex(runner_label, "en", true);
 
     assert(value);
     return value;

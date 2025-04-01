@@ -327,7 +327,7 @@ TEST(vcm, again_ex)
     enum purc_variant_type type = purc_variant_get_type(v);
     ASSERT_EQ(type, PURC_VARIANT_TYPE_OBJECT);
 
-    purc_variant_t name = purc_variant_object_get_by_ckey(v, "name", true);
+    purc_variant_t name = purc_variant_object_get_by_ckey_ex(v, "name", true);
     ASSERT_NE(name, PURC_VARIANT_INVALID);
 
     const char *value = purc_variant_get_string_const(name);
