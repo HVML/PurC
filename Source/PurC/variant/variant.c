@@ -113,17 +113,20 @@ void pcvariant_free(purc_variant *v) {
 }
 #endif
 
+#if 0 // Since 0.9.22: obsolete
 purc_atom_t pcvariant_atom_inflated;
 purc_atom_t pcvariant_atom_deflated;
 purc_atom_t pcvariant_atom_modified;
 // purc_atom_t pcvariant_atom_reference;
 // purc_atom_t pcvariant_atom_unreference;
+#endif
 
 static int _init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
+#if 0 // Since 0.9.22: obsolete
     // initialize others
     pcvariant_atom_inflated =
         purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "inflated");
@@ -131,6 +134,7 @@ static int _init_once(void)
         purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "deflated");
     pcvariant_atom_modified =
         purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "modified");
+#endif
 
     return 0;
 }

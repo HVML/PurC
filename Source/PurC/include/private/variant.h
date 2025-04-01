@@ -385,12 +385,13 @@ purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
-// TODO: better generate with tool
+#if 0       // Since 0.9.22: obsolete
 extern purc_atom_t pcvariant_atom_inflated;
 extern purc_atom_t pcvariant_atom_deflated;
 extern purc_atom_t pcvariant_atom_modified;
 // extern purc_atom_t pcvariant_atom_reference;
 // extern purc_atom_t pcvariant_atom_unreference;
+#endif
 
 bool pcvariant_is_mutable(purc_variant_t val);
 
