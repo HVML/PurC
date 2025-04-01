@@ -562,7 +562,7 @@ static bool equal_objects(purc_variant_t v1, purc_variant_t v2)
         return false;
 
     foreach_key_value_in_variant_object(v1, key, m1)
-        m2 = purc_variant_object_get(v2, key);
+        m2 = purc_variant_object_get(v2, key, true);
         if (!purc_variant_is_equal_to(m1, m2))
             return false;
     end_foreach;
@@ -2124,7 +2124,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     uint64_t u64 = 0;
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            EXOBJ_LOAD_HANDLE_KEY);
+            EXOBJ_LOAD_HANDLE_KEY, true);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return false;
@@ -3937,7 +3937,7 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
 
     for (size_t i=0; i<data->nr_keynames; ++i) {
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(val, data->keynames[i]);
+        v = purc_variant_object_get_by_ckey(val, data->keynames[i], true);
         if (v == PURC_VARIANT_INVALID) {
             v = undefined;
         }
@@ -3987,9 +3987,9 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
         purc_variant_t vr = PURC_VARIANT_INVALID;
 
         if (l->type == PVT(_OBJECT))
-            vl = purc_variant_object_get_by_ckey(l, data->keynames[i]);
+            vl = purc_variant_object_get_by_ckey(l, data->keynames[i], true);
         if (r->type == PVT(_OBJECT))
-            vr = purc_variant_object_get_by_ckey(r, data->keynames[i]);
+            vr = purc_variant_object_get_by_ckey(r, data->keynames[i], true);
 
         if (vl == PURC_VARIANT_INVALID)
             vl = undefined;

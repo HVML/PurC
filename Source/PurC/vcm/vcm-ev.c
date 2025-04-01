@@ -192,14 +192,11 @@ eval_const_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    ret = purc_variant_object_get(vcm_ev->values, key);
+    ret = purc_variant_object_get(vcm_ev->values, key, true);
     if (ret) {
         purc_variant_ref(ret);
         goto out;
     }
-
-    /* clear not found */
-    purc_clr_error();
 
     ret = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));

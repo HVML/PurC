@@ -269,7 +269,7 @@ static pcintr_timer_t
 get_inner_timer(purc_coroutine_t cor , purc_variant_t timer_var)
 {
     purc_variant_t id = purc_variant_object_get_by_ckey(timer_var,
-            TIMERS_STR_ID);
+            TIMERS_STR_ID, true);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -297,7 +297,7 @@ static void
 destroy_inner_timer(purc_coroutine_t cor, purc_variant_t timer_var)
 {
     purc_variant_t id;
-    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, true);
     if (!id) {
         return;
     }
@@ -322,9 +322,9 @@ timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_timer_t timer = (pcintr_timer_t)ctxt;
 
     purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
-            TIMERS_STR_INTERVAL);
+            TIMERS_STR_INTERVAL, true);
     purc_variant_t active = purc_variant_object_get_by_ckey(nv,
-            TIMERS_STR_ACTIVE);
+            TIMERS_STR_ACTIVE, true);
     if (interval != PURC_VARIANT_INVALID) {
         uint64_t ret = 0;
         purc_variant_cast_to_ulongint(interval, &ret, false);
@@ -333,9 +333,7 @@ timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
             pcintr_timer_set_interval(timer, ret);
         }
     }
-    else {
-        purc_clr_error();
-    }
+
     bool next_active = pcintr_timer_is_active(timer);
     if (active != PURC_VARIANT_INVALID) {
         if (is_euqal(active, TIMERS_STR_YES)) {
@@ -367,14 +365,16 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
     purc_coroutine_t cor = (purc_coroutine_t)ctxt;
     struct pcvar_listener *listener = NULL;
 
-    purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
-            TIMERS_STR_INTERVAL);
-    purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
-            TIMERS_STR_ACTIVE);
     pcintr_timer_t timer = get_inner_timer(cor, argv[0]);
     if (!timer) {
         return false;
     }
+
+    purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
+            TIMERS_STR_INTERVAL, true);
+    purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
+            TIMERS_STR_ACTIVE, true);
+    // TODO: check validation of interval and active here.
 
     listener = purc_variant_register_post_listener(argv[0],
             PCVAR_OPERATION_CHANGE, timer_listener_handler, timer);
@@ -434,9 +434,9 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
     listener_map_set_listener(cor->timers->listener_map, nv, listener);
 
     purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
-            TIMERS_STR_INTERVAL);
+            TIMERS_STR_INTERVAL, true);
     purc_variant_t active = purc_variant_object_get_by_ckey(nv,
-            TIMERS_STR_ACTIVE);
+            TIMERS_STR_ACTIVE, true);
     if (interval != PURC_VARIANT_INVALID) {
         uint64_t ret = 0;
         purc_variant_cast_to_ulongint(interval, &ret, false);
@@ -445,9 +445,7 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
             pcintr_timer_set_interval(timer, ret);
         }
     }
-    else {
-        purc_clr_error();
-    }
+
     bool next_active = pcintr_timer_is_active(timer);
     if (active != PURC_VARIANT_INVALID) {
         if (is_euqal(active, TIMERS_STR_YES)) {

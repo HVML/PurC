@@ -541,7 +541,7 @@ builtin_result_handler(struct pcdvobjs_stream *stream, const void *ctxt,
     purc_variant_t jo_tmp;
     int ret_code;
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode", true)) &&
             purc_variant_cast_to_int32(jo_tmp, &ret_code, false)) {
     }
     else {
@@ -580,11 +580,11 @@ builtin_result_handler(struct pcdvobjs_stream *stream, const void *ctxt,
         if (data) {
             purc_variant_t tmp;
 
-            tmp = purc_variant_object_get_by_ckey(jo, "retCode");
+            tmp = purc_variant_object_get_by_ckey(jo, "retCode", true);
             if (tmp)
                 purc_variant_object_set_by_static_ckey(data, "retCode", tmp);
 
-            tmp = purc_variant_object_get_by_ckey(jo, "retMsg");
+            tmp = purc_variant_object_get_by_ckey(jo, "retMsg", true);
             if (tmp)
                 purc_variant_object_set_by_static_ckey(data, "retMsg", tmp);
         }
@@ -1719,7 +1719,7 @@ static int hbdbus_json_packet_to_object(const char* json, unsigned int json_len,
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(*jo, "packetType"))) {
+    if ((jo_tmp = purc_variant_object_get_by_ckey(*jo, "packetType", true))) {
         const char *pack_type;
         pack_type = purc_variant_get_string_const(jo_tmp);
 
@@ -1781,7 +1781,7 @@ static int get_challenge_code(pcdvobjs_stream *stream,
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "packetType"))) {
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "packetType", true))) {
         const char *pack_type;
         pack_type = purc_variant_get_string_const(jo_tmp);
 
@@ -1792,22 +1792,27 @@ static int get_challenge_code(pcdvobjs_stream *stream,
             const char *extra_msg = HBDBUS_NOT_AVAILABLE;
 
             PC_WARN("Refued by server:\n");
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "protocolName"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "protocolName", true))) {
                 prot_name = purc_variant_get_string_const(jo_tmp);
             }
 
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "protocolVersion"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "protocolVersion", true))) {
                 purc_variant_cast_to_int32(jo_tmp, &prot_ver, true);
             }
             PC_WARN("  Protocol: %s/%d\n", prot_name, prot_ver);
 
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "retCode"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "retCode", true))) {
                 purc_variant_cast_to_int32(jo_tmp, &ret_code, true);
             }
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "retMsg"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "retMsg", true))) {
                 ret_msg = purc_variant_get_string_const(jo_tmp);
             }
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "extraMsg"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "extraMsg", true))) {
                 extra_msg = purc_variant_get_string_const(jo_tmp);
             }
             PC_WARN("  Error Info: %d (%s): %s\n", ret_code, ret_msg, extra_msg);
@@ -1819,14 +1824,17 @@ static int get_challenge_code(pcdvobjs_stream *stream,
             const char *prot_name = HBDBUS_NOT_AVAILABLE;
             int prot_ver = 0;
 
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "challengeCode"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "challengeCode", true))) {
                 ch_code = purc_variant_get_string_const(jo_tmp);
             }
 
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "protocolName"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "protocolName", true))) {
                 prot_name = purc_variant_get_string_const (jo_tmp);
             }
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "protocolVersion"))) {
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "protocolVersion", true))) {
                 purc_variant_cast_to_int32(jo_tmp, &prot_ver, true);
             }
 
@@ -1954,7 +1962,8 @@ static void on_lost_event_generator(pcdvobjs_stream *stream,
         return;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "endpointName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "endpointName", true)) &&
             (endpoint_name = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2002,7 +2011,8 @@ static void on_lost_event_bubble(pcdvobjs_stream *stream,
         return;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "endpointName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "endpointName", true)) &&
             (endpoint_name = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2010,7 +2020,8 @@ static void on_lost_event_bubble(pcdvobjs_stream *stream,
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleName",
+                    true)) &&
             (bubble_name = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2054,7 +2065,8 @@ static void on_system_shutting_down(pcdvobjs_stream *stream,
         return;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "endpointName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "endpointName", true)) &&
             (endpoint_name = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2062,7 +2074,8 @@ static void on_system_shutting_down(pcdvobjs_stream *stream,
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "shutdownTime")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "shutdownTime", true)) &&
             purc_variant_cast_to_ulongint(jo_tmp, &shutdown_time, true)) {
     }
     else {
@@ -2090,7 +2103,8 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
     hbdbus_event_handler event_handler;
     struct stream_extended_data *ext = stream->ext1.data;
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "serverHostName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "serverHostName", true)) &&
             (srv_host_name = purc_variant_get_string_const(jo_tmp))) {
         if (ext->srv_host_name)
             free(ext->srv_host_name);
@@ -2103,7 +2117,8 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "reassignedHostName")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "reassignedHostName", true)) &&
             (own_host_name = purc_variant_get_string_const(jo_tmp))) {
         if (ext->own_host_name)
             free(ext->own_host_name);
@@ -2216,7 +2231,8 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     int ret_code = PCRDR_SC_OK;
     double time_consumed = 0.0f;
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "fromEndpoint", true)) &&
             (from_endpoint = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2225,7 +2241,8 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "toMethod")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "toMethod", true)) &&
             (to_method = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2234,7 +2251,8 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "callId", true)) &&
             (call_id = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2243,7 +2261,8 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "resultId", true)) &&
             (result_id = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2252,7 +2271,8 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto done;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "parameter")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                    "parameter", true)) &&
             (parameter = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2330,14 +2350,14 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     int ret_code;
     void *data;
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId", true)) &&
             (result_id = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
         PC_WARN("No resultId\n");
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId", true)) &&
             (call_id = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2345,7 +2365,7 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode", true)) &&
             purc_variant_cast_to_int32(jo_tmp, &ret_code, false)) {
         if (ret_code == PCRDR_SC_ACCEPTED) {
             goto done;
@@ -2404,7 +2424,7 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     int n;
     void *data;
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint", true)) &&
             (from_endpoint = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2412,7 +2432,7 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromBubble")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromBubble", true)) &&
             (from_bubble = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2420,7 +2440,7 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto failed;
     }
 
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "eventId")) &&
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "eventId", true)) &&
             (event_id = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
@@ -2451,7 +2471,8 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         event_handler = *(hbdbus_event_handler *)data;
         if (event_handler) {
             const char* bubble_data;
-            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleData")) &&
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo,
+                            "bubbleData", true)) &&
                     (bubble_data = purc_variant_get_string_const(jo_tmp))) {
             }
             else {

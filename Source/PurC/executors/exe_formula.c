@@ -81,7 +81,9 @@ iterate(struct pcexec_exe_formula_inst *exe_formula_inst)
     struct formula_rule *rule = &param->rule;
     purc_variant_t curr = exe_formula_inst->curr;
     purc_variant_t k = purc_variant_make_string_static("X", false);
-    purc_variant_t v = purc_variant_object_get(curr, k);
+    purc_variant_t v = purc_variant_object_get(curr, k, true); // Since 0.9.22
+    if (!v) return false;
+
     double d = purc_variant_numerify(v);
 
     bool ok = false;
@@ -121,7 +123,9 @@ check_curr(struct pcexec_exe_formula_inst *exe_formula_inst)
     struct number_comparing_logical_expression *ncle = rule->ncle;
     purc_variant_t curr = exe_formula_inst->curr;
     purc_variant_t k = purc_variant_make_string_static("X", false);
-    purc_variant_t v = purc_variant_object_get(curr, k);
+    purc_variant_t v = purc_variant_object_get(curr, k, true); // Since 0.9.22
+    if (!v) return false;
+
     double d = purc_variant_numerify(v);
 
     bool ok = false;

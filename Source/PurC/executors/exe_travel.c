@@ -104,7 +104,7 @@ exe_travel_choose(purc_exec_inst_t inst, const char* rule)
         purc_variant_t k;
         k = purc_variant_array_get(inst->selected_keys, i);
         purc_variant_t v;
-        v = purc_variant_object_get(inst->input, k);
+        v = purc_variant_object_get(inst->input, k, true); // Since 0.9.22
         if (v==PURC_VARIANT_INVALID)
             continue;
         ok = purc_variant_array_append(vals, v);
@@ -168,7 +168,7 @@ exe_travel_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
     purc_variant_t k;
     k = purc_variant_array_get(inst->selected_keys, it->curr);
     purc_variant_t v;
-    v = purc_variant_object_get(inst->input, k);
+    v = purc_variant_object_get(inst->input, k, true); // Since 0.9.22
 
     return v;
 }
@@ -235,7 +235,7 @@ exe_travel_reduce(purc_exec_inst_t inst, const char* rule)
         purc_variant_t k;
         k = purc_variant_array_get(inst->selected_keys, i);
         purc_variant_t v;
-        v = purc_variant_object_get(inst->input, k);
+        v = purc_variant_object_get(inst->input, k, true);  // Since 0.9.22
         if (v==PURC_VARIANT_INVALID)
             continue;
         ok = purc_variant_object_set(objs, k, v);

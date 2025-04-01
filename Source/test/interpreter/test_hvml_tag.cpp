@@ -262,6 +262,11 @@ static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         }
         buf->dump_buff = intr_util_dump_doc(doc, NULL);
     } else if (event == PURC_COND_COR_TERMINATED) {
+        struct purc_cor_term_info *info = (struct purc_cor_term_info *)data;
+        fprintf(stderr, "The coroutine terminated due to an exception: %s\n",
+                purc_atom_to_string(info->except));
+        fprintf(stderr, "Extra info: %s\n",
+                purc_variant_get_string_const(purc_get_last_error_ex()));
         purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
         purc_coroutine_dump_stack(cor, rws);
         size_t nr_buf = 0;

@@ -214,7 +214,8 @@
         const char _c = _s[_a.leng];                                     \
         if (param->variables) {                                          \
             _s[_a.leng] = '\0';                                          \
-            _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
+            _v = purc_variant_object_get_by_ckey(param->variables,       \
+                    _s, false);                                          \
             _s[_a.leng] = _c;                                            \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
@@ -224,7 +225,8 @@
         }                                                                \
         if (param->param && purc_variant_is_object(param->param)) {      \
             _s[_a.leng] = '\0';                                          \
-            _v = purc_variant_object_get_by_ckey(param->param, _s);      \
+            _v = purc_variant_object_get_by_ckey(param->param,           \
+                    _s, false);                                          \
             _s[_a.leng] = _c;                                            \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
@@ -238,7 +240,8 @@
     #define SET_BY_PRE_DEFINED(_r, _a, _s) do {                          \
         purc_variant_t _v;                                               \
         if (param->variables) {                                          \
-            _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
+            _v = purc_variant_object_get_by_ckey(param->variables,       \
+                    _s, false);                                          \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
                 if (ok)                                                  \
@@ -246,7 +249,7 @@
             }                                                            \
         }                                                                \
         if (param->param && purc_variant_is_object(param->param)) {      \
-            _v = purc_variant_object_get_by_ckey(param->param, _s);      \
+            _v = purc_variant_object_get_by_ckey(param->param, _s, false);  \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
                 fprintf(stderr, "_s: %s; ok: %d\n", _s, ok); \

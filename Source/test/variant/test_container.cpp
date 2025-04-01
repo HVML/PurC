@@ -189,20 +189,20 @@ purc_variant_t build_test_dst(purc_variant_t test_case_variant)
 {
     const char* dst_unique_key = NULL;
     purc_variant_t dst_unique_key_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "dst_unique_key");
+            test_case_variant, "dst_unique_key", true);
     if (dst_unique_key_var != PURC_VARIANT_INVALID) {
         dst_unique_key = purc_variant_get_string_const(dst_unique_key_var);
     }
 
     const char* dst_type = NULL;
     purc_variant_t dst_type_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "dst_type");
+            test_case_variant, "dst_type", true);
     if (dst_type_var != PURC_VARIANT_INVALID) {
         dst_type = purc_variant_get_string_const(dst_type_var);
     }
 
     purc_variant_t dst = purc_variant_object_get_by_ckey(test_case_variant,
-                "dst");
+                "dst", true);
     if (dst == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
@@ -219,20 +219,20 @@ purc_variant_t build_test_src(purc_variant_t test_case_variant)
 {
     const char* src_unique_key = NULL;
     purc_variant_t src_unique_key_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "src_unique_key");
+            test_case_variant, "src_unique_key", true);
     if (src_unique_key_var != PURC_VARIANT_INVALID) {
         src_unique_key = purc_variant_get_string_const(src_unique_key_var);
     }
 
     const char* src_type = NULL;
     purc_variant_t src_type_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "src_type");
+            test_case_variant, "src_type", true);
     if (src_type_var != PURC_VARIANT_INVALID) {
         src_type = purc_variant_get_string_const(src_type_var);
     }
 
     purc_variant_t src = purc_variant_object_get_by_ckey(test_case_variant,
-                "src");
+                "src", true);
     if (src == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
@@ -249,20 +249,20 @@ purc_variant_t build_test_cmp(purc_variant_t test_case_variant)
 {
     const char* cmp_unique_key = NULL;
     purc_variant_t cmp_unique_key_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "cmp_unique_key");
+            test_case_variant, "cmp_unique_key", true);
     if (cmp_unique_key_var != PURC_VARIANT_INVALID) {
         cmp_unique_key = purc_variant_get_string_const(cmp_unique_key_var);
     }
 
     const char* cmp_type = "array";
     purc_variant_t cmp_type_var = purc_variant_object_get_by_ckey(
-            test_case_variant, "cmp_type");
+            test_case_variant, "cmp_type", true);
     if (cmp_type_var != PURC_VARIANT_INVALID) {
         cmp_type = purc_variant_get_string_const(cmp_type_var);
     }
 
     purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
-                "cmp");
+                "cmp", true);
     if (cmp == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
@@ -329,7 +329,7 @@ TEST_P(TestCaseData, container_ops)
     ASSERT_NE(test_case_variant, PURC_VARIANT_INVALID);
 
     purc_variant_t ignore_var = purc_variant_object_get_by_ckey(test_case_variant,
-                "ignore");
+                "ignore", true);
     if (ignore_var != PURC_VARIANT_INVALID
             && purc_variant_booleanize(ignore_var)) {
         return;
@@ -342,14 +342,14 @@ TEST_P(TestCaseData, container_ops)
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
     // purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
-    //             "cmp");
+    //             "cmp", true);
     // ASSERT_NE(cmp, PURC_VARIANT_INVALID);
     purc_variant_t cmp = build_test_cmp(test_case_variant);
     ASSERT_NE(cmp, PURC_VARIANT_INVALID);
 
     //  do container ops
     purc_variant_t ops_type_var = purc_variant_object_get_by_ckey(test_case_variant,
-                "ops");
+                "ops", true);
     ASSERT_NE(ops_type_var, PURC_VARIANT_INVALID);
 
     const char* ops_type_str = purc_variant_get_string_const(ops_type_var);
@@ -380,7 +380,7 @@ TEST_P(TestCaseData, container_ops)
         case CONTAINER_OPS_TYPE_INSERT_BEFORE:
             {
                 purc_variant_t idx_var = purc_variant_object_get_by_ckey(
-                        test_case_variant, "idx");
+                        test_case_variant, "idx", true);
                 ASSERT_NE(idx_var, PURC_VARIANT_INVALID);
                 int64_t idx = 0;
                 purc_variant_cast_to_longint(idx_var, &idx, false);
@@ -393,7 +393,7 @@ TEST_P(TestCaseData, container_ops)
         case CONTAINER_OPS_TYPE_INSERT_AFTER:
             {
                 purc_variant_t idx_var = purc_variant_object_get_by_ckey(
-                        test_case_variant, "idx");
+                        test_case_variant, "idx", true);
                 ASSERT_NE(idx_var, PURC_VARIANT_INVALID);
                 int64_t idx = 0;
                 purc_variant_cast_to_longint(idx_var, &idx, false);

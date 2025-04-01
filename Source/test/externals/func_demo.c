@@ -31,7 +31,7 @@ get_member(purc_variant_t on_value, purc_variant_t with_value)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = purc_variant_object_get(on_value, with_value);
+    purc_variant_t v = purc_variant_object_get(on_value, with_value, true);
     if (v == PURC_VARIANT_INVALID)
         v = purc_variant_make_undefined();
     else
@@ -93,9 +93,9 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
             continue;
         }
 
-        purc_variant_t mv = purc_variant_object_get(member, with_value);
+        purc_variant_t mv = purc_variant_object_get(member, with_value, true);
         if (mv) {
-            purc_variant_t counter = purc_variant_object_get(regions, mv);
+            purc_variant_t counter = purc_variant_object_get(regions, mv, true);
             uint64_t count = 0;
             if (counter) {
                 purc_variant_cast_to_ulongint(counter, &count, false);
@@ -110,7 +110,7 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
         }
         else {
             purc_variant_t counter = purc_variant_object_get(regions,
-                    unknown_key);
+                    unknown_key, true);
             uint64_t count = 0;
             if (counter) {
                 purc_variant_cast_to_ulongint(counter, &count, false);

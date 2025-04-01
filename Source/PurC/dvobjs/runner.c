@@ -47,7 +47,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
-            KN_USER_OBJ);
+            KN_USER_OBJ, true);
     if (user_obj == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
         goto failed;
@@ -64,7 +64,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    purc_variant_t var = purc_variant_object_get(user_obj, argv[0]);
+    purc_variant_t var = purc_variant_object_get(user_obj, argv[0], false);
     if (var != PURC_VARIANT_INVALID) {
         return purc_variant_ref(var);
     }
@@ -81,7 +81,7 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
-            KN_USER_OBJ);
+            KN_USER_OBJ, true);
     if (user_obj == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
         goto failed;

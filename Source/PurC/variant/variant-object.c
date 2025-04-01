@@ -795,7 +795,8 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 */
 
 purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key,
+        bool silently)
 {
     PCVRNT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
@@ -827,7 +828,8 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
     }
 
     if (!entry) {
-        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+        if (!silently)
+            pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
 
         return PURC_VARIANT_INVALID;
     }
@@ -891,7 +893,8 @@ pcvrnt_object_iterator_create_begin (purc_variant_t object)
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+        // Since 0.9.22: Do not report error.
+        // pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 
@@ -915,7 +918,8 @@ pcvrnt_object_iterator_create_end (purc_variant_t object) {
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+        // Since 0.9.22: Do not report error.
+        // pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 
@@ -1262,10 +1266,8 @@ purc_variant_object_unite(purc_variant_t dst,
     ret = 0;
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k);
+        purc_variant_t o = purc_variant_object_get(dst, k, true);
         if (!o) {
-            /* clr PCVRNT_ERROR_NO_SUCH_KEY */
-            purc_clr_error();
             if (!purc_variant_object_set(dst, k, v)) {
                 ret = -1;
                 goto out;
@@ -1332,10 +1334,8 @@ purc_variant_object_intersect(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(dst, k, v)
-        purc_variant_t o = purc_variant_object_get(src, k);
+        purc_variant_t o = purc_variant_object_get(src, k, true);
         if (!o) {
-            /* clr PCVRNT_ERROR_NO_SUCH_KEY */
-            purc_clr_error();
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
             }
@@ -1376,8 +1376,7 @@ purc_variant_object_subtract(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(dst, k, v)
-        purc_variant_t o = purc_variant_object_get(src, k);
-        purc_clr_error();
+        purc_variant_t o = purc_variant_object_get(src, k, true);
         if (o) {
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
@@ -1419,8 +1418,7 @@ purc_variant_object_xor(purc_variant_t dst, purc_variant_t src)
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k);
-        purc_clr_error();
+        purc_variant_t o = purc_variant_object_get(dst, k, true);
         if (o) {
             if (!purc_variant_object_remove(dst, k, true)) {
                 goto out;
@@ -1466,8 +1464,7 @@ purc_variant_object_overwrite(purc_variant_t dst, purc_variant_t src,
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_in_variant_object_safe_x(src, k, v)
-        purc_variant_t o = purc_variant_object_get(dst, k);
-        purc_clr_error();
+        purc_variant_t o = purc_variant_object_get(dst, k, true);
         if (o) {
             if (!purc_variant_object_set(dst, k, v)) {
                 goto out;

@@ -1246,28 +1246,32 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxframepayloadsize");
+    tmp = purc_variant_object_get_by_ckey(extra_opts,
+            "maxframepayloadsize", true);
     uint64_t maxframepayloadsize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxframepayloadsize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxmessagesize");
+    tmp = purc_variant_object_get_by_ckey(extra_opts,
+            "maxmessagesize", true);
     uint64_t maxmessagesize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoping");
+    tmp = purc_variant_object_get_by_ckey(extra_opts,
+            "noresptimetoping", true);
     uint32_t noresptimetoping = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoping, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoclose");
+    tmp = purc_variant_object_get_by_ckey(extra_opts,
+            "noresptimetoclose", true);
     uint32_t noresptimetoclose = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoclose, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);

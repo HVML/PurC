@@ -356,13 +356,11 @@ comp_by_key(purc_variant_t l, purc_variant_t r, const char *key, bool by_number,
     purc_variant_t lv = PURC_VARIANT_INVALID;
     purc_variant_t rv = PURC_VARIANT_INVALID;
     if (purc_variant_is_object(l)) {
-        lv = purc_variant_object_get_by_ckey(l, key);
-        purc_clr_error();
+        lv = purc_variant_object_get_by_ckey(l, key, true);
     }
 
     if (purc_variant_is_object(r)) {
-        rv = purc_variant_object_get_by_ckey(r, key);
-        purc_clr_error();
+        rv = purc_variant_object_get_by_ckey(r, key, true);
     }
 
     return comp_raw(lv, rv, by_number, ascendingly, casesensitively);
@@ -448,7 +446,8 @@ sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
             if (purc_variant_is_object(val)) {
                 for (size_t j = key_idx; j < nr_keys; j++) {
                     struct sort_key *k = pcutils_arrlist_get_idx(ctxt->keys, j);
-                    purc_variant_t v = purc_variant_object_get_by_ckey(val, k->key);
+                    purc_variant_t v = purc_variant_object_get_by_ckey(val,
+                            k->key, true);
                     if (v) {
                         k->by_number = sort_as_number(v);
                         key_idx++;
@@ -501,7 +500,8 @@ sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set, purc_variant_t against)
             if (purc_variant_is_object(val)) {
                 for (size_t j = key_idx; j < nr_keys; j++) {
                     struct sort_key *k = pcutils_arrlist_get_idx(ctxt->keys, j);
-                    purc_variant_t v = purc_variant_object_get_by_ckey(val, k->key);
+                    purc_variant_t v = purc_variant_object_get_by_ckey(val,
+                            k->key, true);
                     if (v) {
                         k->by_number = sort_as_number(v);
                         key_idx++;

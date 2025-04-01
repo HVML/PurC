@@ -71,13 +71,13 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xu, "name");
+    val = purc_variant_object_get_by_ckey(xu, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     name = purc_variant_array_get(arr, 0);
@@ -124,13 +124,13 @@ TEST(constraint, set_grow_children_of_uniqkey_from_outside)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     name = purc_variant_array_get(arr, 0);
@@ -173,13 +173,13 @@ TEST(constraint, set_shrink_children_of_uniqkey_from_outside)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     name = purc_variant_array_get(arr, 0);
@@ -223,7 +223,7 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
-    val = purc_variant_object_get_by_ckey(xu, "name");
+    val = purc_variant_object_get_by_ckey(xu, "name", true);
     ASSERT_NE(val, nullptr);
     ASSERT_EQ(0, var_diff(val, "[{first:xiaohong,last:xu}]"));
     ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
@@ -233,7 +233,7 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
     ASSERT_EQ(0, var_diff(elem, "{name:[{first:xiaohong,last:xu}], extra:foo}"));
     ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
     ASSERT_EQ(0, var_diff(arr, "[{first:xiaohong,last:xu}]"));
     ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
@@ -245,7 +245,7 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
     ASSERT_EQ(0, var_diff(arr, "[\"shuming\"]"));
     ASSERT_EQ(0, var_diff(set, "[!name, {name:[\"shuming\"], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
     ASSERT_EQ(0, var_diff(val, "[{first:shuming,last:xue}]"));
 
@@ -254,7 +254,7 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
     ASSERT_EQ(0, var_diff(elem, "{name:[{first:shuming,last:xue}], extra:bar}"));
 
     purc_variant_t arr1;
-    arr1 = purc_variant_object_get_by_ckey(elem, "name");
+    arr1 = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr1, nullptr);
     ASSERT_EQ(0, var_diff(arr1, "[{first:shuming,last:xue}]"));
 
@@ -307,13 +307,13 @@ TEST(constraint, set_grow_children_of_uniqkey_from_outside_arr)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     PRINT_VARIANT(set);
@@ -355,13 +355,13 @@ TEST(constraint, set_shrink_children_of_uniqkey_from_outside_arr)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     PRINT_VARIANT(set);
@@ -405,13 +405,13 @@ TEST(constraint, set_add_children_of_uniqkey_to_other_container)
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
 
-    val = purc_variant_object_get_by_ckey(xu, "name");
+    val = purc_variant_object_get_by_ckey(xu, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     name = purc_variant_array_get(arr, 0);
@@ -460,13 +460,13 @@ TEST(constraint, set_child_in_different_positions)
     ASSERT_NE(empty, nullptr);
     ASSERT_EQ(0, var_diff(empty, "[]"));
 
-    val = purc_variant_object_get_by_ckey(xu, "name");
+    val = purc_variant_object_get_by_ckey(xu, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     ok = purc_variant_array_append(arr, empty);
@@ -474,13 +474,13 @@ TEST(constraint, set_child_in_different_positions)
     PRINT_VARIANT(set);
     ASSERT_EQ(0, var_diff(set, "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue}], extra:bar}]"));
 
-    val = purc_variant_object_get_by_ckey(xue, "name");
+    val = purc_variant_object_get_by_ckey(xue, "name", true);
     ASSERT_NE(val, nullptr);
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
 
-    arr = purc_variant_object_get_by_ckey(elem, "name");
+    arr = purc_variant_object_get_by_ckey(elem, "name", true);
     ASSERT_NE(arr, nullptr);
 
     ok = purc_variant_array_append(arr, empty);

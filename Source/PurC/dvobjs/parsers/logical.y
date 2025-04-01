@@ -159,13 +159,13 @@
         char c  = ptr[sz];                                           \
         ptr[sz] = '\0';                                              \
         purc_variant_t _v;                                           \
-        _v = purc_variant_object_get_by_ckey(param->variables, ptr); \
+        _v = purc_variant_object_get_by_ckey(param->variables, ptr, true);  \
         ptr[sz] = c;                                                 \
         if (_v == PURC_VARIANT_INVALID) {                            \
             if (!param->v && !purc_variant_is_object(param->v))      \
                 YYABORT;                                             \
             ptr[sz] = '\0';                                          \
-            _v = purc_variant_object_get_by_ckey(param->v, ptr);     \
+            _v = purc_variant_object_get_by_ckey(param->v, ptr, true);  \
             ptr[sz] = c;                                             \
             if (_v == PURC_VARIANT_INVALID)                          \
                 YYABORT;                                             \

@@ -138,7 +138,6 @@ on_runner_myobj_release(void *native_entity)
 static bool
 add_runner_myobj_listener(purc_variant_t runner)
 {
-    purc_variant_t my_obj = purc_variant_object_get_by_ckey(runner, USER_OBJ);
     int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
         PCVAR_OPERATION_CHANGE;
     struct runner_myobj_wrap *wrap = (struct runner_myobj_wrap*)calloc(1,
@@ -147,6 +146,10 @@ add_runner_myobj_listener(purc_variant_t runner)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
+
+    purc_variant_t my_obj =
+        purc_variant_object_get_by_ckey(runner, USER_OBJ, true);
+    assert(my_obj);
 
     // do not need ref
     wrap->object = my_obj;

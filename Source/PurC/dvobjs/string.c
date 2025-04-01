@@ -1488,7 +1488,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             *(buffer + (end - start)) = 0x00;
             pcdvobjs_remove_space (buffer);
 
-            tmp_var = purc_variant_object_get_by_ckey (argv[1], buffer);
+            tmp_var = purc_variant_object_get_by_ckey (argv[1], buffer, false);
             if (tmp_var == PURC_VARIANT_INVALID) {
                 purc_rwstream_destroy (rwstream);
                 return PURC_VARIANT_INVALID;

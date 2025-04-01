@@ -157,23 +157,23 @@ void foil_wsp_convert_style(void *workspace, void *session,
         return;
 
     purc_variant_t tmp;
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "darkMode")) &&
-            purc_variant_is_true(tmp)) {
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
+                    "darkMode", true)) && purc_variant_is_true(tmp)) {
         style->darkMode = true;
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "fullScreen")) &&
-            purc_variant_is_true(tmp)) {
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
+                    "fullScreen", true)) && purc_variant_is_true(tmp)) {
         style->fullScreen = true;
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "withToolbar")) &&
-            purc_variant_is_true(tmp)) {
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
+                    "withToolbar", true)) && purc_variant_is_true(tmp)) {
         style->withToolbar = true;
     }
 
     if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
-                    "backgroundColor"))) {
+                    "backgroundColor", true))) {
         const char *value = purc_variant_get_string_const(tmp);
         if (value) {
             style->backgroundColor = value;

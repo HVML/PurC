@@ -1199,7 +1199,7 @@ purc_variant_make_object_0(void)
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key, bool silently);
 
 /**
  * purc_variant_object_get:
@@ -1215,11 +1215,11 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
  * Since: 0.0.1
  */
 PCA_INLINE purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently)
 {
     const char *sk = purc_variant_get_string_const(key);
     if (sk) {
-        return purc_variant_object_get_by_ckey(obj, sk);
+        return purc_variant_object_get_by_ckey(obj, sk, silently);
     }
 
     return PURC_VARIANT_INVALID;

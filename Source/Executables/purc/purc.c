@@ -875,7 +875,8 @@ static pcrdr_page_type_k get_page_type(purc_variant_t rdr)
 
     const char *str = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageType");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey(rdr, "pageType", true);
     if (tmp)
         str = purc_variant_get_string_const(tmp);
 
@@ -895,7 +896,8 @@ static const char *get_workspace(purc_variant_t rdr)
 {
     const char *workspace = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "workspace");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey(rdr, "workspace", true);
     if (tmp)
         workspace = purc_variant_get_string_const(tmp);
 
@@ -906,7 +908,8 @@ static const char *get_page_group(purc_variant_t rdr)
 {
     const char *page_group = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageGroupId");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey(rdr, "pageGroupId", true);
     if (tmp)
         page_group = purc_variant_get_string_const(tmp);
 
@@ -917,7 +920,8 @@ static const char *get_page_name(purc_variant_t rdr)
 {
     const char *page_name = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageName");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey(rdr, "pageName", true);
     if (tmp)
         page_name = purc_variant_get_string_const(tmp);
 
@@ -930,29 +934,29 @@ fill_cor_rdr_info(struct my_opts *opts,
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "class");
+    tmp = purc_variant_object_get_by_ckey(rdr, "class", true);
     if (tmp)
         rdr_info->klass = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "title");
+    tmp = purc_variant_object_get_by_ckey(rdr, "title", true);
     if (tmp)
         rdr_info->title = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
+    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle", true);
     if (tmp)
         rdr_info->layout_style = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle", true);
     if (tmp)
         rdr_info->transition_style = purc_variant_get_string_const(tmp);
 
     rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
-            "toolkitStyle");
+            "toolkitStyle", true);
 
     rdr_info->keep_contents = purc_variant_object_get_by_ckey(rdr,
-            "keepContents");
+            "keepContents", true);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
+    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups", true);
     if (tmp) {
         const char *file = purc_variant_get_string_const(tmp);
         if (file) {
@@ -967,7 +971,7 @@ fill_run_rdr_info(struct my_opts *opts,
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "commMethod");
+    tmp = purc_variant_object_get_by_ckey(rdr, "commMethod", true);
     if (tmp) {
         const char *str = purc_variant_get_string_const(tmp);
         if (str) {
@@ -983,7 +987,7 @@ fill_run_rdr_info(struct my_opts *opts,
         }
     }
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "uri");
+    tmp = purc_variant_object_get_by_ckey(rdr, "uri", true);
     if (tmp)
         rdr_info->renderer_uri = purc_variant_get_string_const(tmp);
 
@@ -996,15 +1000,15 @@ fill_run_rdr_info(struct my_opts *opts,
     if (tmp)
         rdr_info->ssl_key = purc_variant_get_string_const(tmp); */
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName");
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName", true);
     if (tmp)
         rdr_info->workspace_name = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceTitle");
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceTitle", true);
     if (tmp)
         rdr_info->workspace_title = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceLayout");
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceLayout", true);
     if (tmp) {
         const char *file = purc_variant_get_string_const(tmp);
         if (file) {
@@ -1036,7 +1040,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         app_name = curr_app_name;
     }
 
-    tmp = purc_variant_object_get_by_ckey(runner, "runner");
+    tmp = purc_variant_object_get_by_ckey(runner, "runner", true);
     if (tmp) {
         run_name = purc_variant_get_string_const(tmp);
     }
@@ -1061,7 +1065,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             }
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "allowSwitchingRdr");
+        tmp = purc_variant_object_get_by_ckey(runner,
+                "allowSwitchingRdr", true);
         if (tmp) {
             inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
@@ -1076,12 +1081,13 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             }
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "allowScalingByDensity");
+        tmp = purc_variant_object_get_by_ckey(runner,
+                "allowScalingByDensity", true);
         if (tmp) {
             inst_info.allow_scaling_by_density = purc_variant_booleanize(tmp);
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "renderer");
+        tmp = purc_variant_object_get_by_ckey(runner, "renderer", true);
         if (tmp)
             fill_run_rdr_info(opts, &inst_info, tmp);
 
@@ -1109,7 +1115,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             continue;
         }
 
-        tmp = purc_variant_object_get_by_ckey(crtn, "url");
+        tmp = purc_variant_object_get_by_ckey(crtn, "url", true);
         const char *url = NULL;
         if (tmp) {
             url = purc_variant_get_string_const(tmp);
@@ -1141,10 +1147,10 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         }
 
         purc_variant_t request =
-            purc_variant_object_get_by_ckey(crtn, "request");
+            purc_variant_object_get_by_ckey(crtn, "request", true);
 
         const char *body_id = NULL;
-        tmp = purc_variant_object_get_by_ckey(crtn, "bodyId");
+        tmp = purc_variant_object_get_by_ckey(crtn, "bodyId", true);
         if (tmp) {
             body_id = purc_variant_get_string_const(tmp);
         }
@@ -1156,7 +1162,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_renderer_extra_info rdr_info = {};
 
         purc_variant_t rdr =
-            purc_variant_object_get_by_ckey(crtn, "renderer");
+            purc_variant_object_get_by_ckey(crtn, "renderer", true);
         if (purc_variant_is_object(rdr)) {
             page_type = get_page_type(rdr);
             target_workspace = get_workspace(rdr);
@@ -1234,10 +1240,10 @@ static bool run_app(struct my_opts *opts)
 #endif
 
     purc_variant_t app =
-        purc_variant_object_get_by_ckey(run_info.app_info, "app");
+        purc_variant_object_get_by_ckey(run_info.app_info, "app", true);
 
     purc_variant_t runners =
-        purc_variant_object_get_by_ckey(run_info.app_info, "runners");
+        purc_variant_object_get_by_ckey(run_info.app_info, "runners", true);
     size_t nr_runners = 0;
     if (!purc_variant_array_size(runners, &nr_runners) || nr_runners == 0) {
         fprintf(stderr, "No runner defined.\n");
@@ -1250,7 +1256,7 @@ static bool run_app(struct my_opts *opts)
         purc_variant_t runner = purc_variant_array_get(runners, i);
 
         purc_variant_t coroutines =
-            purc_variant_object_get_by_ckey(runner, "coroutines");
+            purc_variant_object_get_by_ckey(runner, "coroutines", true);
 
         if (!coroutines) {
             fprintf(stderr, "No coroutines for runner #%u\n",

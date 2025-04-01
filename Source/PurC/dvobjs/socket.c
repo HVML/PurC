@@ -474,10 +474,10 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslcert");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslcert", true);
     ssl_cert = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslkey");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslkey", true);
     ssl_key = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     if (ssl_cert == NULL || ssl_key == NULL) {
@@ -485,7 +485,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         goto skip;
     }
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheid");
+    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheid", true);
     ssl_session_cache_id = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
     if (ssl_session_cache_id) {
         if (strlen(ssl_session_cache_id) > OPENSSL_SHCTX_ID_LEN) {
@@ -493,7 +493,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
             goto opt_failed;
         }
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheusers");
+        tmp = purc_variant_object_get_by_ckey(opt_obj,
+                "sslsessioncacheusers", true);
         cache_mode = pcdvobjs_parse_options(tmp, NULL, 0,
             access_users_ckws, PCA_TABLESIZE(access_users_ckws), 0, -1);
         if (cache_mode == -1) {
@@ -502,7 +503,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         }
         cache_mode |= 0600;
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncachesize");
+        tmp = purc_variant_object_get_by_ckey(opt_obj,
+                "sslsessioncachesize", true);
         if ((tmp && !purc_variant_cast_to_ulongint(tmp,
                     &cache_size, false)) ||
                 cache_size < OPENSSL_SHCTX_CACHESZ_MIN) {

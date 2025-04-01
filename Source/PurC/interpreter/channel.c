@@ -691,15 +691,15 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
     else if (purc_variant_is_object(val)) {
-        purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+        purc_variant_t flag =
+            purc_variant_object_get_by_ckey(val, KEY_FLAG, true);
         if (!flag) {
-            purc_clr_error();
             return false;
         }
 
-        purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+        purc_variant_t name_val =
+            purc_variant_object_get_by_ckey(val, KEY_NAME, true);
         if (!name_val) {
-            purc_clr_error();
             return false;
         }
 

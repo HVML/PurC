@@ -72,7 +72,7 @@ TEST(dvobjs, dvobjs_string_contains)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -233,7 +233,7 @@ TEST(dvobjs, dvobjs_string_explode)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -408,7 +408,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -586,7 +586,7 @@ TEST(dvobjs, dvobjs_string_replace)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -752,7 +752,7 @@ TEST(dvobjs, dvobjs_string_format_c)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -917,7 +917,7 @@ TEST(dvobjs, dvobjs_string_format_p)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1082,7 +1082,7 @@ TEST(dvobjs, dvobjs_string_join)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1247,7 +1247,7 @@ TEST(dvobjs, dvobjs_string_tolower)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1412,7 +1412,7 @@ TEST(dvobjs, dvobjs_string_toupper)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1577,7 +1577,7 @@ TEST(dvobjs, dvobjs_string_nr_chars)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1743,7 +1743,7 @@ TEST(dvobjs, dvobjs_string_implode)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1908,7 +1908,7 @@ TEST(dvobjs, dvobjs_string_substr)
         printf ("test _STR.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
