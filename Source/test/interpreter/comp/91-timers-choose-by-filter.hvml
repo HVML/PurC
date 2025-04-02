@@ -20,7 +20,7 @@
         <choose on $TIMERS by 'FILTER: AS "clock2"'>
             <inherit on $RUNNER.logmsg($DATA.serialize($?)) />
 
-            <update on $? at '.active' with 'yes' />
+            <update on $?[0] at '.active' with 'yes' />
         </choose>
     </observe>
 

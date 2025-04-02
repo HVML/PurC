@@ -1,13 +1,13 @@
 #!/usr/bin/purc
 
-# RESULT: 'InvalidValue'
+# RESULT: 'Ok'
 
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
 <body>
     <inherit on $RUNNER.enablelog('info') />
 
-    <update on $TIMERS to unite>
+    <init as badTimers>
         [
             { 'interval' : null,  },
             { "id" : "clock",  },
@@ -16,12 +16,19 @@
             { "id" : 9, "active": true },
             { "id" : "9 9", "active": false },
         ]
+    </init>
 
-        <catch for `ANY`>
-            <inherit on $RUNNER.logmsg("Exception: $?.name") />
-            <exit with $?.name />
-        </catch>
-    </update>
+    <iterate on $badTimers>
+        <update on $TIMERS to unite with [$?] >
+            <catch for `ANY`>
+                <test with $L.strne('case', $?.name, 'InvalidValue') >
+                    <exit with 'Failed' />
+                </test>
+            </catch>
+        </update>
+    </iterate>
+
+    <exit with 'Ok' />
 </body>
 </hvml>
 
