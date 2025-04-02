@@ -18,17 +18,26 @@
         ]
     </init>
 
+    <init as nrFailed with 0 at '_root' />
+
     <iterate on $badTimers>
         <update on $TIMERS to unite with [$?] >
             <catch for `ANY`>
                 <test with $L.strne('case', $?.name, 'InvalidValue') >
+                    <init on $nrFailed at '_root' with $DATA.arith('+', $nrFailed, 1) />
                     <inherit on $RUNNER.logmsg('Got `InvalidValue` when setting a timer') />
                 </test>
             </catch>
         </update>
     </iterate>
 
-    <exit with 'Ok' />
+    <test with $L.eq($nrFailed, $DATA.count($badTimers)) >
+        <exit with 'Ok' />
+
+        <differ>
+            <exit with 'Failed' />
+        </differ>
+    </test>
 </body>
 </hvml>
 
