@@ -312,9 +312,30 @@ check_item_with_set(struct pcexec_exe_filter_inst *exe_filter_inst,
 {
     purc_exec_inst_t inst = &exe_filter_inst->super;
     purc_exec_iter_t it = &inst->it;
+    struct filter_rule *rule = &exe_filter_inst->param.rule;
 
-    *result = false;
-    PC_ASSERT(0); // Not implemented yet
+    purc_variant_t input = inst->input;
+    const char *unique_key = NULL;
+
+    /* FIXME: no unique key  */
+    bool r = purc_variant_set_unique_keys(input, &unique_key);
+    if (!r) {
+        *result = true;
+    }
+
+    purc_variant_t v = purc_variant_object_get_by_ckey_ex(item, unique_key,
+            true);
+    if (!v) {
+        *result = false;
+    }
+    else if (filter_rule_eval(rule, v, result)) {
+        // TODO: exception
+        PC_ASSERT(0);
+        return false;
+    }
+
+    if (!result)
+        return false;
 
     PCEXE_CLR_VAR(inst->value);
     inst->value = item;
