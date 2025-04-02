@@ -367,7 +367,8 @@ check_curr(struct pcexec_exe_filter_inst *exe_filter_inst)
     bool result = false;
     while (!result) {
         if ((size_t)curr >= nr) {
-            pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
+            /* End the loop normally without set error code */
+            // pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
             return false;
         }
 
