@@ -615,6 +615,7 @@ process_variant_observer(pcintr_stack_t stack,
     case PURC_VARIANT_TYPE_OBJECT:
     case PURC_VARIANT_TYPE_ARRAY:
     case PURC_VARIANT_TYPE_SET:
+    case PURC_VARIANT_TYPE_TUPLE:
         if (strcmp(ctxt->msg_type, MSG_TYPE_CHANGE) == 0 &&
                 ctxt->sub_type && is_mmutable_variant_msg(ctxt->sub_type)) {
             return register_mmutable_var_observer(stack, frame, observed);
