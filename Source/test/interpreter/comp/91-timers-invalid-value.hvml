@@ -23,8 +23,8 @@
     <iterate on $badTimers>
         <update on $TIMERS to unite with [$?] >
             <catch for `ANY`>
-                <test with $L.strne('case', $?.name, 'InvalidValue') >
-                    <init on $nrFailed at '_root' with $DATA.arith('+', $nrFailed, 1) />
+                <test with $L.streq('case', $?.name, 'InvalidValue') >
+                    <init as nrFailed at '_root' with $DATA.arith('+', $nrFailed, 2) />
                     <inherit on $RUNNER.logmsg('Got `InvalidValue` when setting a timer') />
                 </test>
             </catch>
