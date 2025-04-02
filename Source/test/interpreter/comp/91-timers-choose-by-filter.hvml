@@ -1,0 +1,33 @@
+#!/usr/bin/purc
+
+# RESULT: 'ok'
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+<body>
+    <inherit on $RUNNER.enablelog('info') />
+
+    <update on $TIMERS to unite>
+        [
+            { "id" : "clock1", "interval" : 1000, "active" : "yes" },
+            { "id" : "clock2", "interval" : 2000, "active" : "no" },
+        ]
+    </update>
+
+    <observe on $TIMERS for 'expired:clock1'>
+        <inherit on $RUNNER.logmsg('Clock1 expired') />
+
+        <choose on $TIMERS by 'FILTER: AS "clock2"'>
+            <inherit on $RUNNER.logmsg($DATA.serialize($?)) />
+
+            <update on $? at '.active' with 'yes' />
+        </choose>
+    </observe>
+
+    <observe on $TIMERS for 'expired:clock2'>
+        <inherit on $RUNNER.logmsg('Clock2 expired') />
+        <exit with 'ok' />
+    </observe>
+</body>
+</hvml>
+

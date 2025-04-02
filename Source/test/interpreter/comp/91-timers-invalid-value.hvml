@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: 'InvalidValue'
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+<body>
+    <inherit on $RUNNER.enablelog('info') />
+
+    <update on $TIMERS to unite>
+        [
+            { 'interval' : null,  },
+            { "id" : "clock",  },
+            { "id" : "clock", "interval": null },
+            { "id" : "clock", "active": 55 },
+        ]
+
+        <catch for `ANY`>
+            <inherit on $RUNNER.logmsg("Exception: $?.name") />
+            <exit with $?.name />
+        </catch>
+    </update>
+</body>
+</hvml>
+

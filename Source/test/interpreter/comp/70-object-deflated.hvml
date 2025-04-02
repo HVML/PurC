@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: { b: 2, c: 3 }
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as object>
+        { a: 1, b: 2, c: 3 }
+    </init>
+
+    <observe on $object for 'change:deflated'>
+        <exit with $_observedOn />
+    </observe>
+
+    <update on $object at '.a' to remove />
+</hvml>

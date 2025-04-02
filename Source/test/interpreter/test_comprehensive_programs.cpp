@@ -35,6 +35,11 @@
 #include <glob.h>
 #include <gtest/gtest.h>
 
+TEST(comp_hvml, bad_impl)
+{
+    go_comp_test("interpreter/comp/9*.hvml");
+}
+
 TEST(comp_hvml, basic)
 {
     go_comp_test("interpreter/comp/0*.hvml");
