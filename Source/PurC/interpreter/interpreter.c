@@ -1130,6 +1130,16 @@ pcintr_is_element_silently(struct pcvdom_element *element)
 }
 
 bool
+pcintr_is_current_silently(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame) {
+        return frame->silently;
+    }
+    return false;
+}
+
+bool
 pcintr_is_element_must_yield(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_must_yield(element) : false;

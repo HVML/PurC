@@ -157,6 +157,9 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element);
 
 bool
+pcintr_is_current_silently(pcintr_stack_t stack);
+
+bool
 pcintr_is_element_must_yield(struct pcvdom_element *element);
 
 int
