@@ -334,7 +334,8 @@ timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
         }
     }
 
-    bool next_active = pcintr_timer_is_active(timer);
+    bool is_active = pcintr_timer_is_active(timer);
+    bool next_active = false;
     if (active != PURC_VARIANT_INVALID) {
         if (is_euqal(active, TIMERS_STR_YES)) {
             next_active = true;
@@ -344,12 +345,17 @@ timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
         }
     }
 
+    if (next_active == is_active) {
+        goto out;
+    }
+
     if (next_active) {
         pcintr_timer_start(timer);
     }
     else {
         pcintr_timer_stop(timer);
     }
+out:
     return true;
 }
 
