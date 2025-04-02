@@ -13,6 +13,8 @@
             { "id" : "clock",  },
             { "id" : "clock", "interval": null },
             { "id" : "clock", "active": 55 },
+            { "id" : 9, "active": true },
+            { "id" : "9 9", "active": false },
         ]
 
         <catch for `ANY`>
