@@ -46,12 +46,16 @@
 
 struct tkz_reader;
 struct tkz_uc {
-    struct list_head list;
+    struct list_head ln;
     uint32_t character;
     uint8_t  utf8_buf[UTF8_BUF_LEN];
     int line;
     int column;
     int position;
+};
+
+struct tkz_ucs {
+    struct list_head list;
 };
 
 struct tkz_buffer {
@@ -300,6 +304,20 @@ struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader);
 
 int tkz_reader_get_line_number(struct tkz_reader *reader);
 
+
+/* tkz uc list */
+struct tkz_ucs *tkz_ucs_new(void);
+
+bool tkz_ucs_is_empty(struct tkz_ucs *ucs);
+
+struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs);
+
+struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs);
+
+int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc);
+int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc);
+
+void tkz_ucs_destroy(struct tkz_ucs *ucs);
 
 
 // tokenizer buffer

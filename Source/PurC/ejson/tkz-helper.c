@@ -52,8 +52,9 @@
 
 struct tkz_reader {
     purc_rwstream_t rws;
-    struct list_head reconsume_list;
-    struct list_head consumed_list;
+
+    struct tkz_ucs *reconsume_ucs;
+    struct tkz_ucs *consumed_ucs;
     size_t nr_consumed_list;
 
     struct tkz_uc curr_uc;
@@ -111,11 +112,22 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
 {
     struct tkz_reader *reader = PCHVML_ALLOC(sizeof(struct tkz_reader));
     if (!reader) {
-        return NULL;
+        PC_ERROR("Failed to allocate memory for tkz_reader (%zu)\n",
+                sizeof(*reader));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
     }
 
-    INIT_LIST_HEAD(&reader->reconsume_list);
-    INIT_LIST_HEAD(&reader->consumed_list);
+    reader->reconsume_ucs = tkz_ucs_new();
+    if (!reader->reconsume_ucs) {
+        goto failed_clear_reader;
+    }
+
+    reader->consumed_ucs = tkz_ucs_new();
+    if (!reader->consumed_ucs) {
+        goto failed_clear_reconsume_ucs;
+    }
+
     reader->line = 1;
     reader->column = 0;
     reader->consumed = 0;
@@ -124,6 +136,15 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
     reader->hee_column = hee_column;
 
     return reader;
+
+failed_clear_reconsume_ucs:
+    tkz_ucs_destroy(reader->reconsume_ucs);
+
+failed_clear_reader:
+    free(reader);
+
+failed:
+    return NULL;
 }
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader,
@@ -173,49 +194,20 @@ tkz_reader_read_from_rwstream(struct tkz_reader *reader)
 static struct tkz_uc*
 tkz_reader_read_from_reconsume_list(struct tkz_reader *reader)
 {
-    struct tkz_uc *puc = list_entry(reader->reconsume_list.next,
-            struct tkz_uc, list);
-    reader->curr_uc = *puc;
-    list_del_init(&puc->list);
-    tkz_uc_destroy(puc);
+    reader->curr_uc = tkz_ucs_read_head(reader->reconsume_ucs);
     return &reader->curr_uc;
 }
-
-#define print_uc_list(uc_list, tag)                                         \
-    do {                                                                    \
-        PC_DEBUG("begin print %s list\n|", tag);                            \
-        struct list_head *p, *n;                                            \
-        list_for_each_safe(p, n, uc_list) {                                 \
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);        \
-            PC_DEBUG("%c", puc->character);                                 \
-        }                                                                   \
-        PC_DEBUG("|\nend print %s list\n", tag);                            \
-    } while(0)
-
-#define PRINT_CONSUMED_LIST(reader)    \
-        print_uc_list(&reader->consumed_list, "consumed")
-
-#define PRINT_RECONSUM_LIST(reader)    \
-        print_uc_list(&reader->reconsume_list, "reconsume")
 
 static bool
 tkz_reader_add_consumed(struct tkz_reader *reader, struct tkz_uc *uc)
 {
-    struct tkz_uc *p = tkz_uc_new();
-    if (!p) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (tkz_ucs_add_tail(reader->consumed_ucs, *uc)) {
         return false;
     }
-
-    *p = *uc;
-    list_add_tail(&p->list, &reader->consumed_list);
     reader->nr_consumed_list++;
 
     if (reader->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
-        struct tkz_uc *first = list_first_entry(
-                &reader->consumed_list, struct tkz_uc, list);
-        list_del_init(&first->list);
-        tkz_uc_destroy(first);
+        tkz_ucs_read_head(reader->consumed_ucs);
         reader->nr_consumed_list--;
     }
     return true;
@@ -227,12 +219,10 @@ bool tkz_reader_reconsume_last_char(struct tkz_reader *reader)
         return true;
     }
 
-    struct tkz_uc *last = list_last_entry(
-            &reader->consumed_list, struct tkz_uc, list);
-    list_del_init(&last->list);
+    struct tkz_uc uc = tkz_ucs_read_tail(reader->consumed_ucs);
     reader->nr_consumed_list--;
 
-    list_add(&last->list, &reader->reconsume_list);
+    tkz_ucs_add_head(reader->reconsume_ucs, uc);
     return true;
 }
 
@@ -244,7 +234,7 @@ struct tkz_uc *tkz_reader_current(struct tkz_reader *reader)
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
 {
     struct tkz_uc *ret = NULL;
-    if (list_empty(&reader->reconsume_list)) {
+    if (tkz_ucs_is_empty(reader->reconsume_ucs)) {
         ret = tkz_reader_read_from_rwstream(reader);
     }
     else {
@@ -270,16 +260,12 @@ int tkz_reader_hee_column(struct tkz_reader *reader)
 void tkz_reader_destroy(struct tkz_reader *reader)
 {
     if (reader) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, &reader->reconsume_list) {
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);
-            list_del_init(&puc->list);
-            tkz_uc_destroy(puc);
+        if (reader->reconsume_ucs) {
+            tkz_ucs_destroy(reader->reconsume_ucs);
         }
-        list_for_each_safe(p, n, &reader->consumed_list) {
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);
-            list_del_init(&puc->list);
-            tkz_uc_destroy(puc);
+
+        if (reader->consumed_ucs) {
+            tkz_ucs_destroy(reader->consumed_ucs);
         }
 
         PCHVML_FREE(reader);
@@ -303,6 +289,100 @@ struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader)
 int tkz_reader_get_line_number(struct tkz_reader *reader)
 {
     return reader->line;
+}
+
+/* tkz uc list */
+struct tkz_ucs *tkz_ucs_new(void)
+{
+    struct tkz_ucs *ucs = (struct tkz_ucs*) calloc(1, sizeof(*ucs));
+    if (!ucs) {
+        PC_ERROR("Failed to allocate memory for tkz_ucs (%zu)\n", sizeof(*ucs));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    INIT_LIST_HEAD(&ucs->list);
+
+out:
+    return ucs;
+}
+
+bool tkz_ucs_is_empty(struct tkz_ucs *ucs)
+{
+    return list_empty(&ucs->list);
+}
+
+struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs)
+{
+    PC_ASSERT(!tkz_ucs_is_empty(ucs));
+    struct tkz_uc *uc = list_first_entry(&ucs->list, struct tkz_uc, ln);
+
+    struct tkz_uc ret = *uc;
+    list_del(&uc->ln);
+    tkz_uc_destroy(uc);
+
+    return ret;
+}
+
+struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs)
+{
+    PC_ASSERT(!tkz_ucs_is_empty(ucs));
+    struct tkz_uc *uc = list_last_entry(&ucs->list, struct tkz_uc, ln);
+
+    struct tkz_uc ret = *uc;
+    list_del(&uc->ln);
+    tkz_uc_destroy(uc);
+
+    return ret;
+}
+
+int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc)
+{
+    struct tkz_uc *p = tkz_uc_new();
+    if (!p) {
+        PC_ERROR("Failed to allocate memory for tkz_uc (%zu)\n", sizeof(*p));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    *p = uc;
+    list_add(&p->ln, &ucs->list);
+
+    return 0;
+out:
+    return -1;
+}
+
+int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc)
+{
+    struct tkz_uc *p = tkz_uc_new();
+    if (!p) {
+        PC_ERROR("Failed to allocate memory for tkz_uc (%zu)\n", sizeof(*p));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    *p = uc;
+    list_add_tail(&p->ln, &ucs->list);
+
+    return 0;
+out:
+    return -1;
+}
+
+void tkz_ucs_destroy(struct tkz_ucs *ucs)
+{
+    if (tkz_ucs_is_empty(ucs)) {
+        goto clear_ucs;
+    }
+
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+    }
+
+clear_ucs:
+    free(ucs);
 }
 
 // tokenizer buffer
