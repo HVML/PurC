@@ -411,6 +411,8 @@ set(test_comprehensive_programs_LIBRARIES
     pthread
 )
 
+target_compile_definitions(test_comprehensive_programs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
 PURC_COMPUTE_SOURCES(test_comprehensive_programs)
 PURC_FRAMEWORK(test_comprehensive_programs)
 

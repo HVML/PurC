@@ -1981,13 +1981,14 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     void *library_handle = NULL;
 
-    char so[PATH_MAX+1];
+    char so[PATH_MAX];
     int n;
     do {
         if (so_name && strchr(so_name, '/')) {
             // let dlopen to handle path search
             n = snprintf(so, sizeof(so), "%s", so_name);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            PC_DEBUG("Trying to load DVObj from %s\n", so);
             library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             break;
         }
@@ -2031,6 +2032,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                         "%s/libpurc-dvobj-%s%s",
                         dir, so_name ? so_name : var_name, ext);
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+                PC_DEBUG("Trying to load DVObj from %s\n", so);
                 library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
 
                 if (library_handle) {
@@ -2057,6 +2059,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             n = snprintf(so, sizeof(so), other_tries[i],
                     ver, so_name ? so_name : var_name, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            PC_DEBUG("Trying to load DVObj from %s\n", so);
             library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             if (library_handle) {
                 break;
@@ -2066,8 +2069,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
     } while (0);
 
     if (!library_handle) {
+        PC_ERROR("Failed to load DVObj: %s\n", so_name);
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
-                "failed to load: %s", so);
+                "Failed to load DVObj: %s", so_name);
         return PURC_VARIANT_INVALID;
     }
 
