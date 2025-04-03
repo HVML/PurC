@@ -153,6 +153,76 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
+nr_children_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    size_t n;
+
+    if (nr_args == 0) {
+        n = 0;  // treat as undefined
+    }
+    else {
+        switch (purc_variant_get_type(argv[0])) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            n = 0;
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            n = purc_variant_object_get_size(argv[0]);
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            n = purc_variant_linear_container_get_size(argv[0]);
+            break;
+        }
+    }
+
+    return purc_variant_make_ulongint(n);
+}
+
+static purc_variant_t
+is_container_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    bool is_container = false;
+
+    if (nr_args > 0) {
+        switch (purc_variant_get_type(argv[0])) {
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            is_container = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    return purc_variant_make_boolean(is_container);
+}
+
+static purc_variant_t
 arith_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -380,6 +450,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *str_static = NULL;
     char buff_in_stack[128];
     char *buff = NULL;
+    size_t sz_buff = 0;
     size_t n = 0;
 
     if (nr_args == 0) {
@@ -407,7 +478,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
-            n = purc_variant_stringify_alloc(&buff, argv[0]);
+            n = purc_variant_stringify_alloc_ex(&buff, argv[0], &sz_buff);
             if (n == (size_t)-1) {
                 // Keep the error code set by purc_variant_stringify_alloc.
                 goto fatal;
@@ -422,13 +493,12 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             assert(str);
 
             if (n > 0) {
-                buff = malloc(n+1);
+                buff = strdup(str);
                 if (buff == NULL) {
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     goto fatal;
                 }
-                memcpy(buff, str, n);
-                buff[n] = '\0';
+                sz_buff = n + 1;
             }
             else
                 str_static = "";
@@ -459,7 +529,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_string(buff, false);
     }
     else if (buff != NULL) {
-        return purc_variant_make_string_reuse_buff(buff, n, false);
+        return purc_variant_make_string_reuse_buff(buff, sz_buff, false);
     }
     else {
         assert(0);
@@ -553,7 +623,8 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             PCVRNT_SERIALIZE_OPT_RUNTIME_STRING |
             PCVRNT_SERIALIZE_OPT_PLAIN |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
-            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING;
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
+            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE;
     }
     else {
         vrt = argv[0];
@@ -3678,8 +3749,10 @@ purc_variant_t purc_dvobj_data_new(void)
     static struct purc_dvobj_method method [] = {
         { "key",        key_getter, NULL },
         { "type",       type_getter, NULL },
+        { "is_container",   is_container_getter, NULL },
         { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },
+        { "nr_children",nr_children_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },
         { "numerify",   numerify_getter, NULL },

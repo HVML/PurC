@@ -133,7 +133,15 @@ struct pcinst {
 
     /* Since 0.9.17 */
     purc_variant_t         app_manifest;
+
+    /* Since 0.9.22 */
+    unsigned long long     unique_ull;
 };
+
+static inline unsigned long long
+pcinst_get_unique_ull(struct pcinst* inst) {
+    return inst->unique_ull++;
+}
 
 PCA_EXTERN_C_BEGIN
 
@@ -174,7 +182,6 @@ pcinst_load_app_manifest(const char *app_name) WTF_INTERNAL;
 
 purc_variant_t
 pcinst_get_runner_label(const char *runner_name, const char *locale) WTF_INTERNAL;
-
 
 PCA_EXTERN_C_END
 

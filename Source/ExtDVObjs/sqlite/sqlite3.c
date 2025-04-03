@@ -1354,7 +1354,8 @@ static purc_variant_t build_column_name(struct dvobj_sqlite_cursor *cursor,
         goto out;
     }
 
-    purc_variant_t v = purc_variant_object_get_by_ckey(name_mapping, name);
+    purc_variant_t v =
+        purc_variant_object_get_by_ckey_ex(name_mapping, name, false);
     if (!v) {
         val = purc_variant_make_string(name, true);
         goto out;
@@ -1396,7 +1397,8 @@ static purc_variant_t build_column_value(struct dvobj_sqlite_cursor *cursor,
         goto out;
     }
 
-    purc_variant_t v = purc_variant_object_get_by_ckey(type_conversion, name);
+    purc_variant_t v =
+        purc_variant_object_get_by_ckey_ex(type_conversion, name, false);
     if (!v) {
         val = sqlite_value_to_variant(cursor->conn->db, cursor->st, pos);
         goto out;
@@ -1556,7 +1558,7 @@ get_cursor_from_root(purc_variant_t root)
 {
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    v = purc_variant_object_get_by_ckey_ex(root, SQLITE_KEY_HANDLE, true);
     assert(v && purc_variant_is_native(v));
 
     return (struct dvobj_sqlite_cursor *)purc_variant_native_get_entity(v);
@@ -2091,7 +2093,7 @@ get_connection_from_root(purc_variant_t root)
 {
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    v = purc_variant_object_get_by_ckey_ex(root, SQLITE_KEY_HANDLE, true);
     assert(v && purc_variant_is_native(v));
 
     return (struct dvobj_sqlite_connection *)purc_variant_native_get_entity(v);
@@ -2377,7 +2379,7 @@ get_sqlite_info_from_root(purc_variant_t root)
 {
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(root, SQLITE_KEY_HANDLE);
+    v = purc_variant_object_get_by_ckey_ex(root, SQLITE_KEY_HANDLE, true);
     assert(v && purc_variant_is_native(v));
 
     return (struct dvobj_sqlite_info *)purc_variant_native_get_entity(v);

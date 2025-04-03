@@ -35,37 +35,57 @@
 #include <glob.h>
 #include <gtest/gtest.h>
 
+TEST(comp_hvml, bad_impl)
+{
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    go_comp_test("interpreter/comp/9*.hvml");
+}
+
 TEST(comp_hvml, basic)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/0*.hvml");
 }
 
 TEST(comp_hvml, load)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/1*.hvml");
 }
 
 TEST(comp_hvml, call)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/2*.hvml");
 }
 
 TEST(comp_hvml, again)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/3*.hvml");
 }
 
 TEST(comp_hvml, tag)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/4*.hvml");
 }
 
 TEST(comp_hvml, var)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/5*.hvml");
 }
 
 TEST(comp_hvml, purcmc)
 {
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     go_comp_test("interpreter/comp/6*.hvml");
 }
+
+TEST(comp_hvml, container_event)
+{
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    go_comp_test("interpreter/comp/7*.hvml");
+}
+

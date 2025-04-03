@@ -1,0 +1,78 @@
+#!/usr/bin/purc
+
+# RESULT: ['314.00']
+
+<hvml target="void">
+    <head>
+        <define as 'logMsg'>
+            $RUNNER.enablelog('all', 'stderr')
+
+            <inherit>
+                $RUNNER.logmsg($?)
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+
+        <include with $logMsg on 'The program is spawning...' />
+
+        <init as stdin_pipe with $SYS.pipe() >
+            <catch for `ANY`>
+                <exit with "The program failed with $?.name when calling \$SYS.pipe()" />
+            </catch>
+        </init>
+
+        <init as stdout_pipe with $SYS.pipe() >
+            <catch for `ANY`>
+                <exit with "The program failed with $?.name when calling \$SYS.pipe()" />
+            </catch>
+        </init>
+
+        <init as file_actions>
+        [
+            { action: 'close', fd: 0 },
+            { action: 'close', fd: 1 },
+            { action: 'close', fd: 2 },
+
+            { action: 'dup2',  fd: $stdin_pipe[0], newfd: 0 },
+            { action: 'close', fd: $stdin_pipe[1] },
+            { action: 'dup2',  fd: $stdout_pipe[1], newfd: 1 },
+            { action: 'close', fd: $stdout_pipe[0] },
+
+            { action: 'open',  fd: 2, path: '/dev/null', oflags: 'write' },
+        ]
+        </init>
+
+        <test with $SYS.spawn('bc', $file_actions, ['bc']) >
+            <catch for `ANY`>
+                <exit with "The program failed with $?.name when calling \$SYS.spawn()" />
+            </catch>
+
+            <inherit>
+                {{
+                     $SYS.close($stdin_pipe[0]);
+                     $SYS.close($stdout_pipe[1])
+                }}
+            </inherit>
+
+            <choose on $STREAM.from($stdin_pipe[1], 'keep') >
+                <catch for `ANY`>
+                    <exit with "The program failed with $?.name when calling \$STREAM.from()" />
+                </catch>
+                <inherit>
+                    $?.writelines('3.14 * 100');
+                </inherit>
+            </choose>
+
+            <choose on $STREAM.from($stdout_pipe[0], 'keep') >
+                <catch for `ANY`>
+                    <exit with "The program failed with $?.name when calling \$STREAM.from()" />
+                </catch>
+                <exit with $?.readlines(1) />
+            </choose>
+        </test>
+
+    </body>
+</hvml>
+

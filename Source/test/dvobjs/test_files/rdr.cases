@@ -17,5 +17,33 @@ positive:
 
 positive:
     $RDR.state.prot
+    "PURCMC"
+
+positive:
+    $RDR.info
+    {"vendor":"FMSoft","html":"5.3","locale":"en","name":"HEADLESS","version":"1.0"}
+
+positive:
+    $RDR.info.name
     "HEADLESS"
+
+positive:
+    $RDR.info.version
+    "1.0"
+
+positive:
+    $RDR.info.html
+    "5.3"
+
+positive:
+    $RDR.info.locale
+    'en'
+
+positive:
+    $RDR.info.vendor
+    'FMSoft'
+
+negative:
+    $RDR.info.foo
+    InvalidValue
 

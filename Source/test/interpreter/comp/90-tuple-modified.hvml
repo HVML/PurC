@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: [! 0, 2, 3 ]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as tuple>
+        [! 1, 2, 3 ]
+    </init>
+
+    <observe on $tuple for 'change:modified'>
+        <exit with $_observedOn />
+    </observe>
+
+    <update on $tuple at 0 with 0 />
+</hvml>

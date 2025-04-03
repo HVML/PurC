@@ -22,7 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+#define _GNU_SOURCE
+// #undef NDEBUG
 
 #include "purc.h"
 #include "config.h"
@@ -35,7 +36,12 @@
 #include "private/pcrdr.h"
 #include "pcrdr/connect.h"
 
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define ID_KEY                  "id"
 #define NAME_KEY                "name"
@@ -656,6 +662,28 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
     }
     target_value = rdr_conn->page_handle;
 
+    /* Since 0.9.22 */
+    if (conn->caps->js_to_inject) {
+        pcdoc_element_t head = purc_document_head(doc);
+        if (head) {
+            pcdoc_element_t script = pcdoc_element_new_element(doc, head,
+                    PCDOC_OP_APPEND, "script", false);
+            if (script) {
+                if (pcdoc_element_set_attribute(doc, script, PCDOC_OP_DISPLACE,
+                        "src", conn->caps->js_to_inject,
+                        strlen(conn->caps->js_to_inject))) {
+                    PC_WARN("Failed to set the src attribute for injecting JS\n");
+                }
+            }
+            else {
+                PC_WARN("Failed to create <scritp> element for injecting JS\n");
+            }
+        }
+        else {
+            PC_WARN("Failed to get <head> element in the doc\n");
+        }
+    }
+
     const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     char elem[LEN_BUFF_LONGLONGINT];
     int n = snprintf(elem, sizeof(elem),
@@ -683,15 +711,55 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             check_response_for_suppressed(inst, cor, response_msg);
         }
     }
-    /* TODO: WEBSOCKET with sending_document_by_url */
-    else if (conn_type == CT_UNIX_SOCKET && cor->sending_document_by_url) {
-        unsigned opt = 0;
+    /* Use rdr_caps->doc_loading_method since PURCMC 170 */
+    else if (conn->caps->doc_loading_method == PCRDR_K_DLM_url) {
 
-        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
-        if (out == NULL) {
+        char *path;
+        int path_len;
+        /* try to use /app/<app_name>/exported/tmp/ first */
+        if ((path_len = asprintf(&path, PCRDR_PATH_FORMAT_DOC,
+                        inst->app_name)) < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
 
+        if (access(path, W_OK | X_OK) == 0) {
+            char file_name[PURC_LEN_RUNNER_NAME + 32];
+            snprintf(file_name, sizeof(file_name), "%s-XXXXXX.html",
+                    inst->runner_name);
+            path = realloc(path, path_len + sizeof(file_name));
+            if (path == NULL) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
+            }
+
+            strcat(path, file_name);
+        }
+        else {
+            /* use /tmp instead; make sure the buffer is enough. */
+            path_len += PURC_LEN_RUNNER_NAME + 32;
+            path = realloc(path, path_len);
+            snprintf(path, path_len, "/tmp/%s-%s-XXXXXX.html",
+                    inst->app_name, inst->runner_name);
+        }
+
+        int fd = mkstemps(path, 5);
+        if (fd < 0) {
+            PC_ERROR("Failed to open a temp file: %s (%d): %s\n",
+                    path, fd, strerror(errno));
+            free(path);
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+
+        fchmod(fd, 0666);   /* temp file has default 0600 mode */
+        out = purc_rwstream_new_from_unix_fd(fd);
+        if (out == NULL) {
+            free(path);
+            goto failed;
+        }
+
+        unsigned opt = 0;
         opt |= PCDOC_SERIALIZE_OPT_UNDEF;
         opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
         opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
@@ -699,27 +767,27 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
         if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+            free(path);
+            goto failed;
+        }
+        purc_rwstream_destroy(out);
+        close(fd);
+        out = NULL;
+
+        char *url;
+        int url_len = asprintf(&url,
+                "hvml://localhost/_filesystem/_file/-%s", path);
+        free(path);
+        if (url_len < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
 
-        size_t sz_content = 0;
-        size_t sz_buff = 0;
-        char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
-                &sz_buff, false);
-
-        char path[NAME_MAX + 10];
-        snprintf(path, sizeof(path), "/tmp/%s_%s.html",
-                inst->app_name, inst->runner_name);
-
-        FILE *fp = fopen(path, "w");
-        fwrite(p, 1, sz_content, fp);
-        fclose(fp);
-
-        char url[NAME_MAX + 64];
-        snprintf(url, sizeof(url), "hvml://localhost/_filesystem/_file/-%s", path);
+        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
+                pcintr_tick_count(), url);
 
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
-        req_data = purc_variant_make_string(url, false);
+        req_data = purc_variant_make_string_reuse_buff(url, url_len + 1, false);
         if (req_data == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
@@ -734,14 +802,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             check_response_for_suppressed(inst, cor, response_msg);
         }
 
-        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
-                pcintr_tick_count(), url);
         purc_variant_unref(req_data);
-
-        if (out) {
-            purc_rwstream_destroy(out);
-            out = NULL;
-        }
     }
     else {
         unsigned opt = 0;
@@ -770,7 +831,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         fwrite(p, 1, sz_content, fp);
         fclose(fp);
 #endif
-        req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
+        req_data = purc_variant_make_string_reuse_buff(p, sz_buff, false);
         if (req_data == PURC_VARIANT_INVALID) {
             free(p);
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -794,14 +855,10 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
                 check_response_for_suppressed(inst, cor, response_msg);
             }
         }
-        PC_INFO("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
-                pcintr_tick_count(), sz_content);
         purc_variant_unref(req_data);
 
-        if (out) {
-            purc_rwstream_destroy(out);
-            out = NULL;
-        }
+        purc_rwstream_destroy(out);
+        out = NULL;
     }
 
     if (response_msg == NULL) {
@@ -941,7 +998,7 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
     int ret = PCRDR_ERROR_SERVER_REFUSED;
-    pcrdr_msg_target target;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_PLAINWINDOW;
     switch (cor->target_page_type) {
     case PCRDR_PAGE_TYPE_PLAINWIN:
         target = PCRDR_MSG_TARGET_PLAINWINDOW;
@@ -967,28 +1024,6 @@ pcintr_rdr_page_control_revoke(struct pcinst *inst, pcrdr_conn *conn,
 
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
-    if (cor->keep_contents) {
-        int errors = 0;
-        data_type = PCRDR_MSG_DATA_TYPE_JSON;
-        data = purc_variant_make_object_0();
-        if (cor->keep_contents) {
-            if (!purc_variant_object_set_by_static_ckey(data,
-                        KEEP_CONTENTS_KEY,
-                        cor->keep_contents)) {
-                errors++;
-            }
-        }
-
-        if (errors > 0) {
-            purc_log_error("Failed to create data for page.\n");
-            if (data) {
-                purc_variant_unref(data);
-            }
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-    }
-
 
     pcrdr_msg *response_msg;
     /* revoke */
@@ -1534,7 +1569,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         goto out;
     }
 
-    data = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA);
+    data = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_DATA, true);
     if (!data) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR");
@@ -1547,7 +1582,8 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
 
         purc_variant_t dt;
-        if ((dt = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA_TYPE))) {
+        if ((dt = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_DATA_TYPE,
+                        true))) {
             const char *tmp = purc_variant_get_string_const(dt);
             if (tmp == NULL) {
                 purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -1609,7 +1645,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
            `plainwin:main`
          */
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME, true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR '%s'", operation);
@@ -1618,13 +1654,15 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
         element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
         element = purc_variant_get_string_const(v);
     }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method) {
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) ==
+            method) {
         /* to create a plain window in the current session,
            we must use `name` to specify the page name like
            `userWin@main/userGroups`
          */
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
+                true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR '%s'", operation);
@@ -1640,7 +1678,8 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
            `userWidget@main/userGroups`
          */
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
+                true);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request to $RDR '%s'", operation);
@@ -1652,7 +1691,8 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_NAME,
+                true);
         if (!v) {
             /*  */
             if (co->target_page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
@@ -1675,7 +1715,7 @@ pcintr_rdr_send_rdr_request(struct pcinst *inst, pcintr_coroutine_t co,
             goto out;
         }
 
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY);
+        v = purc_variant_object_get_by_ckey_ex(arg, ARG_KEY_PROPERTY, true);
         purc_clr_error();
         if (v && purc_variant_is_string(v)) {
             property = purc_variant_get_string_const(v);

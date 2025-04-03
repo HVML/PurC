@@ -71,8 +71,8 @@ TEST(dvobjs, dvobjs_string_contains)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -232,8 +232,8 @@ TEST(dvobjs, dvobjs_string_explode)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -407,8 +407,8 @@ TEST(dvobjs, dvobjs_string_shuffle)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -585,8 +585,8 @@ TEST(dvobjs, dvobjs_string_replace)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -751,8 +751,8 @@ TEST(dvobjs, dvobjs_string_format_c)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -916,8 +916,8 @@ TEST(dvobjs, dvobjs_string_format_p)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1081,8 +1081,8 @@ TEST(dvobjs, dvobjs_string_join)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1246,8 +1246,8 @@ TEST(dvobjs, dvobjs_string_tolower)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1411,8 +1411,8 @@ TEST(dvobjs, dvobjs_string_toupper)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1576,8 +1576,8 @@ TEST(dvobjs, dvobjs_string_nr_chars)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1742,8 +1742,8 @@ TEST(dvobjs, dvobjs_string_implode)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1907,8 +1907,8 @@ TEST(dvobjs, dvobjs_string_substr)
     for (i = 0; i < function_size; i++) {
         printf ("test _STR.%s:\n", function[i]);
 
-        purc_variant_t dynamic = purc_variant_object_get_by_ckey (string,
-                function[i]);
+        purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (string,
+                function[i], true);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

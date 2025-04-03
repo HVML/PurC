@@ -4,7 +4,7 @@
 
 <hvml target="void">
     <head>
-        $RUNNER.enablelog('all', 'stderr')
+        $RUNNER.enablelog('info error', 'stderr')
 
         <define as 'logMsg'>
             <inherit>
@@ -46,11 +46,11 @@
 
         <include with $logMsg on 'The server is accepting...' />
 
-        <observe on $clients for 'shrink'>
+        <observe on $clients for 'change:deflated'>
             <include with $logMsg on 'clients shrunken:' />
             <include with $logMsg on $clients />
 
-            <test with $DATA.count()>
+            <test with $DATA.count($clients)>
                 <differ>
                     <exit with 'No any clients' />
                 </differ>
@@ -96,7 +96,7 @@
                         <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
                         <include with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 
@@ -106,7 +106,7 @@
                         <include with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
                         <include with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 

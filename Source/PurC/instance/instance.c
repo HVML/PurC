@@ -389,7 +389,7 @@ static void enable_log_on_demand(void)
 
     env_value = getenv(PURC_ENVV_LOG_ENABLE);
     if (env_value == NULL)
-        return;
+        env_value = "default";
 
     unsigned log_mask = PURC_LOG_MASK_DEFAULT;
     if (strcasecmp(env_value, "all") == 0)

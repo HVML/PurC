@@ -276,7 +276,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
         PC_WARN("%s() called with a bad buffer size.\n", __func__);
         sz_buff = len + 1;
     }
-    else if (sz_buff > len + 1) {
+    else if (sz_buff > len + 1 && sz_buff > 32) {
         /* shrink the buffer to release not used space. */
         sz_buff = len + 1;
         str_utf8 = realloc(str_utf8, sz_buff);

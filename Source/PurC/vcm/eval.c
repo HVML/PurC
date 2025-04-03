@@ -416,29 +416,23 @@ pcvcm_eval_is_native_wrapper(purc_variant_t val)
         return false;
     }
 
-    // FIXME: keep last error
-    int err = purc_get_last_error();
-    if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER)) {
+    if (purc_variant_object_get_by_ckey_ex(val, KEY_INNER_HANDLER, true)) {
         return true;
     }
-    // clear not found
-    purc_clr_error();
-    if (err) {
-        purc_set_error(err);
-    }
+
     return false;
 }
 
 purc_variant_t
 pcvcm_eval_native_wrapper_get_caller(purc_variant_t val)
 {
-    return purc_variant_object_get_by_ckey(val, KEY_CALLER_NODE);
+    return purc_variant_object_get_by_ckey_ex(val, KEY_CALLER_NODE, false);
 }
 
 purc_variant_t
 pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
 {
-    return purc_variant_object_get_by_ckey(val, KEY_PARAM_NODE);
+    return purc_variant_object_get_by_ckey_ex(val, KEY_PARAM_NODE, false);
 }
 
 

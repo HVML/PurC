@@ -64,6 +64,7 @@ For documents, specifications, and open-source software related to HVML, please 
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
+- xGUI (an HVML renderer wrotten from scratch): <https://github.com/HVML/xGUI>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
 - HVML FPM (the FastCGI Process Manager for HVML): <https://github.com/HVML/HVML-FPM>.
 
@@ -734,6 +735,9 @@ The following options can be supplied to the command:
         This help.
 
 (root only options)
+  -D --daemon
+        Run as a daemon.
+
   -R --chroot <directory>
        Change root to the specified directory
        (default is the `/app/<app_name>/`)

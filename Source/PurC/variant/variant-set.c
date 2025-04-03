@@ -46,7 +46,7 @@ grow(purc_variant_t set, purc_variant_t value,
 
     purc_variant_t vals[] = { value };
 
-    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_GROW,
+    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_INFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -59,7 +59,7 @@ shrink(purc_variant_t set, purc_variant_t value,
 
     purc_variant_t vals[] = { value };
 
-    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_SHRINK,
+    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_DEFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -73,7 +73,7 @@ change(purc_variant_t set,
 
     purc_variant_t vals[] = { o, n };
 
-    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_CHANGE,
+    return pcvariant_on_pre_fired(set, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -86,7 +86,7 @@ grown(purc_variant_t set, purc_variant_t value,
 
     purc_variant_t vals[] = { value };
 
-    pcvariant_on_post_fired(set, PCVAR_OPERATION_GROW,
+    pcvariant_on_post_fired(set, PCVAR_OPERATION_INFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -99,7 +99,7 @@ shrunk(purc_variant_t set, purc_variant_t value,
 
     purc_variant_t vals[] = { value };
 
-    pcvariant_on_post_fired(set, PCVAR_OPERATION_SHRINK,
+    pcvariant_on_post_fired(set, PCVAR_OPERATION_DEFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -113,7 +113,7 @@ changed(purc_variant_t set,
 
     purc_variant_t vals[] = { o, n };
 
-    pcvariant_on_post_fired(set, PCVAR_OPERATION_CHANGE,
+    pcvariant_on_post_fired(set, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -380,12 +380,7 @@ _get_by_key(purc_variant_t val, const char *key)
     purc_variant_t v = PURC_VARIANT_INVALID;
 
     if (purc_variant_is_object(val)) {
-        v = purc_variant_object_get_by_ckey(val, key);
-
-        if (v == PURC_VARIANT_INVALID) {
-            PC_ASSERT(purc_get_last_error() != PURC_ERROR_OUT_OF_MEMORY);
-            purc_clr_error();
-        }
+        v = purc_variant_object_get_by_ckey_ex(val, key, true);
     }
 
     if (v != PURC_VARIANT_INVALID)

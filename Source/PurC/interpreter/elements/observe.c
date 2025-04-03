@@ -85,6 +85,8 @@ ctxt_destroy(void *ctxt)
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
 
+/* Since 0.9.22, use normalized event name:
+    change:inflated, change:deflated, and change:modified */
 bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
@@ -96,14 +98,14 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
 
     const char *smsg = NULL;
     switch (msg_type) {
-        case PCVAR_OPERATION_GROW:
-            smsg = MSG_TYPE_GROW;
+        case PCVAR_OPERATION_INFLATED:
+            smsg = MSG_SUB_TYPE_INFLATED;
             break;
-        case PCVAR_OPERATION_SHRINK:
-            smsg = MSG_TYPE_SHRINK;
+        case PCVAR_OPERATION_DEFLATED:
+            smsg = MSG_SUB_TYPE_DEFLATED;
             break;
-        case PCVAR_OPERATION_CHANGE:
-            smsg = MSG_TYPE_CHANGE;
+        case PCVAR_OPERATION_MODIFIED:
+            smsg = MSG_SUB_TYPE_MODIFIED;
             break;
         default:
             break;
@@ -112,7 +114,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     pcintr_coroutine_post_event(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
-            source, smsg, NULL, PURC_VARIANT_INVALID,
+            source, MSG_TYPE_CHANGE, smsg, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID);
 
     return true;
@@ -126,9 +128,9 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
 static inline bool
 is_mmutable_variant_msg(const char *type)
 {
-    if ((strcmp(type, MSG_TYPE_GROW) == 0) ||
-            (strcmp(type, MSG_TYPE_SHRINK) == 0) ||
-            (strcmp(type, MSG_TYPE_CHANGE) == 0)) {
+    if ((strcmp(type, MSG_SUB_TYPE_INFLATED) == 0) ||
+            (strcmp(type, MSG_SUB_TYPE_DEFLATED) == 0) ||
+            (strcmp(type, MSG_SUB_TYPE_MODIFIED) == 0)) {
         return true;
     }
     purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -140,17 +142,17 @@ static bool
 regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
         const char *type, struct pcvar_listener** listener)
 {
-    if (strcmp(type, MSG_TYPE_GROW) == 0) {
+    if (strcmp(type, MSG_SUB_TYPE_INFLATED) == 0) {
         *listener = purc_variant_register_post_listener(observed,
-                PCVAR_OPERATION_GROW, base_variant_msg_listener, stack);
+                PCVAR_OPERATION_INFLATED, base_variant_msg_listener, stack);
     }
-    else if (strcmp(type, MSG_TYPE_SHRINK) == 0) {
+    else if (strcmp(type, MSG_SUB_TYPE_DEFLATED) == 0) {
         *listener = purc_variant_register_post_listener(observed,
-                PCVAR_OPERATION_SHRINK, base_variant_msg_listener, stack);
+                PCVAR_OPERATION_DEFLATED, base_variant_msg_listener, stack);
     }
-    else if (strcmp(type, MSG_TYPE_CHANGE) == 0) {
+    else if (strcmp(type, MSG_SUB_TYPE_MODIFIED) == 0) {
         *listener = purc_variant_register_post_listener(observed,
-                PCVAR_OPERATION_CHANGE, base_variant_msg_listener, stack);
+                PCVAR_OPERATION_MODIFIED, base_variant_msg_listener, stack);
     }
     else {
         return false;
@@ -497,7 +499,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     struct pcvar_listener *listener = NULL;
-    if (!regist_variant_listener(stack, on, ctxt->msg_type, &listener))
+    if (!regist_variant_listener(stack, on, ctxt->sub_type, &listener))
         return NULL;
 
     purc_variant_t at = pcintr_get_at_var(frame);
@@ -613,8 +615,9 @@ process_variant_observer(pcintr_stack_t stack,
     case PURC_VARIANT_TYPE_OBJECT:
     case PURC_VARIANT_TYPE_ARRAY:
     case PURC_VARIANT_TYPE_SET:
-        if (is_mmutable_variant_msg(ctxt->msg_type) &&
-                (ctxt->sub_type == NULL)) {
+    case PURC_VARIANT_TYPE_TUPLE:
+        if (strcmp(ctxt->msg_type, MSG_TYPE_CHANGE) == 0 &&
+                ctxt->sub_type && is_mmutable_variant_msg(ctxt->sub_type)) {
             return register_mmutable_var_observer(stack, frame, observed);
         }
         return register_default_observer(stack, frame, observed);
@@ -667,20 +670,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
         ctxt->implicit_data = purc_variant_ref(exclamation_var);
 
-        purc_variant_t v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDAGAINST);
+        purc_variant_t v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDAGAINST, true);
         if (v) {
             ctxt->against = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDON);
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDON, true);
         if (v) {
             ctxt->on = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDFOR);
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDFOR, true);
         if (v) {
             ctxt->for_var = purc_variant_ref(v);
             const char *s = purc_variant_get_string_const(ctxt->for_var);
@@ -694,20 +697,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             }
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDIN);
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDIN, true);
         if (v) {
             frame->attr_in = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDWITH);
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDWITH, true);
         if (v) {
             ctxt->with = purc_variant_ref(v);
         }
 
-        v = purc_variant_object_get_by_ckey(exclamation_var,
-                PCINTR_EXCLAMATION_OBSERVEDCONTENT);
+        v = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                PCINTR_EXCLAMATION_OBSERVEDCONTENT, true);
         if (v) {
             pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
         }
@@ -872,8 +875,8 @@ on_popping(pcintr_stack_t stack, void* ud)
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (exclamation_var) {
-                observed = purc_variant_object_get_by_ckey(exclamation_var,
-                        PCINTR_EXCLAMATION_EVENT_REQUEST_ID);
+                observed = purc_variant_object_get_by_ckey_ex(exclamation_var,
+                        PCINTR_EXCLAMATION_EVENT_REQUEST_ID, true);
             }
             if (observed) {
                 purc_variant_ref(observed);

@@ -150,9 +150,11 @@ const char *strerrorname_np(int errnum)
     case ERANGE:
         name = "ERANGE";   // Numerical result out of range
         break;
+#ifndef EDEADLOCK
     case EDEADLK:
         name = "EDEADLK";  // Resource deadlock avoided
         break;
+#endif
     case ENAMETOOLONG:
         name = "ENAMETOOLONG"; // File name = too long
         break;

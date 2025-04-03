@@ -5,7 +5,6 @@
 <hvml target="void">
     <body id='server' >
         <init as 'clientClosed' with false />
-        <init as 'got' with '' />
 
         <init as 'streamSocket' with $SOCKET.stream('local:///var/tmp/hvml-stream-server', {{ $REQ.mode || 'default' }}) >
             <catch for `ANY`>
@@ -96,7 +95,7 @@
                 $STREAM.stdout.writelines('Server: client exited')
             </inherit>
 
-            <init as 'got' at '#server' with $? />
+            <exit with $? />
         </observe>
 
         <observe against 'clientClosed' for 'change:displaced'>
@@ -104,7 +103,6 @@
                 $STREAM.stdout.writelines('Server: client closed')
             </inherit>
 
-            <exit with $got />
         </observe>
 
     </body>

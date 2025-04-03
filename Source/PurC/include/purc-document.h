@@ -403,8 +403,8 @@ typedef enum {
  * @doc: The pointer to a document.
  * @elem: The pointer to an element.
  * @op: The operation.
- * @content: A string contains the content in the target markup language.
- * @len: The len of the content, 0 for null-terminated string.
+ * @tag: A string contains the tag name in the target markup language.
+ * @self_close: Indicate whether is a self-close element.
  *
  * This function creates a new element with specific tag and inserts it to
  * the specified position related to an existing element.
@@ -554,7 +554,7 @@ pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
  * @doc: The pointer to a document.
  * @elem: The pointer to an element.
  * @op: The operation, can be one of the following values:
- *  - %PCDOC_OP_UPDATE: update the attribute value.
+ *  - %PCDOC_OP_DISPLACE: set or update the attribute value.
  *  - %PCDOC_OP_ERASE: remove the attribute.
  *  - %PCDOC_OP_CLEAR: clear the attribute value.
  * @name: The name of the attribute, must be null-terminated.

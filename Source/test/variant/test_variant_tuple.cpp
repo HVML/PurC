@@ -158,9 +158,8 @@ TEST(variant, tuple_as_member)
     ASSERT_NE(object, nullptr);
     bool r = purc_variant_object_set_by_static_ckey(object, "tuple", tuple);
     ASSERT_EQ(r, true);
-    purc_variant_t v = purc_variant_object_get_by_ckey(object, "tuple");
+    purc_variant_t v = purc_variant_object_get_by_ckey_ex(object, "tuple", true);
     ASSERT_EQ(v, tuple);
-
 
     purc_variant_t array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     ASSERT_NE(array, nullptr);
@@ -320,7 +319,7 @@ TEST(variant, tuple_listener)
     purc_variant_t s = purc_variant_make_string_static("abc", false);
     ASSERT_NE(s, nullptr);
 
-    int op = PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_MODIFIED;
     struct pcvar_listener *prev;
     prev = purc_variant_register_pre_listener(tuple, (pcvar_op_t)op,
             tuple_change_handler, tuple);
@@ -357,14 +356,14 @@ static bool dump_handle (
     char buf[2048];
     fprintf(stderr, "#####> begin dump handle\n");
     switch (op) {
-    case PCVAR_OPERATION_GROW:
-        fprintf(stderr, "op=PCVAR_OPERATION_GROW\n");
+    case PCVAR_OPERATION_INFLATED:
+        fprintf(stderr, "op=PCVAR_OPERATION_INFLATED\n");
         break;
-    case PCVAR_OPERATION_SHRINK:
-        fprintf(stderr, "op=PCVAR_OPERATION_SHRINK\n");
+    case PCVAR_OPERATION_DEFLATED:
+        fprintf(stderr, "op=PCVAR_OPERATION_DEFLATED\n");
         break;
-    case PCVAR_OPERATION_CHANGE:
-        fprintf(stderr, "op=PCVAR_OPERATION_CHANGE\n");
+    case PCVAR_OPERATION_MODIFIED:
+        fprintf(stderr, "op=PCVAR_OPERATION_MODIFIED\n");
         break;
     case PCVAR_OPERATION_REFASCHILD:
         fprintf(stderr, "op=PCVAR_OPERATION_REFASCHILD\n");
@@ -401,7 +400,7 @@ TEST(variant, tuple_as_object_value)
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     ASSERT_NE(object, nullptr);
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_MODIFIED;
     struct pcvar_listener *listener;
     listener = purc_variant_register_pre_listener(object, (pcvar_op_t)op,
             dump_handle, object);
@@ -429,7 +428,7 @@ TEST(variant, tuple_as_array_member)
     purc_variant_t array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     ASSERT_NE(array, nullptr);
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_CHANGE | PCVAR_OPERATION_SHRINK;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_MODIFIED | PCVAR_OPERATION_DEFLATED;
     struct pcvar_listener *listener;
     listener = purc_variant_register_pre_listener(array, (pcvar_op_t)op,
             dump_handle, array);
@@ -458,7 +457,7 @@ TEST(variant, tuple_as_set_member)
     purc_variant_t st = purc_variant_make_set(0, NULL, PURC_VARIANT_INVALID);
     ASSERT_NE(st, nullptr);
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_CHANGE | PCVAR_OPERATION_SHRINK;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_MODIFIED | PCVAR_OPERATION_DEFLATED;
     struct pcvar_listener *listener;
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);
@@ -494,7 +493,7 @@ TEST(variant, tuple_as_set_member_constraint)
     PRINT_VARIANT(st);
     ASSERT_NE(st, nullptr);
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_CHANGE | PCVAR_OPERATION_SHRINK;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_MODIFIED | PCVAR_OPERATION_DEFLATED;
     struct pcvar_listener *listener;
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);
@@ -540,7 +539,7 @@ TEST(variant, tuple_as_set_member_constraint_with_key)
     PRINT_VARIANT(st);
     ASSERT_NE(st, nullptr);
 
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_CHANGE | PCVAR_OPERATION_SHRINK;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_MODIFIED | PCVAR_OPERATION_DEFLATED;
     struct pcvar_listener *listener;
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);

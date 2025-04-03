@@ -734,7 +734,6 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
-    ssize_t nr_total = 0;
     do {
         if (ext->sz_read_hsbuf + SZ_HSBUF_INC > ext->sz_hsbuf) {
             if (ext->sz_hsbuf + SZ_HSBUF_INC >= SZ_HSBUF_MAX) {
@@ -756,10 +755,9 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         }
 
         ext->sz_read_hsbuf += nr_one_read;
-        nr_total += nr_one_read;
         PC_DEBUG("handshake buffer info: "
-                "sz_hsbuf(%zu), sz_read_hsbuf(%zu), nr_total(%zd)\n",
-                ext->sz_hsbuf, ext->sz_read_hsbuf, nr_total);
+                "sz_hsbuf(%zu), sz_read_hsbuf(%zu)\n",
+                ext->sz_hsbuf, ext->sz_read_hsbuf);
 
 #if HAVE(OPENSSL)
     } while (ext->ssl ? SSL_pending(ext->ssl): 0);
@@ -774,6 +772,7 @@ static int try_to_read_handshake_data(struct pcdvobjs_stream *stream)
         return READ_WHOLE;
     }
 
+    PC_DEBUG("Read some handshake data, continue reading...\n");
     return READ_SOME;
 }
 
@@ -921,14 +920,14 @@ ws_handle_handshake_response(struct pcdvobjs_stream *stream)
     return retv;
 }
 
-#define DEFINE_STRING_VAR_FROM_OBJECT(name, alternative)        \
-    const char *name;                                           \
-    tmp = purc_variant_object_get_by_ckey(extra_opts, #name);   \
-    name = (tmp == PURC_VARIANT_INVALID) ? alternative :        \
-        purc_variant_get_string_const(tmp);                     \
-    if (name == NULL) {                                         \
-        purc_set_error(PURC_ERROR_INVALID_VALUE);               \
-        goto error;                                             \
+#define DEFINE_STRING_VAR_FROM_OBJECT(name, alternative)            \
+    const char *name;                                               \
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts, #name, true); \
+    name = (tmp == PURC_VARIANT_INVALID) ? alternative :            \
+        purc_variant_get_string_const(tmp);                         \
+    if (name == NULL) {                                             \
+        purc_set_error(PURC_ERROR_INVALID_VALUE);                   \
+        goto error;                                                 \
     }
 
 static int
@@ -989,8 +988,8 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
 
         size_t nr_headers = 0, nr_wrotten = 0;
         for (size_t i = 0; i < PCA_TABLESIZE(extra_headers); i++) {
-            tmp = purc_variant_object_get_by_ckey(extra_opts,
-                    extra_headers[i].name);
+            tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+                    extra_headers[i].name, true);
 
             if (tmp) {
                 size_t len;
@@ -1233,6 +1232,7 @@ handle_accept_ssl(struct pcdvobjs_stream *stream)
 
     // clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
+    PC_DEBUG("calling SSL_accept(): %d %s\n", stream->fd4r, stream->peer_addr);
     /* all good on TLS handshake */
     if ((ret = SSL_accept(ext->ssl)) > 0) {
         ext->sslstatus &= ~(WS_TLS_ACCEPTING | WS_TLS_WANT_RW);
@@ -1431,7 +1431,7 @@ static void ws_clear_pending_data(struct stream_extended_data *ext)
     ws_update_mem_stats(ext);
 }
 
-static void cleanup_extension(struct pcdvobjs_stream *stream)
+static void finish_extension(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
@@ -1441,16 +1441,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
             pcintr_timer_destroy(ext->ping_timer);
             ext->ping_timer = NULL;
         }
-
-#if 0
-        purc_atom_t target = ext->event_cids[K_EVENT_TYPE_CLOSE];
-        if (target != 0) {
-            pcintr_coroutine_post_event(target,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        }
-#endif
 
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -1463,16 +1453,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
                     stream->monitor4w);
             stream->monitor4w = 0;
         }
-
-        if (stream->fd4r >= 0) {
-            close(stream->fd4r);
-        }
-
-        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
-            close(stream->fd4w);
-        }
-        stream->fd4r = -1;
-        stream->fd4w = -1;
 
         if (ext->prot_opts) {
             purc_variant_unref(ext->prot_opts);
@@ -1520,13 +1500,30 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
         }
 #endif
 
+    }
+}
+
+static void cleanup_extension(struct pcdvobjs_stream *stream)
+{
+    finish_extension(stream);
+
+    if (stream->ext0.data) {
+        if (stream->fd4r >= 0) {
+            close(stream->fd4r);
+        }
+
+        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
+            close(stream->fd4w);
+        }
+        stream->fd4r = -1;
+        stream->fd4w = -1;
+
         free(stream->ext0.data);
         stream->ext0.data = NULL;
 
         free(stream->ext0.msg_ops);
         stream->ext0.msg_ops = NULL;
     }
-
 }
 
 static bool
@@ -2265,7 +2262,7 @@ static int try_to_read_frame_payload(struct pcdvobjs_stream *stream)
     }
 
     /* read websocket payload */
-    return ext->sz_payload ? try_to_read_payload(stream) : 0;
+    return ext->sz_payload ? try_to_read_payload(stream) : READ_WHOLE;
 }
 
 static int ws_validate_ctrl_frame(struct pcdvobjs_stream *stream)
@@ -2292,12 +2289,13 @@ failed:
 
 static int ws_handle_reads(struct pcdvobjs_stream *stream)
 {
+    struct stream_extended_data *ext = stream->ext0.data;
+
 #if HAVE(OPENSSL)
-    if (handle_pending_rw_ssl(stream, WS_TLS_WANT_READ) == 0)
+    if (ext->ssl && handle_pending_rw_ssl(stream, WS_TLS_WANT_READ) == 0)
         return 0;
 #endif
 
-    struct stream_extended_data *ext = stream->ext0.data;
     int retv;
     int owner_taken; // indicate wheter the owner of message has been taken.
 
@@ -2321,6 +2319,8 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 goto failed;
             }
 
+            PC_DEBUG("Got a frame with op (%d), sz_payload (%zu)\n",
+                    ext->header.op, ext->sz_payload);
             switch (ext->header.op) {
             case WS_OPCODE_PING:
                 if (ws_validate_ctrl_frame(stream))
@@ -2371,6 +2371,8 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
             PC_INFO("Got a frame header: %d\n", ext->header.op);
         }
         else if (ext->status & WS_WAITING4PAYLOAD) {
+            PC_DEBUG("Trying to read payload for op (%d), sz_payload (%zu)\n",
+                    ext->header.op, ext->sz_payload);
             retv = try_to_read_frame_payload(stream);
             if (retv == READ_NONE) {
                 PC_DEBUG("Got no any data for payload. Wait for new data...\n");
@@ -2441,8 +2443,8 @@ static int ws_handle_reads(struct pcdvobjs_stream *stream)
                 case MT_TEXT:
                     if (!pcutils_string_check_utf8_len(ext->message,
                             ext->sz_message, NULL, NULL)) {
-                        PC_ERROR("Invalid UTF-8 text message: %s (%zu).\n",
-                                ext->message, ext->sz_message);
+                        PC_ERROR("Got an invalid UTF-8 text message: (%zu).\n",
+                                ext->sz_message);
                         ws_notify_to_close(stream, WS_CLOSE_INVALID_UTF8, NULL);
                         ext->status = WS_ERR_MSG | WS_CLOSING;
                         goto failed;
@@ -2487,6 +2489,7 @@ done_msg:
     ext->sz_message = 0;
     ext->sz_read_payload = 0;
     ext->sz_read_message = 0;
+    ext->status &= ~WS_WAITING4PAYLOAD;
     ws_update_mem_stats(ext);
     return retv;
 }
@@ -2701,9 +2704,10 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    PC_DEBUG("ping timer elapsed: %f\n", elapsed);
 
     if (elapsed > ext->noresptimetoclose) {
+        PC_WARN("Long time no response: %s:%s\n",
+                stream->peer_addr, stream->peer_port);
         if (ext->on_readable == ws_handle_reads) {
             ws_notify_to_close(stream, WS_CLOSE_GOING_AWAY, NULL);
         }
@@ -2820,6 +2824,9 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     event, NULL,
                     data, PURC_VARIANT_INVALID);
+        else
+            PC_WARN("Got a message but not observed: `%s`\n", event);
+
         if (data)
             purc_variant_unref(data);
     }
@@ -3007,6 +3014,63 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+sync_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+#if HAVE(OPENSSL)
+    if (ext->ssl) {
+        while (SSL_want_nothing(ext->ssl) == 0);
+    }
+#endif
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+finish_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+    finish_extension(stream);
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
@@ -3016,11 +3080,22 @@ property_getter(void *entity, const char *name)
     assert(name);
 
     struct stream_extended_data *ext = stream->ext0.data;
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto gone;
+    }
+
     if (strcmp(name, "send") == 0) {
         method = send_getter;
     }
     else if (strcmp(name, "close") == 0) {
         method = close_getter;
+    }
+    else if (strcmp(name, "sync") == 0) {
+        method = sync_getter;
+    }
+    else if (strcmp(name, "finish") == 0) {
+        method = finish_getter;
     }
     else if ((ext->role == WS_ROLE_SERVER ||
                 ext->role == WS_ROLE_SERVER_WORKER) &&
@@ -3041,6 +3116,7 @@ property_getter(void *entity, const char *name)
 
 failed:
     purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+gone:
     return NULL;
 }
 
@@ -3166,28 +3242,32 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxframepayloadsize");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "maxframepayloadsize", true);
     uint64_t maxframepayloadsize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxframepayloadsize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxmessagesize");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "maxmessagesize", true);
     uint64_t maxmessagesize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoping");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "noresptimetoping", true);
     uint32_t noresptimetoping = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoping, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoclose");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "noresptimetoclose", true);
     uint32_t noresptimetoclose = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoclose, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
@@ -3318,18 +3398,79 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
     if (stream->socket == NULL) {
         bool secure = false;
-        tmp = purc_variant_object_get_by_ckey(extra_opts, "secure");
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts, "secure", true);
         secure = tmp == PURC_VARIANT_INVALID ? false :
             purc_variant_booleanize(tmp);
 
         if (secure) {
 #if HAVE(OPENSSL)
-            ext->ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+            tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+                    "sslsessioncacheid", true);
+            const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
+                purc_variant_get_string_const(tmp);
+
+            ext->ssl_ctx = SSL_CTX_new(ssl_session_cache_id ?
+                    TLS_server_method() : TLS_client_method());
             if (ext->ssl_ctx == NULL) {
                 PC_ERROR("Failed SSL_CTX_new(): %s\n",
                         ERR_error_string(ERR_get_error(), NULL));
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 goto failed;
+            }
+
+            if (ssl_session_cache_id) {
+                /* This is a server-side worker process. */
+
+#if 0
+    const char *ssl_cert = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.crt";
+    const char *ssl_key = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.key";
+
+    /* set certificate */
+    if (!SSL_CTX_use_certificate_file(ext->ssl_ctx, ssl_cert, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_certificate_file(%s): %s\n",
+                ssl_cert, ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+
+    /* ssl private key */
+    if (!SSL_CTX_use_PrivateKey_file(ext->ssl_ctx, ssl_key, SSL_FILETYPE_PEM)) {
+        PC_ERROR("Failed SSL_CTX_use_PrivateKey_file(%s): %s\n",
+                ssl_key, ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+
+    if (!SSL_CTX_check_private_key(ext->ssl_ctx)) {
+        PC_ERROR("Failed SSL_CTX_check_private_key(): %s\n",
+                ERR_error_string(ERR_get_error(), NULL));
+        purc_set_error(PURC_ERROR_TLS_FAILURE);
+        goto failed;
+    }
+#endif
+
+                SSL_CTX_set_mode(ext->ssl_ctx,
+                        SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
+                        SSL_MODE_ENABLE_PARTIAL_WRITE);
+                SSL_CTX_set_options(ext->ssl_ctx,
+                        SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+
+                ext->ssl_shctx_wrapper = calloc(1,
+                        sizeof(*ext->ssl_shctx_wrapper));
+                if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
+                            ssl_session_cache_id, ext->ssl_ctx)) {
+                    PC_ERROR("Failed openssl_shctx_attach(): %s.\n",
+                            strerror(errno));
+                    free(ext->ssl_shctx_wrapper);
+                    ext->ssl_shctx_wrapper = NULL;
+                    purc_set_error(purc_error_from_errno(errno));
+                    goto failed;
+                }
+
+                SSL_CTX_set_session_id_context(ext->ssl_ctx,
+                        (const unsigned char *)ssl_session_cache_id,
+                        strlen(ssl_session_cache_id));
+                PC_INFO("Succeed openssl_shctx_attach()\n");
             }
 
             if (!(ext->ssl = SSL_new(ext->ssl_ctx))) {
@@ -3346,23 +3487,21 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
                 goto failed;
             }
 
-            tmp = purc_variant_object_get_by_ckey(extra_opts,
-                    "sslsessioncacheid");
-            const char *ssl_session_cache_id = (tmp == NULL) ? NULL :
-                purc_variant_get_string_const(tmp);
-
             if (ssl_session_cache_id) {
                 /* This is a server-side worker process. */
+                SSL_set_accept_state(ext->ssl);
+                if (SSL_renegotiate(ext->ssl) <= 0) {
+                    PC_ERROR("Failed SSL_renegotiate()\n");
+                    purc_set_error(PURC_ERROR_TLS_FAILURE);
+                    goto failed;
+                }
 
-                ext->ssl_shctx_wrapper = calloc(1,
-                        sizeof(*ext->ssl_shctx_wrapper));
-                if (openssl_shctx_attach(ext->ssl_shctx_wrapper,
-                            ssl_session_cache_id, ext->ssl_ctx)) {
-                    PC_ERROR("Failed openssl_shctx_attach(): %s.\n",
-                            strerror(errno));
-                    free(ext->ssl_shctx_wrapper);
-                    ext->ssl_shctx_wrapper = NULL;
-                    purc_set_error(purc_error_from_errno(errno));
+                int ret;
+                if ((ret = SSL_do_handshake(ext->ssl)) <= 0) {
+                    int err = SSL_get_error(ext->ssl, ret);
+                    log_return_message_ssl(ret, err, "SSL_do_handshake");
+                    PC_ERROR("Failed SSL_do_handshake()\n");
+                    purc_set_error(PURC_ERROR_TLS_FAILURE);
                     goto failed;
                 }
             }
@@ -3390,10 +3529,10 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             ext->writer = write_socket_plain;
         }
 
-        tmp = purc_variant_object_get_by_ckey(extra_opts, "handshake");
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts, "handshake", true);
         if (tmp) {
             /* this is a server-side worker process. */
-            if (purc_variant_booleanize(tmp)) {
+            if (!purc_variant_booleanize(tmp)) {
                 ext->role = WS_ROLE_SERVER_WORKER_WOHS;
                 ext->on_readable = ws_handle_handshake_request;
                 ext->on_writable = ws_handle_writes;

@@ -157,6 +157,9 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element);
 
 bool
+pcintr_is_current_silently(pcintr_stack_t stack);
+
+bool
 pcintr_is_element_must_yield(struct pcvdom_element *element);
 
 int
@@ -539,6 +542,11 @@ pcintr_reload_crtn_doc(struct pcinst *inst, pcrdr_conn *conn,
 int
 pcintr_common_handle_attr_in(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame);
+
+/* find vdom(elem) not equals co->stack->vdom from frame */
+struct pcintr_stack_frame *
+pcintr_find_prev_include_frame(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, pcvdom_element_t elem);
 
 PCA_EXTERN_C_END
 

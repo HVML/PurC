@@ -55,16 +55,49 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 In this version, we fixed a few bugs and made some major enhancements:
 
 * CHANGES:
+   - Remove `ssl_cert` and `ssl_key` fields from `struct purc_instance_extra_info`.
+   - Use new implementation of dvobjs-based socket connection to the renderer.
+   - Use communication method socket for both UNIX/local socket and websocket socket, and remove obsolete code for websocket connection.
 * ENHANCEMENTS:
-   - Support for `$SOCKET`: both datagram and stream sockets.
-   - Complete implementation of `$STREAM`.
-   - Enhance the extension protocol `websocket` for stream socket and provide support for SSL/TLS.
+   - Add two new exceptions: ProtocolViolation and TLSFailure.
+   - Complete implementation of `$STREAM`: enhance the extension protocol `websocket` for stream socket and provide support for SSL/TLS.
    - Enhance or tune for xGUI.
+   - Implement `$SOCKET.stream()` and `$SOCKET.dgram()` methods for stream socket and datagram socket respectively.
+   - Implement `$SOCKET.accept()` method.
+   - Implement `$dgramSocket.sendto()` and `$dgramSocket.recvfrom()`.
+   - Implement `$SYS.pipe()` method.
+   - Implement `$SYS.close()` method.
+   - Implement `$SYS.fdflags()` method.
+   - Implement `$SYS.sockopt()` property.
+   - Implement `$SYS.spawn()` method.
+   - Implement `$SYS.access()` method.
+   - Implement `$SYS.remove()` method.
+   - Implement `$stream.fd()` property.
+   - Implement `$stream.peerAddr` property.
+   - Implement `$stream.peerPort` property.
+   - Implement `$DATA.makebytesbuffer()` method.
+   - Implement `$DATA.append2bytesbuffer()` method.
+   - Implement `$DATA.rollbytesbuffer()` method.
+   - Implement `$STREAM.readbytes2buffer()` method.
+   - Implement `$RUNNER.enablelog()` method.
+   - Implement `$RUNNER.logmsg()` method.
+   - Implement `$DATA.key()` method.
+   - Implement `$STR.trim()` method.
+   - Implement `$STR.strstr()` method.
+   - Refactor `$STR.explode()`, `$STR.implode()`, `$STR.format_c()`, and `$STR.replace()` methods.
+   - Enhance `$STREAM.readlines()` to support the customized line seperator.
+   - Rename `$DATA.size()` to `$DATA.memsize()`.
 * OPTIMIZATIONS:
+   - Tune prototype of `on_message` for message/websocket protocol to reduce the memory use.
 * ADJUSTMENTS:
+   - Adjust the algorithm to cast a byte sequence to an integer or a float number.
+   - Change the manner of `purc_inst_ask_to_shutdown()` from sending request to posting request (noreturn).
+   - Support implicity variables `_observedAgainst`, `_observedOn`, `_observedFor`, `_observedWith`, `_observedContent` for `observer` element.
 * BUGFIXES:
    - Fix some memory leaks and race condition crashes.
+   - Fix a bug in `purc_variant_cast_to_ulongint()`: 0.0 can not be cast to ulongint.
 * CLEANUP:
+   - Use `snprintf()` instead of `sprintf()`.
 * SAMPLES:
 
 ## Version 0.9.20

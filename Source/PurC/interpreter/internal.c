@@ -159,8 +159,7 @@ get_from_frame(struct pcintr_stack_frame *frame, const char *name)
         goto out;
     }
 
-    ret = purc_variant_object_get_by_ckey(exclamation_var, name);
-    purc_clr_error();
+    ret = purc_variant_object_get_by_ckey_ex(exclamation_var, name, true);
 
 out:
     return ret;
@@ -256,6 +255,37 @@ get_temp_by_level(struct pcintr_stack_frame *frame,
     return get_from_frame(p, name);
 }
 
+static struct pcvdom_element *
+find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        uint64_t level)
+{
+    /* avoid bind variable on the 'hvml' node of other vdom  */
+    struct pcvdom_element *p = frame->pos;
+    for (; level > 0; level--) {
+        if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
+                || p->tag_id == PCHVML_TAG_HVML) {
+            break;
+        }
+        p = pcvdom_element_parent(p);
+    }
+
+    if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
+                || p->tag_id == PCHVML_TAG_HVML) {
+
+        struct pcintr_stack_frame *parent =
+            pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+
+        if (parent == NULL || parent->pos == NULL) {
+            goto out;
+        }
+
+        p = find_bind_position(stack, parent, level);
+    }
+
+out:
+    return p;
+}
+
 static int
 bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val, uint64_t level,
@@ -272,18 +302,12 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_document_get_root(stack->vdom);
     }
     else {
-        for (uint64_t i = 0; i < level; ++i) {
-            if (p == NULL) {
-                break;
-            }
-            p = pcvdom_element_parent(p);
-        }
+        p = find_bind_position(stack, frame, level);
     }
     purc_clr_error();
 
     if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        int ret = bind_at_element(stack->co, p, name, val, mgr);
-        return ret;
+        return bind_at_element(stack->co, p, name, val, mgr);
     }
 
     if (silently) {
@@ -467,6 +491,14 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     purc_clr_error();
     if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
         return bind_at_element(stack->co, dest, name, val, mgr);
+    }
+
+    /* prev level vdom */
+    struct pcintr_stack_frame *ance_frame =
+        pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+    if (ance_frame) {
+        return bind_by_elem_id(stack, ance_frame, id, name,
+                temporarily, val, mgr);
     }
 
     if (frame->silently) {
@@ -1401,7 +1433,8 @@ pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid)
         goto out;
     }
 
-    purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid");
+    // XXX: silently or not?
+    purc_variant_t v_cid = purc_variant_object_get_by_ckey_ex(v, "cid", true);
     if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
         goto out;
     }
@@ -1433,13 +1466,10 @@ out:
 bool
 pcintr_is_request_id(purc_variant_t v)
 {
-    int last = purc_get_last_error();
     if (purc_variant_is_object(v) &&
-            purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_HANDLE)) {
+            purc_variant_object_get_by_ckey_ex(v, REQUEST_ID_KEY_HANDLE, true)) {
         return true;
     }
-//    purc_clr_error();
-    purc_set_error(last);
     return false;
 }
 
@@ -1548,7 +1578,9 @@ pcintr_request_id_get_rid(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RID);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
+            REQUEST_ID_KEY_RID, true);
+    assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
     return (purc_atom_t) u64;
 }
@@ -1560,7 +1592,9 @@ pcintr_request_id_get_cid(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_CID);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
+            REQUEST_ID_KEY_CID, true);
+    assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
     return (purc_atom_t) u64;
 }
@@ -1594,7 +1628,9 @@ pcintr_request_id_get_type(purc_variant_t v)
         return 0;
     }
     uint64_t u64;
-    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_TYPE);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
+            REQUEST_ID_KEY_TYPE, true);
+    assert(val);
     purc_variant_cast_to_ulongint(val, &u64, true);
     return (enum pcintr_request_id_type) u64;
 }
@@ -1605,9 +1641,9 @@ pcintr_request_id_get_res(purc_variant_t v)
     if (!pcintr_is_request_id(v)) {
         return 0;
     }
-    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RES);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex(v,
+            REQUEST_ID_KEY_RES, true);
     if (!val) {
-        purc_clr_error();
         return NULL;
     }
     return purc_variant_get_string_const(val);
@@ -1693,7 +1729,8 @@ pcintr_chan_post(const char *chan_name, purc_variant_t data)
         goto out;
     }
 
-    purc_variant_t v_chan = purc_variant_object_get_by_ckey(runner, "chan");
+    purc_variant_t v_chan = purc_variant_object_get_by_ckey_ex(runner,
+            "chan", true);
     if (!v_chan || !purc_variant_is_dynamic(v_chan)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
@@ -1821,5 +1858,31 @@ pcintr_common_handle_attr_in(pcintr_coroutine_t co,
 
 out:
     return ret;
+}
+
+struct pcintr_stack_frame *
+pcintr_find_prev_include_frame(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, pcvdom_element_t elem)
+{
+    assert(elem);
+    struct pcintr_stack_frame *result = NULL;
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&elem->node);
+    if (vdom == co->stack.vdom) {
+        goto out;
+    }
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    while (parent && parent->pos &&
+            parent->pos->tag_id != PCHVML_TAG_INCLUDE) {
+        parent = pcintr_stack_frame_get_parent(parent);
+    }
+    if (parent == NULL || parent->pos == NULL) {
+        goto out;
+    }
+
+    result = parent;
+out:
+    return result;
 }
 

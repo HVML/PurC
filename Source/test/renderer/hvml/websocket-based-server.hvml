@@ -63,11 +63,11 @@
 
         <include with $logMsg on 'The server is accepting...' />
 
-        <observe on $clients for 'shrink'>
+        <observe on $clients for 'change:deflated'>
             <include with $logMsg on 'clients shrunken:' />
             <include with $logMsg on $clients />
 
-            <test with $DATA.count()>
+            <test with $DATA.count($clients)>
                 <differ>
                     <exit with 'No any clients' />
                 </differ>
@@ -91,8 +91,8 @@
                     <observe on $clients[$clientId].stream for 'handshake'>
                         $clientId
 
-                        <include with $logMsg on 'Server got HANDSHAKE event from `$_observedContent`; payload:' />
-                        <include with $prtLns on $? />
+                        <include with $logMsg on "Server got HANDSHAKE event from $_observedContent; payload:" />
+                        <include with $logMsg on $? />
 
                         <inherit>
                             $_observedOn.send_handshake_resp(101);

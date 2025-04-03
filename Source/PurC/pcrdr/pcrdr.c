@@ -24,7 +24,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
+#define _GNU_SOURCE
 #include "config.h"
 
 #include "private/instance.h"
@@ -318,34 +318,13 @@ failed:
     return -1;
 }
 
-#if HAVE(STDATOMIC_H)
-
-#include <stdatomic.h>
-
-static char* generate_unique_rid(const char* name)
+static char* generate_unique_rid(struct pcinst *inst, const char* name)
 {
-    static atomic_ullong atomic_accumulator;
-    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
-    char *buf = malloc(buf_len); // name-xxx
-
-    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
-    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
+    char *buf;
+    if (asprintf(&buf, "%s-%llx", name, pcinst_get_unique_ull(inst)) < 0)
+        return NULL;
     return buf;
 }
-
-#else /* HAVE(STDATOMIC_H) */
-
-static char* generate_unique_rid(const char* name)
-{
-    static unsigned long long accumulator;
-    size_t buf_len = strlen(name) + sizeof(unsigned long long) * 2 + 2;
-    char *buf = malloc(buf_len); // name-xxx
-    snprintf(buf, buf_len, "%s-%llx", name, accumulator);
-    accumulator++;
-    return buf;
-}
-
-#endif
 
 static pcrdr_conn *
 connect_to_renderer(struct pcinst *inst,
@@ -478,8 +457,8 @@ connect_to_renderer(struct pcinst *inst,
     if (ret_code == PCRDR_SC_OK) {
         conn_to_rdr->caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
-                    response_msg->data, "name");
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
+                    response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
             }
@@ -490,10 +469,16 @@ connect_to_renderer(struct pcinst *inst,
                     conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(conn_to_rdr->name);
+                uid = generate_unique_rid(inst, conn_to_rdr->name);
             }
             else {
                 uid = strdup(conn_to_rdr->name);
+            }
+
+            if (uid == NULL) {
+                PC_ERROR("Failed to allocate memory.\n");
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
             }
 
             atom = purc_atom_from_string_ex(ATOM_BUCKET_RDRID, uid);
@@ -799,8 +784,8 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     if (ret_code == PCRDR_SC_OK) {
         n_rdr_caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
-                    response_msg->data, "name");
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
+                    response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 n_conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
             }
@@ -811,7 +796,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
                     n_conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(n_conn_to_rdr->name);
+                uid = generate_unique_rid(inst, n_conn_to_rdr->name);
             }
             else {
                 uid = strdup(n_conn_to_rdr->name);
@@ -1065,8 +1050,8 @@ pcrdr_data(pcrdr_conn *conn)
 
     struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     if (rdr_caps) {
-        char buf[21];
-        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", rdr_caps->prot_version);
         vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
         vs[3] = purc_variant_make_string(buf, false);
         vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);
@@ -1293,8 +1278,8 @@ int connect_to_renderer_response_handler(pcrdr_conn *conn_to_rdr,
     if (ret_code == PCRDR_SC_OK) {
         conn_to_rdr->caps->session_handle = response_msg->resultValue;
         if (response_msg->data && purc_variant_is_object(response_msg->data)) {
-            purc_variant_t name = purc_variant_object_get_by_ckey(
-                    response_msg->data, "name");
+            purc_variant_t name = purc_variant_object_get_by_ckey_ex(
+                    response_msg->data, "name", true);
             if (name && purc_variant_is_string(name)) {
                 conn_to_rdr->name = strdup(purc_variant_get_string_const(name));
             }
@@ -1305,7 +1290,7 @@ int connect_to_renderer_response_handler(pcrdr_conn *conn_to_rdr,
                     conn_to_rdr->name);
             char *uid;
             if (atom) {
-                uid = generate_unique_rid(conn_to_rdr->name);
+                uid = generate_unique_rid(inst, conn_to_rdr->name);
             }
             else {
                 uid = strdup(conn_to_rdr->name);

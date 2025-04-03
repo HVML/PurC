@@ -41,9 +41,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <spawn.h>
+#include <signal.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+
+#if OS(LINUX)
+#include <sys/sendfile.h>
+#elif OS(Mac)
+#include <sys/uio.h>
+#endif
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
@@ -270,7 +280,7 @@ failed:
 #define _OS_NAME    "tvOS"
 #elif OS(WATCHOS)
 #define _OS_NAME    "watchOS"
-#elif OS(MAC_OS_X)
+#elif OS(Mac_OS_X)
 #define _OS_NAME    "macOS"
 #elif OS(DARWIN)
 #define _OS_NAME    "Darwin"
@@ -780,10 +790,10 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_OBJECT) {
-        purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_sec);
-        purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_usec);
+        purc_variant_t v1 = purc_variant_object_get_by_ckey_ex(argv[0],
+                _KN_sec, true);
+        purc_variant_t v2 = purc_variant_object_get_by_ckey_ex(argv[0],
+                _KN_usec, true);
 
         if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1858,6 +1868,63 @@ random_sequence_getter(purc_variant_t root,
 }
 #endif  /* !OS(LINUX) */
 
+static struct pcdvobjs_option_to_atom access_mode_ckws[] = {
+    { "read",       0,  R_OK },
+    { "write",      0,  W_OK },
+    { "execute",    0,  X_OK },
+    { "existence",  0,  F_OK },
+};
+
+static purc_variant_t
+access_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    const char *path;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if ((path = purc_variant_get_string_const(argv[0])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (access_mode_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(access_mode_ckws); i++) {
+            access_mode_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, access_mode_ckws[i].option);
+        }
+    }
+
+    int mode;
+    mode = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID, NULL, 0,
+            access_mode_ckws, PCA_TABLESIZE(access_mode_ckws), F_OK, -1);
+    if (mode == -1) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    if (access(path, mode) == -1) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
 remove_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -2006,7 +2073,7 @@ pipe_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 #endif
 
     purc_variant_t fd1 = purc_variant_make_longint(fds[0]);
-    purc_variant_t fd2 = purc_variant_make_longint(fds[0]);
+    purc_variant_t fd2 = purc_variant_make_longint(fds[1]);
     if (!fd1 || !fd2) {
         if (fd1)
             purc_variant_unref(fd1);
@@ -2375,7 +2442,7 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (getsockopt(fd, SOL_SOCKET, optname, optval, &optlen) == -1) {
-        PC_DEBUG("Failed getsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed getsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -2505,12 +2572,80 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (setsockopt(fd, SOL_SOCKET, optname, optval, optlen) == -1) {
-        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static struct pcdvobjs_option_to_atom seek_whence_skws[] = {
+    { "set",    0, SEEK_SET },
+    { "current",0, SEEK_CUR },
+    { "end",    0, SEEK_END },
+};
+
+static purc_variant_t
+seek_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    off_t offset = (off_t)tmp_l;
+
+    if (seek_whence_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(seek_whence_skws); j++) {
+            seek_whence_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, seek_whence_skws[j].option);
+        }
+    }
+
+    int whence = pcdvobjs_parse_options(
+            (nr_args > 2) ? argv[2] : PURC_VARIANT_INVALID,
+            seek_whence_skws, PCA_TABLESIZE(seek_whence_skws),
+            NULL, 0, SEEK_SET, -1);
+    if (whence == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    offset = lseek(fd, offset, whence);
+    if (offset == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_longint((int64_t)offset);
 
 error:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -2556,6 +2691,930 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static int
+handle_file_action_close(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    switch (posix_spawn_file_actions_addclose(file_actions,
+                (int)tmp_l)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+static struct pcdvobjs_option_to_atom open_flags_ckws[] = {
+    { "read",       0,  O_RDONLY },
+    { "write",      0,  O_WRONLY },
+    { "append",     0,  O_APPEND },
+    { "create",     0,  O_CREAT },
+    { "excl",       0,  O_EXCL },
+    { "truncate",   0,  O_TRUNC },
+    { "cloexec",    0,  O_CLOEXEC },
+    { "nonblock",   0,  O_NONBLOCK },
+};
+
+#define DEF_OPEN_FLAGS (O_RDONLY | O_WRONLY | O_CLOEXEC)
+
+static mode_t
+parse_file_mode(purc_variant_t mode_vrt, int *ec)
+{
+    mode_t mode = 0666;
+    if (mode_vrt) {
+        const char *cmode = purc_variant_get_string_const(mode_vrt);
+        if (cmode == NULL) {
+            *ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+
+        if (cmode[0] == '0') {
+            long tmp;
+            char *endp;
+            tmp = strtol(cmode, &endp, 8);
+
+            if (errno == ERANGE) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            if (endp == cmode) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            mode = (mode_t)tmp;
+        }
+        else {
+            /* TODO: for u+rwx,go+rx */
+            *ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+
+error:
+    return mode;
+}
+
+static int
+handle_file_action_open(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+    int fd = (int)tmp_l;
+
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "path", true)) == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    const char *path = purc_variant_get_string_const(v);
+    if (path == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "oflags", true)) == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(v, NULL, 0,
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
+    if (flags == -1) {
+        ec = purc_get_last_error();
+        goto done;
+    }
+
+    mode_t mode;
+    mode = parse_file_mode(purc_variant_object_get_by_ckey_ex(fa, "cmode", true),
+            &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto done;
+    }
+
+    switch (posix_spawn_file_actions_addopen(file_actions,
+                fd, path, flags, mode)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+static int
+handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
+        purc_variant_t fa)
+{
+    int ec = PURC_ERROR_OK;
+    purc_variant_t v;
+
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    int fd = (int)tmp_l;
+
+    v = purc_variant_object_get_by_ckey_ex(fa, "newfd", true);
+    if (v == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if (!purc_variant_cast_to_longint(v, &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto done;
+    }
+
+    int newfd = (int)tmp_l;
+
+    switch (posix_spawn_file_actions_adddup2(file_actions,
+                fd, newfd)) {
+        case EINVAL:
+        case EBADF:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto done;
+        case ENOMEM:
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto done;
+        default:
+            break;
+    }
+
+done:
+    return ec;
+}
+
+/* posix_spawnattr_setflags only uses a short for flags */
+#define SPAWN_FLAG_SEARCH       (0x01 << 16)
+
+#ifndef POSIX_SPAWN_SETSCHEDPARAM    // Linux only
+#define POSIX_SPAWN_SETSCHEDPARAM 0
+#endif
+
+#ifndef POSIX_SPAWN_SETSCHEDULER     // Linux only
+#define POSIX_SPAWN_SETSCHEDULER 0
+#endif
+
+#ifndef POSIX_SPAWN_CLOEXEC_DEFAULT  // Apple extension
+#define POSIX_SPAWN_CLOEXEC_DEFAULT 0
+#endif
+
+static struct pcdvobjs_option_to_atom spawn_flags_ckws[] = {
+    { "search",     0, SPAWN_FLAG_SEARCH },
+    { "resetids",   0, POSIX_SPAWN_RESETIDS },
+    { "setsid",     0, POSIX_SPAWN_SETSID },
+    { "setpgroup",  0, POSIX_SPAWN_SETPGROUP },
+    { "setsigdef",  0, POSIX_SPAWN_SETSID },
+    { "setsigmask", 0, POSIX_SPAWN_SETSIGMASK },
+    { "setschedparam",      0, POSIX_SPAWN_SETSCHEDPARAM },
+    { "setscheduler",       0, POSIX_SPAWN_SETSCHEDULER },
+    { "cloexec-default",    0, POSIX_SPAWN_CLOEXEC_DEFAULT },
+};
+
+static int
+handle_spawn_attr(posix_spawnattr_t *attr, bool *se_path,
+        purc_variant_t flags, purc_variant_t extra_options)
+{
+    (void)extra_options;    // TODO
+
+    int ec = PURC_ERROR_OK;
+
+    if (spawn_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(spawn_flags_ckws); i++) {
+            spawn_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, spawn_flags_ckws[i].option);
+        }
+    }
+
+    int spawn_flags;
+    spawn_flags = pcdvobjs_parse_options(flags, NULL, 0,
+            spawn_flags_ckws, PCA_TABLESIZE(spawn_flags_ckws), 0, -1);
+    if (spawn_flags == -1) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto done;
+    }
+
+    if (spawn_flags & SPAWN_FLAG_SEARCH)
+        *se_path = true;
+    else
+        *se_path = false;
+
+    if (posix_spawnattr_setflags(attr, (short)spawn_flags)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+    }
+
+done:
+    return ec;
+
+}
+
+/*
+$SYS.spawn(
+    <string $program: `The path or the filename of the executable program.`>
+    <array | tuple $file_actions: `A linear container which speicifies the
+            file-related actions to be performed in the child between the
+            fork(2) and exec(3) steps.`>
+    <array | tuple $argv: `The arguments will be passed to the program.`>
+    [, <array $env = [! ]: `The environment (*key=value* strings) will be kept
+            for child process.`>
+        [, <['search | resetids || setsid ] $flags: `The flags for spawning.`
+            - 'search': `The executable file is specified as a simple filename;
+                    the system searches for this file in the list of
+                    directories specified by PATH.
+            - 'resetids': `Reset the effective UID and GID to the real UID and
+                    GID of the parent process.`
+            - `setsid': `The child process shall create a new session and
+                    become the session leader.` >
+            [, < object $extra_options : `The extra options for spawning.` >
+        ]
+    ]
+) longint | false
+ */
+static purc_variant_t
+spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+    const char **spawn_argv = NULL;
+    const char **spawn_envp = NULL;
+
+    if (nr_args < 3) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *program;
+    program = purc_variant_get_string_const(argv[0]);
+    if (program == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_file_actions;
+    if (!purc_variant_linear_container_size(argv[1], &sz_file_actions)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_spawn_argv;
+    if (!purc_variant_linear_container_size(argv[2], &sz_spawn_argv)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t sz_spawn_env = 0;
+    if (nr_args > 3 && !purc_variant_linear_container_size(argv[3],
+                &sz_spawn_env)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    const char *flags = NULL;
+    if (nr_args > 4 &&
+            (flags = purc_variant_get_string_const(argv[4])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    purc_variant_t extra_opts = (nr_args > 5) ? argv[5] : PURC_VARIANT_INVALID;
+    if (extra_opts && !purc_variant_is_object(argv[5])) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    posix_spawn_file_actions_t file_actions;
+    if (posix_spawn_file_actions_init(&file_actions) == ENOMEM) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    for (size_t i = 0; i < sz_file_actions; i++) {
+        purc_variant_t fa = purc_variant_linear_container_get(argv[1], i);
+
+        if (!purc_variant_is_object(fa)) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey_ex(fa, "action", true);
+        const char *action = purc_variant_get_string_const(v);
+        if (action == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+
+        if (strcmp(action, "close") == 0) {
+            if ((ec = handle_file_action_close(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+        else if (strcmp(action, "open") == 0) {
+            if ((ec = handle_file_action_open(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+        else if (strcmp(action, "dup2") == 0) {
+            if ((ec = handle_file_action_dup2(&file_actions, fa)))
+                goto error_file_actions_inited;
+        }
+    }
+
+    spawn_argv = calloc(sz_spawn_argv == 0 ? 2 : sz_spawn_argv + 1,
+            sizeof(const char *));
+    if (spawn_argv == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error_file_actions_inited;
+    }
+
+    for (size_t i = 0; i < sz_spawn_argv; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(argv[2], i);
+        spawn_argv[i] = purc_variant_get_string_const(v);
+        if (spawn_argv[i] == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error_file_actions_inited;
+        }
+    }
+
+    // give a default argv[0]
+    if (sz_spawn_argv == 0) {
+        spawn_argv[0] = "spawned-by-hvml";
+        spawn_argv[1] = NULL;
+    }
+    else {
+        spawn_argv[sz_spawn_argv] = NULL;
+    }
+
+    if (sz_spawn_env > 0) {
+        spawn_envp = calloc(sz_spawn_env + 1, sizeof(const char *));
+        if (spawn_envp == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error_file_actions_inited;
+        }
+
+        for (size_t i = 0; i < sz_spawn_env; i++) {
+            purc_variant_t v = purc_variant_linear_container_get(argv[3], i);
+            spawn_envp[i] = purc_variant_get_string_const(v);
+            if (spawn_envp[i] == NULL) {
+                ec = PURC_ERROR_WRONG_DATA_TYPE;
+                goto error_file_actions_inited;
+            }
+        }
+        spawn_envp[sz_spawn_env] = NULL;
+    }
+
+    posix_spawnattr_t attr;
+    if (posix_spawnattr_init(&attr)) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error_file_actions_inited;
+    }
+
+    bool use_path;
+    if ((ec = handle_spawn_attr(&attr, &use_path,
+                    nr_args > 4 ? argv[4] : PURC_VARIANT_INVALID,
+                    nr_args > 5 ? argv[5] : PURC_VARIANT_INVALID)))
+        goto error_spawn_attr_inited;
+
+    int ret;
+    pid_t pid;
+    if (strchr(program, '/') == NULL || use_path) {
+        ret = posix_spawnp(&pid, program, &file_actions, &attr,
+                (char * const *)spawn_argv, (char * const *)spawn_envp);
+    }
+    else {
+        ret = posix_spawn(&pid, program, &file_actions, &attr,
+                (char * const *)spawn_argv, (char * const *)spawn_envp);
+    }
+
+    if (ret) {
+        ec = purc_error_from_errno(ret);
+        goto error_spawn_attr_inited;
+    }
+
+    free(spawn_argv);
+    if (spawn_envp)
+        free(spawn_envp);
+    posix_spawnattr_destroy(&attr);
+    posix_spawn_file_actions_destroy(&file_actions);
+
+    purc_clr_error();
+    return purc_variant_make_longint(pid);
+
+error_spawn_attr_inited:
+    posix_spawnattr_destroy(&attr);
+
+error_file_actions_inited:
+    posix_spawn_file_actions_destroy(&file_actions);
+
+error:
+    if (spawn_argv)
+        free(spawn_argv);
+    if (spawn_envp)
+        free(spawn_envp);
+
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.kill(
+    <longint $pid: `The process identifier.`>
+    [, < ['HUP | INT | QUIT | ABRT | KILL | ALRM | TERM'] $signal = 'TERM':
+        `The signal to send:`
+        - 'HUP':  `hang up`
+        - 'INT':  `interrupt`
+        - 'QUIT': `quit`
+        - 'ABRT': `abort`
+        - 'KILL': `non-catchable, non-ignorable kill`
+        - 'ALRM': `alarm clock`
+        - 'TERM': `software termination signal` >
+    ]
+) true | false
+*/
+
+static struct pcdvobjs_option_to_atom signal_skws[] = {
+    { "HUP",    0, SIGHUP },
+    { "INT",    0, SIGINT },
+    { "QUIT",   0, SIGQUIT },
+    { "ABRT",   0, SIGABRT },
+    { "KILL",   0, SIGKILL },
+    { "ALRM",   0, SIGALRM },
+    { "TERM",   0, SIGTERM },
+};
+
+static purc_variant_t
+kill_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (signal_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(signal_skws); j++) {
+            signal_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, signal_skws[j].option);
+        }
+    }
+
+    int signal = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            signal_skws, PCA_TABLESIZE(signal_skws),
+            NULL, 0, SIGTERM, -1);
+    if (signal == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    if (kill(pid, signal) == -1) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.waitpid(
+    <longint $pid: `The process identifier.`>
+    [, < ['none || nohang || untraced || continued'] $options = 'none':
+            `The options:`
+        - 'none':    `No any options specified.`
+        - 'nohang':  `Indicate that the call should not block if there are no
+                processes that wish to report status.`
+        - 'untraced':  `Indicate that children of the current process that are
+                stopped due to a SIGTTIN, SIGTTOU, SIGTSTP, or SIGSTOP signal
+                also have their status reported.`
+        - 'continued':  `Indicate that children of the current process that are
+                continued due to a SIGCONT signal also have their status
+                reported (Linux-only).`
+    ]
+) false | object: `An object describes the exit status of one children:`
+    - 'pid':        < longint: `The process identifier .` >
+    - 'cause':      < 'exited | signaled | stopped | continued':
+            `Indicate the manner of exit of the process.` >
+    - 'exitstatus': < longint: `If the process terminated normally by a
+            call to _exit(2) or exit(3), this property evaluates to the
+            low-order 8 bits of the argument passed to _exit(2) or exit(3)
+            by the child.`
+    - 'termsignal': < longint: `If the process terminated due to receipt
+            of a signal, this property evaluates to the number of
+            the signal that caused the termination of the process.` >
+    - 'stopsignal': < boolean: `if the process has not terminated, but has
+            stopped and can be restarted, this property evaluates to
+            the number of the signal that caused the process to stop.` >
+    - 'cordump':    < boolean: `Indicate if the termination of the process was
+        accompanied by the creation of a core file containing an image of the
+        process when the signal was received.` >
+*/
+
+static struct pcdvobjs_option_to_atom waitpid_ckws[] = {
+    { "none",       0, 0 },
+    { "nohang",     0, WNOHANG },
+    { "untraced",   0, WUNTRACED },
+#if OS(LINUX)
+    { "continued",  0, WCONTINUED },
+#endif
+};
+
+static purc_variant_t
+waitpid_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    purc_variant_t retv = PURC_VARIANT_INVALID, val = PURC_VARIANT_INVALID;
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (waitpid_ckws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(waitpid_ckws); j++) {
+            waitpid_ckws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, waitpid_ckws[j].option);
+        }
+    }
+
+    int options = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            NULL, 0,
+            waitpid_ckws, PCA_TABLESIZE(waitpid_ckws), 0, -1);
+    if (options == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    pid_t exited;
+    int status;
+    if ((exited = waitpid(pid, &status, options)) == -1) {
+        PC_ERROR("Failed waitpid(%d, %x): %s.\n",
+                pid, status, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    if (options & WNOHANG && exited == 0) {
+        return purc_variant_make_boolean(false);
+    }
+
+    retv = purc_variant_make_object_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    val = purc_variant_make_longint(exited);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "pid", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WIFEXITED(status)) {
+        val = purc_variant_make_string_static("exited", false);
+    }
+    else if (WIFSIGNALED(status)) {
+        val = purc_variant_make_string_static("signaled", false);
+    }
+    else if (WIFSTOPPED(status)) {
+        val = purc_variant_make_string_static("stopped", false);
+    }
+#if OS(LINUX)
+    else if (WIFCONTINUED(status)) {
+        val = purc_variant_make_string_static("continued", false);
+    }
+#endif
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+
+    if (!purc_variant_object_set_by_static_ckey(retv, "cause", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WCOREDUMP(status))
+        val = purc_variant_make_boolean(true);
+    else
+        val = purc_variant_make_boolean(false);
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "coredump", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    const char *key = NULL;
+    if (WIFEXITED(status)) {
+        key = "exitstatus";
+        val = purc_variant_make_longint(WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status)) {
+        key = "termsignal";
+        val = purc_variant_make_longint(WTERMSIG(status));
+    }
+    else if (WIFSTOPPED(status)) {
+        key = "stopsignal";
+        val = purc_variant_make_longint(WSTOPSIG(status));
+    }
+
+    if (key == NULL || val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, key, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    return retv;
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.open(
+    <string $file_path: `The path of the file to open.`>
+    [,
+        <'[read || write || append || create || excl || truncate ||
+            nonblock || cloexec]' $oflags = 'read write cloexec':
+            < `The open flags.` >
+        [,
+            < 'string $cmode: `The permission string like '0644' or
+                'u+rwx,go+rx' when creating a new file.` >
+        ]
+    ]
+) longint | false
+*/
+
+static purc_variant_t
+open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *path;
+    path = purc_variant_get_string_const(argv[0]);
+    if (path == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (path[0] == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(nr_args > 1 ? argv[1] : NULL, NULL, 0,
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
+    if (flags == -1) {
+        ec = purc_get_last_error();
+        goto error;
+    }
+
+    mode_t mode;
+    mode = parse_file_mode(nr_args > 2 ? argv[2] : NULL, &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto error;
+    }
+
+    int fd = open(path, flags, mode);
+    if (fd < 0) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    purc_clr_error();
+    return purc_variant_make_longint(fd);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.sendfile(
+    <longint $out_fd: `The output file descriptor.`>,
+    <longint $in_fd: `The input file descriptor.`>
+    <ulongint $offset: `The file offset from which the method will
+            start reading data from $in_fd.` >
+    [,
+        <ulongint $count = 4096UL: `The number of bytes to copy between
+        the file descriptors. `>
+    ]
+) [! longint $bytes_copied, longint $new_offset ] | false
+*/
+
+static purc_variant_t
+sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 3) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int out_fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int in_fd = (int)tmp_l;
+
+    uint64_t offset = 0;
+    if (!purc_variant_cast_to_ulongint(argv[2], &offset, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    uint64_t count = 4096UL;
+    if (nr_args > 3 &&
+            !purc_variant_cast_to_ulongint(argv[3], &count, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    ssize_t sbytes;
+    off_t off = offset;
+#if OS(LINUX)
+    sbytes = sendfile(out_fd, in_fd, &off, (size_t)count);
+#elif OS(DARWIN)
+    assert(offset >= 0);
+    off = offset;
+    off_t len;
+    int ret = sendfile(in_fd, out_fd, off, &len, NULL, 0);
+    if (ret == -1) {
+        sbytes = -1;
+    }
+    else {
+        sbytes = len;
+        off = off + len;
+    }
+#endif
+
+    if (sbytes == -1) {
+        PC_ERROR("Failed sendfile(%d, %d, %zu, %zu): %s.\n",
+                out_fd, in_fd, (size_t)offset, (size_t)count,
+                strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+    purc_clr_error();
+
+    purc_variant_t items[2] = {
+        purc_variant_make_longint(sbytes),
+        purc_variant_make_longint(off),
+    };
+
+    if (!items[0] || !items[1]) {
+        if (items[0])
+            purc_variant_unref(items[0]);
+        if (items[1])
+            purc_variant_unref(items[1]);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_tuple(2, items);
+    purc_variant_unref(items[0]);
+    purc_variant_unref(items[1]);
+
+    return retv;
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -2571,11 +3630,18 @@ purc_variant_t purc_dvobj_system_new (void)
         { "env",        env_getter,         env_setter },
         { "random",     random_getter,      random_setter },
         { "random_sequence", random_sequence_getter, NULL },
+        { "access",     access_getter,      NULL },
         { "remove",     remove_getter,      NULL },
         { "pipe",       pipe_getter,        NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
+        { "open",       open_getter,        NULL },
+        { "seek",       seek_getter,        NULL },
         { "close",      close_getter,       NULL },
+        { "spawn",      spawn_getter,       NULL },
+        { "kill",       kill_getter,        NULL },
+        { "waitpid",    waitpid_getter,     NULL },
+        { "sendfile",   sendfile_getter,    NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -2586,6 +3652,14 @@ purc_variant_t purc_dvobj_system_new (void)
         }
 
     }
+
+    if (open_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
+            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
+        }
+    }
+
 
 #if HAVE(RANDOM_R)
     /* allocate data for state of the random generator */

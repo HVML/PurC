@@ -34,6 +34,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <unistd.h> // for access()
 
 #define MSG_TYPE_SENDABLE       "sendable"
 #define MSG_TYPE_RECEIVABLE     "receivable"
@@ -113,12 +114,32 @@ out:
     return ret;
 }
 
+static void remove_tmp_chan_file(pcchan_t chan)
+{
+    if (strncmp(chan->name, TEMP_CHAN_PREEFIX,
+                sizeof(TEMP_CHAN_PREEFIX) - 1) == 0 &&
+            strlen(chan->name) == sizeof(TEMP_CHAN_TEMPLATE_FILE) - 1) {
+        /* this is a temporary channel */
+        char temp_chan_path[] = TEMP_CHAN_TEMPLATE_PATH;
+        strcpy(temp_chan_path + sizeof(TEMP_CHAN_PATH) - 1,
+                chan->name);
+        if (access(temp_chan_path, F_OK) == 0) {
+            remove(temp_chan_path);
+        }
+        else {
+            PC_WARN("The corresponding file for temporary channel dose not"
+                    "exist: %s\n", strerror(errno));
+        }
+    }
+}
+
 void
 pcchan_destroy(pcchan_t chan)
 {
     if (chan->qsize > 0) {
         PC_WARN("destroying a channel not closed: %s (%u)\n",
                 chan->name, chan->qcount);
+        remove_tmp_chan_file(chan);
     }
 
     free(chan->data);
@@ -252,8 +273,8 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
 #endif
 
     if (new_cap == 0) {
+        // no native entity variant bound to this channel
         if (chan->refc == 0) {
-            // no native entity variant bound to this channel
             int r = pcutils_map_erase(heap->name_chan_map, chan->name);
             PC_ASSERT(r == 0);
         }
@@ -266,6 +287,7 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
             chan->recvx = 0;
             chan->sendx = 0;
         }
+
     }
     else if (new_cap > chan->qcount) {
         purc_variant_t *newdata = malloc(sizeof(purc_variant_t) * new_cap);
@@ -568,6 +590,59 @@ failed:
     return NULL;
 }
 
+static purc_variant_t
+cap_setter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    pcchan_t chan = native_entity;
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+    uint32_t cap = 1;
+    if (nr_args > 0) {
+        if (!purc_variant_cast_to_uint32(argv[0], &cap, false)) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    if (!pcchan_ctrl(chan, cap)) {
+        // error set by pcchan_ctrl()
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_nvariant_method
+property_setter(void *entity, const char *name)
+{
+    UNUSED_PARAM(entity);
+    if (name == NULL) {
+        goto failed;
+    }
+
+    if (strcmp(name, "cap") == 0) {
+        return cap_setter;
+    }
+
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
 static void
 on_release(void *native_entity)
 {
@@ -577,6 +652,8 @@ on_release(void *native_entity)
 
     if (chan->qsize == 0 && chan->refc == 0) {
         // already closed
+        remove_tmp_chan_file(chan);
+
         struct pcinst* inst = pcinst_current();
         assert(inst);
 
@@ -614,15 +691,15 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
     else if (purc_variant_is_object(val)) {
-        purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+        purc_variant_t flag =
+            purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
         if (!flag) {
-            purc_clr_error();
             return false;
         }
 
-        purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+        purc_variant_t name_val =
+            purc_variant_object_get_by_ckey_ex(val, KEY_NAME, true);
         if (!name_val) {
-            purc_clr_error();
             return false;
         }
 
@@ -640,6 +717,7 @@ pcchan_make_entity(pcchan_t chan)
 {
     static struct purc_native_ops ops = {
         .property_getter = property_getter,
+        .property_setter = property_setter,
         .did_matched = did_matched,
         .on_observe = on_observe,
         .on_forget = NULL,

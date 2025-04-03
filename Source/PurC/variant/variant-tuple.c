@@ -39,7 +39,7 @@ changed(purc_variant_t tuple, purc_variant_t pos,
 
     purc_variant_t vals[] = { pos, o, n };
 
-    pcvariant_on_post_fired(tuple, PCVAR_OPERATION_CHANGE,
+    pcvariant_on_post_fired(tuple, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -53,7 +53,7 @@ change(purc_variant_t tuple, purc_variant_t pos,
 
     purc_variant_t vals[] = { pos, o, n };
 
-    return pcvariant_on_pre_fired(tuple, PCVAR_OPERATION_CHANGE,
+    return pcvariant_on_pre_fired(tuple, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
 }
 

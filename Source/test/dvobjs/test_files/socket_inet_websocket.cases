@@ -33,7 +33,7 @@ negative:
 
 negative:
     $SOCKET.stream('inet4://localhost:8080', 'default', 32, {'sslkey': 'foobar.key', 'sslcert': 'foobar.crt' })
-    OSFailure
+    TLSFailure
 
 #'sslsessioncacheid':       < string: `Use the external SSL session cache to enable sharing the sessions between processes.` >
 #'sslsessioncacheusers':    < ['group || other'] | undefined: `Specify the extra users who can access the shared SSL session cache except the owner.` >

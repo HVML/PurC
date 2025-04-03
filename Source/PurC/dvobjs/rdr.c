@@ -48,6 +48,127 @@
 #define KEY_PROT_VER_CODE       "prot-ver-code"
 #define KEY_URI                 "uri"
 
+#define KEY_name                "name"
+#define KEY_version             "version"
+#define KEY_locale              "locale"
+#define KEY_html                "html"
+#define KEY_vendor              "vendor"
+
+static purc_variant_t
+info_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_variant_t vs[10] = { NULL };
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *rdr = inst ? inst->conn_to_rdr : NULL;
+
+    if (rdr == NULL || rdr->caps == NULL) {
+        ec = PURC_ERROR_ENTITY_GONE;
+        goto error;
+    }
+
+    struct renderer_capabilities *rdr_caps = rdr->caps;
+    const char *item;
+    if (nr_args > 0 && (item = purc_variant_get_string_const(argv[0]))) {
+        if (strcmp(item, KEY_name) == 0) {
+            retv = purc_variant_make_string_static(rdr_caps->rdr_name, false);
+            goto done;
+        }
+        else if (strcmp(item, KEY_version) == 0) {
+            retv = purc_variant_make_string_static(rdr_caps->rdr_version,
+                    false);
+            goto done;
+        }
+        else if (strcmp(item, KEY_html) == 0) {
+            retv = rdr_caps->html_version ?
+                purc_variant_make_string_static(rdr_caps->html_version,
+                        false) : purc_variant_make_null();
+            goto done;
+        }
+        else if (strcmp(item, KEY_locale) == 0) {
+            retv = rdr_caps->locale ?
+                purc_variant_make_string_static(rdr_caps->locale, false) :
+                purc_variant_make_null();
+            goto done;
+        }
+        else if (strcmp(item, KEY_vendor) == 0) {
+            retv = rdr_caps->vendor ?
+                purc_variant_make_string_static(rdr_caps->vendor,
+                        false): purc_variant_make_null();
+            goto done;
+        }
+        else {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+    else if (nr_args > 0) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    retv = purc_variant_make_object(0, NULL, NULL);
+    if (retv == PURC_VARIANT_INVALID) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    vs[0] = purc_variant_make_string_static(KEY_name, false);
+    vs[1] = purc_variant_make_string_static(rdr_caps->rdr_name, false);
+    vs[2] = purc_variant_make_string_static(KEY_version, false);
+    vs[3] = purc_variant_make_string_static(rdr_caps->rdr_version, false);
+    vs[4] = purc_variant_make_string_static(KEY_html, false);
+    vs[5] = rdr_caps->html_version ?
+        purc_variant_make_string_static(rdr_caps->html_version, false) :
+        purc_variant_make_null();
+    vs[6] = purc_variant_make_string_static(KEY_locale, false);
+    vs[7] = rdr_caps->locale ?
+        purc_variant_make_string_static(rdr_caps->locale, false):
+        purc_variant_make_null();
+    vs[8] = purc_variant_make_string_static(KEY_vendor, false);
+    vs[9] = rdr_caps->vendor ?
+        purc_variant_make_string_static(rdr_caps->vendor, false):
+        purc_variant_make_null();
+
+    if (vs[9] == PURC_VARIANT_INVALID) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    for (int i = 0; i < 5; i++) {
+        if (vs[i * 2] && vs[i * 2 + 1]) {
+            purc_variant_object_set(retv, vs[i * 2], vs[i * 2 + 1]);
+            purc_variant_unref(vs[i * 2]);
+            purc_variant_unref(vs[i * 2 + 1]);
+        }
+    }
+
+done:
+    return retv;
+
+failed:
+    if (retv) {
+        for (int i = 0; i < 10; i++) {
+            if (vs[i]) {
+                purc_variant_unref(vs[i]);
+            }
+        }
+        purc_variant_unref(retv);
+    }
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static const char *
 rdr_comm(struct pcrdr_conn *rdr)
 {
@@ -132,8 +253,8 @@ state_getter(purc_variant_t root,
 
     struct renderer_capabilities *rdr_caps = inst->conn_to_rdr->caps;
     if (rdr_caps) {
-        char buf[21];
-        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", rdr_caps->prot_version);
         vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
         vs[3] = purc_variant_make_string(buf, false);
         vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);
@@ -177,7 +298,7 @@ out_clear_data:
 
 out:
     if (data && nr_args > 0) {
-        purc_variant_t v = purc_variant_object_get(data, argv[0]);
+        purc_variant_t v = purc_variant_object_get_ex(data, argv[0], false);
         if (v) {
             purc_variant_ref(v);
         }
@@ -392,6 +513,7 @@ purc_dvobj_rdr_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
+        { "info",           info_getter,        NULL },
         { "state",          state_getter,       NULL },
         { "stats",          stats_getter,       NULL },
         { "connect",        connect_getter,     NULL },

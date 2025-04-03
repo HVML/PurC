@@ -537,7 +537,7 @@ is_fetch_async_observer_match(pcintr_coroutine_t cor,
         goto out;
     }
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, FETCHERSTATE)) == type) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(EVENT, FETCHERSTATE)) == type) {
         match = true;
         goto out;
     }

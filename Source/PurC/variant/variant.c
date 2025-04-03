@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
+#include <errno.h>
 
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
@@ -112,24 +113,28 @@ void pcvariant_free(purc_variant *v) {
 }
 #endif
 
-purc_atom_t pcvariant_atom_grow;
-purc_atom_t pcvariant_atom_shrink;
-purc_atom_t pcvariant_atom_change;
+#if 0 // Since 0.9.22: obsolete
+purc_atom_t pcvariant_atom_inflated;
+purc_atom_t pcvariant_atom_deflated;
+purc_atom_t pcvariant_atom_modified;
 // purc_atom_t pcvariant_atom_reference;
 // purc_atom_t pcvariant_atom_unreference;
+#endif
 
 static int _init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
+#if 0 // Since 0.9.22: obsolete
     // initialize others
-    pcvariant_atom_grow = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "grow");
-    pcvariant_atom_shrink = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "shrink");
-    pcvariant_atom_change = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
-        "change");
+    pcvariant_atom_inflated =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "inflated");
+    pcvariant_atom_deflated =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "deflated");
+    pcvariant_atom_modified =
+        purc_atom_from_static_string_ex(ATOM_BUCKET_EVENT, "modified");
+#endif
 
     return 0;
 }
@@ -561,7 +566,7 @@ static bool equal_objects(purc_variant_t v1, purc_variant_t v2)
         return false;
 
     foreach_key_value_in_variant_object(v1, key, m1)
-        m2 = purc_variant_object_get(v2, key);
+        m2 = purc_variant_object_get_ex(v2, key, true);
         if (!purc_variant_is_equal_to(m1, m2))
             return false;
     end_foreach;
@@ -1976,13 +1981,14 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     void *library_handle = NULL;
 
-    char so[PATH_MAX+1];
+    char so[PATH_MAX];
     int n;
     do {
         if (so_name && strchr(so_name, '/')) {
             // let dlopen to handle path search
             n = snprintf(so, sizeof(so), "%s", so_name);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            PC_DEBUG("Trying to load DVObj from %s\n", so);
             library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             break;
         }
@@ -2026,6 +2032,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                         "%s/libpurc-dvobj-%s%s",
                         dir, so_name ? so_name : var_name, ext);
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+                PC_DEBUG("Trying to load DVObj from %s\n", so);
                 library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
 
                 if (library_handle) {
@@ -2052,6 +2059,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             n = snprintf(so, sizeof(so), other_tries[i],
                     ver, so_name ? so_name : var_name, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            PC_DEBUG("Trying to load DVObj from %s\n", so);
             library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             if (library_handle) {
                 break;
@@ -2061,8 +2069,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
     } while (0);
 
     if (!library_handle) {
+        PC_ERROR("Failed to load DVObj: %s\n", so_name);
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
-                "failed to load: %s", so);
+                "Failed to load DVObj: %s", so_name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -2122,8 +2131,8 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     }
 
     uint64_t u64 = 0;
-    purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            EXOBJ_LOAD_HANDLE_KEY);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex (dvobj,
+            EXOBJ_LOAD_HANDLE_KEY, true);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);
         return false;
@@ -2403,8 +2412,11 @@ booleanize_native(purc_variant_t value)
         return false;
 
     purc_nvariant_method getter = (ops->property_getter)(native, "__boolean");
-    if (!getter)
-        return false;
+    if (!getter) {
+        /* PURC_ERROR_NOT_SUPPORTED */
+        purc_clr_error();
+        return true;
+    }
 
     purc_variant_t v = getter(native, "__boolean", 0, NULL,
             PCVRT_CALL_FLAG_SILENTLY);
@@ -2813,7 +2825,8 @@ purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
 }
 
 ssize_t
-purc_variant_stringify_alloc(char **strp, purc_variant_t value)
+purc_variant_stringify_alloc_ex(char **strp, purc_variant_t value,
+        size_t *sz_buff_p)
 {
     purc_rwstream_t stream;
     stream = purc_rwstream_new_buffer(0, 0);
@@ -2845,6 +2858,8 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value)
     p[sz_content] = '\0';
 
     *strp = p;
+    if (sz_buff_p)
+        *sz_buff_p = sz_buff;
 
     return sz_content;
 }
@@ -3930,7 +3945,7 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
 
     for (size_t i=0; i<data->nr_keynames; ++i) {
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(val, data->keynames[i]);
+        v = purc_variant_object_get_by_ckey_ex(val, data->keynames[i], true);
         if (v == PURC_VARIANT_INVALID) {
             v = undefined;
         }
@@ -3980,9 +3995,9 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
         purc_variant_t vr = PURC_VARIANT_INVALID;
 
         if (l->type == PVT(_OBJECT))
-            vl = purc_variant_object_get_by_ckey(l, data->keynames[i]);
+            vl = purc_variant_object_get_by_ckey_ex(l, data->keynames[i], true);
         if (r->type == PVT(_OBJECT))
-            vr = purc_variant_object_get_by_ckey(r, data->keynames[i]);
+            vr = purc_variant_object_get_by_ckey_ex(r, data->keynames[i], true);
 
         if (vl == PURC_VARIANT_INVALID)
             vl = undefined;

@@ -604,6 +604,35 @@ PURC_COMPUTE_SOURCES(test_websocket_good_client)
 PURC_FRAMEWORK(test_websocket_good_client)
 GTEST_DISCOVER_TESTS(test_websocket_good_client DISCOVERY_TIMEOUT 10)
 
+# test_websocket_include_module
+PURC_EXECUTABLE_DECLARE(test_websocket_include_module)
+
+list(APPEND test_websocket_include_module_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_websocket_include_module)
+
+set(test_websocket_include_module_SOURCES
+    test_websocket_include_module.cpp
+    ../tools.cpp
+)
+
+set(test_websocket_include_module_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_websocket_include_module)
+PURC_FRAMEWORK(test_websocket_include_module)
+GTEST_DISCOVER_TESTS(test_websocket_include_module DISCOVERY_TIMEOUT 10)
+
+
 # test_message_bad_client
 PURC_EXECUTABLE_DECLARE(test_message_bad_client)
 
@@ -659,4 +688,61 @@ set(test_message_good_client_LIBRARIES
 PURC_COMPUTE_SOURCES(test_message_good_client)
 PURC_FRAMEWORK(test_message_good_client)
 GTEST_DISCOVER_TESTS(test_message_good_client DISCOVERY_TIMEOUT 10)
+
+# test_spawn
+PURC_EXECUTABLE_DECLARE(test_spawn)
+
+list(APPEND test_spawn_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_spawn)
+
+set(test_spawn_SOURCES
+    test_spawn.cpp
+    ../tools.cpp
+)
+
+set(test_spawn_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_spawn)
+PURC_FRAMEWORK(test_spawn)
+GTEST_DISCOVER_TESTS(test_spawn DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_more
+PURC_EXECUTABLE_DECLARE(test_dvobjs_more)
+
+list(APPEND test_dvobjs_more_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_dvobjs_more)
+
+set(test_dvobjs_more_SOURCES
+    test_dvobjs_more.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_dvobjs_more_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_more)
+PURC_FRAMEWORK(test_dvobjs_more)
+GTEST_DISCOVER_TESTS(test_dvobjs_more DISCOVERY_TIMEOUT 10)
 

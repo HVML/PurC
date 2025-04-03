@@ -166,7 +166,7 @@ doc_init(pcintr_stack_t stack)
     }
 
     const char *target_name = purc_variant_get_string_const(target);
-    PC_DEBUG("Retrieved target name: %s\n", target_name);
+    PC_NONE("Retrieved target name: %s\n", target_name);
     stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
     purc_variant_unref(target);
 
@@ -531,7 +531,7 @@ static void _cleanup_instance(struct pcinst* inst)
 
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
-        PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
+        PC_INFO("Instance is quiting, %u messages discarded\n", (unsigned)n);
         heap->move_buff = 0;
     }
 
@@ -830,6 +830,25 @@ init_exclamation_symval(struct pcintr_stack_frame *frame)
 }
 
 static int
+init_question_symval(struct pcintr_stack_frame *frame)
+{
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->edom_element)
+        return 0;
+
+    purc_variant_t v = pcintr_get_question_var(parent);
+    if (v == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    int r;
+    r = pcintr_set_question_var(frame, v);
+
+    return r ? -1 : 0;
+}
+
+static int
 init_undefined_symvals(struct pcintr_stack_frame *frame)
 {
     purc_variant_t undefined = purc_variant_make_undefined();
@@ -861,6 +880,10 @@ init_symvals_with_vals(struct pcintr_stack_frame *frame)
 
     // $0!
     if (init_exclamation_symval(frame))
+        return -1;
+
+    // $0?
+    if (init_question_symval(frame))
         return -1;
 
     return 0;
@@ -1104,6 +1127,16 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_silently(element) : false;
+}
+
+bool
+pcintr_is_current_silently(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame) {
+        return frame->silently;
+    }
+    return false;
 }
 
 bool
@@ -1647,13 +1680,13 @@ bool pcintr_is_ready_for_event(void)
 
     pcintr_heap_t heap = pcintr_get_heap();
     if (!heap) {
-        PC_DEBUG("purc instance not fully initialized\n");
+        PC_ERROR("purc instance not fully initialized\n");
         abort();
     }
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (!co) {
-        PC_DEBUG(
+        PC_ERROR(
                 "running in a purc thread "
                 "but not in a correct coroutine context\n"
                 );
@@ -1861,7 +1894,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->stopped_timeout = -1;
     co->avl.key = co;
-    co->sending_document_by_url = 0;    // 0.9.18
+    /* removed since 0.9.22
+       co->sending_document_by_url = 0; */
     return co;
 
 fail_clr_fetcher_session:
@@ -3033,7 +3067,18 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     }
 }
 
-static struct purc_native_ops ops_vdom = {};
+static void
+on_vdom_wrap_release(void* native_entity)
+{
+    pcvdom_element_t vdom_elem = (pcvdom_element_t)native_entity;
+    struct pcvdom_document *doc = pcvdom_document_from_node(&vdom_elem->node);
+    assert(doc);
+    pcvdom_document_unref(doc);
+}
+
+static struct purc_native_ops ops_vdom = {
+    .on_release = on_vdom_wrap_release
+};
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom)
@@ -3042,6 +3087,12 @@ pcintr_wrap_vdom(pcvdom_element_t vdom)
 
     purc_variant_t val;
     val = purc_variant_make_native(vdom, &ops_vdom);
+
+    if (val) {
+        struct pcvdom_document *doc = pcvdom_document_from_node(&vdom->node);
+        assert(doc);
+        pcvdom_document_ref(doc);
+    }
 
     return val;
 }

@@ -360,7 +360,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     return pcintr_bind_named_variable(&co->stack, frame, s_name, ctxt->at,
-            false, false, src);
+            false, true, src);
 }
 
 static int

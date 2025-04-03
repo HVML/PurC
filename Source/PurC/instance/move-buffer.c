@@ -138,7 +138,7 @@ pcinst_get_message(void)
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         atomic_init(&hdr->refcnt, 1);
-        PC_DEBUG("New message in %s: %p\n", __func__, msg);
+        PC_NONE("New message in %s: %p\n", __func__, msg);
     }
     else {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -153,9 +153,9 @@ pcinst_put_message(pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     unsigned int refcnt = atomic_fetch_sub(&hdr->refcnt, 1);
 
-    PC_DEBUG("The old refcnt of message in %s: %u\n", __func__, refcnt);
+    PC_NONE("The old refcnt of message in %s: %u\n", __func__, refcnt);
     if (refcnt == 1) {
-        PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
+        PC_NONE("Freeing message in %s: %p\n", __func__, msg);
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i]) {
@@ -239,10 +239,10 @@ pcinst_grind_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     unsigned int refcnt = atomic_fetch_sub(&hdr->refcnt, 1);
-    PC_DEBUG("refcnt of message in %s: %u\n", __func__, refcnt);
+    PC_NONE("refcnt of message in %s: %u\n", __func__, refcnt);
 
     if (refcnt == 1) {
-        PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
+        PC_NONE("Freeing message in %s: %p\n", __func__, msg);
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])

@@ -1,0 +1,58 @@
+#!/usr/bin/purc
+
+# RESULT: 4L
+
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    <body id="id_main">
+        <inherit>
+            $STREAM.stdout.writelines("begin main hvml")
+        </inherit>
+
+        <init as 'counter' at '_root' with 0UL />
+
+        <iterate on [! 'client0', 'client1', 'client2', 'client3' ] >
+            <inherit>
+                $STREAM.stdout.writelines("iterator to load client $?")
+            </inherit>
+            <load from "#id_client"  onto 'null:' as $?  with { name:$? } async >
+                <catch for `ANY`>
+                    <exit with "Server failed with $?.name when loading client" />
+                </catch>
+            </load>
+
+            <observe on ${$?} for "corState:exited" >
+                <init as 'counter' at '_root' with $DATA.arith('+', $counter, 1UL) />
+                <inherit>
+                    $STREAM.stdout.writelines("Client exited with $?")
+                </inherit>
+                <test with $L.ge($counter, 4UL) >
+                    <exit with $counter />
+                </test>
+            </observe>
+        </iterate>
+
+    </body>
+
+    <body id="id_client">
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <init as 'progress' with 10UL />
+        <observe on="$TIMERS" for="expired:clock">
+            <inherit>
+                $STREAM.stdout.writelines("Client:  $REQ.name   timer $progress ")
+            </inherit>
+            <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+            <test with $L.ge($progress, 100UL) >
+                <exit with "$REQ.name" />
+            </test>
+        </observe>
+    </body>
+
+</hvml>
+

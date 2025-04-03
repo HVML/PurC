@@ -62,7 +62,7 @@ TEST(dvobjs, dvobjs_t_getter)
     ASSERT_NE(t, nullptr);
     ASSERT_EQ(purc_variant_is_object (t), true);
 
-    purc_variant_t map = purc_variant_object_get_by_ckey (t, "map");
+    purc_variant_t map = purc_variant_object_get_by_ckey_ex (t, "map", true);
     ASSERT_EQ(purc_variant_is_object (map), true);
 
     purc_variant_t val = purc_variant_make_string ("world", false);
@@ -77,7 +77,7 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_object_set_by_static_ckey (map, "country", val);
     purc_variant_unref (val);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (t, "get");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (t, "get", true);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
