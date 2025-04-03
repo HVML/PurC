@@ -3737,7 +3737,8 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
-        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n", pts, strerror(errno));
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n",
+                fd_slave, strerror(errno));
         ec = purc_error_from_errno(error);
         goto failed;
     }
@@ -3799,7 +3800,8 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
-        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n", pts, strerror(errno));
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n",
+                fd_slave, strerror(errno));
         ec = purc_error_from_errno(error);
         goto failed;
     }
