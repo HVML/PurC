@@ -1935,6 +1935,231 @@ error:
 }
 
 /*
+$STR.count_bytes(
+    < string | bsequence $data: `The examined data.` >
+    [, < 'tuple-all | object-all | object-appeared | object-not-appeared |
+            bytes-appeared | bytes-not-appeared' $mode = 'tuple-all':
+        - 'tuple-all':  `Return a tuple with the byte-value (0 ~ 255) as
+            index and the frequency of every byte as value.`
+        - 'object-all': `Return an object with the byte-value (decimal string)
+            as key and the frequency of every byte as value.`
+        - 'object-appeared': `Same as 'object-all' but  only byte-values with
+            a frequency greater than zero are listed.`
+        - 'object-not-appeared': `Same as 'object-all' but only byte-values
+            with a frequency equal to zero are listed.`
+        - 'bytes-appeared': `A binary sequence containing all unique bytes
+            is returned.`
+        - 'bytes-not-appeared': `A binary sequence containing all not used
+            bytes is returned.`
+        >
+    ]
+) tuple | object | bsequence
+ */
+
+enum {
+    CBM_TUPLE_ALL,
+    CBM_OBJECT_ALL,
+    CBM_OBJECT_APPEARED,
+    CBM_OBJECT_NOT_APPEARED,
+    CBM_BYTES_APPEARED,
+    CBM_BYTES_NOT_APPEARED,
+};
+
+static struct pcdvobjs_option_to_atom cbm_skws[] = {
+    { "tuple-all",          0, CBM_TUPLE_ALL },
+    { "object-all",         0, CBM_OBJECT_ALL },
+    { "object-appeared",    0, CBM_OBJECT_APPEARED },
+    { "object-not-appeared",0, CBM_OBJECT_NOT_APPEARED },
+    { "bytes-appeared",     0, CBM_BYTES_APPEARED },
+    { "bytes-not-appeared", 0, CBM_BYTES_NOT_APPEARED },
+};
+
+static purc_variant_t
+count_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const unsigned char *bytes;
+    size_t nr_bytes;
+
+    if ((bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    int cbm;
+    if (cbm_skws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(cbm_skws); i++) {
+            cbm_skws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, cbm_skws[i].option);
+        }
+    }
+
+    cbm = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID,
+            cbm_skws, PCA_TABLESIZE(cbm_skws), NULL, 0, CBM_TUPLE_ALL, -1);
+    if (cbm == -1) {
+        goto error;
+    }
+
+    size_t counted[256]= { 0 };
+    for (size_t i = 0; i < nr_bytes; i++) {
+        counted[(int)bytes[i]]++;
+    }
+
+    switch (cbm) {
+    case CBM_TUPLE_ALL:
+        retv = purc_variant_make_tuple(256, NULL);
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+
+        for (int i = 0; i < 256; i++) {
+            item = purc_variant_make_ulongint(counted[i]);
+            if (item && purc_variant_tuple_set(retv, i, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+        break;
+
+    case CBM_OBJECT_ALL:
+        retv = purc_variant_make_object_0();
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+
+        for (int i = 0; i < 256; i++) {
+            char key[16];
+            snprintf(key, sizeof(key), "%d", i);
+
+            item = purc_variant_make_ulongint(counted[i]);
+            if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+        break;
+
+    case CBM_OBJECT_APPEARED:
+        retv = purc_variant_make_object_0();
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+
+        for (int i = 0; i < 256; i++) {
+            if (counted[i] == 0)
+                continue;
+
+            char key[16];
+            snprintf(key, sizeof(key), "%d", i);
+
+            item = purc_variant_make_ulongint(counted[i]);
+            if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+        break;
+
+    case CBM_OBJECT_NOT_APPEARED:
+        retv = purc_variant_make_object_0();
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+
+        for (int i = 0; i < 256; i++) {
+            if (counted[i] > 0)
+                continue;
+
+            char key[16];
+            snprintf(key, sizeof(key), "%d", i);
+
+            item = purc_variant_make_ulongint(0);
+            if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+        break;
+
+    case CBM_BYTES_APPEARED: {
+        unsigned char bytes_appeared[256];
+        size_t n = 0;
+
+        for (int i = 0; i < 256; i++) {
+            if (counted[i] == 0)
+                continue;
+
+            bytes_appeared[n] = (unsigned char)i;
+            n++;
+        }
+
+        retv = purc_variant_make_byte_sequence(bytes_appeared, n);
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+        break;
+    }
+
+    case CBM_BYTES_NOT_APPEARED: {
+        unsigned char bytes_not_appeared[256];
+        size_t n = 0;
+
+        for (int i = 0; i < 256; i++) {
+            if (counted[i] > 0)
+                continue;
+
+            bytes_not_appeared[n] = (unsigned char)i;
+            n++;
+        }
+
+        retv = purc_variant_make_byte_sequence(bytes_not_appeared, n);
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+        break;
+    }
+
+    default:
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+        break;
+    }
+
+    return retv;
+
+error:
+    if (item) {
+        purc_variant_unref(item);
+    }
+
+    if (retv) {
+        purc_variant_unref(retv);
+    }
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.codepoints(
     < string $the_string: `The string to convert.` >
     [, < 'array | tuple' $return_type = 'array':
@@ -2079,6 +2304,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
         { "trim",       trim_getter,        NULL },
+        { "count_bytes",count_bytes_getter,  NULL },
         { "codepoints", codepoints_getter,  NULL },
     };
 
