@@ -463,3 +463,31 @@ positive:
     $DATA.numerify('00123')
     123
 
+negative:
+    $STR.codepoints()
+    ArgumentMissed
+
+negative:
+    $STR.codepoints(null)
+    WrongDataType
+
+negative:
+    $STR.codepoints('', 'foo')
+    InvalidValue
+
+positive:
+    $STR.codepoints('')
+    []
+
+positive:
+    $STR.codepoints('', 'tuple')
+    [!]
+
+positive:
+    $STR.codepoints('HVML的昵称是呼噜猫')
+    [ 72, 86, 77, 76, 30340, 26165, 31216, 26159, 21628, 22108, 29483 ]
+
+positive:
+    $STR.codepoints('HVML的昵称是呼噜猫', 'tuple')
+    [! 72, 86, 77, 76, 30340, 26165, 31216, 26159, 21628, 22108, 29483 ]
+

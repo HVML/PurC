@@ -1934,6 +1934,129 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$STR.codepoints(
+    < string $the_string: `The string to convert.` >
+    [, < 'array | tuple' $return_type = 'array':
+        - 'array': `Return an array of codepoints.`
+        - 'tuple': `Return a tuple of codepoints.`
+        >
+    ]
+) array | tuple: `The array or tuple contains all Unicode
+        codepoints of the string.`
+*/
+
+enum {
+    TYPE_ARRAY,
+    TYPE_TUPLE,
+};
+
+static struct pcdvobjs_option_to_atom type_skws[] = {
+    { "array",  0,  TYPE_ARRAY },
+    { "tuple",  0,  TYPE_TUPLE },
+};
+
+static purc_variant_t
+codepoints_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *str;
+    size_t len;
+
+    if ((str = purc_variant_get_string_const_ex(argv[0], &len)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    int ret_type;
+    if (type_skws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(type_skws); i++) {
+            type_skws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, type_skws[i].option);
+        }
+    }
+
+    ret_type = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID,
+            type_skws, PCA_TABLESIZE(type_skws), NULL, 0, TYPE_ARRAY, -1);
+    if (ret_type == -1) {
+        goto error;
+    }
+
+    if (ret_type == TYPE_ARRAY) {
+        retv = purc_variant_make_array_0();
+    }
+    else if (ret_type == TYPE_TUPLE) {
+        size_t nr_chars = pcutils_string_utf8_chars(str, len);
+        retv = purc_variant_make_tuple(nr_chars, NULL);
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+    }
+
+    if (retv == PURC_VARIANT_INVALID)
+        goto error;
+
+    char *p = (char *)str;
+    size_t i = 0;
+    while (*p) {
+
+        uint32_t uc = pcutils_utf8_to_unichar((unsigned char *)p);
+
+        if (ret_type == TYPE_ARRAY) {
+            item = purc_variant_make_number(uc);
+            if (item && purc_variant_array_append(retv, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+        else {  /* tuple */
+            item = purc_variant_make_number(uc);
+            if (item && purc_variant_tuple_set(retv, i, item)) {
+                purc_variant_unref(item);
+            }
+            else {
+                goto error;
+            }
+        }
+
+        p = pcutils_utf8_next_char(p);
+        i++;
+    }
+
+    return retv;
+
+error:
+    if (item) {
+        purc_variant_unref(item);
+    }
+
+    if (retv) {
+        purc_variant_unref(retv);
+    }
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -1956,6 +2079,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
         { "trim",       trim_getter,        NULL },
+        { "codepoints", codepoints_getter,  NULL },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
