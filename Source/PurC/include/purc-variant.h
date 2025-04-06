@@ -1209,8 +1209,6 @@ purc_variant_object_get_by_ckey_ex(purc_variant_t obj, const char* key,
  *
  * @obj: An object variant.
  * @key: The key of the property to find.
- * @silently: Indicate whether to report the following error(s):
- *  - PURC_ERROR_NO_SUCH_KEY
  *
  * Gets the property value in @obj by the key value specified with
  * a null-terminated string @key.
