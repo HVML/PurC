@@ -30,6 +30,7 @@
 #include "private/utils.h"
 #include "private/variant.h"
 #include "private/atom-buckets.h"
+#include "private/ports.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -1935,6 +1936,149 @@ error:
 }
 
 /*
+$STR.count_chars(
+    < string $string: `The examined string.` >
+    [,
+        < 'object | string' $mode = 'object':
+           - 'object': `Return an object with the character as key and
+                the frequency of every character as value.`
+           - 'string': `Return a string containing all unique characters. `
+        >
+    ]
+) object | string
+ */
+
+enum {
+    CCM_OBJECT,
+    CCM_STRING,
+};
+
+static struct pcdvobjs_option_to_atom ccm_skws[] = {
+    { "object",     0, CCM_OBJECT },
+    { "string",     0, CCM_STRING },
+};
+
+static purc_variant_t
+count_chars_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *chars;
+    if ((chars = purc_variant_get_string_const(argv[0])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    int ccm;
+    if (ccm_skws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(ccm_skws); i++) {
+            ccm_skws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, ccm_skws[i].option);
+        }
+    }
+
+    ccm = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID,
+            ccm_skws, PCA_TABLESIZE(ccm_skws), NULL, 0, CCM_OBJECT, -1);
+    if (ccm == -1) {
+        goto error;
+    }
+
+    if (ccm == CCM_OBJECT) {
+        retv = purc_variant_make_object_0();
+        if (retv == PURC_VARIANT_INVALID)
+            goto error;
+
+        const char *p = chars;
+        while (*p) {
+            const char *next = pcutils_utf8_next_char(p);
+            size_t uchlen = next - p;
+            assert(uchlen <= 6);
+
+            char utf8ch[10];
+            strncpy(utf8ch, p, uchlen);
+            utf8ch[uchlen] = 0x00;
+
+            purc_variant_t v;
+            v = purc_variant_object_get_by_ckey(retv, utf8ch);
+            if (v) {
+                /* XXX: change the value directly */
+                v->u64++;
+            }
+            else {
+                item = purc_variant_make_ulongint(1);
+                if (!purc_variant_object_set_by_ckey(retv, utf8ch, item))
+                    goto error;
+                purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
+            }
+
+            p = next;
+        }
+    }
+    else if (ccm == CCM_STRING) {
+        struct pcutils_mystring mystr;
+        pcutils_mystring_init(&mystr);
+
+        const char *p = chars;
+        while (*p) {
+            const char *next = pcutils_utf8_next_char(p);
+            size_t uchlen = next - p;
+            assert(uchlen <= 6);
+
+            char utf8ch[10];
+            strncpy(utf8ch, p, uchlen);
+            utf8ch[uchlen] = 0x00;
+
+            if (mystr.buff == NULL ||
+                    !strnstr(mystr.buff, utf8ch, mystr.nr_bytes)) {
+                if (pcutils_mystring_append_mchar(&mystr,
+                            (unsigned char *)utf8ch, uchlen)) {
+                    pcutils_mystring_free(&mystr);
+                    ec = PURC_ERROR_OUT_OF_MEMORY;
+                    goto error;
+                }
+            }
+
+            p = next;
+        }
+
+        pcutils_mystring_done(&mystr);
+        retv = purc_variant_make_string_reuse_buff(mystr.buff,
+                mystr.sz_space, false);
+    }
+
+    return retv;
+
+error:
+    if (item) {
+        purc_variant_unref(item);
+    }
+
+    if (retv) {
+        purc_variant_unref(retv);
+    }
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.count_bytes(
     < string | bsequence $data: `The examined data.` >
     [, < 'tuple-all | object-all | object-appeared | object-not-appeared |
@@ -2027,6 +2171,7 @@ count_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             item = purc_variant_make_ulongint(counted[i]);
             if (item && purc_variant_tuple_set(retv, i, item)) {
                 purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
             }
             else {
                 goto error;
@@ -2046,6 +2191,7 @@ count_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             item = purc_variant_make_ulongint(counted[i]);
             if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
                 purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
             }
             else {
                 goto error;
@@ -2068,6 +2214,7 @@ count_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             item = purc_variant_make_ulongint(counted[i]);
             if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
                 purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
             }
             else {
                 goto error;
@@ -2090,6 +2237,7 @@ count_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             item = purc_variant_make_ulongint(0);
             if (item && purc_variant_object_set_by_ckey(retv, key, item)) {
                 purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
             }
             else {
                 goto error;
@@ -2304,6 +2452,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
         { "trim",       trim_getter,        NULL },
+        { "count_chars",count_chars_getter,  NULL },
         { "count_bytes",count_bytes_getter,  NULL },
         { "codepoints", codepoints_getter,  NULL },
     };
