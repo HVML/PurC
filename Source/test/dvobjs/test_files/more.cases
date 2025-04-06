@@ -615,3 +615,59 @@ positive:
     $STR.rot13('UIZY CheP 呼噜猫 0.9.22')
     'HVML PurC 呼噜猫 0.9.22'
 
+negative:
+    $STR.translate()
+    ArgumentMissed
+
+negative:
+    $STR.translate(null)
+    ArgumentMissed
+
+negative:
+    $STR.translate('', '')
+    ArgumentMissed
+
+negative:
+    $STR.translate('', '', null)
+    WrongDataType
+
+positive:
+    $STR.translate('', '', '')
+    ''
+
+positive:
+    $STR.translate('HVML', 'HVML', 'PurC')
+    'PurC'
+
+positive:
+    $STR.translate('HVML', 'HTML', 'PurC')
+    'HVML'
+
+positive:
+    $STR.translate('HVML呼噜猫', '呼噜猫', '')
+    'HVML'
+
+negative:
+    $STR.translate('', {})
+    InvalidValue
+
+negative:
+    $STR.translate('HVML', {'HVML': null})
+    InvalidValue
+
+positive:
+    $STR.translate('', {'HVML': 'PurC'})
+    ''
+
+positive:
+    $STR.translate('HVML', {'HVML': 'PurC'})
+    'PurC'
+
+positive:
+    $STR.translate('HVML 呼噜猫', {'HVML': 'PurC', '呼噜猫': 'Purring Cat'})
+    'PurC Purring Cat'
+
+positive:
+    $STR.translate('HVML呼噜猫', {'HVML': 'PurC', '呼噜猫': ''})
+    'PurC'
+

@@ -1090,6 +1090,139 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$STR.translate(
+    <string $string>,
+    <string $from>,
+    <string $to>
+) string
+
+$STR.translate(
+    <string $string>,
+    <object $from_to_pairs>,
+) string
+ */
+static purc_variant_t
+translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const char *searches_stack[SZ_IN_STACK], *replaces_stack[SZ_IN_STACK];
+    const char **searches = NULL, **replaces = NULL;
+    size_t nr_searches = 0;
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *subject = purc_variant_get_string_const(argv[0]);
+    if (subject == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    size_t nr_kvs;
+    if (purc_variant_object_size(argv[1], &nr_kvs)) {
+
+        if (nr_kvs == 0) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+
+        if (nr_kvs <= SZ_IN_STACK) {
+            searches = searches_stack;
+            replaces = replaces_stack;
+        }
+        else {
+            searches = calloc(nr_kvs, sizeof(searches[0]));
+            if (searches == NULL) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto error;
+            }
+
+            replaces = calloc(nr_kvs, sizeof(replaces[0]));
+            if (replaces == NULL) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto error;
+            }
+        }
+
+        size_t n = 0;
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(argv[1], kk, vv) {
+            const char *from = purc_variant_get_string_const(kk);
+            const char *to = purc_variant_get_string_const(vv);
+
+            if (from == NULL || to == NULL) {
+                if (!(call_flags & PCVRT_CALL_FLAG_SILENTLY)) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto error;
+                }
+            }
+            else {
+                searches[n] = from;
+                replaces[n] = to;
+                n++;
+            }
+        } end_foreach;
+
+        nr_searches = n;
+    }
+    else {
+        if (nr_args < 3) {
+            ec = PURC_ERROR_ARGUMENT_MISSED;
+            goto error;
+        }
+
+        searches = searches_stack;
+        replaces = replaces_stack;
+
+        const char *from, *to;
+        from = purc_variant_get_string_const(argv[1]);
+        to = purc_variant_get_string_const(argv[2]);
+        if (from == NULL || to == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+
+        searches[0] = from;
+        replaces[0] = to;
+        nr_searches = 1;
+    }
+
+    if (nr_searches == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    retv = replace_one_subject(subject, searches, nr_searches,
+            replaces, nr_searches, do_replace_case);
+    if (retv == PURC_VARIANT_INVALID) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    return retv;
+
+error:
+    if (searches != NULL && searches != searches_stack) {
+        free(searches);
+    }
+    if (replaces != NULL && replaces != replaces_stack) {
+        free(replaces);
+    }
+
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_string_static("", false);
+    return PURC_VARIANT_INVALID;
+}
+
 #define SZ_CONVERSION_SPECIFICATION     64
 #define SZ_PRINT_BUFF                   128
 #define C_PRINTF_CONVERSION_SPECIFIERS "dioupxXeEfFgGaAcsnm%"
@@ -1695,10 +1828,12 @@ failed:
 
 /*
 $STR.trim(
-        <string $string: `The orignal string to trim.`>
-        [, <string $characters = " \n\r\t\v\f": `The characters to trim from the original string.`>
-            [, < 'left | right | both' $position  = 'both': `The trimming position.`> ]
-        ]
+    <string $string: `The orignal string to trim.`>
+    [, <string $characters = " \n\r\t\v\f": `The characters to trim from
+            the original string.`>
+        [, < 'left | right | both' $position  = 'both': `The trimming
+                position.`> ]
+    ]
 ) string
 */
 
@@ -2539,6 +2674,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "explode",    explode_getter,     NULL },
         { "implode",    implode_getter,     NULL },
         { "replace",    replace_getter,     NULL },
+        { "translate",  translate_getter,   NULL },
         { "format_c",   format_c_getter,    NULL },
         { "format_p",   format_p_getter,    NULL },
         { "substr",     substr_getter,      NULL },
