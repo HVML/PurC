@@ -587,3 +587,31 @@ positive:
     $STR.count_chars('A中B国A中B国', 'string')
     'A中B国'
 
+negative:
+    $STR.rot13()
+    ArgumentMissed
+
+negative:
+    $STR.rot13(null)
+    WrongDataType
+
+positive:
+    $STR.rot13('')
+    ''
+
+positive:
+    $STR.rot13('HVML 0.9.22')
+    'UIZY 0.9.22'
+
+positive:
+    $STR.rot13('UIZY 0.9.22')
+    'HVML 0.9.22'
+
+positive:
+    $STR.rot13('HVML PurC 呼噜猫 0.9.22')
+    'UIZY CheP 呼噜猫 0.9.22'
+
+positive:
+    $STR.rot13('UIZY CheP 呼噜猫 0.9.22')
+    'HVML PurC 呼噜猫 0.9.22'
+

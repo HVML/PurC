@@ -1936,6 +1936,98 @@ error:
 }
 
 /*
+$STR.rot13(
+        <string $string: `The string to convert.`>
+) string
+ */
+
+static purc_variant_t
+rot13_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *chars;
+    if ((chars = purc_variant_get_string_const(argv[0])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    struct pcutils_mystring mystr;
+    pcutils_mystring_init(&mystr);
+
+    const char *p = chars;
+    while (*p) {
+        const char *next = pcutils_utf8_next_char(p);
+        size_t uchlen = next - p;
+        assert(uchlen <= 6);
+
+        char utf8ch[10];
+        strncpy(utf8ch, p, uchlen);
+        utf8ch[uchlen] = 0x00;
+
+        if (uchlen == 1) {
+            int ch = utf8ch[0];
+            if (purc_islower(ch)) {
+                ch += 13;
+                if (ch > 'z')
+                    ch = 'a' + ch - 'z' - 1;
+
+                utf8ch[0] = ch;
+            }
+            else if (purc_isupper(ch)) {
+                ch += 13;
+                if (ch > 'Z')
+                    ch = 'A' + ch - 'Z' - 1;
+
+                utf8ch[0] = ch;
+            }
+        }
+
+        if (pcutils_mystring_append_mchar(&mystr,
+                    (unsigned char *)utf8ch, uchlen)) {
+            pcutils_mystring_free(&mystr);
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+
+        p = next;
+    }
+
+    pcutils_mystring_done(&mystr);
+    retv = purc_variant_make_string_reuse_buff(mystr.buff,
+            mystr.sz_space, false);
+
+    return retv;
+
+error:
+    if (item) {
+        purc_variant_unref(item);
+    }
+
+    if (retv) {
+        purc_variant_unref(retv);
+    }
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.count_chars(
     < string $string: `The examined string.` >
     [,
@@ -2452,6 +2544,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
         { "trim",       trim_getter,        NULL },
+        { "rot13",      rot13_getter,       NULL },
         { "count_chars",count_chars_getter,  NULL },
         { "count_bytes",count_bytes_getter,  NULL },
         { "codepoints", codepoints_getter,  NULL },
