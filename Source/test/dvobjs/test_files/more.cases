@@ -715,3 +715,59 @@ positive:
     $STR.tokenize(' 中国、 人民、 、万岁！', ' 、！')
     ['中国', '人民', '万岁']
 
+negative:
+    $STR.strpos()
+    ArgumentMissed
+
+negative:
+    $STR.strpos(null)
+    ArgumentMissed
+
+negative:
+    $STR.strpos('', null)
+    WrongDataType
+
+negative:
+    $STR.strpos('abc', '', null)
+    InvalidValue
+
+negative:
+    $STR.strpos('abc', 'b', null)
+    WrongDataType
+
+positive:
+    $STR.strpos('abc', 'b', 0, true)
+    1UL
+
+positive:
+    $STR.strpos('abbc', 'b', -1, true)
+    2UL
+
+positive:
+    $STR.strpos('abbc', 'b', 2, true)
+    2UL
+
+positive:
+    $STR.strpos('', 'HVML', 3)
+    false
+
+positive:
+    $STR.strpos('呼噜猫', 'HVML')
+    false
+
+positive:
+    $STR.strpos('HVML呼噜猫HVML', 'HVML')
+    0UL
+
+positive:
+    $STR.strpos('HVML呼噜猫HVML', 'HVML', -1)
+    7UL
+
+positive:
+    $STR.strpos('HVML呼噜猫HVML', 'hvml', 0, false)
+    0UL
+
+positive:
+    $STR.strpos('HVML呼噜猫HVML', 'hvml', -1, false)
+    7UL
+

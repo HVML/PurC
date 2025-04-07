@@ -1981,6 +1981,131 @@ failed:
 }
 
 /*
+$STR.strpos(
+    <string $haystack: `The string in which to find the substring $needle.`>,
+    <string $needle: `The substring to find in $haystack.`>
+    [, <real $offset = 0: `The offset starting to search. If $offset is
+            less than 0, this method will return the last occurrence of
+            $needle.`>
+        [, <bool $case_insensitivity = false:
+            false -  `Perform a case-sensitive check.`
+            true -  `Perform a case-insensitive check.`>
+        ]
+    ]
+) ulongint | false
+
+ */
+static purc_variant_t
+strpos_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *haystack = purc_variant_get_string_const(argv[0]);
+    size_t needle_len;
+    const char *needle =
+        purc_variant_get_string_const_ex(argv[1], &needle_len);
+
+    if (!haystack || !needle) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (needle[0] == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int64_t off = 0;
+    if (nr_args > 2 && !purc_variant_cast_to_longint(argv[2], &off, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    bool caseless = false;
+    if (nr_args > 3) {
+        caseless = purc_variant_booleanize(argv[3]);
+    }
+
+    const char *found = NULL;
+    if (off >= 0) {
+        const char *p = haystack;
+        int64_t i = 0;
+        while (*p && i < off) {
+            const char *next = pcutils_utf8_next_char(p);
+            i++;
+            p = next;
+        }
+
+        if (*p == 0) {
+            retv = purc_variant_make_boolean(false);
+            goto done;
+        }
+
+        if (!caseless) {
+            found = pcutils_strcasestr(p, needle);
+        }
+        else {
+            found = strstr(p, needle);
+        }
+    }
+    else {
+        /* find the last occurrence */
+        const char *p = haystack;
+        const char *occur;
+        do {
+            size_t matched_len = 0;
+            if (!caseless) {
+                occur = pcutils_strcasestr_ex(p, needle, &matched_len);
+            }
+            else {
+                occur = strstr(p, needle);
+                matched_len = needle_len;
+            }
+
+            if (occur) {
+                p = occur + matched_len;
+                found = occur;
+            }
+        } while (occur);
+    }
+
+    size_t pos = 0;
+    if (found == NULL) {
+        retv = purc_variant_make_boolean(false);
+        goto done;
+    }
+    else {
+        const char *p = haystack;
+        while (found > p) {
+            const char *next = pcutils_utf8_next_char(p);
+            pos++;
+            p = next;
+        }
+    }
+
+    retv = purc_variant_make_ulongint(pos);
+done:
+    return retv;
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.trim(
     <string $string: `The orignal string to trim.`>
     [, <string $characters = " \n\r\t\v\f": `The characters to trim from
@@ -2823,6 +2948,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "format_p",   format_p_getter,    NULL },
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
+        { "strpos",     strpos_getter,      NULL },
         { "trim",       trim_getter,        NULL },
         { "rot13",      rot13_getter,       NULL },
         { "count_chars",count_chars_getter,  NULL },
