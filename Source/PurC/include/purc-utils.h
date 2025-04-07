@@ -1337,7 +1337,14 @@ char *pcutils_strtolower(const char *str, ssize_t len, size_t *new_len);
 int pcutils_strncasecmp(const char *s1, const char *s2, size_t n);
 
 /** the UTF-8 compliant version of strcasestr */
-char *pcutils_strcasestr(const char *haystack, const char *needle);
+char *pcutils_strcasestr_ex(const char *haystack, const char *needle,
+        size_t *matched_len);
+
+/** the UTF-8 compliant version of strcasestr */
+static inline char *
+pcutils_strcasestr(const char *haystack, const char *needle) {
+    return pcutils_strcasestr_ex(haystack, needle, NULL);
+}
 
 /** the UTF-8 compliant version of strreverse */
 char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars);
