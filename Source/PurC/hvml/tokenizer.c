@@ -101,8 +101,6 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser)    \
 {                                                                       \
     struct tkz_uc first_uc = {};                                        \
     struct tkz_uc multi_token_first_uc = {};                            \
-    int hee_line = -1;                                                  \
-    int hee_column = -1;                                                \
     uint32_t character = 0;                                             \
     if (parser->token) {                                                \
         struct pchvml_token* token = parser->token;                     \
@@ -135,6 +133,10 @@ next_input:                                                             \
     }                                                                   \
     else if (!is_whitespace(character)) {                               \
         parser->prev_separator = 0;                                     \
+    }                                                                   \
+                                                                        \
+    if (parser->record_ucs) {                                           \
+        APPEND_TO_TEMP_UCS(*parser->curr_uc);                           \
     }                                                                   \
                                                                         \
 next_state:                                                             \
@@ -198,6 +200,8 @@ next_state:                                                             \
                 pchvml_parser_is_template_tag(name)) {                      \
             RESET_TEMP_BUFFER();                                            \
             RESET_STRING_BUFFER();                                          \
+            RESET_TEMP_UCS();                                               \
+            START_RECORD_UCS();                                             \
             parser->state = TKZ_STATE_TEMPLATE_DATA;                        \
         }                                                                   \
     } while (false)
@@ -269,22 +273,22 @@ next_state:                                                             \
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
 #define APPEND_TO_TEMP_BUFFER(c)                                            \
     do {                                                                    \
-        tkz_buffer_append(parser->temp_buffer, c);                       \
+        tkz_buffer_append(parser->temp_buffer, c);                          \
     } while (false)
 
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);      \
     } while (false)
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        tkz_buffer_append_another(parser->temp_buffer, buffer);          \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);             \
     } while (false)
 
 #define IS_TEMP_BUFFER_EMPTY()                                              \
@@ -292,17 +296,38 @@ next_state:                                                             \
 
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        tkz_buffer_reset(parser->string_buffer);                         \
+        tkz_buffer_reset(parser->string_buffer);                            \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        tkz_buffer_append(parser->string_buffer, uc);                    \
+        tkz_buffer_append(parser->string_buffer, uc);                       \
     } while (false)
 
 #define APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes)                      \
     do {                                                                    \
-        tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes); \
+        tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes);    \
+    } while (false)
+
+#define RESET_TEMP_UCS()                                                    \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+    } while (false)
+
+#define APPEND_TO_TEMP_UCS(uc)                                              \
+    do {                                                                    \
+        tkz_ucs_add_tail(parser->temp_ucs, uc);                             \
+    } while (false)
+
+#define START_RECORD_UCS(uc)                                                \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+        parser->record_ucs = 1;                                             \
+    } while (false)
+
+#define STOP_RECORD_UCS(uc)                                                 \
+    do {                                                                    \
+        parser->record_ucs = 0;                                             \
     } while (false)
 
 #define RESET_SINGLE_QUOTED_COUNTER()                                       \
@@ -322,11 +347,11 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);          \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                         \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
 #define APPEND_TO_TOKEN_PUBLIC_ID(uc)                                       \
@@ -371,8 +396,8 @@ next_state:                                                             \
 
 #define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(buffer);                   \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(buffer);              \
+        const char* c = tkz_buffer_get_bytes(buffer);                       \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(buffer);                 \
         pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
     } while (false)
 
@@ -383,11 +408,11 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME()                             \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);          \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                         \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_attr_name(parser->token, c, nr_c);     \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
 
@@ -621,17 +646,10 @@ is_finished_default(struct pcejson *parser, uint32_t character)
 }
 
 struct pcvcm_node *
-parse_ejson(struct pchvml_parser *parser, const char *content,
-        int hee_line, int hee_column)
+parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs)
 {
     struct pcvcm_node *node = NULL;
-    if (!content) {
-        goto out;
-    }
-
-    size_t nr = strlen(content) + 1;
-    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)content, nr);
-    if (!rws) {
+    if (!ucs) {
         goto out;
     }
 
@@ -641,16 +659,17 @@ parse_ejson(struct pchvml_parser *parser, const char *content,
     }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
-    struct tkz_reader *reader = tkz_reader_new(hee_line, hee_column);
+    struct tkz_reader *reader = tkz_reader_new(0, 0);
     if (!reader) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    tkz_reader_set_data_source_rws(reader, rws);
+    tkz_reader_set_data_source_ucs(reader, ucs);
+
+    /* use temp reader */
     pcejson_parse_full(&node, &parser->ejson_parser, reader,
             parser->ejson_parser_max_depth, is_finished_default);
     tkz_reader_destroy(reader);
-    purc_rwstream_destroy(rws);
 out:
     return node;
 }
@@ -942,6 +961,8 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
     if (character == '"') {
         RESET_TEMP_BUFFER();
         RESET_DOUBLE_QUOTED_COUNTER();
+        RESET_TEMP_UCS();
+        START_RECORD_UCS();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
     if (character == '\'') {
@@ -1869,10 +1890,6 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
-    if (hee_line == -1) {
-        hee_line = parser->curr_uc->line;
-        hee_column = parser->curr_uc->column;
-    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
@@ -1904,6 +1921,9 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME)
         const char* name = tkz_buffer_get_bytes(
                 parser->string_buffer);
         if (pchvml_parser_is_appropriate_tag_name(parser, name)) {
+            /* </ + tag_name + > */
+            size_t sz = strlen(name) + 3;
+            tkz_ucs_delete_tail(parser->temp_ucs, sz);
             RECONSUME_IN(TKZ_STATE_TEMPLATE_FINISHED);
         }
     }
@@ -1920,10 +1940,9 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
         node = TEMP_BUFFER_TO_VCM_NODE();
     }
     else {
-        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes, hee_line, hee_column);
-        hee_line = -1;
-        hee_column = -1;
+        STOP_RECORD_UCS();
+        node = parse_ejson_ex(parser, parser->temp_ucs);
+        RESET_TEMP_UCS();
     }
 
     if (!node) {
@@ -1974,10 +1993,13 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         }
     }
     if (parser->nr_double_quoted < 2) {
+#if 0
+        /* handle on ejson parser */
         if (character == '&') {
             SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
             ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
         }
+#endif
         if (is_c0(character)) {
             uint32_t c = tkz_buffer_get_last_char(parser->temp_buffer);
             if (c != '\\') {
@@ -1986,10 +2008,6 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
             }
         }
 
-        if (hee_line == -1) {
-            hee_line = parser->curr_uc->line;
-            hee_column = parser->curr_uc->column;
-        }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
@@ -1999,10 +2017,11 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         node = pcvcm_node_new_string("");
     }
     else {
-        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes, hee_line, hee_column);
-        hee_line = -1;
-        hee_column = -1;
+        STOP_RECORD_UCS();
+        /* end with '"' + other char */
+        tkz_ucs_delete_tail(parser->temp_ucs, 2);
+        node = parse_ejson_ex(parser, parser->temp_ucs);
+        RESET_TEMP_UCS();
     }
     if (node) {
         pchvml_token_append_vcm_to_attr(parser->token, node);
@@ -2061,6 +2080,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_unquoted_attr_finished);
     if (node) {
@@ -2078,6 +2098,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_backquote_attr_finished);
     if (node) {
@@ -2265,6 +2286,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     if (!pchvml_parser_is_in_json_content_tag(parser)) {
         pcejson_set_state_param_string(parser->ejson_parser);
     }
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_content_text_finished);
     if (node) {

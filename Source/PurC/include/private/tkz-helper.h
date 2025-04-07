@@ -318,8 +318,14 @@ struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs);
 
 struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs);
 
+int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz);
+
 int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc);
 int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc);
+
+int tkz_ucs_dump(struct tkz_ucs *ucs);
+
+int tkz_ucs_reset(struct tkz_ucs *ucs);
 
 void tkz_ucs_destroy(struct tkz_ucs *ucs);
 

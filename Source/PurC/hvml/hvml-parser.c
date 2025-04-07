@@ -108,6 +108,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size,
     parser->temp_buffer = tkz_buffer_new ();
     parser->tag_name = tkz_buffer_new ();
     parser->string_buffer = tkz_buffer_new ();
+    parser->temp_ucs = tkz_ucs_new();
     parser->ejson_stack = pcutils_stack_new(0);
     parser->char_ref_code = 0;
     parser->prev_separator = 0;
@@ -142,6 +143,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     tkz_buffer_reset (parser->temp_buffer);
     tkz_buffer_reset (parser->tag_name);
     tkz_buffer_reset (parser->string_buffer);
+    tkz_ucs_reset (parser->temp_ucs);
 
     pcutils_stack_destroy(parser->ejson_stack);
     parser->ejson_stack = pcutils_stack_new(0);
@@ -167,6 +169,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
         tkz_buffer_destroy (parser->temp_buffer);
         tkz_buffer_destroy (parser->tag_name);
         tkz_buffer_destroy (parser->string_buffer);
+        tkz_ucs_destroy (parser->temp_ucs);
         if (parser->sbst) {
             tkz_sbst_destroy(parser->sbst);
         }

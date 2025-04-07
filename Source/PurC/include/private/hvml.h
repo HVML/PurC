@@ -54,6 +54,7 @@ struct pchvml_parser {
     unsigned int tag_has_raw_attr:1;
     unsigned int enable_log:1;
     unsigned int is_in_file_header:1;
+    unsigned int record_ucs:1;
 
     struct tkz_uc* curr_uc;
     struct tkz_reader* reader;
@@ -61,6 +62,10 @@ struct pchvml_parser {
     struct tkz_buffer* temp_buffer;
     struct tkz_buffer* tag_name;
     struct tkz_buffer* string_buffer;
+
+    struct tkz_ucs*    temp_ucs;        /* keep ucs for ejson parser */
+
+
     struct pchvml_token* token;
     struct tkz_sbst* sbst;
     struct pcutils_stack* ejson_stack;

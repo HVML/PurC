@@ -203,7 +203,7 @@ tkz_reader_read_from_rwstream(struct tkz_reader *reader)
         reader->column = 0;
     }
     else {
-        if (reader->lc) {
+        if (reader->lc && uc > 0) {
             tkz_lc_append_bytes(reader->lc, c, strlen(c));
         }
     }
@@ -351,26 +351,49 @@ bool tkz_ucs_is_empty(struct tkz_ucs *ucs)
 
 struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs)
 {
-    PC_ASSERT(!tkz_ucs_is_empty(ucs));
+    struct tkz_uc ret = {0};
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
+
     struct tkz_uc *uc = list_first_entry(&ucs->list, struct tkz_uc, ln);
 
-    struct tkz_uc ret = *uc;
+    ret = *uc;
     list_del(&uc->ln);
     tkz_uc_destroy(uc);
 
+out:
     return ret;
 }
 
 struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs)
 {
-    PC_ASSERT(!tkz_ucs_is_empty(ucs));
+    struct tkz_uc ret = {0};
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
     struct tkz_uc *uc = list_last_entry(&ucs->list, struct tkz_uc, ln);
 
-    struct tkz_uc ret = *uc;
+    ret = *uc;
     list_del(&uc->ln);
     tkz_uc_destroy(uc);
 
+out:
     return ret;
+}
+
+int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz)
+{
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (sz == 0) {
+            break;
+        }
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+        sz--;
+    }
+    return 0;
 }
 
 int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc)
@@ -405,6 +428,33 @@ int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc)
     return 0;
 out:
     return -1;
+}
+
+int tkz_ucs_dump(struct tkz_ucs *ucs)
+{
+    fprintf(stderr, "dump tkz ucs begin\n");
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        fprintf(stderr, "%s", p->utf8_buf);
+    }
+    fprintf(stderr, "|\ndump tkz ucs end\n");
+    return 0;
+}
+
+int tkz_ucs_reset(struct tkz_ucs *ucs)
+{
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+    }
+    INIT_LIST_HEAD(&ucs->list);
+
+out:
+    return 0;
 }
 
 void tkz_ucs_destroy(struct tkz_ucs *ucs)
