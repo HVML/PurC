@@ -989,6 +989,11 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
                 purc_get_error_message(error), extra);
     }
     else {
+        const char *err_msg = purc_get_error_message(error);
+        /* type: err_msg */
+        size_t nr = strlen(type) + strlen(err_msg) + 3;
+        info->extra = malloc(nr);
+        sprintf(info->extra, "%s: %s", type, err_msg);
         purc_set_error_with_info(error, "E%d:%s:%d:%d:%s",
                 error, type, info->line, info->column,
                 purc_get_error_message(error));

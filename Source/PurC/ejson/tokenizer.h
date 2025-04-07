@@ -78,7 +78,7 @@
 
 #define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
-#define PARSER_ERROR_TYPE       "heeParsing"
+#define PARSER_ERROR_TYPE       "HEE parse error"
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \

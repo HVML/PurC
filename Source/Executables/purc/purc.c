@@ -1466,12 +1466,10 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
                         (uintptr_t *)(void *)&parse_error, NULL);
                 if (parse_error) {
                     if (parse_error->extra) {
-                        fprintf(stderr, "%s: %s",
-                                purc_get_error_message(purc_get_last_error()),
-                                parse_error->extra);
+                        fprintf(stderr, "%s\n", parse_error->extra);
                     }
                     else {
-                        fprintf(stderr, "%s:\n",
+                        fprintf(stderr, "%s\n",
                                 purc_get_error_message(purc_get_last_error()));
                     }
                     fprintf(stderr, "Source: %s\n", url);

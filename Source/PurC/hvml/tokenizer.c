@@ -53,7 +53,7 @@
 #define EXTERNAL_LANG_STYLE     "style"
 #define EXTERNAL_LANG_SCRIPT    "script"
 
-#define PARSER_ERROR_TYPE       "hvmlParsing"
+#define PARSER_ERROR_TYPE       "HVML parse error"
 
 #define __DEV_HVML__                0
 
