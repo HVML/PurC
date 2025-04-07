@@ -92,7 +92,8 @@ struct pcmodule _module_hvml = {
 #define EJSON_PARSER_FLAGS          1
 #define HVML_PARSER_LC_SIZE         3
 
-struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
+struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size,
+        purc_rwstream_t rws)
 {
     UNUSED_PARAM(flags);
     UNUSED_PARAM(queue_size);
@@ -101,6 +102,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
             sizeof(struct pchvml_parser));
     parser->state = 0;
     parser->reader = tkz_reader_new (0, 0);
+    tkz_reader_set_data_source_rws(parser->reader, rws);
     parser->lc = tkz_lc_new (HVML_PARSER_LC_SIZE);
     tkz_reader_set_lc(parser->reader, parser->lc);
     parser->temp_buffer = tkz_buffer_new ();

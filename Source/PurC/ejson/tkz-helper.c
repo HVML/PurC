@@ -50,8 +50,18 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
+enum tkz_reader_DATA_SOURCE_type {
+    TKA_READER_DATA_SOURCE_TYPE_UNDEFINED = 0,
+    TKA_READER_DATA_SOURCE_TYPE_RWS,
+    TKA_READER_DATA_SOURCE_TYPE_UCS
+};
+
 struct tkz_reader {
-    purc_rwstream_t rws;
+    enum tkz_reader_DATA_SOURCE_type data_source_type;
+    union {
+        purc_rwstream_t rws;
+        struct tkz_ucs *ucs;
+    };
 
     struct tkz_ucs *reconsume_ucs;
     struct tkz_ucs *consumed_ucs;
@@ -118,6 +128,7 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
         goto failed;
     }
 
+    reader->data_source_type = TKA_READER_DATA_SOURCE_TYPE_UNDEFINED;
     reader->reconsume_ucs = tkz_ucs_new();
     if (!reader->reconsume_ucs) {
         goto failed_clear_reader;
@@ -147,10 +158,18 @@ failed:
     return NULL;
 }
 
-void tkz_reader_set_rwstream(struct tkz_reader *reader,
+void tkz_reader_set_data_source_rws(struct tkz_reader *reader,
         purc_rwstream_t rws)
 {
+    reader->data_source_type = TKA_READER_DATA_SOURCE_TYPE_RWS;
     reader->rws = rws;
+}
+
+void tkz_reader_set_data_source_ucs(struct tkz_reader *reader,
+        struct tkz_ucs *ucs)
+{
+    reader->data_source_type = TKA_READER_DATA_SOURCE_TYPE_UCS;
+    reader->ucs = ucs;
 }
 
 void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc)
@@ -189,6 +208,25 @@ tkz_reader_read_from_rwstream(struct tkz_reader *reader)
         }
     }
     return &reader->curr_uc;
+}
+
+static struct tkz_uc*
+tkz_reader_read_from_ucs(struct tkz_reader *reader)
+{
+    reader->curr_uc = tkz_ucs_read_head(reader->ucs);
+    reader->line = reader->curr_uc.line;
+    reader->column = reader->curr_uc.column;
+    reader->consumed++;
+    return &reader->curr_uc;
+}
+
+static struct tkz_uc*
+tkz_reader_read_from_data_source(struct tkz_reader *reader)
+{
+    if (reader->data_source_type == TKA_READER_DATA_SOURCE_TYPE_RWS) {
+        return tkz_reader_read_from_rwstream(reader);
+    }
+    return tkz_reader_read_from_ucs(reader);
 }
 
 static struct tkz_uc*
@@ -235,7 +273,7 @@ struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
 {
     struct tkz_uc *ret = NULL;
     if (tkz_ucs_is_empty(reader->reconsume_ucs)) {
-        ret = tkz_reader_read_from_rwstream(reader);
+        ret = tkz_reader_read_from_data_source(reader);
     }
     else {
         ret = tkz_reader_read_from_reconsume_list(reader);

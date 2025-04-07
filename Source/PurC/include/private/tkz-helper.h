@@ -281,7 +281,11 @@ is_unihan(uint32_t c);
 // tokenizer reader
 struct tkz_reader *tkz_reader_new(int hee_line, int hee_column);
 
-void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
+void tkz_reader_set_data_source_rws(struct tkz_reader *reader,
+        purc_rwstream_t rws);
+
+void tkz_reader_set_data_source_ucs(struct tkz_reader *reader,
+        struct tkz_ucs *ucs);
 
 void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc);
 

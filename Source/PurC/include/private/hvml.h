@@ -73,15 +73,15 @@ struct pchvml_parser {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size);
+struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size,
+        purc_rwstream_t rws);
 
 void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         size_t queue_size);
 
 void pchvml_destroy(struct pchvml_parser* parser);
 
-struct pchvml_token* pchvml_next_token(struct pchvml_parser* hvml,
-                                          purc_rwstream_t rws);
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* hvml);
 
 void pchvml_switch_to_ejson_state(struct pchvml_parser* parser);
 

@@ -97,8 +97,7 @@
 } while (0)
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
-struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
-                                          purc_rwstream_t rws)          \
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser)    \
 {                                                                       \
     struct tkz_uc first_uc = {};                                        \
     struct tkz_uc multi_token_first_uc = {};                            \
@@ -111,8 +110,6 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
         parser->last_token_type = pchvml_token_get_type(token);         \
         return token;                                                   \
     }                                                                   \
-                                                                        \
-    tkz_reader_set_rwstream (parser->reader, rws);                      \
                                                                         \
 next_input:                                                             \
     parser->curr_uc = tkz_reader_next_char (parser->reader);            \
@@ -649,7 +646,7 @@ parse_ejson(struct pchvml_parser *parser, const char *content,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    tkz_reader_set_rwstream(reader, rws);
+    tkz_reader_set_data_source_rws(reader, rws);
     pcejson_parse_full(&node, &parser->ejson_parser, reader,
             parser->ejson_parser_max_depth, is_finished_default);
     tkz_reader_destroy(reader);
