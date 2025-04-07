@@ -219,6 +219,14 @@ enum {
             kw = pcutils_get_next_token_len(kw + kw_len,                    \
                 total_len, PURC_KW_DELIMITERS, &kw_len))
 
+#define foreach_keyword_ex(options, total_len, delimiters, kw, kw_len)      \
+    for (kw_len = 0, kw = pcutils_get_next_token_len(options, total_len,    \
+                delimiters, &kw_len);                                       \
+            (kw != NULL && kw_len > 0);                                     \
+            total_len -= kw_len,                                            \
+            kw = pcutils_get_next_token_len(kw + kw_len,                    \
+                total_len, delimiters, &kw_len))
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
