@@ -679,3 +679,39 @@ positive:
     $STR.translate('HVML呼噜猫', {'HVML': 'PurC', '呼噜猫': ''})
     'PurC'
 
+negative:
+    $STR.tokenize()
+    ArgumentMissed
+
+negative:
+    $STR.tokenize(null)
+    WrongDataType
+
+negative:
+    $STR.tokenize('', null)
+    WrongDataType
+
+negative:
+    $STR.tokenize('abc', '')
+    InvalidValue
+
+positive:
+    $STR.tokenize('')
+    []
+
+positive:
+    $STR.tokenize('foo bar foobar ')
+    ['foo', 'bar', 'foobar']
+
+positive:
+    $STR.tokenize(';aaa;;bbb;', ';')
+    ['aaa', 'bbb']
+
+positive:
+    $STR.tokenize('中国、人民、万岁！', '、！')
+    ['中国', '人民', '万岁']
+
+positive:
+    $STR.tokenize(' 中国、 人民、 、万岁！', ' 、！')
+    ['中国', '人民', '万岁']
+

@@ -36,6 +36,17 @@
 
 #include "purc-dvobjs.h"
 
+static bool is_all_ascii(const char *str)
+{
+    while (*str) {
+        if (*str & 0x80)
+            return false;
+        str++;
+    }
+
+    return true;
+}
+
 static const char *get_next_segment(const char *data,
         const char *delim, size_t *length)
 {
@@ -873,6 +884,132 @@ static int do_replace_case(purc_rwstream_t rwstream, const char *subject,
 
     return 0;
 }
+
+/*
+$STR.tokenize(
+    <string $string: `The string to break.`>,
+    <string $delimiters: `The delimiters to sperate the tokens.`>
+) array
+ */
+
+static purc_variant_t
+tokenize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if ((nr_args < 1)) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *source;
+    size_t src_len;
+    source = purc_variant_get_string_const_ex(argv[0], &src_len);
+
+    const char *delimiters;
+    size_t del_len;
+    if (nr_args > 1) {
+        delimiters = purc_variant_get_string_const_ex(argv[1], &del_len);
+    }
+    else {
+        delimiters = PURC_KW_DELIMITERS;
+        del_len = sizeof(PURC_KW_DELIMITERS) - 1;
+    }
+
+    if (source == NULL || delimiters == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (del_len == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    retv = purc_variant_make_array_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    if (is_all_ascii(delimiters)) {
+        const char *kw;
+        size_t kw_len;
+        foreach_keyword_ex(source, src_len, delimiters, kw, kw_len) {
+            if (kw_len > 0) {
+                item = purc_variant_make_string_ex(kw, kw_len, false);
+                if (item == PURC_VARIANT_INVALID) {
+                    goto failed;
+                }
+                if (!purc_variant_array_append(retv, item)) {
+                    goto failed;
+                }
+
+                purc_variant_unref(item);
+                item = PURC_VARIANT_INVALID;
+            }
+        }
+    }
+    else {
+        const char *kw = source;
+        size_t kw_len = 0;
+        while (*source) {
+            const char *next = pcutils_utf8_next_char(source);
+            size_t uchlen = next - source;
+            assert(uchlen <= 6);
+
+            char utf8ch[10];
+            strncpy(utf8ch, source, uchlen);
+            utf8ch[uchlen] = 0x00;
+
+            if (strstr(delimiters, utf8ch)) {
+                /* utf8ch is a delimiter */
+                if (kw_len) {
+                    item = purc_variant_make_string_ex(kw, kw_len, false);
+                    if (item == PURC_VARIANT_INVALID) {
+                        goto failed;
+                    }
+                    if (!purc_variant_array_append(retv, item)) {
+                        goto failed;
+                    }
+
+                    purc_variant_unref(item);
+                    item = PURC_VARIANT_INVALID;
+
+                    kw_len = 0;
+                }
+                kw = next;
+            }
+            else {
+                /* utf8ch is not a delimiter */
+                kw_len += uchlen;
+            }
+
+            source = next;
+        }
+    }
+
+    return retv;
+
+failed:
+    if (item)
+        purc_variant_unref(item);
+    if (retv)
+        purc_variant_unref(retv);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_array_0();
+    return PURC_VARIANT_INVALID;
+}
+
 
 static int do_replace_caseless(purc_rwstream_t rwstream, const char *subject,
         const char *search, size_t len_search,
@@ -1866,17 +2003,6 @@ static struct pcdvobjs_option_to_atom position_ckws[] = {
     { "both",   0,  POS_BOTH },
 };
 
-static bool is_all_ascii(const char *str)
-{
-    while (*str) {
-        if (*str & 0x80)
-            return false;
-        str++;
-    }
-
-    return true;
-}
-
 static int trim_ascii_chars(purc_rwstream_t rwstream,
         const char *str, size_t len, const char *chars, int pos)
 {
@@ -2690,6 +2816,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "reverse",    reverse_getter,     NULL },
         { "explode",    explode_getter,     NULL },
         { "implode",    implode_getter,     NULL },
+        { "tokenize",   tokenize_getter,    NULL },
         { "replace",    replace_getter,     NULL },
         { "translate",  translate_getter,   NULL },
         { "format_c",   format_c_getter,    NULL },
