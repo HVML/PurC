@@ -425,6 +425,8 @@ struct purc_parse_error_info {
     int column;
     int position;
     int error;
+    char *extra;
+    char *code_snippets;
 };
 
 PCA_EXTERN_C_BEGIN
