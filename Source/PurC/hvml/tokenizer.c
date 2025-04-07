@@ -665,6 +665,7 @@ parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs)
         goto out;
     }
     tkz_reader_set_data_source_ucs(reader, ucs);
+    tkz_reader_set_lc(reader, parser->lc);
 
     /* use temp reader */
     pcejson_parse_full(&node, &parser->ejson_parser, reader,

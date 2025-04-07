@@ -960,7 +960,19 @@ static void
 free_error_info(void *key, void *local_data)
 {
     free_key_string(key);
-    free(local_data);
+
+    struct purc_parse_error_info *info =
+        (struct purc_parse_error_info *) local_data;
+
+    if (info->extra) {
+        free(info->extra);
+    }
+
+    if (info->code_snippets) {
+        free(info->code_snippets);
+    }
+
+    free(info);
 }
 
 int
@@ -995,6 +1007,7 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
     info->error = error;
 
     if (extra) {
+        info->extra = strdup(extra);
         purc_set_error_with_info(error, "E%d:%s:%d:%d:%s:%s",
                 error, type, info->line, info->column,
                 purc_get_error_message(error), extra);
@@ -1005,6 +1018,58 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
                 purc_get_error_message(error));
     }
 
+    if (reader->lc) {
+        purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+        purc_rwstream_write(rws, "<<<<\n", 5);
+
+        int curr_ln = uc->line;
+        if (curr_ln > 0) {
+            struct tkz_buffer *line = tkz_reader_get_line_from_cache(reader,
+                    curr_ln - 1);
+            if (line) {
+                const char *buf = tkz_buffer_get_bytes(line);
+                size_t nr_buf = tkz_buffer_get_size_in_bytes(line);
+                purc_rwstream_write(rws, buf, nr_buf);
+                purc_rwstream_write(rws, "\n", 1);
+            }
+        }
+
+        struct tkz_buffer *line = tkz_reader_get_line_from_cache(reader, curr_ln);
+        if (line) {
+            const char *buf = tkz_buffer_get_bytes(line);
+            size_t nr_buf = tkz_buffer_get_size_in_bytes(line);
+            purc_rwstream_write(rws, buf, nr_buf);
+            purc_rwstream_write(rws, "\n", 1);
+
+            int column = uc->column;
+            int chars = 0;
+            for (const char *p = buf; *p && chars < column - 1; ) {
+                char c = *p;
+                int nr_c = (*p & 0x80) == 0 ? 1 : ((*p & 0xE0) == 0xC0 ? 2 : 3);
+
+                purc_rwstream_write(rws, " ", 1);
+                if ((c & 0xF0) == 0xE0) {
+                    purc_rwstream_write(rws, " ", 1);
+                }
+
+                p += nr_c;
+                chars++;
+            }
+
+            purc_rwstream_write(rws, "^", 1);
+            purc_rwstream_write(rws, "\n", 1);
+        }
+        purc_rwstream_write(rws, ">>>>\n", 5);
+
+        size_t sz_content, sz_buff;
+        bool res_buff = true;
+        char *p;
+        p = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+                &sz_content, &sz_buff, res_buff);
+
+        info->code_snippets = p;
+        purc_rwstream_destroy(rws);
+    }
     purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
             free_error_info);
 out:
