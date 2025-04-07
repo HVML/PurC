@@ -1016,6 +1016,9 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
         }
 
         struct tkz_buffer *line = tkz_reader_get_line_from_cache(reader, curr_ln);
+        if (!line) {
+            line = tkz_reader_get_curr_line(reader);
+        }
         if (line) {
             const char *buf = tkz_buffer_get_bytes(line);
             size_t nr_buf = tkz_buffer_get_size_in_bytes(line);
