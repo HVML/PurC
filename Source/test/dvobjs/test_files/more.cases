@@ -744,7 +744,7 @@ positive:
     2UL
 
 positive:
-    $STR.strpos('abbc', 'b', 2, true)
+    $STR.strpos('abbc', 'B', 2, true)
     2UL
 
 positive:
@@ -764,10 +764,54 @@ positive:
     7UL
 
 positive:
-    $STR.strpos('HVML呼噜猫HVML', 'hvml', 0, false)
+    $STR.strpos('HVML呼噜猫HVML', 'hvml', 0, true)
     0UL
 
 positive:
-    $STR.strpos('HVML呼噜猫HVML', 'hvml', -1, false)
+    $STR.strpos('HVML呼噜猫HVML', 'hvml', -1, true)
     7UL
+
+negative:
+    $STR.strpbrk()
+    ArgumentMissed
+
+negative:
+    $STR.strpbrk(null)
+    ArgumentMissed
+
+negative:
+    $STR.strpbrk('', null)
+    WrongDataType
+
+negative:
+    $STR.strpbrk('abc', '', null)
+    InvalidValue
+
+positive:
+    $STR.strpbrk('abc', 'b')
+    'bc'
+
+positive:
+    $STR.strpbrk('abc', 'b')
+    'bc'
+
+positive:
+    $STR.strpbrk('abc', 'B', true)
+    'bc'
+
+positive:
+    $STR.strpbrk('abc', 'd')
+    false
+
+positive:
+    $STR.strpbrk('中国', '国')
+    '国'
+
+positive:
+    $STR.strpbrk('ａｂｃ', 'ｃ')
+    'ｃ'
+
+positive:
+    $STR.strpbrk('ａｂｃ', 'Ａ', true)
+    'ａｂｃ'
 

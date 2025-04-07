@@ -2050,7 +2050,7 @@ strpos_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto done;
         }
 
-        if (!caseless) {
+        if (caseless) {
             found = pcutils_strcasestr(p, needle);
         }
         else {
@@ -2063,7 +2063,7 @@ strpos_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         const char *occur;
         do {
             size_t matched_len = 0;
-            if (!caseless) {
+            if (caseless) {
                 occur = pcutils_strcasestr_ex(p, needle, &matched_len);
             }
             else {
@@ -2094,6 +2094,93 @@ strpos_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     retv = purc_variant_make_ulongint(pos);
 done:
+    return retv;
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$STR.strpbrk(
+        <string $string: `The string.`>,
+        <string $characters: `The characters to search in the string.`>
+        [, <bool $case_insensitivity = false:
+            - false:     `Perform a case-sensitive check.`
+            - true:      `Perform a case-insensitive check.`>
+        ]
+) string | false
+ */
+static purc_variant_t
+strpbrk_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *string = purc_variant_get_string_const(argv[0]);
+    const char *characters = purc_variant_get_string_const(argv[1]);
+
+    if (!string || !characters) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (characters[0] == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    bool caseless = false;
+    if (nr_args > 2) {
+        caseless = purc_variant_booleanize(argv[2]);
+    }
+
+    const char *sub = NULL;
+    const char *p = string;
+    while (*p) {
+        const char *next = pcutils_utf8_next_char(p);
+        size_t uchlen = next - p;
+        assert(uchlen <= 6);
+
+        char utf8ch[10];
+        strncpy(utf8ch, p, uchlen);
+        utf8ch[uchlen] = 0x00;
+
+        const char *found;
+        if (caseless) {
+            found = pcutils_strcasestr(characters, utf8ch);
+        }
+        else {
+            found = strstr(characters, utf8ch);
+        }
+
+        if (found) {
+            sub = p;
+            break;
+        }
+
+        p = next;
+    }
+
+    if (sub) {
+        retv = purc_variant_make_string(sub, false);
+    }
+    else {
+        retv = purc_variant_make_boolean(false);
+    }
+
     return retv;
 
 error:
@@ -2949,10 +3036,11 @@ purc_variant_t purc_dvobj_string_new(void)
         { "substr",     substr_getter,      NULL },
         { "strstr",     strstr_getter,      NULL },
         { "strpos",     strpos_getter,      NULL },
+        { "strpbrk",    strpbrk_getter,     NULL },
         { "trim",       trim_getter,        NULL },
         { "rot13",      rot13_getter,       NULL },
-        { "count_chars",count_chars_getter,  NULL },
-        { "count_bytes",count_bytes_getter,  NULL },
+        { "count_chars",count_chars_getter, NULL },
+        { "count_bytes",count_bytes_getter, NULL },
         { "codepoints", codepoints_getter,  NULL },
     };
 
