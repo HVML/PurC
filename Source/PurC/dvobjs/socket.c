@@ -59,9 +59,6 @@
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
 #define SOCKET_SUB_EVENT_NEWDATAGRAM    "newDatagram"
 
-#define MAX_LEN_KEYWORD             64
-#define _KW_DELIMITERS              " \t\n\v\f\r"
-
 #define SOCKET_ATOM_BUCKET              ATOM_BUCKET_DVOBJ
 
 enum {
@@ -191,7 +188,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -223,7 +220,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -272,7 +269,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -307,7 +304,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -339,7 +336,7 @@ parse_dgram_sendto_option(purc_variant_t option)
     if (atom != keywords2atoms[K_KW_default].atom) {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -367,7 +364,7 @@ parse_dgram_sendto_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -398,7 +395,7 @@ parse_dgram_recvfrom_option(purc_variant_t option)
     if (atom != keywords2atoms[K_KW_default].atom) {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 break;
@@ -428,7 +425,7 @@ parse_dgram_recvfrom_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -751,7 +748,7 @@ int parse_accept_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = keywords2atoms[K_KW_cloexec].atom;
@@ -780,7 +777,7 @@ int parse_accept_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 

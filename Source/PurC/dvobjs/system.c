@@ -401,8 +401,6 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#define _KW_DELIMITERS  " \t\n\v\f\r"
-
 static purc_variant_t
 uname_prt_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
@@ -509,7 +507,7 @@ uname_prt_getter(purc_variant_t root,
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             size_t len_part = 0;
 
@@ -593,7 +591,7 @@ uname_prt_getter(purc_variant_t root,
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -1181,7 +1179,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t length;
 
         category = pcutils_get_next_token_len(categories, categories_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         while (category) {
             char *tmp = strndup(category, length);
             atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
@@ -1251,7 +1249,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             categories_len -= length;
             category = pcutils_get_next_token_len(category + length,
-                    categories_len, _KW_DELIMITERS, &length);
+                    categories_len, PURC_KW_DELIMITERS, &length);
         }
     }
 
@@ -1998,7 +1996,7 @@ int parse_pipe_flags(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -2027,7 +2025,7 @@ int parse_pipe_flags(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -2246,7 +2244,7 @@ int parse_fdflags_setter_flags(purc_variant_t option)
 
     size_t length = 0;
     const char *part = pcutils_get_next_token_len(parts, parts_len,
-            _KW_DELIMITERS, &length);
+            PURC_KW_DELIMITERS, &length);
     do {
         if (length == 0 || length > MAX_LEN_KEYWORD) {
             atom = 0;
@@ -2278,7 +2276,7 @@ int parse_fdflags_setter_flags(purc_variant_t option)
 
         parts_len -= length;
         part = pcutils_get_next_token_len(part + length, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
     } while (part);
 
 done:

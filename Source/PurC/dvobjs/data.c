@@ -573,8 +573,6 @@ enum {
     K_KW_no_slash_escape,
 };
 
-#define _KW_DELIMITERS  " \t\n\v\f\r"
-
 static struct keyword_to_atom {
     const char *    keyword;
     unsigned int    flag;
@@ -641,7 +639,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (options) {
         size_t length = 0;
         const char *option = pcutils_get_next_token_len(options, options_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
 
         do {
 
@@ -681,7 +679,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             options_len -= length;
             option = pcutils_get_next_token_len(option + length, options_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (option);
     }
 
@@ -1355,7 +1353,7 @@ purc_dvobj_unpack_bytes(const uint8_t *bytes, size_t nr_bytes,
         size_t format_len, consumed;
 
         format = pcutils_get_next_token_len(formats, formats_left,
-                _KW_DELIMITERS, &format_len);
+                PURC_KW_DELIMITERS, &format_len);
         if (format == NULL) {
             break;
         }
@@ -1547,7 +1545,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream, const char *formats,
         size_t format_len, consumed;
 
         format = pcutils_get_next_token_len(formats, formats_left,
-                _KW_DELIMITERS, &format_len);
+                PURC_KW_DELIMITERS, &format_len);
         if (format == NULL) {
             break;
         }
@@ -1894,7 +1892,7 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         size_t format_len;
 
         formats = pcutils_get_next_token_len(formats, formats_left,
-                _KW_DELIMITERS, &format_len);
+                PURC_KW_DELIMITERS, &format_len);
         if (formats == NULL) {
             break;
         }
@@ -3027,7 +3025,7 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (options) {
         size_t opt_len = 0;
         const char *option = pcutils_get_next_token_len(options, options_len,
-                _KW_DELIMITERS, &opt_len);
+                PURC_KW_DELIMITERS, &opt_len);
 
         do {
 
@@ -3089,7 +3087,7 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             options_len -= opt_len;
             option = pcutils_get_next_token_len(option + opt_len, options_len,
-                    _KW_DELIMITERS, &opt_len);
+                    PURC_KW_DELIMITERS, &opt_len);
         } while (option);
     }
 
@@ -3266,7 +3264,7 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
     if (options) {
         size_t opt_len = 0;
         const char *option = pcutils_get_next_token_len(options, options_len,
-                _KW_DELIMITERS, &opt_len);
+                PURC_KW_DELIMITERS, &opt_len);
 
         do {
 
@@ -3328,7 +3326,7 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
 
             options_len -= opt_len;
             option = pcutils_get_next_token_len(option + opt_len, options_len,
-                    _KW_DELIMITERS, &opt_len);
+                    PURC_KW_DELIMITERS, &opt_len);
         } while (option);
     }
 
