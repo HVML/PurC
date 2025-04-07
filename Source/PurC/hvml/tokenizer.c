@@ -659,7 +659,7 @@ parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs)
     }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
-    struct tkz_reader *reader = tkz_reader_new(0, 0);
+    struct tkz_reader *reader = tkz_reader_new();
     if (!reader) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;

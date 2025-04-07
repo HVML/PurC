@@ -101,7 +101,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size,
     struct pchvml_parser* parser = (struct pchvml_parser*) PCHVML_ALLOC(
             sizeof(struct pchvml_parser));
     parser->state = 0;
-    parser->reader = tkz_reader_new (0, 0);
+    parser->reader = tkz_reader_new();
     tkz_reader_set_data_source_rws(parser->reader, rws);
     parser->lc = tkz_lc_new (HVML_PARSER_LC_SIZE);
     tkz_reader_set_lc(parser->reader, parser->lc);
@@ -137,7 +137,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
 
     parser->state = 0;
     tkz_reader_destroy (parser->reader);
-    parser->reader = tkz_reader_new (0, 0);
+    parser->reader = tkz_reader_new();
     tkz_lc_reset (parser->lc);
     tkz_reader_set_lc(parser->reader, parser->lc);
     tkz_buffer_reset (parser->temp_buffer);
