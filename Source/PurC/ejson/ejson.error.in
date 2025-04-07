@@ -6,105 +6,105 @@ PREFIX=PCEJSON_ERROR
 UnexpectedCharacter
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected character parse error"
+    msg: "Unexpected character"
 
 UnexpectedNullCharacter
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected null character parse error"
+    msg: "Unexpected null character"
 
 UnexpectedJsonNumberExponent
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json number exponent parse error"
+    msg: "Unexpected json number exponent"
 
 UnexpectedJsonNumberFraction
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json number fraction parse error"
+    msg: "Unexpected json number fraction"
 
 UnexpectedJsonNumberInteger
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json number integer parse error"
+    msg: "Unexpected json number integer"
 
 UnexpectedJsonNumber
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json number parse error"
+    msg: "Unexpected json number"
 
 UnexpectedRightBrace
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected right brace parse error"
+    msg: "Unexpected right brace"
 
 UnexpectedRightBracket
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected right bracket parse error"
+    msg: "Unexpected right bracket"
 
 UnexpectedJsonKeyName
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json key name parse error"
+    msg: "Unexpected json key name"
 
 UnexpectedComma
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected comma parse error"
+    msg: "Unexpected comma"
 
 UnexpectedJsonKeyword
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected json keyword parse error"
+    msg: "Unexpected json keyword"
 
 UnexpectedBase64
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected base64 parse error"
+    msg: "Unexpected base64"
 
 UnexpectedEof
     except: BadExpression
     flags: None
-    msg: "pcejson unexpected eof parse error"
+    msg: "Unexpected eof"
 
 BadJsonNumber
     except: BadExpression
     flags: None
-    msg: "pcejson bad json number parse error"
+    msg: "Bad json number"
 
 BadJsonStringEscapeEntity
     except: BadExpression
     flags: None
-    msg: "pcejson bad json string escape entity parse error"
+    msg: "Bad json string escape entity"
 
 BadJson
     except: BadExpression
     flags: None
-    msg: "pcejson bad json parse error"
+    msg: "Bad json"
 
 MaxDepthExceeded
     except: MaxRecursionDepth
     flags: None
-    msg: "pcejson max depth exceeded"
+    msg: "Max depth exceeded"
 
 BadJsoneeVariableName
     except: BadExpression
     flags: None
-    msg: "pchvml error bad jsonee variable name"
+    msg: "Bad jsonee variable name"
 
 BadJsoneeName
     except: BadExpression
     flags: None
-    msg: "pcejson error bad jsonee name"
+    msg: "Bad jsonee name"
 
 BadJsoneeKeyword
     except: BadExpression
     flags: None
-    msg: "pcejson error bad jsonee keyword"
+    msg: "Bad jsonee keyword"
 
 UnexpectedUnescapedControlCharacter
     except: BadExpression
     flags: None
-    msg: "pcejson error unexpected unescaped control character"
+    msg: "Unexpected unescaped control character"
 
