@@ -271,6 +271,10 @@ positive:
     $STR.explode('中华\n\n人民\n\n共和国', '\n\n', -4)
     []
 
+positive:
+    $STR.explode(';aaa;;bbb;', ';')
+    ['', 'aaa', '', 'bbb', '']
+
 negative:
     $STR.implode()
     ArgumentMissed
