@@ -899,6 +899,7 @@ static int do_replace_caseless(purc_rwstream_t rwstream, const char *subject,
 }
 
 #define SZ_IN_STACK     16
+
 static const char **
 normalize_replace_arg(const char *strings_stack[], size_t sz_stack,
         purc_variant_t arg, size_t *size, int *ec)
@@ -1068,6 +1069,16 @@ replace_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
+    if (subjects != NULL && subjects != subjects_stack) {
+        free(subjects);
+    }
+    if (searches != NULL && searches != searches_stack) {
+        free(searches);
+    }
+    if (replaces != NULL && replaces != replaces_stack) {
+        free(replaces);
+    }
+
     return retv;
 
 error:
@@ -1207,6 +1218,12 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
+    if (searches != NULL && searches != searches_stack) {
+        free(searches);
+    }
+    if (replaces != NULL && replaces != replaces_stack) {
+        free(replaces);
+    }
     return retv;
 
 error:

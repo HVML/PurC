@@ -668,6 +668,10 @@ positive:
     'PurC Purring Cat'
 
 positive:
+    $STR.translate('HVML 呼噜猫', {'HVML': 'PurC', '呼噜猫': 'Purring Cat', 'xGUI': 'xGUI Pro'})
+    'PurC Purring Cat'
+
+positive:
     $STR.translate('HVML呼噜猫', {'HVML': 'PurC', '呼噜猫': ''})
     'PurC'
 
