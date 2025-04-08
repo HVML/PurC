@@ -610,6 +610,34 @@ int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src)
     return nr_move;
 }
 
+char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size)
+{
+    char *result = NULL;
+    purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+    if (!rws) {
+        PC_ERROR("Failed to allocate memory for rwstream\n");
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        size_t c = strlen((char *)p->utf8_buf);
+        purc_rwstream_write(rws, p->utf8_buf, c);
+    }
+
+    size_t sz_content = 0;
+    result = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+                &sz_content, NULL, true);
+    if (nr_size) {
+        *nr_size = sz_content;
+    }
+    purc_rwstream_destroy(rws);
+
+out:
+    return result;
+}
+
 void tkz_ucs_destroy(struct tkz_ucs *ucs)
 {
     if (tkz_ucs_is_empty(ucs)) {

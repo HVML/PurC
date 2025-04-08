@@ -323,6 +323,8 @@ int tkz_ucs_reset(struct tkz_ucs *ucs);
 
 int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src);
 
+char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size);
+
 void tkz_ucs_destroy(struct tkz_ucs *ucs);
 
 
