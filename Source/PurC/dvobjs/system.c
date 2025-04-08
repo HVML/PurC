@@ -3743,10 +3743,8 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 #elif OS(DARWIN)
-    int r;
-    r = openpty(&fd_master, &fd_slave, pts, NULL, &winsz);
-    if (r == -1) {
-        PC_ERROR("Failed openpty()\n");
+    if (openpty(&fd_master, &fd_slave, pts, NULL, &winsz) != 0) {
+        PC_ERROR("Failed openpty(): %s\n", strerror(errno));
         ec = purc_error_from_errno(errno);
         goto failed;
     }
