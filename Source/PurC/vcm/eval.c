@@ -298,6 +298,8 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         purc_rwstream_write(rws, "\n", 1);
     }
 
+#if 0
+    /* 25-04-08 disable not impl call stack */
     if (ctxt->frame_idx >= 0) {
         print_indent(rws, indent, NULL);
         snprintf(buf, DUMP_BUF_SIZE, "  Call stack:\n");
@@ -312,6 +314,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         }
 #endif
     }
+#endif
     return 0;
 }
 

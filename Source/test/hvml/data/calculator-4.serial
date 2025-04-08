@@ -7,11 +7,11 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"), "base"), "https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/",getElement(getElement(getVariable("SYS"),"locale"),"json")) to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"), "map") from=concatString("assets/", getElement(getElement(getVariable("SYS"), "locale"), "json")) to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -24,7 +24,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"), "get"), "HVML Calculator")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -32,7 +32,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="unite">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_array(make_object("id","clock","interval",1000,"active","yes"),make_object("id","input","interval",1500,"active","yes"))
+PCHVML_TOKEN_VCM_TREE|make_array(make_object("id", "clock", "interval", 1000, "active", "yes"), make_object("id", "input", "interval", 1500, "active", "yes"))
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -73,7 +73,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init as="info">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("chars",getElement(getVariable("exp_chars"),callGetter(getElement(getVariable("SYS"),"random"),callGetter(getElement(getVariable("DATA"),"count"),getVariable("exp_chars")))),"index",0)
+PCHVML_TOKEN_VCM_TREE|make_object("chars", getElement(getVariable("exp_chars"), callGetter(getElement(getVariable("SYS"), "random"), callGetter(getElement(getVariable("DATA"), "count"), getVariable("exp_chars")))), "index", 0)
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -85,11 +85,11 @@ PCHVML_TOKEN_START_TAG|<div id="c_title">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<h2 id="c_title">
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"), "get"), "HVML Calculator")
 PCHVML_TOKEN_START_TAG|<small>
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Current Time: ")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"), "get"), "Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("SYS"), "time"), "%H:%M:%S")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_END_TAG|</small>
 PCHVML_TOKEN_VCM_TREE|"
@@ -100,7 +100,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:clock">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")/>
+PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=callGetter(getElement(getVariable("SYS"), "time"), "%H:%M:%S")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</observe>
@@ -119,17 +119,17 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:input">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<test on=getElement(getElement(getVariable("info"),"chars"),getElement(getVariable("info"),"index"))>
+PCHVML_TOKEN_START_TAG|<test on=getElement(getElement(getVariable("info"), "chars"), getElement(getVariable("info"), "index"))>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<update on=getVariable("info") at=".index" with=callGetter(getElement(getVariable("MATH"),"add"),getElement(getVariable("info"),"index"),1)/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("info") at=".index" with=callGetter(getElement(getVariable("MATH"), "add"), getElement(getVariable("info"), "index"), 1)/>
 PCHVML_TOKEN_VCM_TREE|"
 
                         "
 PCHVML_TOKEN_START_TAG|<match for="AS '='" exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("MATH"),"eval"),callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#expression"),"attr"),"value"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("MATH"), "eval"), callGetter(getElement(callGetter(getElement(getVariable("DOC"), "query"), "#expression"), "attr"), "value"))>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
 PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=getVariable("?")/>
@@ -138,7 +138,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                     "
-PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
+PCHVML_TOKEN_VCM_TREE|make_object("id", "input", "active", "no")
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
@@ -171,10 +171,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match for="AS '←'" exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<choose on=getElement(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#expression"),"attr"),"value")>
+PCHVML_TOKEN_START_TAG|<choose on=getElement(getElement(callGetter(getElement(getVariable("DOC"), "query"), "#expression"), "attr"), "value")>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
-PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=callGetter(getElement(getVariable("STR"),"substr"),getVariable("?"),0,-1)/>
+PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=callGetter(getElement(getVariable("STR"), "substr"), getVariable("?"), 0, -1)/>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_END_TAG|</choose>
@@ -207,7 +207,7 @@ PCHVML_TOKEN_START_TAG|<div id="c_value">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<archetype name="button">
-PCHVML_TOKEN_VCM_TREE|concatString("<li class="",getElement(getVariable("?"),"class"),""",">",getElement(getVariable("?"),"letters"),"</li>
+PCHVML_TOKEN_VCM_TREE|concatString("<li class="", getElement(getVariable("?"), "class"), """, ">", getElement(getVariable("?"), "letters"), "</li>
                 ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

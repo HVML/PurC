@@ -1,1 +1,1 @@
-callGetter(getElement(getVariable("AA"),"BB"),undefined)
+callGetter(getElement(getVariable("AA"), "BB"), undefined)

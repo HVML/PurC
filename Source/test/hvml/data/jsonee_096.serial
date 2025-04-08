@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init as="button">
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|make_object("name","xyz","value",123,"_inner",make_object("na",123,"ba",456,"_ca",make_object("_caa",make_object("_cab",make_object("value",999)))))
+PCHVML_TOKEN_VCM_TREE|make_object("name", "xyz", "value", 123, "_inner", make_object("na", 123, "ba", 456, "_ca", make_object("_caa", make_object("_cab", make_object("value", 999)))))
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 "

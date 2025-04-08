@@ -2908,7 +2908,10 @@ char* pcvariant_to_string(purc_variant_t v)
             PRINT_MAX_BUFFER);
     size_t len = 0;
     purc_variant_serialize(v, rws, 0,
-            PCVRNT_SERIALIZE_OPT_PLAIN | PCVRNT_SERIALIZE_OPT_UNIQKEYS,
+            PCVRNT_SERIALIZE_OPT_PLAIN |
+            PCVRNT_SERIALIZE_OPT_UNIQKEYS |
+            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
+            PCVRNT_SERIALIZE_OPT_RUNTIME_STRING,
             &len);
     purc_rwstream_write(rws, "", 1);
     char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws,

@@ -80,7 +80,7 @@ write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node,
             handle(rws, child, false);
             child = pcvcm_node_next_child(child);
             if (child && print_comma) {
-                purc_rwstream_write(rws, ",", 1);
+                purc_rwstream_write(rws, ", ", 2);
             }
         }
     }
@@ -147,7 +147,9 @@ write_variant_to_rwstream(purc_rwstream_t rws, purc_variant_t v)
     purc_variant_serialize(v, rws, 0,
             PCVRNT_SERIALIZE_OPT_REAL_EJSON |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
-            PCVRNT_SERIALIZE_OPT_PLAIN,
+            PCVRNT_SERIALIZE_OPT_PLAIN |
+            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
+            PCVRNT_SERIALIZE_OPT_RUNTIME_STRING,
             &len_expected);
 }
 

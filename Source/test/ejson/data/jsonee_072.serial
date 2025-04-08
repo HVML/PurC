@@ -1,1 +1,1 @@
-callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),callGetter(getElement(getVariable("STR"),"join"),"#",getElement(getVariable("?"),"targetId"))),"attr"),"value")
+callGetter(getElement(callGetter(getElement(getVariable("DOC"), "query"), callGetter(getElement(getVariable("STR"), "join"), "#", getElement(getVariable("?"), "targetId"))), "attr"), "value")

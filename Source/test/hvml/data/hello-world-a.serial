@@ -2,48 +2,48 @@ PCHVML_TOKEN_START_TAG|<hvml target="html">
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<archetype name="friendItem">
-PCHVML_TOKEN_VCM_TREE|concatString("<span>",getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"),"</span>
+PCHVML_TOKEN_VCM_TREE|concatString("<span>", getElement(getVariable("?"), "greeting"), getElement(getVariable("?"), "name"), "</span>
     ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting")," ",getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), " ", getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting")," ",getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), " ", getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting")," ",getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), " ", getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "greeting"), getElement(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("?"),"greeting你好啊")
+PCHVML_TOKEN_VCM_TREE|getElement(getVariable("?"), "greeting你好啊")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
 "

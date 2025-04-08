@@ -1,2 +1,1 @@
-getElement(getElement(getVariable("buttons"),getElement(getVariable("?"),"targetValue")),"letters")
-
+getElement(getElement(getVariable("buttons"), getElement(getVariable("?"), "targetValue")), "letters")

@@ -1,10 +1,10 @@
 PCHVML_TOKEN_START_TAG|<hvml target="html">
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_START_TAG|<h1>
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("REQ"),"text")
+PCHVML_TOKEN_VCM_TREE|getElement(getVariable("REQ"), "text")
 PCHVML_TOKEN_END_TAG|</h1>
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("REQ"),"hvml")
+PCHVML_TOKEN_VCM_TREE|getElement(getVariable("REQ"), "hvml")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_END_TAG|</body>
 PCHVML_TOKEN_VCM_TREE|"success"

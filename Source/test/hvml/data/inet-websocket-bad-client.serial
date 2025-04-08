@@ -15,7 +15,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init as="sslSettings">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("ssl-key","../Source/test/dvobjs/localhost.key","ssl-cert","../Source/test/dvobjs/localhost.crt")
+PCHVML_TOKEN_VCM_TREE|make_object("ssl-key", "../Source/test/dvobjs/localhost.key", "ssl-cert", "../Source/test/dvobjs/localhost.crt")
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -24,13 +24,13 @@ PCHVML_TOKEN_START_TAG|<init as="clients" with=make_object()/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="srvListenSocket" with=callGetter(getElement(getVariable("SOCKET"),"stream"),"inet://localhost:8080","none",32,{{ getElement(getVariable("REQ"),"secure") && getVariable("sslSettings") || make_object() }})>
+PCHVML_TOKEN_START_TAG|<init as="srvListenSocket" with=callGetter(getElement(getVariable("SOCKET"), "stream"), "inet://localhost:8080", "none", 32, {{ getElement(getVariable("REQ"), "secure") && getVariable("sslSettings") || make_object() }})>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<exit with=concatString("Server failed with ",getElement(getVariable("?"),"name")," when calling SOCKET.stream()")/>
+PCHVML_TOKEN_START_TAG|<exit with=concatString("Server failed with ", getElement(getVariable("?"), "name"), " when calling SOCKET.stream()")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -40,13 +40,13 @@ PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<load from=concatString("#",getElement(getVariable("REQ"),"client")) within="client" onto="null:" as="client" async>
+PCHVML_TOKEN_START_TAG|<load from=concatString("#", getElement(getVariable("REQ"), "client")) within="client" onto="null:" as="client" async>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<exit with=concatString("Server failed with ",getElement(getVariable("?"),"name")," when loading client")/>
+PCHVML_TOKEN_START_TAG|<exit with=concatString("Server failed with ", getElement(getVariable("?"), "name"), " when loading client")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -56,37 +56,37 @@ PCHVML_TOKEN_END_TAG|</load>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<iterate with=callGetter(getElement(getVariable("srvListenSocket"),"accept"),"default","websocket")>
+PCHVML_TOKEN_START_TAG|<iterate with=callGetter(getElement(getVariable("srvListenSocket"), "accept"), "default", "websocket")>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<test with=callGetter(getElement(getVariable("L"),"not"),callGetter(getElement(getVariable("DATA"),"isequal"),getVariable("?"),null))>
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getElement(getVariable("L"), "not"), callGetter(getElement(getVariable("DATA"), "isequal"), getVariable("?"), null))>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<init as="clientId" with=concatString(getElement(getVariable("?"),"peerAddr"),":",getElement(getVariable("?"),"peerPort")) temp/>
+PCHVML_TOKEN_START_TAG|<init as="clientId" with=concatString(getElement(getVariable("?"), "peerAddr"), ":", getElement(getVariable("?"), "peerPort")) temp/>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Accepted a connection: ",getVariable("clientId")))
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Accepted a connection: ", getVariable("clientId")))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<update on=getVariable("clients") to="merge" with=make_object(getVariable("clientId"),getVariable("?"))/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("clients") to="merge" with=make_object(getVariable("clientId"), getVariable("?"))/>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"),getVariable("clientId")) for="handshake">
+PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"), getVariable("clientId")) for="handshake">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|getVariable("clientId")
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Got handshake event from ",getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("DATA"),"serialize"),getVariable("?"))) ;  }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Got handshake event from ", getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), callGetter(getElement(getVariable("DATA"), "serialize"), getVariable("?"))) ;  }}
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -94,14 +94,14 @@ PCHVML_TOKEN_END_TAG|</observe>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"),getVariable("clientId")) for="error">
+PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"), getVariable("clientId")) for="error">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|getVariable("clientId")
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Got error event from ",getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("DATA"),"serialize"),getVariable("?"))) ;  }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Got error event from ", getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), callGetter(getElement(getVariable("DATA"), "serialize"), getVariable("?"))) ;  }}
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -113,14 +113,14 @@ PCHVML_TOKEN_END_TAG|</observe>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"),getVariable("clientId")) for="close">
+PCHVML_TOKEN_START_TAG|<observe on=getElement(getVariable("clients"), getVariable("clientId")) for="close">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|getVariable("clientId")
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Got error event from ",getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("DATA"),"serialize"),getVariable("?"))) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Got error event from ", getVariable("_observedContent"))) ; callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), callGetter(getElement(getVariable("DATA"), "serialize"), getVariable("?"))) }}
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -144,7 +144,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Client exited with ",getVariable("?")))
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Client exited with ", getVariable("?")))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -160,13 +160,13 @@ PCHVML_TOKEN_START_TAG|<body id="raw">
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="cliStreamSocket" with=callGetter(getElement(getVariable("STREAM"),"open"),"inet://localhost:8080/","default")>
+PCHVML_TOKEN_START_TAG|<init as="cliStreamSocket" with=callGetter(getElement(getVariable("STREAM"), "open"), "inet://localhost:8080/", "default")>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ",getElement(getVariable("?"),"name")," when calling STREAM.open()")/>
+PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ", getElement(getVariable("?"), "name"), " when calling STREAM.open()")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -176,13 +176,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getVariable("cliStreamSocket"),"writelines"),"Hello from a raw client socket"),";
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getVariable("cliStreamSocket"), "writelines"), "Hello from a raw client socket"), ";
 
                 ")
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ",getElement(getVariable("?"),"name")," when calling stream.writelines()")/>
+PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ", getElement(getVariable("?"), "name"), " when calling stream.writelines()")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -192,25 +192,25 @@ PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
             "
-PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("cliStreamSocket"),"readlines"),1)>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("cliStreamSocket"), "readlines"), 1)>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Client got ",callGetter(getElement(getVariable("DATA"),"serialize"),getVariable("?"))," and is going to close."))
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"), "stdout"), "writelines"), concatString("Client got ", callGetter(getElement(getVariable("DATA"), "serialize"), getVariable("?")), " and is going to close."))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("cliStreamSocket"),"close"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("cliStreamSocket"), "close"))>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ",getElement(getVariable("?"),"name")," when calling stream.close()")/>
+PCHVML_TOKEN_START_TAG|<exit with=concatString("Client failed with ", getElement(getVariable("?"), "name"), " when calling stream.close()")/>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -227,7 +227,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<return with=concatString("Client failed with ",getElement(getVariable("?"),"name")," when calling stream.readlines()")/>
+PCHVML_TOKEN_START_TAG|<return with=concatString("Client failed with ", getElement(getVariable("?"), "name"), " when calling stream.readlines()")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</catch>

@@ -1,1 +1,1 @@
-{{ "attr" ; false || true && false || getVariable("A") && getElement(getVariable("A"),"B") || callGetter(getVariable("A")) && callGetter(getVariable("A"),123) || callGetter(getElement(getElement(getVariable("A"),"X"),"Y"),123) }}
+{{ "attr" ; false || true && false || getVariable("A") && getElement(getVariable("A"), "B") || callGetter(getVariable("A")) && callGetter(getVariable("A"), 123) || callGetter(getElement(getElement(getVariable("A"), "X"), "Y"), 123) }}

@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with=getElement(getVariable("REQ"),"case")>
+PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with=getElement(getVariable("REQ"), "case")>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for=`EntityNotFound NoData`>

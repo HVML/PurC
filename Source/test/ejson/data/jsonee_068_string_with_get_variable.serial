@@ -1,1 +1,1 @@
-concatString("this is attr ",getVariable("VAR"))
+concatString("this is attr ", getVariable("VAR"))

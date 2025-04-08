@@ -1,1 +1,1 @@
-callSetter(getElement(getVariable("ABC"),"b"),getElement(getVariable("PA"),123),getElement(getVariable("PB"),456))
+callSetter(getElement(getVariable("ABC"), "b"), getElement(getVariable("PA"), 123), getElement(getVariable("PB"), 456))
