@@ -351,12 +351,6 @@ pcejson_dec_depth (struct pcejson* parser);
 struct pcvcm_node *
 create_byte_sequenct(struct tkz_buffer *buffer);
 
-int pcejson_parse_o(struct pcvcm_node **vcm_tree,
-        struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth);
-
-int pcejson_parse_n(struct pcvcm_node **vcm_tree,
-        struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth);
-
 PCA_EXTERN_C_END
 
 #endif /* PURC_EJSON_TOKENIZER_H */

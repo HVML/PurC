@@ -449,6 +449,8 @@ is_finished_default(struct pcejson *parser, uint32_t character)
     return false;
 }
 
+#define EJSON_PARSER_LC_SIZE         3
+
 int pcejson_parse(struct pcvcm_node **vcm_tree,
         struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
 {
@@ -459,10 +461,22 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,
         ret = -1;
         goto out;
     }
+    struct tkz_lc *lc = tkz_lc_new(EJSON_PARSER_LC_SIZE);
+    if (!lc) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        ret = -1;
+        goto out_clear_reader;
+    }
+
     tkz_reader_set_data_source_rws(reader, rws);
+    tkz_reader_set_lc(reader, lc);
     ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth,
             is_finished_default);
+    tkz_lc_destroy(lc);
+
+out_clear_reader:
     tkz_reader_destroy(reader);
+
 out:
     return ret;
 }
