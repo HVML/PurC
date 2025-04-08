@@ -3617,12 +3617,14 @@ error:
 
 /*
 $SYS.openpty(
-    < '[noctty || rdwr] | default | none' $flags = 'default': `The flags when opening the new pseudoterminal device.`:
-       - 'noctty':      `Do not make this device the controlling terminal for the process.`
+    < '[noctty || rdwr] | default | none' $flags = 'default':
+            `The flags when opening the new pseudoterminal device.`:
+       - 'noctty':      `Do not make this device the controlling terminal
+            for the process.`
        - 'rdwr':        `Open the device for both reading and writing.`
        - 'default':     `The equivalent to 'rdwr'.`
        - 'none':        `No additinal flags are specified.`  >
-    < object $win_sz:   `The window size of the pseudoterminal slave.` >
+    < object $winsz:    `The window size of the pseudoterminal slave.` >
 ) tuple  | false
 */
 
@@ -3734,6 +3736,11 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n", pts, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
 #elif OS(DARWIN)
     int r;
     r = openpty(&fd_master, &fd_slave, pts, NULL, &winsz);
@@ -3787,6 +3794,12 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fd_slave = open(pts, O_RDWR);
     if (fd_slave < 0) {
         PC_ERROR("Failed open(%s): %s\n", pts, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n", pts, strerror(errno));
         ec = purc_error_from_errno(error);
         goto failed;
     }
