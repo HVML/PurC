@@ -50,14 +50,14 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
-enum tkz_reader_DATA_SOURCE_type {
+enum tkz_reader_data_source_type {
     TKA_READER_DATA_SOURCE_TYPE_UNDEFINED = 0,
     TKA_READER_DATA_SOURCE_TYPE_RWS,
     TKA_READER_DATA_SOURCE_TYPE_UCS
 };
 
 struct tkz_reader {
-    enum tkz_reader_DATA_SOURCE_type data_source_type;
+    enum tkz_reader_data_source_type data_source_type;
     union {
         purc_rwstream_t rws;
         struct tkz_ucs *ucs;
