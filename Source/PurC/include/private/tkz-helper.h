@@ -302,8 +302,6 @@ struct tkz_buffer *tkz_reader_get_line_from_cache(struct tkz_reader *reader,
 
 struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader);
 
-int tkz_reader_get_line_number(struct tkz_reader *reader);
-
 
 /* tkz uc list */
 struct tkz_ucs *tkz_ucs_new(void);
