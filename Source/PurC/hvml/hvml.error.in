@@ -16,7 +16,7 @@ UnexpectedQuestionMarkInsteadOfTagName
 EofBeforeTagName
     except: BadHvmlTag
     flags: None
-    msg: "Eof before tag name"
+    msg: "EOF before tag name"
 
 MissingEndTagName
     except: BadHvmlTag
@@ -31,7 +31,7 @@ InvalidFirstCharacterOfTagName
 EofInTag
     except: BadHvmlTag
     flags: None
-    msg: "Eof in tag"
+    msg: "EOF in tag"
 
 UnexpectedEqualsSignBeforeAttributeName
     except: BadHVMLAttrName
@@ -76,12 +76,12 @@ AbruptClosingOfEmptyComment
 EofInComment
     except: BadHVMLContent
     flags: None
-    msg: "Eof in comment"
+    msg: "EOF in comment"
 
 EofInDoctype
     except: BadHVMLTag
     flags: None
-    msg: "Eof in doctype"
+    msg: "EOF in doctype"
 
 MissingWhitespaceBeforeDoctypeName
     except: BadHVMLTag
@@ -146,7 +146,7 @@ UnexpectedCharacterAfterDoctypeSystem
 EofInCdata
     except: BadHVMLContent
     flags: None
-    msg: "Eof in CDATA"
+    msg: "EOF in CDATA"
 
 UnknownNamedCharacterReference
     except: BadHVMLContent
@@ -226,52 +226,52 @@ BadJsonStringEscapeEntity
 BadJsonee
     except: BadExpression
     flags: None
-    msg: "Bad jsonee"
+    msg: "Bad HEE"
 
 BadJsoneeEscapeEntity
     except: BadExpression
     flags: None
-    msg: "Bad jsonee escape entity"
+    msg: "Bad HEE escape entity"
 
 BadJsoneeVariableName
     except: BadExpression
     flags: None
-    msg: "Bad jsonee variable name"
+    msg: "Bad HEE variable name"
 
 EmptyJsoneeName
     except: BadExpression
     flags: None
-    msg: "Empty jsonee name"
+    msg: "Empty HEE name"
 
 BadJsoneeName
     except: BadExpression
     flags: None
-    msg: "Bad jsonee name"
+    msg: "Bad HEE name"
 
 BadJsoneeKeyword
     except: BadExpression
     flags: None
-    msg: "Bad jsonee keyword"
+    msg: "Bad HEE keyword"
 
 EmptyJsoneeKeyword
     except: BadExpression
     flags: None
-    msg: "Empty jsonee keyword"
+    msg: "Empty HEE keyword"
 
 BadJsoneeUnexpectedComma
     except: BadExpression
     flags: None
-    msg: "Bad jsonee unexpected comma"
+    msg: "Bad HEE unexpected comma"
 
 BadJsoneeUnexpectedParenthesis
     except: BadExpression
     flags: None
-    msg: "Bad jsonee unexpected parenthesis"
+    msg: "Bad HEE unexpected parenthesis"
 
 BadJsoneeUnexpectedLeftAngleBracket
     except: BadExpression
     flags: None
-    msg: "Bad jsonee unexpected left angle bracket"
+    msg: "Bad HEE unexpected left angle bracket"
 
 MissingMissingAttributeValue
     except: BadHVMLAttrValue
@@ -326,7 +326,7 @@ ControlCharacterReference
 InvalidUtf8Character
     except: BadEncoding
     flags: None
-    msg: "Invalid utf8 character"
+    msg: "Invalid UTF-8 character"
 
 UnexpectedUnescapedControlCharacter
     except: BadExpression
