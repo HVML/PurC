@@ -3664,7 +3664,8 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int flags = pcdvobjs_parse_options(argv[0],
             pty_flags_skws, PCA_TABLESIZE(pty_flags_skws),
-            pty_flags_ckws, PCA_TABLESIZE(pty_flags_ckws), O_RDWR, -1);
+            pty_flags_ckws, PCA_TABLESIZE(pty_flags_ckws),
+            -1, -1);
     if (flags == -1) {
         /* error will be set by pcdvobjs_parse_options() */
         goto error;
