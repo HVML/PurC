@@ -145,7 +145,9 @@ again:
     if (nr_c < 0) {
         uc = TKZ_INVALID_CHARACTER;
     }
-    c[nr_c] = 0;
+    else {
+        c[nr_c] = 0;
+    }
 
     curr_uc.character = uc;
     curr_uc.line = ds_rws->line;
