@@ -598,6 +598,18 @@ out:
     return 0;
 }
 
+int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src)
+{
+    int nr_move = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &src->list, ln) {
+        list_del(&p->ln);
+        list_add_tail(&p->ln, &dst->list);
+        nr_move++;
+    }
+    return nr_move;
+}
+
 void tkz_ucs_destroy(struct tkz_ucs *ucs)
 {
     if (tkz_ucs_is_empty(ucs)) {
