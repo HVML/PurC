@@ -407,3 +407,23 @@ positive:
     $L.gt($SYS.seek($SYS.open('/tmp/stdout-ls'), 0, 'end'), 1)
     true
 
+negative:
+    $SYS.openpty('')
+    ArgumentMissed
+
+negative:
+    $SYS.openpty('', null)
+    InvalidValue
+
+negative:
+    $SYS.openpty('foo', null)
+    InvalidValue
+
+negative:
+    $SYS.openpty('default', {})
+    InvalidValue
+
+positive:
+    $DATA.type($SYS.openpty('default', {col:80, row:24}))
+    'tuple'
+
