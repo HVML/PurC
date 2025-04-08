@@ -106,6 +106,7 @@ enum pcvcm_node_type {
 struct pcvcm_node {
     struct pctree_node tree_node;
     enum pcvcm_node_type type;
+    struct tkz_ucs  *ucs;
     uint32_t extra;
     uintptr_t attach;
     int32_t   idx;

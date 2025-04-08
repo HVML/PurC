@@ -186,6 +186,27 @@
         tkz_buffer_delete_tail_chars(parser->raw_buffer, n);                \
     } while (false)
 
+#define RESET_TEMP_UCS()                                                    \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+    } while (false)
+
+#define APPEND_TO_TEMP_UCS(uc)                                              \
+    do {                                                                    \
+        tkz_ucs_add_tail(parser->temp_ucs, uc);                             \
+    } while (false)
+
+#define START_RECORD_UCS(uc)                                                \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+        parser->record_ucs = 1;                                             \
+    } while (false)
+
+#define STOP_RECORD_UCS(uc)                                                 \
+    do {                                                                    \
+        parser->record_ucs = 0;                                             \
+    } while (false)
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
@@ -281,6 +302,8 @@ struct pcejson {
     struct tkz_reader *tkz_reader;
     struct tkz_buffer *temp_buffer;
     struct tkz_buffer *string_buffer;
+    struct tkz_ucs    *temp_ucs;
+
     struct pcvcm_node *vcm_node;
     struct tkz_sbst *sbst;
     struct tkz_buffer *raw_buffer;
@@ -293,6 +316,9 @@ struct pcejson {
     uint32_t prev_separator;
     uint32_t nr_single_quoted;
     uint32_t nr_double_quoted;
+
+    uint32_t record_ucs:1;
+
     bool enable_log;
 };
 

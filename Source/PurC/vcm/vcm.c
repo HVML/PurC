@@ -36,6 +36,7 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 #include "private/utils.h"
+#include "private/tkz-helper.h"
 
 #include "eval.h"
 
@@ -499,6 +500,9 @@ pcvcm_node_destroy_callback(struct pctree_node *n,  void *data)
                 || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
         ) && node->sz_ptr[1]) {
         free((void*)node->sz_ptr[1]);
+    }
+    if (node->ucs) {
+        tkz_ucs_destroy(node->ucs);
     }
     free(node);
 }

@@ -397,6 +397,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->tkz_reader = NULL;
     parser->temp_buffer = tkz_buffer_new();
     parser->string_buffer = tkz_buffer_new();
+    parser->temp_ucs = tkz_ucs_new();
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_single_quoted = 0;
@@ -415,6 +416,7 @@ void pcejson_destroy(struct pcejson *parser)
     if (parser) {
         tkz_buffer_destroy(parser->temp_buffer);
         tkz_buffer_destroy(parser->string_buffer);
+        tkz_ucs_destroy(parser->temp_ucs);
         pcejson_token_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
         tkz_buffer_destroy(parser->raw_buffer);
@@ -433,6 +435,7 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     tkz_buffer_reset(parser->temp_buffer);
     tkz_buffer_reset(parser->string_buffer);
     tkz_buffer_reset(parser->raw_buffer);
+    tkz_ucs_reset(parser->temp_ucs);
 
     pcejson_token_stack_destroy(parser->tkz_stack);
     parser->tkz_stack = pcejson_token_stack_new();
