@@ -3845,7 +3845,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (termp && tcsetattr(fd_slave, termp) != 0) {
+    if (termp && tcsetattr(fd_slave, TCSANOW, termp) != 0) {
         PC_ERROR("Failed tcsetattr(%d): %s\n",
                 fd_slave, strerror(errno));
         ec = purc_error_from_errno(error);
@@ -3913,7 +3913,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (termp && tcsetattr(fd_slave, termp) != 0) {
+    if (termp && tcsetattr(fd_slave, TCSANOW, termp) != 0) {
         PC_ERROR("Failed tcsetattr(%d): %s\n",
                 fd_slave, strerror(errno));
         ec = purc_error_from_errno(error);
