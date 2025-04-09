@@ -36,6 +36,7 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 #include "private/utils.h"
+#include "private/tkz-helper.h"
 
 #include "eval.h"
 #include "ops.h"
@@ -163,8 +164,11 @@ print_indent(purc_rwstream_t rws, int level, size_t *len_expected)
 static char *
 get_jsonee(struct pcvcm_node *node, size_t *len)
 {
-    /* TODO: used the origin jsonee */
-    return pcvcm_node_serialize(node, len);
+    char *s = NULL;
+    if (node->ucs) {
+        s = tkz_ucs_to_string(node->ucs, len);
+    }
+    return s ? s : pcvcm_node_serialize(node, len);
 }
 
 int
@@ -245,6 +249,8 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     char buf[DUMP_BUF_SIZE];
     size_t len;
 
+    purc_rwstream_write(rws, "<<<<\n", 5);
+
     char *s = get_jsonee(ctxt->node, &len);
     if (!ignore_prefix) {
         print_indent(rws, indent, NULL);
@@ -255,14 +261,17 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     purc_rwstream_write(rws, "\n", 1);
     free(s);
 
+    purc_rwstream_write(rws, "====\n", 5);
+
     /* vcm */
-    print_indent(rws, indent, NULL);
-    snprintf(buf, DUMP_BUF_SIZE, "  Variant Creation Model: ");
-    purc_rwstream_write(rws, buf, strlen(buf));
+    const char *title = "The equivalent variant creation model:\n";
+    purc_rwstream_write(rws, title, strlen(title));
     s = pcvcm_node_to_string(ctxt->node, &len);
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
     free(s);
+
+    purc_rwstream_write(rws, ">>>>\n", 5);
 
     if (ctxt->result) {
         print_indent(rws, indent, NULL);

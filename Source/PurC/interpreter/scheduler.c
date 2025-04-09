@@ -1061,7 +1061,7 @@ dump_stack_frame(pcintr_stack_t stack,
                 int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
                 purc_atom_t atom = purc_get_error_exception(err);
                 snprintf(buf, DUMP_BUF_SIZE,
-                        "    %s: `%s` raised when evaluating the expression: ",
+                        "    %s: `%s` raised when evaluating the expression.\n",
                         attr->key, purc_atom_to_string(atom));
                 purc_rwstream_write(stm, buf, strlen(buf));
                 pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true);
@@ -1090,7 +1090,7 @@ dump_stack_frame(pcintr_stack_t stack,
             int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
             purc_atom_t atom = purc_get_error_exception(err);
             snprintf(buf, DUMP_BUF_SIZE,
-                    "  CONTENT: `%s` raised when evaluating the expression: ",
+                    "  CONTENT: `%s` raised when evaluating the expression.\n",
                     purc_atom_to_string(atom));
             purc_rwstream_write(stm, buf, strlen(buf));
             pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true);
