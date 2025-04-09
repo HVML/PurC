@@ -589,6 +589,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
             case STEP_AFTER_PUSH:
                 ret = frame->ops->after_pushed(ctxt, frame);
                 if (ret != PURC_ERROR_OK) {
+                    int err = purc_get_last_error();
+                    if (err && err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                        ctxt->err_node = frame->node;
+                    }
                     goto out;
                 }
                 frame->step = STEP_EVAL_PARAMS;
@@ -608,7 +612,11 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
                             continue;
                         }
                         ctxt->err = purc_get_last_error();
-                        if (ctxt->err != 0) {
+                        if (ctxt->err) {
+                            if (ctxt->err != PURC_ERROR_AGAIN &&
+                                    !ctxt->err_node) {
+                                ctxt->err_node = frame->node;
+                            }
                             goto out;
                         }
                         break;
@@ -634,6 +642,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
             case STEP_EVAL_VCM:
                 result = frame->ops->eval(ctxt, frame, name);
                 if (!result) {
+                    int err = purc_get_last_error();
+                    if (err && err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                        ctxt->err_node = frame->node;
+                    }
                     goto out;
                 }
                 frame->step = STEP_DONE;
@@ -722,6 +734,9 @@ eval_vcm(struct pcvcm_eval_node *tree,
         result = eval_frame(ctxt, frame->idx, return_pos, &name);
         ctxt->err = purc_get_last_error();
         if (!result || ctxt->err) {
+            if (ctxt->err && ctxt->err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                ctxt->err_node = frame->node;
+            }
             goto out;
         }
         pop_frame(ctxt);
@@ -949,6 +964,7 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         ctxt->err = purc_get_last_error();
         if (ctxt->err == PURC_ERROR_AGAIN) {
             ctxt->err = 0;
+            ctxt->err_node = NULL;
             purc_clr_error();
         }
 
