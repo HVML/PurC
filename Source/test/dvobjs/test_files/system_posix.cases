@@ -408,7 +408,7 @@ positive:
     true
 
 negative:
-    $SYS.openpty('')
+    $SYS.openpty()
     ArgumentMissed
 
 negative:
@@ -420,10 +420,18 @@ negative:
     InvalidValue
 
 negative:
-    $SYS.openpty('default', {})
+    $SYS.openpty('default', 'foo')
+    InvalidValue
+
+negative:
+    $SYS.openpty('default', 'inherit', null)
+    WrongDataType
+
+negative:
+    $SYS.openpty('default', 'inherit', {foo:100, bar:50})
     InvalidValue
 
 positive:
-    $DATA.type($SYS.openpty('default', {col:80, row:24}))
+    $DATA.type($SYS.openpty('default', 'inherit', {col:80, row:24}))
     'tuple'
 

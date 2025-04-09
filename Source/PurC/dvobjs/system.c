@@ -52,6 +52,7 @@
 
 #if OS(LINUX)
 #include <sys/sendfile.h>
+#include <termios.h>
 #elif OS(DARWIN)
 #include <util.h>
 #include <sys/uio.h>
@@ -3617,16 +3618,77 @@ error:
 
 /*
 $SYS.openpty(
-    < '[noctty || rdwr] | default | none' $flags = 'default':
+    < '[noctty || rdwr] | default | none' $flags:
             `The flags when opening the new pseudoterminal device.`:
        - 'noctty':      `Do not make this device the controlling terminal
             for the process.`
        - 'rdwr':        `Open the device for both reading and writing.`
        - 'default':     `The equivalent to 'rdwr'.`
        - 'none':        `No additinal flags are specified.`  >
-    < object $winsz:    `The window size of the pseudoterminal slave.` >
+   [,
+        < ['default | inherit' ] | object $termio = 'default':
+                `The terminal parameters for slave:`
+            - 'none': `Use the system default.`
+            - 'inherit': `Use the current tty parameters if possible.`
+            - object: `An object specifying the parameters.`>
+        [,
+            < object $win_sz = { 'col': 80, 'row': 24 }:
+                `The window size of the pseudoterminal slave.` >
+        ]
+   ]
 ) tuple  | false
 */
+
+static int get_tty_termios(struct termios *termios)
+{
+    int fd = open("/dev/tty", O_RDONLY);
+    if (fd >= 0) {
+        int r = tcgetattr(fd, termios);
+        close(fd);
+        return r;
+    }
+    else {
+        PC_ERROR("Failed opening /dev/tty: %s\n", strerror(errno));
+    }
+
+    return -1;
+}
+
+static int parse_term_window_size(purc_variant_t arg, struct winsize *winsz)
+{
+    int ec = PURC_ERROR_OK;
+
+    if (!purc_variant_is_object(arg)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    uint32_t u32;
+    purc_variant_t item;
+
+    if (!(item = purc_variant_object_get_by_ckey(arg, "col"))) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    winsz->ws_col = (unsigned short)u32;
+
+    if (!(item = purc_variant_object_get_by_ckey(arg, "row"))) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    winsz->ws_row = (unsigned short)u32;
+
+error:
+    return ec;
+}
 
 static struct pcdvobjs_option_to_atom pty_flags_ckws[] = {
     { "rdwr",   0, O_RDWR },
@@ -3638,6 +3700,16 @@ static struct pcdvobjs_option_to_atom pty_flags_skws[] = {
     { "none",   0, 0 },
 };
 
+enum {
+    PTIO_DEFAULT,
+    PTIO_INHERIT
+};
+
+static struct pcdvobjs_option_to_atom pty_termios_skws[] = {
+    { "default",    0, PTIO_DEFAULT },
+    { "inherit",    0, PTIO_INHERIT },
+};
+
 static purc_variant_t
 openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3645,7 +3717,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     int ec = PURC_ERROR_OK;
 
-    if (nr_args < 2) {
+    if (nr_args < 1) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
         goto error;
     }
@@ -3660,6 +3732,11 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             pty_flags_skws[j].atom = purc_atom_from_static_string_ex(
                     ATOM_BUCKET_DVOBJ, pty_flags_skws[j].option);
         }
+
+        for (size_t j = 0; j < PCA_TABLESIZE(pty_termios_skws); j++) {
+            pty_termios_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, pty_termios_skws[j].option);
+        }
     }
 
     int flags = pcdvobjs_parse_options(argv[0],
@@ -3671,35 +3748,50 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    struct winsize winsz = { 0 };
+    struct termios termios, *termp = NULL;
+    if (nr_args > 1) {
+        if (purc_variant_is_string(argv[1])) {
+            switch (pcdvobjs_parse_options(argv[1],
+                pty_termios_skws, PCA_TABLESIZE(pty_termios_skws),
+                NULL, 0, -1, -1)) {
+            case PTIO_DEFAULT:
+                termp = NULL;
+                break;
 
-    if (!purc_variant_is_object(argv[1])) {
-        ec = PURC_ERROR_WRONG_DATA_TYPE;
-        goto error;
+            case PTIO_INHERIT:
+                if (get_tty_termios(&termios) == -1) {
+                    ec = purc_error_from_errno(errno);
+                    goto error;
+                }
+                termp = &termios;
+                break;
+
+            default:
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+        }
+        else if (purc_variant_is_object(argv[1])) {
+            // TODO:
+            ec = PURC_ERROR_NOT_IMPLEMENTED;
+            goto error;
+        }
+        else {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
     }
 
-    uint32_t u32;
-    purc_variant_t item;
-
-    if (!(item = purc_variant_object_get_by_ckey(argv[1], "col"))) {
-        ec = PURC_ERROR_INVALID_VALUE;
-        goto error;
+    struct winsize winsz;
+    if (nr_args > 2) {
+        ec = parse_term_window_size(argv[2], &winsz);
+        if (ec)
+            goto error;
     }
-    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
-        ec = PURC_ERROR_INVALID_VALUE;
-        goto error;
+    else {
+        winsz.ws_col = 80;
+        winsz.ws_row = 24;
     }
-    winsz.ws_col = (unsigned short)u32;
-
-    if (!(item = purc_variant_object_get_by_ckey(argv[1], "row"))) {
-        ec = PURC_ERROR_INVALID_VALUE;
-        goto error;
-    }
-    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
-        ec = PURC_ERROR_INVALID_VALUE;
-        goto error;
-    }
-    winsz.ws_row = (unsigned short)u32;
 
     int fd_master = -1, fd_slave = -1;
     char pts[NAME_MAX];
@@ -3707,7 +3799,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fd_master = posix_openpt(flags);
     if (fd_master < 0) {
         PC_ERROR("Failed posix_openpt(%x): %s\n", flags, strerror(errno));
-        purc_set_error(purc_error_from_errno(errno));
+        ec = purc_error_from_errno(errno);
         goto failed;
     }
 
@@ -3737,6 +3829,13 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    if (termp && tcsetattr(fd_slave, termp) != 0) {
+        PC_ERROR("Failed tcsetattr(%d): %s\n",
+                fd_slave, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
     if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
         PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n",
                 fd_slave, strerror(errno));
@@ -3744,7 +3843,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 #elif OS(DARWIN)
-    if (openpty(&fd_master, &fd_slave, pts, NULL, &winsz) != 0) {
+    if (openpty(&fd_master, &fd_slave, pts, termp, &winsz) != 0) {
         PC_ERROR("Failed openpty(): %s\n", strerror(errno));
         ec = purc_error_from_errno(errno);
         goto failed;
@@ -3794,6 +3893,13 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fd_slave = open(pts, O_RDWR);
     if (fd_slave < 0) {
         PC_ERROR("Failed open(%s): %s\n", pts, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (termp && tcsetattr(fd_slave, termp) != 0) {
+        PC_ERROR("Failed tcsetattr(%d): %s\n",
+                fd_slave, strerror(errno));
         ec = purc_error_from_errno(error);
         goto failed;
     }
@@ -3999,33 +4105,9 @@ ptyctl_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (which == PTY_WINSZ) {
         struct winsize winsz = { 0 };
 
-        if (purc_variant_is_object(argv[2])) {
-            ec = PURC_ERROR_WRONG_DATA_TYPE;
+        ec = parse_term_window_size(argv[2], &winsz);
+        if (ec)
             goto error;
-        }
-
-        uint32_t u32;
-        purc_variant_t item;
-
-        if (!(item = purc_variant_object_get_by_ckey(argv[2], "col"))) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-        if (!purc_variant_cast_to_uint32(item, &u32, false)) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-        winsz.ws_col = (unsigned short)u32;
-
-        if (!(item = purc_variant_object_get_by_ckey(argv[2], "row"))) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-        if (!purc_variant_cast_to_uint32(item, &u32, false)) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto error;
-        }
-        winsz.ws_row = (unsigned short)u32;
 
         if (ioctl(fd, TIOCSWINSZ, &winsz) != 0) {
             PC_ERROR("Failed ioctl(%d, TIOCSWINSZ, ...)\n", fd);
