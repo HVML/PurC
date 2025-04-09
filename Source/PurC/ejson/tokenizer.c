@@ -1809,8 +1809,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             RESET_TEMP_BUFFER();
         }
 
-        tkz_reader_reconsume_last_char(parser->tkz_reader);
-        tkz_reader_reconsume_last_char(parser->tkz_reader);
+        RECONSUME_LAST_CHAR();
+        RECONSUME_LAST_CHAR();
         ADVANCE_TO(EJSON_TKZ_STATE_DATA);
     }
     if (character == '$') {
@@ -1827,8 +1827,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
         }
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(2);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -1841,9 +1841,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                 }
             }
             else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(3);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -1856,7 +1856,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                 }
             }
             else {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(1);
                 struct pcvcm_node *node = pcvcm_node_new_string(
                         tkz_buffer_get_bytes(parser->temp_buffer)
@@ -1978,28 +1978,28 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
     if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(2);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
             }
             else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(3);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
             }
             else if (!tkz_buffer_is_empty(parser->string_buffer)) {
                 size_t sz = 1 + tkz_buffer_get_size_in_chars(parser->string_buffer);
                 for (size_t i = 0; i < sz; i++) {
-                    tkz_reader_reconsume_last_char(parser->tkz_reader);
+                    RECONSUME_LAST_CHAR();
                 }
                 DELETE_FROM_RAW_BUFFER(sz);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, sz - 1);
             }
             else {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(1);
             }
             if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -2906,8 +2906,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AMPERSAND)
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
     }
-    tkz_reader_reconsume_last_char(parser->tkz_reader);
-    tkz_reader_reconsume_last_char(parser->tkz_reader);
+    RECONSUME_LAST_CHAR();
+    RECONSUME_LAST_CHAR();
     DELETE_FROM_RAW_BUFFER(2);
     tkz_stack_push(ETT_UNQUOTED_S);
     tkz_stack_push(ETT_VALUE);
@@ -3587,28 +3587,28 @@ BEGIN_STATE(EJSON_TKZ_STATE_PARAM_STRING)
     if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(2);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
             }
             else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(3);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
             }
             else if (!tkz_buffer_is_empty(parser->string_buffer)) {
                 size_t sz = 1 + tkz_buffer_get_size_in_chars(parser->string_buffer);
                 for (size_t i = 0; i < sz; i++) {
-                    tkz_reader_reconsume_last_char(parser->tkz_reader);
+                    RECONSUME_LAST_CHAR();
                 }
                 DELETE_FROM_RAW_BUFFER(sz);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, sz - 1);
             }
             else {
-                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                RECONSUME_LAST_CHAR();
                 DELETE_FROM_RAW_BUFFER(1);
             }
             if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -3621,7 +3621,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_PARAM_STRING)
             }
         }
         else {
-            tkz_reader_reconsume_last_char(parser->tkz_reader);
+            RECONSUME_LAST_CHAR();
         }
         RESET_STRING_BUFFER();
         RESET_TEMP_BUFFER();

@@ -207,6 +207,12 @@
         parser->record_ucs = 0;                                             \
     } while (false)
 
+#define RECONSUME_LAST_CHAR()                                               \
+    do {                                                                    \
+        tkz_ucs_delete_tail(parser->temp_ucs, 1);                           \
+        tkz_reader_reconsume_last_char(parser->tkz_reader);                 \
+    } while (false)
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
