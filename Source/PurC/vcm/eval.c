@@ -162,13 +162,18 @@ print_indent(purc_rwstream_t rws, int level, size_t *len_expected)
 }
 
 static char *
-get_jsonee(struct pcvcm_node *node, size_t *len)
+get_jsonee(struct pcvcm_node *node, size_t *len, struct pcvcm_node *err_node,
+        char **err_msg, size_t *nr_err_msg)
 {
+#if 0
     char *s = NULL;
     if (node->ucs) {
         s = tkz_ucs_to_string(node->ucs, len);
     }
     return s ? s : pcvcm_node_serialize(node, len);
+#else
+    return pcvcm_node_serialize_ex(node, len, err_node, err_msg, nr_err_msg);
+#endif
 }
 
 int
@@ -184,7 +189,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
     snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(rws, buf, strlen(buf));
 
-    char *jsonee = get_jsonee(frame->node, &len);
+    char *jsonee = get_jsonee(frame->node, &len, NULL, NULL, NULL);
     purc_rwstream_write(rws, jsonee, len);
     purc_rwstream_write(rws, "\n", 1);
     free(jsonee);
@@ -251,7 +256,9 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
 
     purc_rwstream_write(rws, "<<<<\n", 5);
 
-    char *s = get_jsonee(ctxt->node, &len);
+    char *err_msg = NULL;
+    size_t nr_err_msg = 0;
+    char *s = get_jsonee(ctxt->node, &len, ctxt->err_node, &err_msg, &nr_err_msg);
     if (!ignore_prefix) {
         print_indent(rws, indent, NULL);
         snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
@@ -259,17 +266,26 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     }
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
+    purc_rwstream_write(rws, err_msg, nr_err_msg);
+    purc_rwstream_write(rws, "\n", 1);
     free(s);
+    free(err_msg);
 
     purc_rwstream_write(rws, "====\n", 5);
 
     /* vcm */
     const char *title = "The equivalent variant creation model:\n";
     purc_rwstream_write(rws, title, strlen(title));
-    s = pcvcm_node_to_string(ctxt->node, &len);
+    err_msg = NULL;
+    nr_err_msg = 0;
+    s = pcvcm_node_to_string_ex(ctxt->node, &len, ctxt->err_node, &err_msg,
+            &nr_err_msg);
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
+    purc_rwstream_write(rws, err_msg, nr_err_msg);
+    purc_rwstream_write(rws, "\n", 1);
     free(s);
+    free(err_msg);
 
     purc_rwstream_write(rws, ">>>>\n", 5);
 
@@ -676,7 +692,7 @@ out:
     if (ctxt->enable_log && ctxt) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
-        char *s = get_jsonee(frame->node, &len);
+        char *s = get_jsonee(frame->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
@@ -909,7 +925,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     if (enable_log && ctxt) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
-        char *s = get_jsonee(ctxt->node, &len);
+        char *s = get_jsonee(ctxt->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
@@ -975,7 +991,7 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     if (enable_log) {
         size_t len;
         pcintr_coroutine_t co = pcintr_get_coroutine();
-        char *s = get_jsonee(ctxt->node, &len);
+        char *s = get_jsonee(ctxt->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);

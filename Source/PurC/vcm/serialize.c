@@ -40,17 +40,44 @@
 
 #include "eval.h"
 
+struct pcvdom_dump_ctxt
+{
+    purc_rwstream_t rws;
+    purc_rwstream_t err_rws;
+    struct pcvcm_node *err_node;
+    bool oneline;
+};
+
 typedef
-void (*pcvcm_node_handle)(purc_rwstream_t rws, struct pcvcm_node *node,
+void (*pcvcm_node_handle)(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool ignore_string_quoted);
 
 static
-void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
-        bool ignore_string_quoted);
-
-static
-void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
+void pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         struct pcvcm_node *node, bool ignore_string_quoted);
+
+static
+void pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
+        struct pcvcm_node *node, bool ignore_string_quoted);
+
+static void
+write_space(purc_rwstream_t rws, size_t count)
+{
+    char buf[count + 1];
+    memset(buf, ' ', count);
+    purc_rwstream_write(rws, buf, count);
+}
+
+
+static ssize_t
+pcvdom_dump_write(struct pcvdom_dump_ctxt *ctxt, const void* buf, size_t count)
+{
+    ssize_t r = purc_rwstream_write(ctxt->rws, buf, count);
+    if (ctxt->err_rws && r > 0) {
+        write_space(ctxt->err_rws, r);
+    }
+    return r;
+}
 
 static struct pcvcm_node *
 pcvcm_node_next_child(struct pcvcm_node *node)
@@ -62,7 +89,7 @@ pcvcm_node_next_child(struct pcvcm_node *node)
 }
 
 static void
-write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node,
+write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool print_comma, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = pcvcm_node_first_child(node);
@@ -70,44 +97,44 @@ write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node,
         if (node->type == PCVCM_NODE_TYPE_CONSTANT) {
             purc_atom_t atom = (purc_atom_t)child->u64;
             const char *s = purc_atom_to_string(atom);
-            purc_rwstream_write(rws, s, strlen(s));
+            pcvdom_dump_write(ctxt, s, strlen(s));
             child = pcvcm_node_next_child(child);
             if (child) {
-                purc_rwstream_write(rws, " ", 1);
+                pcvdom_dump_write(ctxt, " ", 1);
             }
         }
         else {
-            handle(rws, child, false);
+            handle(ctxt, child, false);
             child = pcvcm_node_next_child(child);
             if (child && print_comma) {
-                purc_rwstream_write(rws, ", ", 2);
+                pcvdom_dump_write(ctxt, ", ", 2);
             }
         }
     }
 }
 
 static void
-write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
+write_child_node_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
          pcvcm_node_handle handle)
 {
-    write_child_node_rwstream_ex(rws, node, true, handle);
+    write_child_node_rwstream_ex(ctxt, node, true, handle);
 }
 
 static void
-write_object_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
-         pcvcm_node_handle handle)
+write_object_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
+        struct pcvcm_node *node, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = pcvcm_node_first_child(node);
     int i = 0;
     while (child) {
-        handle(rws, child, false);
+        handle(ctxt, child, false);
         child = pcvcm_node_next_child(child);
         if (child) {
             if (i % 2 == 0) {
-                purc_rwstream_write(rws, ":", 1);
+                pcvdom_dump_write(ctxt, ":", 1);
             }
             else {
-                purc_rwstream_write(rws, ", ", 2);
+                pcvdom_dump_write(ctxt, ", ", 2);
             }
         }
         i++;
@@ -115,89 +142,119 @@ write_object_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
 }
 
 static void
-write_concat_string_node_serialize_rwstream(purc_rwstream_t rws,
+write_concat_string_node_serialize_rwstream(struct pcvdom_dump_ctxt *ctxt,
         struct pcvcm_node *node, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = pcvcm_node_first_child(node);
     while (child) {
-        handle(rws, child, true);
+        handle(ctxt, child, true);
         child = pcvcm_node_next_child(child);
     }
 }
 
 static void
-write_sibling_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
+write_sibling_node_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool print_comma, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = pcvcm_node_next_child(node);
     while (child) {
-        handle(rws, child, false);
+        handle(ctxt, child, false);
         child = pcvcm_node_next_child(child);
         if (child && print_comma) {
-            purc_rwstream_write(rws, ", ", 2);
+            pcvdom_dump_write(ctxt, ", ", 2);
         }
     }
 }
 
 
 static void
-write_variant_to_rwstream(purc_rwstream_t rws, purc_variant_t v)
+write_variant_to_rwstream(struct pcvdom_dump_ctxt *ctxt, purc_variant_t v)
 {
     size_t len_expected = 0;
-    purc_variant_serialize(v, rws, 0,
+    ssize_t r = purc_variant_serialize(v, ctxt->rws, 0,
             PCVRNT_SERIALIZE_OPT_REAL_EJSON |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
             PCVRNT_SERIALIZE_OPT_PLAIN |
             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
             PCVRNT_SERIALIZE_OPT_RUNTIME_STRING,
             &len_expected);
+
+    if (ctxt->err_rws && r > 0) {
+        write_space(ctxt->err_rws, r);
+    }
 }
 
 void
-pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
+pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool ignore_string_quoted)
 {
     UNUSED_PARAM(ignore_string_quoted);
     pcvcm_node_handle handle = pcvcm_node_write_to_rwstream;
+    if (node == ctxt->err_node && ctxt->err_rws) {
+        purc_rwstream_write(ctxt->err_rws, "^", 1);
+    }
     switch(node->type)
     {
     case PCVCM_NODE_TYPE_UNDEFINED:
-        purc_rwstream_write(rws, "undefined", 9);
+        pcvdom_dump_write(ctxt, "undefined", 9);
         break;
 
     case PCVCM_NODE_TYPE_OBJECT:
-        purc_rwstream_write(rws, "make_object(", 12);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "make_object(", 12);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
-        purc_rwstream_write(rws, "make_array(", 11);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "make_array(", 11);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_TUPLE:
-        purc_rwstream_write(rws, "make_tuple(", 11);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "make_tuple(", 11);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_STRING:
-        purc_rwstream_write(rws, "\"", 1);
-        purc_rwstream_write(rws, (char*)node->sz_ptr[1],
-                node->sz_ptr[0]);
-        purc_rwstream_write(rws, "\"", 1);
+    {
+        char *buf = (char*)node->sz_ptr[1];
+        size_t nr_buf = node->sz_ptr[0];
+
+        pcvdom_dump_write(ctxt, "\"", 1);
+        for (size_t i = 0; i < nr_buf; i++) {
+            if (ctxt->oneline) {
+                if (buf[i] == '\n') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "n", 1);
+                    continue;
+                }
+                if (buf[i] == '\r') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "r", 1);
+                    continue;
+                }
+                if (buf[i] == '\t') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "t", 1);
+                    continue;
+                }
+            }
+            pcvdom_dump_write(ctxt, buf + i, 1);
+        }
+        pcvdom_dump_write(ctxt, "\"", 1);
         break;
+    }
 
     case PCVCM_NODE_TYPE_NULL:
-        purc_rwstream_write(rws, "null", 4);
+        pcvdom_dump_write(ctxt, "null", 4);
         break;
 
     case PCVCM_NODE_TYPE_BOOLEAN:
     {
         purc_variant_t v = purc_variant_make_boolean(node->b);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -205,7 +262,7 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_NUMBER:
     {
         purc_variant_t v = purc_variant_make_number(node->d);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -213,7 +270,7 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_LONG_INT:
     {
         purc_variant_t v = purc_variant_make_longint(node->i64);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -221,7 +278,7 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_ULONG_INT:
     {
         purc_variant_t v = purc_variant_make_ulongint(node->u64);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -229,7 +286,7 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_LONG_DOUBLE:
     {
         purc_variant_t v = purc_variant_make_longdouble(node->ld);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -244,89 +301,92 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         else {
             v = purc_variant_make_byte_sequence_empty();
         }
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-        purc_rwstream_write(rws, "concatString(", 13);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "concatString(", 13);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-        purc_rwstream_write(rws, "getVariable(", 12);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "getVariable(", 12);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-        purc_rwstream_write(rws, "getElement(", 11);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "getElement(", 11);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-        purc_rwstream_write(rws, "callGetter(", 11);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "callGetter(", 11);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-        purc_rwstream_write(rws, "callSetter(", 11);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, ")", 1);
+        pcvdom_dump_write(ctxt, "callSetter(", 11);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
     case PCVCM_NODE_TYPE_CJSONEE:
-        purc_rwstream_write(rws, "{{ ", 3);
-        write_child_node_rwstream_ex(rws, node, false, handle);
-        purc_rwstream_write(rws, " }}", 3);
+        pcvdom_dump_write(ctxt, "{{ ", 3);
+        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        pcvdom_dump_write(ctxt, " }}", 3);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
-        purc_rwstream_write(rws, " && ", 4);
+        pcvdom_dump_write(ctxt, " && ", 4);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
-        purc_rwstream_write(rws, " || ", 4);
+        pcvdom_dump_write(ctxt, " || ", 4);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
-        purc_rwstream_write(rws, " ; ", 3);
+        pcvdom_dump_write(ctxt, " ; ", 3);
         break;
     case PCVCM_NODE_TYPE_CONSTANT:
-        purc_rwstream_write(rws, "`", 1);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, "`", 1);
+        pcvdom_dump_write(ctxt, "`", 1);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, "`", 1);
         break;
     }
 }
 
 void
-pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
-        bool ignore_string_quoted)
+pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
+        struct pcvcm_node *node, bool ignore_string_quoted)
 {
     pcvcm_node_handle handle = pcvcm_node_serialize_to_rwstream;
+    if (node == ctxt->err_node && ctxt->err_rws) {
+        purc_rwstream_write(ctxt->err_rws, "^", 1);
+    }
     switch(node->type)
     {
     case PCVCM_NODE_TYPE_UNDEFINED:
-        purc_rwstream_write(rws, "undefined", 9);
+        pcvdom_dump_write(ctxt, "undefined", 9);
         break;
 
     case PCVCM_NODE_TYPE_OBJECT:
-        purc_rwstream_write(rws, "{ ", 2);
-        write_object_serialize_to_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, " }", 2);
+        pcvdom_dump_write(ctxt, "{ ", 2);
+        write_object_serialize_to_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, " }", 2);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
-        purc_rwstream_write(rws, "[ ", 2);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, " ]", 2);
+        pcvdom_dump_write(ctxt, "[ ", 2);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, " ]", 2);
         break;
 
     case PCVCM_NODE_TYPE_TUPLE:
-        purc_rwstream_write(rws, "[! ", 2);
-        write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, " ]", 2);
+        pcvdom_dump_write(ctxt, "[! ", 2);
+        write_child_node_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, " ]", 2);
         break;
 
     case PCVCM_NODE_TYPE_STRING:
@@ -338,34 +398,47 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         if (strchr(buf, '"')) {
             c[0] = '\'';
         }
-        if (strchr(buf, '\n')) {
-            c[0] = '"';
-            c[1] = '"';
-            c[2] = '"';
-        }
+
         if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, &c, strlen(c));
+            pcvdom_dump_write(ctxt, &c, strlen(c));
         }
         for (size_t i = 0; i < nr_buf; i++) {
             if (buf[i] == '\\') {
-                purc_rwstream_write(rws, "\\", 1);
+                pcvdom_dump_write(ctxt, "\\", 1);
             }
-            purc_rwstream_write(rws, buf + i, 1);
+            if (ctxt->oneline) {
+                if (buf[i] == '\n') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "n", 1);
+                    continue;
+                }
+                if (buf[i] == '\r') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "r", 1);
+                    continue;
+                }
+                if (buf[i] == '\t') {
+                    pcvdom_dump_write(ctxt, "\\", 1);
+                    pcvdom_dump_write(ctxt, "t", 1);
+                    continue;
+                }
+            }
+            pcvdom_dump_write(ctxt, buf + i, 1);
         }
         if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, &c, strlen(c));
+            pcvdom_dump_write(ctxt, &c, strlen(c));
         }
         break;
     }
 
     case PCVCM_NODE_TYPE_NULL:
-        purc_rwstream_write(rws, "null", 4);
+        pcvdom_dump_write(ctxt, "null", 4);
         break;
 
     case PCVCM_NODE_TYPE_BOOLEAN:
     {
         purc_variant_t v = purc_variant_make_boolean(node->b);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -373,7 +446,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_NUMBER:
     {
         purc_variant_t v = purc_variant_make_number(node->d);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -381,7 +454,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_LONG_INT:
     {
         purc_variant_t v = purc_variant_make_longint(node->i64);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -389,7 +462,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_ULONG_INT:
     {
         purc_variant_t v = purc_variant_make_ulongint(node->u64);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -397,7 +470,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_LONG_DOUBLE:
     {
         purc_variant_t v = purc_variant_make_longdouble(node->ld);
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -412,7 +485,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         else {
             v = purc_variant_make_byte_sequence_empty();
         }
-        write_variant_to_rwstream(rws, v);;
+        write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
     }
@@ -422,48 +495,34 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         char c[4] = {0};
         c[0] = '"';
 
-        struct pcvcm_node *child = pcvcm_node_first_child(node);
-        while (child) {
-            if (child->type == PCVCM_NODE_TYPE_STRING) {
-                char *buf = (char*)child->sz_ptr[1];
-                if (buf && strchr(buf, '\n')) {
-                    c[0] = '"';
-                    c[1] = '"';
-                    c[2] = '"';
-                    break;
-                }
-            }
-            child = pcvcm_node_next_child(child);
-        }
-
-        purc_rwstream_write(rws, &c, strlen(c));
-        write_concat_string_node_serialize_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, &c, strlen(c));
+        pcvdom_dump_write(ctxt, &c, strlen(c));
+        write_concat_string_node_serialize_rwstream(ctxt, node, handle);
+        pcvdom_dump_write(ctxt, &c, strlen(c));
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
     {
-        purc_rwstream_write(rws, "$", 1);
+        pcvdom_dump_write(ctxt, "$", 1);
         struct pcvcm_node *child = pcvcm_node_first_child(node);
-        handle(rws, child, true);
+        handle(ctxt, child, true);
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
     {
         struct pcvcm_node *child = pcvcm_node_first_child(node);
-        handle(rws, child, true);
+        handle(ctxt, child, true);
 
         child = pcvcm_node_next_child(child);
         if (child->type == PCVCM_NODE_TYPE_STRING) {
-            purc_rwstream_write(rws, ".", 1);
-            handle(rws, child, true);
+            pcvdom_dump_write(ctxt, ".", 1);
+            handle(ctxt, child, true);
         }
         else {
-            purc_rwstream_write(rws, "[", 1);
-            handle(rws, child, true);
-            purc_rwstream_write(rws, "]", 1);
+            pcvdom_dump_write(ctxt, "[", 1);
+            handle(ctxt, child, true);
+            pcvdom_dump_write(ctxt, "]", 1);
         }
         break;
     }
@@ -471,46 +530,46 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
     {
         struct pcvcm_node *child = pcvcm_node_first_child(node);
-        handle(rws, child, true);
-        purc_rwstream_write(rws, "( ", 2);
-        write_sibling_node_rwstream(rws, child, true, handle);
-        purc_rwstream_write(rws, " )", 2);
+        handle(ctxt, child, true);
+        pcvdom_dump_write(ctxt, "( ", 2);
+        write_sibling_node_rwstream(ctxt, child, true, handle);
+        pcvdom_dump_write(ctxt, " )", 2);
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
     {
         struct pcvcm_node *child = pcvcm_node_first_child(node);
-        handle(rws, child, true);
-        purc_rwstream_write(rws, "(! ", 2);
-        write_sibling_node_rwstream(rws, child, true, handle);
-        purc_rwstream_write(rws, " )", 2);
+        handle(ctxt, child, true);
+        pcvdom_dump_write(ctxt, "(! ", 2);
+        write_sibling_node_rwstream(ctxt, child, true, handle);
+        pcvdom_dump_write(ctxt, " )", 2);
         break;
     }
 
     case PCVCM_NODE_TYPE_CJSONEE:
     {
-        purc_rwstream_write(rws, "{{ ", 3);
-        write_child_node_rwstream_ex(rws, node, false, handle);
-        purc_rwstream_write(rws, " }}", 3);
+        pcvdom_dump_write(ctxt, "{{ ", 3);
+        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        pcvdom_dump_write(ctxt, " }}", 3);
         break;
     }
 
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
-        purc_rwstream_write(rws, " && ", 4);
+        pcvdom_dump_write(ctxt, " && ", 4);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
-        purc_rwstream_write(rws, " || ", 4);
+        pcvdom_dump_write(ctxt, " || ", 4);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
-        purc_rwstream_write(rws, " ; ", 3);
+        pcvdom_dump_write(ctxt, " ; ", 3);
         break;
 
     case PCVCM_NODE_TYPE_CONSTANT:
     {
-        purc_rwstream_write(rws, "`", 1);
-        write_child_node_rwstream_ex(rws, node, false, handle);
-        purc_rwstream_write(rws, "`", 1);
+        pcvdom_dump_write(ctxt, "`", 1);
+        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        pcvdom_dump_write(ctxt, "`", 1);
         break;
     }
         break;
@@ -519,6 +578,7 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
 
 static char *
 pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node,  char **err_msg, size_t *nr_err_msg,
         pcvcm_node_handle handle)
 {
     if (!node) {
@@ -528,6 +588,8 @@ pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
         return NULL;
     }
 
+    struct pcvdom_dump_ctxt ctxt = {0};
+
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
     if (!rws) {
         if (nr_bytes) {
@@ -536,9 +598,26 @@ pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
         return NULL;
     }
 
-    handle(rws, node, false);
+    purc_rwstream_t err_rws = NULL;
+    if (err_msg) {
+        err_rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+        if (!err_rws) {
+            if (nr_err_msg) {
+                *nr_err_msg = 0;
+            }
+            purc_rwstream_destroy(rws);
+            return NULL;
+        }
+    }
 
-    purc_rwstream_write(rws, "", 1); // writing null-terminator
+    ctxt.rws = rws;
+    ctxt.err_rws = err_rws;
+    ctxt.err_node = err_node;
+    ctxt.oneline = err_node ? true : false;
+
+    handle(&ctxt, node, false);
+
+    pcvdom_dump_write(&ctxt, "", 1); // writing null-terminator
 
     size_t sz_content = 0;
     char *buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
@@ -547,20 +626,34 @@ pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
         *nr_bytes = sz_content - 1;
     }
 
+    if (err_rws) {
+        size_t sz_err_buf = 0;
+        char *err_buf = (char*)purc_rwstream_get_mem_buffer_ex(err_rws, &sz_err_buf,
+            NULL, true);
+        *err_msg = err_buf;
+        if (nr_err_msg) {
+            *nr_err_msg = sz_err_buf - 1;
+        }
+    }
+
     purc_rwstream_destroy(rws);
     return buf;
 }
 
 
 char *
-pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes)
+pcvcm_node_to_string_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg)
 {
-    return pcvcm_node_dump(node, nr_bytes, pcvcm_node_write_to_rwstream);
+    return pcvcm_node_dump(node, nr_bytes, err_node, err_msg, nr_err_msg,
+            pcvcm_node_write_to_rwstream);
 }
 
 char *
-pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes)
+pcvcm_node_serialize_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg)
 {
-    return pcvcm_node_dump(node, nr_bytes, pcvcm_node_serialize_to_rwstream);
+    return pcvcm_node_dump(node, nr_bytes, err_node, err_msg, nr_err_msg,
+            pcvcm_node_serialize_to_rwstream);
 }
 

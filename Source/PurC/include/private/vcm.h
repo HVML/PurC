@@ -253,9 +253,24 @@ pcvcm_node_append_child(struct pcvcm_node *parent, struct pcvcm_node *child)
     return pctree_node_append_child(&parent->tree_node, &child->tree_node);
 }
 
-char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
+char *pcvcm_node_to_string_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg);
 
-char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
+static inline char *pcvcm_node_to_string(struct pcvcm_node *node,
+        size_t *nr_bytes)
+{
+    return pcvcm_node_to_string_ex(node, nr_bytes, NULL, NULL, NULL);
+}
+
+
+char *pcvcm_node_serialize_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg);
+
+static inline char *pcvcm_node_serialize(struct pcvcm_node *node,
+        size_t *nr_bytes)
+{
+    return pcvcm_node_serialize_ex(node, nr_bytes, NULL, NULL, NULL);
+}
 
 /*
  * Removes root and its children from the tree, freeing any memory allocated.
