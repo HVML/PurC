@@ -3798,7 +3798,7 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    struct winsize winsz;
+    struct winsize winsz = { 0 };
     if (nr_args > 2) {
         ec = parse_term_window_size(argv[2], &winsz);
         if (ec)
