@@ -3630,6 +3630,7 @@ $SYS.openpty(
                 `The terminal parameters for slave:`
             - 'none': `Use the system default.`
             - 'inherit': `Use the current tty parameters if possible.`
+            - 'inherit-noecho': `Use the current tty parameters but w/o ECHO.`
             - object: `An object specifying the parameters.`>
         [,
             < object $win_sz = { 'col': 80, 'row': 24 }:
@@ -3702,12 +3703,14 @@ static struct pcdvobjs_option_to_atom pty_flags_skws[] = {
 
 enum {
     PTIO_DEFAULT,
-    PTIO_INHERIT
+    PTIO_INHERIT,
+    PTIO_INHERIT_NOECHO,
 };
 
 static struct pcdvobjs_option_to_atom pty_termios_skws[] = {
-    { "default",    0, PTIO_DEFAULT },
-    { "inherit",    0, PTIO_INHERIT },
+    { "default",        0, PTIO_DEFAULT },
+    { "inherit",        0, PTIO_INHERIT },
+    { "inherit-noecho", 0, PTIO_INHERIT_NOECHO },
 };
 
 static purc_variant_t
@@ -3751,14 +3754,27 @@ openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     struct termios termios, *termp = NULL;
     if (nr_args > 1) {
         if (purc_variant_is_string(argv[1])) {
-            switch (pcdvobjs_parse_options(argv[1],
+            int r = pcdvobjs_parse_options(argv[1],
                 pty_termios_skws, PCA_TABLESIZE(pty_termios_skws),
-                NULL, 0, -1, -1)) {
+                NULL, 0, -1, -1);
+
+            switch (r) {
             case PTIO_DEFAULT:
                 termp = NULL;
                 break;
 
             case PTIO_INHERIT:
+            case PTIO_INHERIT_NOECHO:
+                if (get_tty_termios(&termios) == -1) {
+                    ec = purc_error_from_errno(errno);
+                    goto error;
+                }
+                if (r == PTIO_INHERIT_NOECHO) {
+                    termios.c_lflag &= ~ECHO;
+                }
+                termp = &termios;
+                break;
+
                 if (get_tty_termios(&termios) == -1) {
                     ec = purc_error_from_errno(errno);
                     goto error;
