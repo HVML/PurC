@@ -537,6 +537,23 @@ int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz)
     return 0;
 }
 
+int tkz_ucs_trim_tail(struct tkz_ucs *ucs)
+{
+    size_t count = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (purc_isspace(p->character)) {
+            list_del(&p->ln);
+            tkz_uc_destroy(p);
+            count++;
+        }
+        else {
+            break;
+        }
+    }
+    return count;
+}
+
 int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc)
 {
     struct tkz_uc *p = tkz_uc_new();

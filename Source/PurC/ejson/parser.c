@@ -442,6 +442,8 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->prev_separator = 0;
     parser->nr_single_quoted = 0;
     parser->nr_double_quoted = 0;
+    parser->finished_by_callback = 0;
+    parser->record_ucs = 0;
 }
 
 static bool

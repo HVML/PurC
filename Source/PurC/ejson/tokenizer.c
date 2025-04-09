@@ -65,7 +65,7 @@
 #define tkz_prev_token()      tkz_stack_prev_token(parser->tkz_stack)
 
 #define CHECK_FINISHED() do {                                               \
-    if (parser->is_finished(parser, character)) {                           \
+    if (is_finished_by_callback(parser, character)) {                           \
         update_tkz_stack(parser);                                           \
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);                             \
     }                                                                       \
@@ -100,6 +100,7 @@ int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
     struct pcejson* parser = *parser_param;                                 \
     parser->tkz_reader = reader;                                            \
     parser->is_finished = is_finished;                                      \
+    START_RECORD_UCS();                                                     \
                                                                             \
 next_input:                                                                 \
     parser->curr_uc = tkz_reader_next_char (parser->tkz_reader);            \
@@ -169,10 +170,21 @@ is_get_element(uint32_t type)
 }
 
 static bool
+is_finished_by_callback(struct pcejson *parser, uint32_t character)
+{
+    bool ret = parser->is_finished(parser, character);
+    if (ret) {
+        parser->finished_by_callback = true;
+    }
+    /* keep state */
+    return ret;
+}
+
+static bool
 is_parse_finished(struct pcejson *parser, uint32_t character)
 {
     if (is_eof(character)
-            || parser->is_finished(parser, character)) {
+            || is_finished_by_callback(parser, character)) {
         return true;
     }
     if ((parser->flags & PCEJSON_FLAG_MULTI_JSONEE) == 0) {
@@ -626,6 +638,16 @@ END_STATE()
 BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
     int ret = build_jsonee(parser);
     if (ret == 0) {
+        if (!(parser->flags & PCEJSON_FLAG_KEEP_LAST_CHAR)) {
+            tkz_ucs_delete_tail(parser->temp_ucs, 1);
+        }
+        tkz_ucs_trim_tail(parser->temp_ucs);
+        if (parser->vcm_node) {
+            if (!parser->vcm_node->ucs) {
+                parser->vcm_node->ucs = tkz_ucs_new();
+            }
+            tkz_ucs_move(parser->vcm_node->ucs, parser->temp_ucs);
+        }
         *vcm_tree = parser->vcm_node;
         parser->vcm_node = NULL;
     }
@@ -2312,7 +2334,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
-    if (parser->is_finished(parser, character)) {
+    if (is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -2330,7 +2352,7 @@ END_STATE()
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
-            || is_eof(character) || parser->is_finished(parser, character)) {
+            || is_eof(character) || is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -2368,7 +2390,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
-    if (parser->is_finished(parser, character)) {
+    if (is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -2429,7 +2451,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER)
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
-    if (parser->is_finished(parser, character)) {
+    if (is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -2484,7 +2506,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
-    if (parser->is_finished(parser, character)) {
+    if (is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -2700,7 +2722,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INFINITY)
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
-    if (parser->is_finished(parser, character)) {
+    if (is_finished_by_callback(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
@@ -3496,7 +3518,7 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_LINE_COMMENT)
     if (character == '\n' || is_eof(character)
-            || parser->is_finished(parser, character)) {
+            || is_finished_by_callback(parser, character)) {
         ADVANCE_TO(parser->return_state);
     }
     ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
@@ -3527,7 +3549,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_BACKQUOTE_CONTENT)
     }
 
     if (character == '`' || is_eof(character)
-            || parser->is_finished(parser, character)) {
+            || is_finished_by_callback(parser, character)) {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             const char *buf = tkz_buffer_get_bytes(parser->temp_buffer);
             purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, buf);

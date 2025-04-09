@@ -2070,7 +2070,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
@@ -2088,7 +2088,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
@@ -2269,7 +2269,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     if (parser->tag_has_raw_attr) {
         flags = flags & ~PCEJSON_FLAG_GET_VARIABLE;
     }

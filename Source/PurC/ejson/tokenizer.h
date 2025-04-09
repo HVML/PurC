@@ -318,6 +318,7 @@ struct pcejson {
     uint32_t nr_double_quoted;
 
     uint32_t record_ucs:1;
+    uint32_t finished_by_callback:1;
 
     bool enable_log;
 };
