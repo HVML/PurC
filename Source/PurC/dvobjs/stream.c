@@ -1781,15 +1781,15 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stdio_type stdio)
     int fd = -1;
     switch (stdio) {
     case STDIO_TYPE_STDIN:
-        fd = STDIN_FILENO;
+        fd = dup(STDIN_FILENO);
         break;
 
     case STDIO_TYPE_STDOUT:
-        fd = STDOUT_FILENO;
+        fd = dup(STDOUT_FILENO);
         break;
 
     case STDIO_TYPE_STDERR:
-        fd = STDERR_FILENO;
+        fd = dup(STDERR_FILENO);
         break;
     }
 
