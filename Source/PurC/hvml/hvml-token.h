@@ -157,6 +157,8 @@ void pchvml_token_append_vcm_to_attr(struct pchvml_token* token,
 void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
         enum pchvml_attr_operator assignment);
 
+void pchvml_token_set_quote(struct pchvml_token* token, uint32_t quote);
+
 bool pchvml_token_is_in_attr(struct pchvml_token* token);
 
 struct pchvml_token_attr* pchvml_token_get_curr_attr(

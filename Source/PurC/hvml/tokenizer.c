@@ -591,6 +591,7 @@ bool pchvml_parser_is_in_raw_template (struct pchvml_parser* parser)
     return template && parser->tag_has_raw_attr;
 }
 
+#if 0
 static UNUSED_FUNCTION
 struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     struct tkz_buffer* buffer)
@@ -610,6 +611,7 @@ struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     }
     return NULL;
 }
+#endif
 
 static UNUSED_FUNCTION
 struct pcvcm_node* tkz_buffer_to_vcm_node(struct tkz_buffer* buffer)
@@ -800,6 +802,7 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
             if (!node) {
                 RETURN_AND_STOP_PARSE();
             }
+            node->position = 0;
             RESET_TEMP_BUFFER();
             parser->token = pchvml_token_new_vcm(node);
             if (!parser->token) {
@@ -824,6 +827,7 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         if (!node) {
             RETURN_AND_STOP_PARSE();
         }
+        node->position = 0;
         RESET_TEMP_BUFFER();
         parser->token = pchvml_token_new_vcm(node);
         if (!parser->token) {
@@ -1549,6 +1553,7 @@ BEGIN_STATE(TKZ_STATE_CDATA_SECTION_END)
         if (!node) {
             RETURN_AND_STOP_PARSE();
         }
+        node->position = 0;
         RESET_TEMP_BUFFER();
         parser->token = pchvml_token_new_vcm(node);
         RETURN_AND_SWITCH_TO(TKZ_STATE_DATA);
@@ -1932,6 +1937,9 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     struct pcvcm_node *node = NULL;
     if (tkz_buffer_is_whitespace(parser->temp_buffer)) {
         node = TEMP_BUFFER_TO_VCM_NODE();
+        if (node) {
+            node->position = 0;
+        }
     }
     else {
         STOP_RECORD_UCS();
@@ -2009,6 +2017,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
     struct pcvcm_node *node = NULL;
     if (tkz_buffer_is_empty(parser->temp_buffer)) {
         node = pcvcm_node_new_string("");
+        node->position = 0;
     }
     else {
         STOP_RECORD_UCS();
@@ -2018,6 +2027,8 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         RESET_TEMP_UCS();
     }
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
+        pchvml_token_set_quote(parser->token, '\"');
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
         RESET_TEMP_BUFFER();
@@ -2062,6 +2073,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
     }
+    pchvml_token_set_quote(parser->token, '\'');
     APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
     END_TOKEN_ATTR();
     RESET_TEMP_BUFFER();
@@ -2078,6 +2090,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_unquoted_attr_finished);
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_NONE;
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
@@ -2096,6 +2109,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_backquote_attr_finished);
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_BACKQUOTE;
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
@@ -2216,6 +2230,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 struct pchvml_token* token = pchvml_token_new_vcm(node);
 
                 RESET_STRING_BUFFER();
@@ -2227,6 +2242,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 struct pchvml_token* next_token = pchvml_token_new_vcm(node);
                 pchvml_token_set_is_whitespace(next_token, true);
                 pchvml_token_set_first_uc(next_token, &multi_token_first_uc);
@@ -2240,6 +2256,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 RESET_TEMP_BUFFER();
                 parser->token = pchvml_token_new_vcm(node);
                 parser->nr_whitespace = 0;

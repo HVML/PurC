@@ -222,6 +222,13 @@ void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
     }
 }
 
+void pchvml_token_set_quote(struct pchvml_token* token, uint32_t quote)
+{
+    if (token->curr_attr) {
+        token->curr_attr->quote = quote;
+    }
+}
+
 #define RAW_STRING          "raw"
 #define HVML_RAW_STRING     "hvml:raw"
 
@@ -234,6 +241,12 @@ void pchvml_token_end_attr(struct pchvml_token* token)
     if (token->curr_attr->value) {
         token->curr_attr->vcm = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(token->curr_attr->value));
+        if (token->curr_attr->quote == '\'') {
+            token->curr_attr->vcm->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
+        }
+        else if (token->curr_attr->quote == '"') {
+            token->curr_attr->vcm->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
+        }
     }
 
     if (!token->attr_list) {

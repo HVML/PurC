@@ -1053,6 +1053,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_DOUBLE_QUOTED)
             struct pcvcm_node *node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
             node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             pctree_node_append_child((struct pctree_node*)top->node,
@@ -1772,6 +1773,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_NAME_UNQUOTED)
             top = tkz_stack_push(ETT_STRING);
             top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer));
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_NONE;
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
 
@@ -1795,6 +1797,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_NAME_UNQUOTED)
             struct pcvcm_node *node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            node->quoted_type = PCVCM_NODE_QUOTED_TYPE_NONE;
             node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             pctree_node_append_child((struct pctree_node*)top->node,
@@ -1821,6 +1824,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_NAME_SINGLE_QUOTED)
             top = tkz_stack_push(ETT_STRING);
             top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer));
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
@@ -1859,6 +1863,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_NAME_DOUBLE_QUOTED)
             top = tkz_stack_push(ETT_STRING);
             top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer));
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
@@ -1899,6 +1904,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_NAME_DOUBLE_QUOTED)
             struct pcvcm_node *node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
             node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             pctree_node_append_child((struct pctree_node*)top->node,
@@ -1925,6 +1931,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
             top->node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
             top->node->position = parser->temp_ucs->nr_ucs - nr_buf_chars -1;
             update_tkz_stack(parser);
             RESET_TEMP_BUFFER();
@@ -1947,6 +1954,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
         top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer)
                 );
+        top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
         top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
         update_tkz_stack(parser);
@@ -1988,6 +1996,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED)
             top->node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
@@ -2045,6 +2054,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             struct pcvcm_node *node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
             node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             pctree_node_append_child((struct pctree_node*)top->node,
@@ -2078,6 +2088,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                     struct pcvcm_node *node = pcvcm_node_new_string(
                             tkz_buffer_get_bytes(parser->temp_buffer)
                             );
+                    node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
                     node->position = parser->temp_ucs->nr_ucs -
                         tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
                     pctree_node_append_child((struct pctree_node*)top->node,
@@ -2095,6 +2106,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                     struct pcvcm_node *node = pcvcm_node_new_string(
                             tkz_buffer_get_bytes(parser->temp_buffer)
                             );
+                    node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
                     node->position = parser->temp_ucs->nr_ucs -
                         tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
                     pctree_node_append_child((struct pctree_node*)top->node,
@@ -2108,6 +2120,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                 struct pcvcm_node *node = pcvcm_node_new_string(
                         tkz_buffer_get_bytes(parser->temp_buffer)
                         );
+                node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
                 node->position = parser->temp_ucs->nr_ucs -
                     tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
                 pctree_node_append_child((struct pctree_node*)top->node,
@@ -2137,6 +2150,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_DOUBLE_QUOTED)
         top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer)
                 );
+        top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
         top->node->position = parser->temp_ucs->nr_ucs -
             tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
         update_tkz_stack(parser);
@@ -2212,6 +2226,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
             top->node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
                     );
+            top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
@@ -2264,6 +2279,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
                 top->node = pcvcm_node_new_string(
                         tkz_buffer_get_bytes(parser->temp_buffer)
                         );
+                top->node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
                 top->node->position = parser->temp_ucs->nr_ucs -
                     tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
                 update_tkz_stack(parser);

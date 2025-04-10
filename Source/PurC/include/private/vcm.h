@@ -103,23 +103,31 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NR \
     (PCVCM_NODE_TYPE_LAST - PCVCM_NODE_TYPE_FIRST + 1)
 
+enum pcvcm_node_quoted_type {
+    PCVCM_NODE_QUOTED_TYPE_NONE,
+    PCVCM_NODE_QUOTED_TYPE_SINGLE,
+    PCVCM_NODE_QUOTED_TYPE_DOUBLE,
+    PCVCM_NODE_QUOTED_TYPE_BACKQUOTE,
+};
+
 struct pcvcm_node {
-    struct pctree_node tree_node;
-    enum pcvcm_node_type type;
-    struct tkz_ucs  *ucs;
-    int32_t          position;
-    uint32_t extra;
-    uintptr_t attach;
-    int32_t   idx;
-    int32_t   nr_nodes; /* nr_nodes of the tree */
-    bool is_closed;
+    struct pctree_node          tree_node;
+    enum pcvcm_node_type        type;
+    enum pcvcm_node_quoted_type quoted_type;
+    struct tkz_ucs             *ucs;
+    uintptr_t                   attach;
+    uint32_t                    extra;
+    int32_t                     position;
+    int32_t                     idx;
+    int32_t                     nr_nodes; /* nr_nodes of the tree */
+    bool                        is_closed;
     union {
-        bool        b;
-        double      d;
-        int64_t     i64;
-        uint64_t    u64;
-        long double ld;
-        uintptr_t   sz_ptr[2];
+        bool                    b;
+        double                  d;
+        int64_t                 i64;
+        uint64_t                u64;
+        long double             ld;
+        uintptr_t               sz_ptr[2];
     };
 };
 
