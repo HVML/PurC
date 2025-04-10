@@ -42,13 +42,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<reduce on=getVariable("users") to="update emtpy iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="> h2 > span" textContent=getElement(getVariable("?"), "count")/>
+PCHVML_TOKEN_START_TAG|<update on="> h2 > span" textContent=getMember(getVariable("?"), "count")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<clear on="> dl"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<iterate on=getElement(getVariable("?"), "regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" descendingly>
+PCHVML_TOKEN_START_TAG|<iterate on=getMember(getVariable("?"), "regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" descendingly>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</iterate>

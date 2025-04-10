@@ -60,7 +60,7 @@ PCHVML_TOKEN_START_TAG|<div id="c_value">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<archetype name="button">
-PCHVML_TOKEN_VCM_TREE|concatString("<li class="", getElement(getVariable("?"), "class"), """, ">", getElement(getVariable("?"), "letters"), "</li>
+PCHVML_TOKEN_VCM_TREE|concatString("<li class="", getMember(getVariable("?"), "class"), """, ">", getMember(getVariable("?"), "letters"), "</li>
                 ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

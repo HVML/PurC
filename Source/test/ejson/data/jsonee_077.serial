@@ -1,1 +1,1 @@
-concatString("The cid: ", getElement(getVariable("CRTN"), "cid"), "<")
+concatString("The cid: ", getMember(getVariable("CRTN"), "cid"), "<")

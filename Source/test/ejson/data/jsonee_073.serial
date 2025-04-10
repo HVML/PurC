@@ -1,1 +1,1 @@
-callGetter(getElement(getVariable("MATH"), "eval"), callGetter(getElement(callGetter(getElement(getVariable("DOC"), "query"), "#expression"), "attr"), "value"))
+callGetter(getMember(getVariable("MATH"), "eval"), callGetter(getMember(callGetter(getMember(getVariable("DOC"), "query"), "#expression"), "attr"), "value"))

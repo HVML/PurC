@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<choose on=getElement(getVariable("aaa"), "bbb") to="iterate" end=getElement(getVariable("XXX"), "YYY")>
+PCHVML_TOKEN_START_TAG|<choose on=getMember(getVariable("aaa"), "bbb") to="iterate" end=getMember(getVariable("XXX"), "YYY")>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</choose>

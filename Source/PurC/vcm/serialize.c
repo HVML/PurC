@@ -319,7 +319,7 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-        pcvdom_dump_write(ctxt, "getElement(", 11);
+        pcvdom_dump_write(ctxt, "getMember(", 10);
         write_child_node_rwstream(ctxt, node, handle);
         pcvdom_dump_write(ctxt, ")", 1);
         break;

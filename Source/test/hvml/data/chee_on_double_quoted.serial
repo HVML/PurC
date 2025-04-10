@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"), "base"), concatString("file://", {{ getElement(getVariable("REQ"), "base") || getElement(getVariable("SYS"), "cwd") }})) hvml:silently/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getMember(getVariable("CRTN"), "base"), concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }})) hvml:silently/>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</head>
@@ -16,14 +16,14 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getElement(getVariable("REQ"), "base") || getElement(getVariable("SYS"), "cwd") }}, "/abc.txt")
+PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}, "/abc.txt")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getElement(getVariable("REQ"), "base") || getElement(getVariable("SYS"), "cwd") }}, "/abc.txt
+PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}, "/abc.txt
         ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
@@ -31,7 +31,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("key", concatString({{ getElement(getVariable("REQ"), "base") || getElement(getVariable("SYS"), "cwd") }}))
+PCHVML_TOKEN_VCM_TREE|make_object("key", concatString({{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}))
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
         "

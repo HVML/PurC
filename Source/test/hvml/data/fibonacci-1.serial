@@ -44,7 +44,7 @@ PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<iterate on=1 by=concatString("ADD: LT 2000 BY ", getElement(getVariable("fibonacci"), callGetter(getElement(getVariable("MATH"), "sub"), callGetter(getElement(getVariable("DATA"), "count"), getVariable("fibonacci")), 2)))>
+PCHVML_TOKEN_START_TAG|<iterate on=1 by=concatString("ADD: LT 2000 BY ", getMember(getVariable("fibonacci"), callGetter(getMember(getVariable("MATH"), "sub"), callGetter(getMember(getVariable("DATA"), "count"), getVariable("fibonacci")), 2)))>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<update on=getVariable("fibonacci") to="append" with=getVariable("?")/>
@@ -82,7 +82,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concatString("Totally ", callGetter(getElement(getVariable("DATA"), "count"), getVariable("fibonacci")), " numbers.")
+PCHVML_TOKEN_VCM_TREE|concatString("Totally ", callGetter(getMember(getVariable("DATA"), "count"), getVariable("fibonacci")), " numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "

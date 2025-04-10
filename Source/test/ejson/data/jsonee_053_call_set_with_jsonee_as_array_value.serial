@@ -1,1 +1,1 @@
-callSetter(getElement(getVariable("ABC"), "b"), make_array(getElement(getVariable("V1"), "E"), getElement(getVariable("V2"), "E2"), 3, getVariable("V4")))
+callSetter(getMember(getVariable("ABC"), "b"), make_array(getMember(getVariable("V1"), "E"), getMember(getVariable("V2"), "E2"), 3, getVariable("V4")))

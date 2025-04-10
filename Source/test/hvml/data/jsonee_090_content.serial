@@ -4,21 +4,21 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", getElement(getVariable("SYS"), "time"), " and something. ", getVariable("abc"))
+PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", getMember(getVariable("SYS"), "time"), " and something. ", getVariable("abc"))
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", callGetter(getElement(getVariable("SYS"), "time"), "tm", getVariable("ABC"), make_object("key", 123), make_array(1, 2, 3), make_array(callGetter(getVariable("A"), "xyz"), getElement(getVariable("B"), "b"), getElement(getVariable("C"), "a"))), " this is after function call.
+PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", callGetter(getMember(getVariable("SYS"), "time"), "tm", getVariable("ABC"), make_object("key", 123), make_array(1, 2, 3), make_array(callGetter(getVariable("A"), "xyz"), getMember(getVariable("B"), "b"), getMember(getVariable("C"), "a"))), " this is after function call.
         ")
 PCHVML_TOKEN_START_TAG|<p>
 PCHVML_TOKEN_VCM_TREE|"this is a p."
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concatString("this is after p ", getElement(getVariable("AAA"), "BB"), " after variant.
+PCHVML_TOKEN_VCM_TREE|concatString("this is after p ", getMember(getVariable("AAA"), "BB"), " after variant.
     ")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
@@ -26,7 +26,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", callGetter(getElement(getVariable("SYS"), "time"), "tm", getVariable("ABC"), make_object("key", 123), make_array(1, 2, 3), make_array(callGetter(getVariable("A"), "xyz"), getElement(getVariable("B"), "b"), getElement(getVariable("C"), "a"))), " this is after function call.
+PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", callGetter(getMember(getVariable("SYS"), "time"), "tm", getVariable("ABC"), make_object("key", 123), make_array(1, 2, 3), make_array(callGetter(getVariable("A"), "xyz"), getMember(getVariable("B"), "b"), getMember(getVariable("C"), "a"))), " this is after function call.
     ")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
@@ -34,7 +34,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", getElement(getVariable("SYS"), "time"), "and something. ", getVariable("abc"))
+PCHVML_TOKEN_VCM_TREE|concatString("this is syste.time ", getMember(getVariable("SYS"), "time"), "and something. ", getVariable("abc"))
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -49,12 +49,12 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("VAR"), 1)
+PCHVML_TOKEN_VCM_TREE|getMember(getVariable("VAR"), 1)
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<div>
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("VAR"), 1)
+PCHVML_TOKEN_VCM_TREE|getMember(getVariable("VAR"), 1)
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
 "

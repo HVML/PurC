@@ -36,10 +36,10 @@ PCHVML_TOKEN_END_TAG|</footer>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<choose on=getVariable("locales") to="update" in="#the-footer" by=concatString("KEY: ", getElement(getVariable("global"), "locale"))>
+PCHVML_TOKEN_START_TAG|<choose on=getVariable("locales") to="update" in="#the-footer" by=concatString("KEY: ", getMember(getVariable("global"), "locale"))>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=getElement(getVariable("?"), "se_name") attr.href=getElement(getVariable("?"), "se_url") attr.title=getElement(getVariable("?"), "se_title")/>
+PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=getMember(getVariable("?"), "se_name") attr.href=getMember(getVariable("?"), "se_url") attr.title=getMember(getVariable("?"), "se_title")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for=`NoData`>

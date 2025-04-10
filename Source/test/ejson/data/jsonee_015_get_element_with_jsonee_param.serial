@@ -1,1 +1,1 @@
-getElement(getElement(getVariable("ABC"), "b"), getVariable("C"))
+getMember(getMember(getVariable("ABC"), "b"), getVariable("C"))

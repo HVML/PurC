@@ -1,1 +1,1 @@
-getVariable(concatString("output_", getElement(getVariable("CRTN"), "target")))
+getVariable(concatString("output_", getMember(getVariable("CRTN"), "target")))

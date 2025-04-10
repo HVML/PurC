@@ -29,7 +29,7 @@ PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
 PCHVML_TOKEN_START_TAG|<code>
-PCHVML_TOKEN_VCM_TREE|getElement(getVariable("REQ"), "dir")
+PCHVML_TOKEN_VCM_TREE|getMember(getVariable("REQ"), "dir")
 PCHVML_TOKEN_END_TAG|</code>
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
@@ -41,7 +41,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<section>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<test on=callGetter(getElement(getVariable("FS"), "file_is"), getElement(getVariable("REQ"), "dir"), "dir readable")>
+PCHVML_TOKEN_START_TAG|<test on=callGetter(getMember(getVariable("FS"), "file_is"), getMember(getVariable("REQ"), "dir"), "dir readable")>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
@@ -55,7 +55,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<ol>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("FS"), "opendir"), getElement(getVariable("REQ"), "dir"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getMember(getVariable("FS"), "opendir"), getMember(getVariable("REQ"), "dir"))>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_START_TAG|<except raw>
@@ -65,11 +65,11 @@ PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
 
                             "
-PCHVML_TOKEN_START_TAG|<iterate on=getVariable("?") with=callGetter(getElement(getVariable("FS"), "readdir"), getVariable("0<"))>
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("?") with=callGetter(getMember(getVariable("FS"), "readdir"), getVariable("0<"))>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
 PCHVML_TOKEN_START_TAG|<li>
-PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"), "type"), ": ", getElement(getVariable("?"), "name"))
+PCHVML_TOKEN_VCM_TREE|concatString(getMember(getVariable("?"), "type"), ": ", getMember(getVariable("?"), "name"))
 PCHVML_TOKEN_END_TAG|</li>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -88,7 +88,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
                     "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concatString("Totally ", getElement(getVariable("!"), "count"), " entries.")
+PCHVML_TOKEN_VCM_TREE|concatString("Totally ", getMember(getVariable("!"), "count"), " entries.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -100,7 +100,7 @@ PCHVML_TOKEN_START_TAG|<match>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concatString("Not a directory or directory not readable: ", getElement(getVariable("REQ"), "dir"))
+PCHVML_TOKEN_VCM_TREE|concatString("Not a directory or directory not readable: ", getMember(getVariable("REQ"), "dir"))
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
                 "
