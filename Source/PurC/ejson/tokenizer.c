@@ -867,7 +867,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
             }
             tkz_ucs_move(parser->vcm_node->ucs, parser->temp_ucs);
             tkz_ucs_renumber(parser->vcm_node->ucs);
-            tkz_ucs_dump(parser->vcm_node->ucs);
         }
         *vcm_tree = parser->vcm_node;
         parser->vcm_node = NULL;

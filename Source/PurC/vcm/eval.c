@@ -161,18 +161,173 @@ print_indent(purc_rwstream_t rws, int level, size_t *len_expected)
     return purc_rwstream_write(rws, buff, n);
 }
 
-static char *
-get_jsonee(struct pcvcm_node *node, size_t *len, struct pcvcm_node *err_node,
-        char **err_msg, size_t *nr_err_msg)
+struct build_jsonee_ctxt {
+    struct tkz_uc *data;
+};
+
+static int get_origin_ucs_cb(void *context, size_t idx, struct tkz_uc uc)
 {
-#if 0
-    char *s = NULL;
-    if (node->ucs) {
-        s = tkz_ucs_to_string(node->ucs, len);
+    struct build_jsonee_ctxt *ctxt = (struct build_jsonee_ctxt *)context;
+    ctxt->data[idx] = uc;
+    return 0;
+}
+
+static void
+write_space(purc_rwstream_t rws, size_t count)
+{
+    char buf[count + 1];
+    memset(buf, ' ', count);
+    purc_rwstream_write(rws, buf, count);
+}
+
+static char *
+get_jsonee(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg)
+{
+#if 1
+    if (!node->ucs) {
+        return pcvcm_node_serialize_ex(node, nr_bytes, err_node,
+                err_msg, nr_err_msg);
     }
-    return s ? s : pcvcm_node_serialize(node, len);
+
+    size_t nr_ucs = tkz_ucs_size(node->ucs);
+    struct tkz_uc uc_data[nr_ucs];
+    struct build_jsonee_ctxt ctxt = { uc_data };
+    tkz_ucs_for_each(node->ucs, get_origin_ucs_cb, &ctxt);
+
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+    if (!rws) {
+        if (nr_bytes) {
+            *nr_bytes = 0;
+        }
+        return NULL;
+    }
+
+    purc_rwstream_t err_rws = NULL;
+    if (err_msg) {
+        err_rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+        if (!err_rws) {
+            if (nr_err_msg) {
+                *nr_err_msg = 0;
+            }
+            purc_rwstream_destroy(rws);
+            return NULL;
+        }
+    }
+
+    if (err_node->position == -1) {
+        err_node->position = pcvcm_node_min_position(err_node);
+    }
+    int err_pos = err_node->position;
+    assert(err_position >= 0);
+
+    size_t begin = 0;
+    if (nr_ucs > 3) {
+        if ((uc_data[0].character == '"' &&
+                uc_data[1].character == '"' &&
+                uc_data[2].character == '"') ||
+                (uc_data[0].character == '\'' &&
+                 uc_data[1].character == '\'' &&
+                 uc_data[2].character == '\'') ) {
+            begin += 3;
+            purc_rwstream_write(rws, uc_data[0].utf8_buf, 1);
+            if (err_rws) {
+                if (err_pos > 0) {
+                    write_space(err_rws, 1);
+                }
+                else {
+                    purc_rwstream_write(err_rws, "^", 1);
+                }
+            }
+        }
+    }
+
+    size_t end = nr_ucs;
+    bool write_end_quoted = false;
+    char end_char = 0;
+    if (nr_ucs > 5) {
+        if ((uc_data[end - 1].character == '"' &&
+                uc_data[end - 2].character == '"' &&
+                uc_data[end - 3].character == '"') ||
+                (uc_data[end - 1].character == '\'' &&
+                 uc_data[end - 2].character == '\'' &&
+                 uc_data[end - 3].character == '\'') ) {
+            end_char = uc_data[end - 1].utf8_buf[0];
+            write_end_quoted = true;
+            end = nr_ucs - 3;
+        }
+    }
+
+    for (size_t i = begin; i < end; i++) {
+        struct tkz_uc *uc = &uc_data[i];
+        size_t nr = strlen((char *)uc->utf8_buf);
+        if (uc->character == '\n') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "n", 1);
+            nr = 2;
+        }
+        else if (uc->character == '\r') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "r", 1);
+            nr = 2;
+        }
+        else if (uc->character == '\t') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "t", 1);
+            nr = 2;
+        }
+        else {
+            purc_rwstream_write(rws, uc->utf8_buf, nr);
+        }
+        if (i == (size_t)err_pos) {
+            purc_rwstream_write(err_rws, "^", 1);
+        }
+        else if (i < (size_t)err_pos) {
+            if (nr > 1) {
+                write_space(err_rws, 2);
+            }
+            else {
+                write_space(err_rws, 1);
+            }
+        }
+    }
+
+    if (write_end_quoted) {
+        purc_rwstream_write(rws, &end_char, 1);
+    }
+
+    size_t sz_content = 0;
+    char *buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
+        NULL, true);
+    if (nr_bytes) {
+        *nr_bytes = sz_content;
+    }
+
+    if (err_rws) {
+        size_t sz_err_buf = 0;
+        char *err_buf = (char*)purc_rwstream_get_mem_buffer_ex(err_rws, &sz_err_buf,
+            NULL, true);
+        *err_msg = err_buf;
+        char *end = err_buf + sz_err_buf;
+        while (end > err_buf) {
+            if (!purc_isspace(*(end-1))) {
+                break;
+            }
+            end--;
+        }
+        sz_err_buf = end - err_buf;
+        if (nr_err_msg) {
+            *nr_err_msg = sz_err_buf;
+        }
+        purc_rwstream_destroy(err_rws);
+    }
+
+    purc_rwstream_destroy(rws);
+
+    return buf;
+    //return tkz_ucs_to_string(node->ucs, nr_bytes);
 #else
-    return pcvcm_node_serialize_ex(node, len, err_node, err_msg, nr_err_msg);
+    return pcvcm_node_serialize_ex(node, nr_bytes, err_node, err_msg, nr_err_msg);
 #endif
 }
 
@@ -266,10 +421,13 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     }
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
-    purc_rwstream_write(rws, err_msg, nr_err_msg);
-    purc_rwstream_write(rws, "\n", 1);
     free(s);
-    free(err_msg);
+
+    if (err_msg) {
+        purc_rwstream_write(rws, err_msg, nr_err_msg);
+        purc_rwstream_write(rws, "\n", 1);
+        free(err_msg);
+    }
 
     purc_rwstream_write(rws, "====\n", 5);
 
@@ -282,10 +440,12 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
             &nr_err_msg);
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
-    purc_rwstream_write(rws, err_msg, nr_err_msg);
-    purc_rwstream_write(rws, "\n", 1);
     free(s);
-    free(err_msg);
+    if (err_msg) {
+        purc_rwstream_write(rws, err_msg, nr_err_msg);
+        purc_rwstream_write(rws, "\n", 1);
+        free(err_msg);
+    }
 
     purc_rwstream_write(rws, ">>>>\n", 5);
 

@@ -273,6 +273,8 @@ static inline char *pcvcm_node_serialize(struct pcvcm_node *node,
     return pcvcm_node_serialize_ex(node, nr_bytes, NULL, NULL, NULL);
 }
 
+int pcvcm_node_min_position(struct pcvcm_node *node);
+
 /*
  * Removes root and its children from the tree, freeing any memory allocated.
  */

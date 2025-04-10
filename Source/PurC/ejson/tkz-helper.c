@@ -685,6 +685,18 @@ out:
     return result;
 }
 
+int tkz_ucs_for_each(struct tkz_ucs *ucs, tkz_ucs_for_each_cb cb, void *ctxt)
+{
+    size_t idx = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        if (cb(ctxt, idx++, *p)) {
+            break;
+        }
+    }
+    return 0;
+}
+
 int tkz_ucs_find(struct tkz_ucs *ucs, uint32_t c)
 {
     int result = -1;
