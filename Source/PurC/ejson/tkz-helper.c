@@ -685,6 +685,38 @@ out:
     return result;
 }
 
+int tkz_ucs_find(struct tkz_ucs *ucs, uint32_t c)
+{
+    int result = -1;
+    int idx = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        if (p->character == c) {
+            result = idx;
+            break;
+        }
+        idx++;
+    }
+
+    return result;
+}
+
+int tkz_ucs_find_reverse(struct tkz_ucs *ucs, uint32_t c)
+{
+    int result = -1;
+    int idx = ucs->nr_ucs - 1;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (p->character == c) {
+            result = idx;
+            break;
+        }
+        idx--;
+    }
+
+    return result;
+}
+
 void tkz_ucs_destroy(struct tkz_ucs *ucs)
 {
     if (tkz_ucs_is_empty(ucs)) {

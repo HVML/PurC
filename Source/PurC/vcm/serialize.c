@@ -184,11 +184,33 @@ write_variant_to_rwstream(struct pcvdom_dump_ctxt *ctxt, purc_variant_t v)
     }
 }
 
+static int
+get_min_position(struct pcvcm_node *node)
+{
+    int position = node->position;
+    struct pcvcm_node *child = pcvcm_node_first_child(node);
+    while (child) {
+        int child_position = get_min_position(child);
+        if (position == -1) {
+            position = child_position;
+        }
+        else if (child->position < position) {
+            position = child_position;
+        }
+        child = pcvcm_node_next_child(child);
+    }
+    return position;
+}
+
 void
 pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool ignore_string_quoted)
 {
     UNUSED_PARAM(ignore_string_quoted);
+    if (node->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
+            && node->position == -1) {
+        node->position = get_min_position(node);
+    }
     pcvcm_node_handle handle = pcvcm_node_write_to_rwstream;
     if (node == ctxt->err_node && ctxt->err_rws) {
         purc_rwstream_write(ctxt->err_rws, "^", 1);
@@ -361,6 +383,10 @@ void
 pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         struct pcvcm_node *node, bool ignore_string_quoted)
 {
+    if (node->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
+            && node->position == -1) {
+        node->position = get_min_position(node);
+    }
     pcvcm_node_handle handle = pcvcm_node_serialize_to_rwstream;
     if (node == ctxt->err_node && ctxt->err_rws) {
         purc_rwstream_write(ctxt->err_rws, "^", 1);

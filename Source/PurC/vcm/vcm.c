@@ -88,6 +88,7 @@ pcvcm_node_new(enum pcvcm_node_type type, bool closed)
     }
     node->type = type;
     node->is_closed = closed;
+    node->position = -1;
     node->idx = -1;
     node->nr_nodes = -1;
     return node;

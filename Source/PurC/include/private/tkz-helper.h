@@ -332,6 +332,10 @@ int tkz_ucs_renumber(struct tkz_ucs *ucs);
 
 char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size);
 
+/* return idx */
+int tkz_ucs_find(struct tkz_ucs *ucs, uint32_t c);
+int tkz_ucs_find_reverse(struct tkz_ucs *ucs, uint32_t c);
+
 void tkz_ucs_destroy(struct tkz_ucs *ucs);
 
 
