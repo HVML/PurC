@@ -502,6 +502,7 @@ struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs)
     ret = *uc;
     list_del(&uc->ln);
     tkz_uc_destroy(uc);
+    ucs->nr_ucs--;
 
 out:
     return ret;
@@ -518,6 +519,7 @@ struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs)
     ret = *uc;
     list_del(&uc->ln);
     tkz_uc_destroy(uc);
+    ucs->nr_ucs--;
 
 out:
     return ret;
@@ -532,6 +534,7 @@ int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz)
         }
         list_del(&p->ln);
         tkz_uc_destroy(p);
+        ucs->nr_ucs--;
         sz--;
     }
     return 0;
@@ -545,6 +548,7 @@ int tkz_ucs_trim_tail(struct tkz_ucs *ucs)
         if (purc_isspace(p->character)) {
             list_del(&p->ln);
             tkz_uc_destroy(p);
+            ucs->nr_ucs--;
             count++;
         }
         else {
@@ -565,6 +569,7 @@ int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc)
 
     *p = uc;
     list_add(&p->ln, &ucs->list);
+    ucs->nr_ucs++;
 
     return 0;
 out:
@@ -582,6 +587,7 @@ int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc)
 
     *p = uc;
     list_add_tail(&p->ln, &ucs->list);
+    ucs->nr_ucs++;
 
     return 0;
 out:
@@ -610,6 +616,7 @@ int tkz_ucs_reset(struct tkz_ucs *ucs)
         tkz_uc_destroy(p);
     }
     INIT_LIST_HEAD(&ucs->list);
+    ucs->nr_ucs = 0;
 
 out:
     return 0;
@@ -624,7 +631,30 @@ int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src)
         list_add_tail(&p->ln, &dst->list);
         nr_move++;
     }
+    dst->nr_ucs = src->nr_ucs;
+    src->nr_ucs = 0;
     return nr_move;
+}
+
+size_t tkz_ucs_size(struct tkz_ucs *ucs)
+{
+    return ucs->nr_ucs;
+}
+
+int tkz_ucs_renumber(struct tkz_ucs *ucs)
+{
+    int line = 0;
+    int column = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        p->line = line;
+        p->column = column++;
+        if (p->character == '\n') {
+            line++;
+            column = 0;
+        }
+    }
+    return 0;
 }
 
 char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size)

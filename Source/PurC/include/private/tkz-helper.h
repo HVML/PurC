@@ -56,6 +56,7 @@ struct tkz_uc {
 
 struct tkz_ucs {
     struct list_head list;
+    size_t nr_ucs;
 };
 
 struct tkz_buffer {
@@ -324,6 +325,10 @@ int tkz_ucs_dump(struct tkz_ucs *ucs);
 int tkz_ucs_reset(struct tkz_ucs *ucs);
 
 int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src);
+
+size_t tkz_ucs_size(struct tkz_ucs *ucs);
+
+int tkz_ucs_renumber(struct tkz_ucs *ucs);
 
 char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size);
 
