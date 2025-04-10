@@ -651,8 +651,16 @@ pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
         char *err_buf = (char*)purc_rwstream_get_mem_buffer_ex(err_rws, &sz_err_buf,
             NULL, true);
         *err_msg = err_buf;
+        char *end = err_buf + sz_err_buf;
+        while (end > err_buf) {
+            if (!purc_isspace(*(end-1))) {
+                break;
+            }
+            end--;
+        }
+        sz_err_buf = end - err_buf;
         if (nr_err_msg) {
-            *nr_err_msg = sz_err_buf - 1;
+            *nr_err_msg = sz_err_buf;
         }
     }
 
