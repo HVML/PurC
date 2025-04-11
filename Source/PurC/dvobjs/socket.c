@@ -460,18 +460,17 @@ static struct pcdvobjs_option_to_atom access_users_ckws[] = {
     { "other",     0, 0006 },
 };
 
-void pcdvobjs_socket_ssl_ctx_delete(struct pcdvobjs_socket *socket)
+static void pcdvobjs_socket_ssl_ctx_delete(struct pcdvobjs_socket *socket)
 {
-    assert(socket->ssl_ctx);
-    assert(socket->ssl_refc == 0);
+    if (socket->ssl_ctx) {
+        SSL_CTX_free(socket->ssl_ctx);
+        socket->ssl_ctx = NULL;
 
-    SSL_CTX_free(socket->ssl_ctx);
-    socket->ssl_ctx = NULL;
-
-    if (socket->ssl_shctx_wrapper) {
-        openssl_shctx_destroy(socket->ssl_shctx_wrapper);
-        free(socket->ssl_shctx_wrapper);
-        socket->ssl_shctx_wrapper = NULL;
+        if (socket->ssl_shctx_wrapper) {
+            openssl_shctx_destroy(socket->ssl_shctx_wrapper);
+            free(socket->ssl_shctx_wrapper);
+            socket->ssl_shctx_wrapper = NULL;
+        }
     }
 }
 
@@ -594,7 +593,6 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     }
 
     socket->ssl_ctx = ctx;
-    socket->ssl_refc = 1;
 
 skip:
     purc_clr_error();
@@ -626,7 +624,7 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
     }
 
 #if HAVE(OPENSSL)
-    pcdvobjs_socket_ssl_ctx_release(socket);
+    pcdvobjs_socket_ssl_ctx_delete(socket);
 #endif
 
     if (socket->fd >= 0) {
@@ -635,8 +633,10 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
     }
 }
 
-static void dvobjs_socket_delete(struct pcdvobjs_socket *socket)
+void pcdvobjs_socket_delete(struct pcdvobjs_socket *socket)
 {
+    assert(socket->refc == 0);
+
     dvobjs_socket_close(socket);
 
     if (socket->url) {
@@ -1433,7 +1433,7 @@ on_forget(void *native_entity, const char *event_name,
 static void
 on_release(void *native_entity)
 {
-    dvobjs_socket_delete((struct pcdvobjs_socket *)native_entity);
+    pcdvobjs_socket_release((struct pcdvobjs_socket *)native_entity);
 }
 
 static struct pcdvobjs_socket *
@@ -1718,7 +1718,7 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (nr_args > 3) {
             // initilize SSL_CTX and shared context wrapper here.
             if (create_ssl_ctx(socket, argv[3])) {
-                dvobjs_socket_delete(socket);
+                pcdvobjs_socket_delete(socket);
                 goto error;
             }
         }
@@ -1732,9 +1732,10 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         socket->observed = ret_var;
     }
     else {
-        dvobjs_socket_delete(socket);
+        pcdvobjs_socket_delete(socket);
     }
 
+    socket->refc = 1;
     return ret_var;
 
 error_free_url:
@@ -1991,12 +1992,11 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         socket->observed = ret_var;
     }
     else {
-        dvobjs_socket_delete(socket);
+        pcdvobjs_socket_delete(socket);
+        goto error;
     }
 
     return ret_var;
-
-    return purc_variant_make_boolean(false);
 
 error_free_url:
     pcutils_broken_down_url_delete(url);

@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "stream.h"
+#include "socket.h"
 #include "helper.h"
 
 #include "purc-variant.h"
@@ -273,6 +274,11 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     if (stream->peer_port) {
         free(stream->peer_port);
         stream->peer_port = NULL;
+    }
+
+    if (stream->socket) {
+        pcdvobjs_socket_release(stream->socket);
+        stream->socket = NULL;
     }
 }
 
@@ -3290,7 +3296,7 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
                 NULL);
 
         if (stream)
-            stream->socket = socket;
+            stream->socket = pcdvobjs_socket_acquire(socket);
 
         if (prot && stream) {
             purc_atom_t atom;
