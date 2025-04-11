@@ -2050,7 +2050,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
         // try in system directories.
         static const char *other_tries[] = {
-            "/usr/local/lib/purc-%s/libpurc-dvobj-%s%s",
+            PCA_LIB_INSTALL_DIR "/purc-%s/libpurc-dvobj-%s%s",
             "/usr/lib/purc-%s/libpurc-dvobj-%s%s",
             "/lib/purc-%s/libpurc-dvobj-%s%s",
         };
