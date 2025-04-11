@@ -432,8 +432,14 @@ next_state:                                                             \
             && !pchvml_parser_is_prep_or_adverb_attribute(attr)) {          \
             struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
             struct tkz_uc *p = &uc;                                         \
-            SET_ERR_WITH_UC(                                                \
-                PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT, p);   \
+            if (!is_ascii_alpha(p->character)) {                            \
+                SET_ERR_WITH_UC(                                            \
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);             \
+            }                                                               \
+            else {                                                          \
+                SET_ERR_WITH_UC(                                            \
+                  PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT, p); \
+            }                                                               \
             RETURN_AND_STOP_PARSE();                                        \
         }                                                                   \
     } while (false)
@@ -969,6 +975,16 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_NAME)
     }
     if (is_attribute_value_operator(character)
             && pchvml_parser_is_operation_tag_token(parser->token)) {
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(
+                parser->token);
+        if (attr) {
+            const char *name = pchvml_token_attr_get_name(attr);
+            if (!name) {
+                SET_ERR_WITH_UC(
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, parser->curr_uc);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
         RESET_TEMP_BUFFER();
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(

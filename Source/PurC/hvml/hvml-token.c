@@ -488,7 +488,7 @@ struct pchvml_token_attr* pchvml_token_get_attr(
 
 const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr)
 {
-    return tkz_buffer_get_bytes(attr->name);
+    return attr->name ? tkz_buffer_get_bytes(attr->name) : NULL;
 }
 
 struct pcvcm_node* pchvml_token_attr_get_value_ex(
