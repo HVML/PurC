@@ -1486,21 +1486,21 @@ static void finish_extension(struct pcdvobjs_stream *stream)
                 shutdown_ssl(stream);
             SSL_free(ext->ssl);
             ext->ssl = NULL;
-        }
 
-        if (ext->ssl_shctx_wrapper) {
-            openssl_shctx_detach(ext->ssl_shctx_wrapper);
-            free(ext->ssl_shctx_wrapper);
-            ext->ssl_shctx_wrapper = NULL;
-        }
+            if (ext->ssl_shctx_wrapper) {
+                openssl_shctx_detach(ext->ssl_shctx_wrapper);
+                free(ext->ssl_shctx_wrapper);
+                ext->ssl_shctx_wrapper = NULL;
+            }
 
-        if (ext->ssl_ctx) {
-            SSL_CTX_free(ext->ssl_ctx);
-            ext->ssl_ctx = NULL;
-        }
-        else if (ext->ssl) {
-            /* must be a SSL created from socket's SSL_CTx */
-            pcdvobjs_socket_ssl_ctx_release(stream->socket);
+            if (ext->ssl_ctx) {
+                SSL_CTX_free(ext->ssl_ctx);
+                ext->ssl_ctx = NULL;
+            }
+            else {
+                /* must be a SSL created from socket's SSL_CTx */
+                pcdvobjs_socket_ssl_ctx_release(stream->socket);
+            }
         }
 #endif
 
@@ -3552,6 +3552,7 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
             if (!(ext->ssl = SSL_new(ssl_ctx))) {
                 PC_ERROR("Failed SSL_new(): %s.\n",
                         ERR_error_string(ERR_get_error(), NULL));
+                pcdvobjs_socket_ssl_ctx_release(stream->socket);
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 goto failed;
             }
