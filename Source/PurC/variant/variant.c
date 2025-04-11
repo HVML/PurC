@@ -2009,7 +2009,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
          *
          * 1. the valid directories contains in the environment variable:
          *      PURC_DVOBJS_PATH
-         * 2. /usr/local/lib/purc-<purc-api-version>/
+         * 2. LIB_INSTALL_DIR/purc-<purc-api-version>/
          * 3. /usr/lib/purc-<purc-api-version>/
          * 4. /lib/purc-<purc-api-version>/
          */
