@@ -432,7 +432,22 @@ next_state:                                                             \
             && !pchvml_parser_is_prep_or_adverb_attribute(attr)) {          \
             struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
             struct tkz_uc *p = &uc;                                         \
-            SET_ERR_WITH_UC(PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);   \
+            SET_ERR_WITH_UC(                                                \
+                PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT, p);   \
+            RETURN_AND_STOP_PARSE();                                        \
+        }                                                                   \
+    } while (false)
+
+#define VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE()                               \
+    do {                                                                    \
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(        \
+                parser->token);                                             \
+        if (pchvml_parser_is_verb_tag_token(parser->token) && attr          \
+            && pchvml_token_is_curr_attr_duplicate(parser->token)) {        \
+            struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
+            struct tkz_uc *p = &uc;                                         \
+            SET_ERR_WITH_UC(                                                \
+                PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p);   \
             RETURN_AND_STOP_PARSE();                                        \
         }                                                                   \
     } while (false)
@@ -973,6 +988,7 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
     }
 
     VERIFY_VERB_TAG_ATTR_NAME();
+    VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE();
 
     if (character == '=') {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
@@ -1012,6 +1028,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
     VERIFY_VERB_TAG_ATTR_NAME();
+    VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE();
 
     if (is_whitespace(character)) {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);

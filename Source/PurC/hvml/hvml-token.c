@@ -437,6 +437,30 @@ struct pchvml_token_attr* pchvml_token_get_curr_attr(
     return token->curr_attr;
 }
 
+bool pchvml_token_is_curr_attr_duplicate(
+        struct pchvml_token* token)
+{
+    bool ret = false;
+    struct pchvml_token_attr* curr = token->curr_attr;
+    if (!curr) {
+        goto out;
+    }
+
+    const char* name = pchvml_token_attr_get_name(curr);
+    size_t nr_attrs = pchvml_token_get_attr_size(token);
+    for (size_t i = 0; i < nr_attrs; ++i) {
+        struct pchvml_token_attr* attr = pchvml_token_get_attr(token, i);
+        const char *attr_name = pchvml_token_attr_get_name(attr);
+        if (strcmp(name, attr_name) == 0) {
+            ret = true;
+            break;
+        }
+    }
+
+out:
+    return ret;
+}
+
 bool pchvml_token_is_in_attr(struct pchvml_token* token)
 {
     return token->curr_attr != NULL;

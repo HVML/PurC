@@ -337,3 +337,13 @@ NotExplicitAttributeName
     except: BadHVMLAttrName
     flags: None
     msg: "Not explicit attribute name"
+
+DuplicateAttributeName
+    except: BadHVMLAttrName
+    flags: None
+    msg: "Duplicate attribute name"
+
+UnknownAttributeNameForVerbElement
+    except: BadHVMLAttrName
+    flags: None
+    msg: "Unknown attribute name for verb. element."
