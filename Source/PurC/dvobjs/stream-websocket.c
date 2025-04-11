@@ -1498,6 +1498,10 @@ static void finish_extension(struct pcdvobjs_stream *stream)
             SSL_CTX_free(ext->ssl_ctx);
             ext->ssl_ctx = NULL;
         }
+        else if (ext->ssl) {
+            /* must be a SSL created from socket's SSL_CTx */
+            pcdvobjs_socket_ssl_ctx_release(stream->socket);
+        }
 #endif
 
     }
@@ -3420,35 +3424,6 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
 
             if (ssl_session_cache_id) {
                 /* This is a server-side worker process. */
-
-#if 0
-    const char *ssl_cert = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.crt";
-    const char *ssl_key = "/Users/weiyongming/devel/hvml/purc/Source/test/dvobjs/localhost.key";
-
-    /* set certificate */
-    if (!SSL_CTX_use_certificate_file(ext->ssl_ctx, ssl_cert, SSL_FILETYPE_PEM)) {
-        PC_ERROR("Failed SSL_CTX_use_certificate_file(%s): %s\n",
-                ssl_cert, ERR_error_string(ERR_get_error(), NULL));
-        purc_set_error(PURC_ERROR_TLS_FAILURE);
-        goto failed;
-    }
-
-    /* ssl private key */
-    if (!SSL_CTX_use_PrivateKey_file(ext->ssl_ctx, ssl_key, SSL_FILETYPE_PEM)) {
-        PC_ERROR("Failed SSL_CTX_use_PrivateKey_file(%s): %s\n",
-                ssl_key, ERR_error_string(ERR_get_error(), NULL));
-        purc_set_error(PURC_ERROR_TLS_FAILURE);
-        goto failed;
-    }
-
-    if (!SSL_CTX_check_private_key(ext->ssl_ctx)) {
-        PC_ERROR("Failed SSL_CTX_check_private_key(): %s\n",
-                ERR_error_string(ERR_get_error(), NULL));
-        purc_set_error(PURC_ERROR_TLS_FAILURE);
-        goto failed;
-    }
-#endif
-
                 SSL_CTX_set_mode(ext->ssl_ctx,
                         SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER |
                         SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -3573,7 +3548,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         ext->role = WS_ROLE_SERVER;
 #if HAVE(OPENSSL)
         if (stream->socket->ssl_ctx) {
-            if (!(ext->ssl = SSL_new(stream->socket->ssl_ctx))) {
+            SSL_CTX *ssl_ctx = pcdvobjs_socket_ssl_ctx_acquire(stream->socket);
+            if (!(ext->ssl = SSL_new(ssl_ctx))) {
                 PC_ERROR("Failed SSL_new(): %s.\n",
                         ERR_error_string(ERR_get_error(), NULL));
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

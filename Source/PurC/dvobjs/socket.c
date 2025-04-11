@@ -23,6 +23,7 @@
  */
 
 #define _GNU_SOURCE
+#undef NDEBUG
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
@@ -459,6 +460,21 @@ static struct pcdvobjs_option_to_atom access_users_ckws[] = {
     { "other",     0, 0006 },
 };
 
+void pcdvobjs_socket_ssl_ctx_delete(struct pcdvobjs_socket *socket)
+{
+    assert(socket->ssl_ctx);
+    assert(socket->ssl_refc == 0);
+
+    SSL_CTX_free(socket->ssl_ctx);
+    socket->ssl_ctx = NULL;
+
+    if (socket->ssl_shctx_wrapper) {
+        openssl_shctx_destroy(socket->ssl_shctx_wrapper);
+        free(socket->ssl_shctx_wrapper);
+        socket->ssl_shctx_wrapper = NULL;
+    }
+}
+
 static int
 create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
 {
@@ -578,6 +594,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     }
 
     socket->ssl_ctx = ctx;
+    socket->ssl_refc = 1;
 
 skip:
     purc_clr_error();
@@ -598,20 +615,6 @@ opt_failed:
     return -1;
 }
 
-static void
-destroy_ssl_ctx(struct pcdvobjs_socket *socket)
-{
-    if (socket->ssl_ctx) {
-        SSL_CTX_free(socket->ssl_ctx);
-        socket->ssl_ctx = NULL;
-    }
-
-    if (socket->ssl_shctx_wrapper) {
-        openssl_shctx_destroy(socket->ssl_shctx_wrapper);
-        free(socket->ssl_shctx_wrapper);
-        socket->ssl_shctx_wrapper = NULL;
-    }
-}
 #endif  // HAVE(OPENSSL)
 
 static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
@@ -623,9 +626,7 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
     }
 
 #if HAVE(OPENSSL)
-    if (socket->ssl_ctx) {
-        destroy_ssl_ctx(socket);
-    }
+    pcdvobjs_socket_ssl_ctx_release(socket);
 #endif
 
     if (socket->fd >= 0) {

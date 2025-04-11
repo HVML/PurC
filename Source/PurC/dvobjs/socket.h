@@ -59,21 +59,45 @@ struct pcdvobjs_socket;
 
 typedef struct pcdvobjs_socket {
     enum pcdvobjs_socket_type   type;
+#if HAVE(OPENSSL)
+    unsigned                        ssl_refc;
+    SSL_CTX                        *ssl_ctx;
+    struct openssl_shctx_wrapper   *ssl_shctx_wrapper;
+#endif
+
     struct purc_broken_down_url *url;
     purc_variant_t              observed;    /* not inc ref */
     uintptr_t                   monitor;
 
     int                         fd;
     purc_atom_t                 cid;
-
-#if HAVE(OPENSSL)
-    SSL_CTX                        *ssl_ctx;
-    struct openssl_shctx_wrapper   *ssl_shctx_wrapper;
-#endif
-
 } pcdvobjs_socket;
 
 PCA_EXTERN_C_BEGIN
+
+#if HAVE(OPENSSL)
+void pcdvobjs_socket_ssl_ctx_delete(struct pcdvobjs_socket *socket);
+
+static inline SSL_CTX *
+pcdvobjs_socket_ssl_ctx_acquire(struct pcdvobjs_socket *socket) {
+    if (socket->ssl_ctx) {
+        socket->ssl_refc++;
+    }
+
+    return socket->ssl_ctx;
+}
+
+static inline void
+pcdvobjs_socket_ssl_ctx_release(struct pcdvobjs_socket *socket) {
+    if (socket->ssl_ctx) {
+        socket->ssl_refc--;
+        if (socket->ssl_refc == 0) {
+            pcdvobjs_socket_ssl_ctx_delete(socket);
+        }
+    }
+}
+
+#endif
 
 PCA_EXTERN_C_END
 
