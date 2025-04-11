@@ -1387,6 +1387,10 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
                         purc_atom_to_string(term_info->except));
             }
 
+            if (term_info->exinfo) {
+                fprintf(stderr, "%s\n", purc_variant_get_string_const(term_info->exinfo));
+            }
+
             fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");

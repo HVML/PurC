@@ -377,6 +377,8 @@ load_vdom(purc_rwstream_t rws)
     return purc_load_hvml_from_rwstream(rws);
 }
 
+#define ERR_TITLE "Failed to parse HVML from "
+
 static int
 fetch_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
@@ -418,18 +420,30 @@ fetch_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     if (!vdom) {
         int err = purc_get_last_error();
         if (err) {
-            PC_ERROR("Failed to parse HVML from %s\n", ctxt->from_uri);
-            fprintf(stderr, "Failed to parse HVML from %s\n", ctxt->from_uri);
+            purc_rwstream_t ext_rws = purc_rwstream_new_buffer(1024, 0);
+            purc_rwstream_write(ext_rws, ERR_TITLE, strlen(ERR_TITLE));
+            purc_rwstream_write(ext_rws, ctxt->from_uri, strlen(ctxt->from_uri));
+            purc_rwstream_write(ext_rws, "\n", 1);
+
             purc_variant_t ext = purc_get_last_error_ex();
             if (ext) {
                 const char *err_msg = purc_variant_get_string_const(ext);
-                PC_ERROR("%s\n", err_msg);
-                fprintf(stderr, "%s\n", err_msg);
+                purc_rwstream_write(ext_rws, err_msg, strlen(err_msg));
             }
+
+            size_t sz_content, sz_buff;
+            bool res_buff = true;
+            char *p = (char*)purc_rwstream_get_mem_buffer_ex(ext_rws,
+                    &sz_content, &sz_buff, res_buff);
+            purc_rwstream_destroy(ext_rws);
+            purc_variant_t ext_info = purc_variant_make_string_reuse_buff(p,
+                    sz_content, false);
+
+            purc_set_error_exinfo(err, ext_info);
         }
         else {
             purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
-                    "load vdom from on/from failed");
+                    "Failed to parse HVML from %s", ctxt->from_uri);
         }
 
         frame->next_step = NEXT_STEP_ON_POPPING;

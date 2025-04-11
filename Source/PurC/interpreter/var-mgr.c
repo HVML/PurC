@@ -49,6 +49,8 @@
 #define KEY_NAME                "name"
 #define KEY_MGR                 "mgr"
 
+#define ERROR_NOT_FOUND_FORMAT  "EntityNotFound: `%s`"
+
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
@@ -328,7 +330,7 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -386,7 +388,7 @@ again:
     if (elem)
         goto again;
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -409,7 +411,7 @@ _find_named_scope_var(purc_coroutine_t cor,
 
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
-        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -461,7 +463,7 @@ find_parent_vdom:
     goto again;
 
 out:
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -484,7 +486,7 @@ _find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -493,7 +495,7 @@ find_cor_level_var(purc_coroutine_t cor, const char* name)
 {
     PC_ASSERT(name);
     if (!cor) {
-        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -501,7 +503,7 @@ find_cor_level_var(purc_coroutine_t cor, const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -521,7 +523,7 @@ purc_get_runner_variable(const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -607,7 +609,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -807,7 +809,7 @@ pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
     if (_unbind_cor_level_var(stack->co, name)) {
         return PURC_ERROR_OK;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PCVRNT_ERROR_NOT_FOUND;
 }
 
