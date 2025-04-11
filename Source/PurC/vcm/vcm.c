@@ -148,6 +148,7 @@ pcvcm_node_new_string(const char *str_utf8)
     memcpy(buf, str_utf8, nr_bytes);
     buf[nr_bytes] = 0;
 
+    n->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
     n->sz_ptr[0] = nr_bytes;
     n->sz_ptr[1] = (uintptr_t)buf;
 

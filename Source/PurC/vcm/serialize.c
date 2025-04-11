@@ -419,20 +419,39 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
     {
         char *buf = (char*)node->sz_ptr[1];
         size_t nr_buf = node->sz_ptr[0];
+        char quoted_char = 0;
+        switch (node->quoted_type)
+        {
+        case PCVCM_NODE_QUOTED_TYPE_NONE:
+            quoted_char = 0;
+            break;
+
+        case PCVCM_NODE_QUOTED_TYPE_SINGLE:
+            quoted_char = '\'';
+            break;
+        case PCVCM_NODE_QUOTED_TYPE_DOUBLE:
+            quoted_char = '"';
+            break;
+        case PCVCM_NODE_QUOTED_TYPE_BACKQUOTE:
+            quoted_char = '`';
+            break;
+        }
+
         char c[4] = {0};
-        c[0] = '"';
-        if (strchr(buf, '"')) {
-            c[0] = '\'';
-        }
+        c[0] = quoted_char;
         if (!ctxt->oneline && strchr(buf, '\n')) {
-            c[0] = '"';
-            c[1] = '"';
-            c[2] = '"';
+            c[0] = quoted_char;
+            c[1] = quoted_char;
+            c[2] = quoted_char;
         }
-        if (!ignore_string_quoted) {
+        if (!ignore_string_quoted && quoted_char) {
             pcvdom_dump_write(ctxt, &c, strlen(c));
         }
         for (size_t i = 0; i < nr_buf; i++) {
+            if (!ignore_string_quoted && quoted_char && buf[i] == quoted_char &&
+                    !(i > 0 && buf[i - 1] != '\\') ) {
+                pcvdom_dump_write(ctxt, "\\", 1);
+            }
             if (buf[i] == '\\') {
                 pcvdom_dump_write(ctxt, "\\", 1);
             }
@@ -455,7 +474,7 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
             }
             pcvdom_dump_write(ctxt, buf + i, 1);
         }
-        if (!ignore_string_quoted) {
+        if (!ignore_string_quoted && quoted_char) {
             pcvdom_dump_write(ctxt, &c, strlen(c));
         }
         break;
