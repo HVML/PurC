@@ -35,7 +35,7 @@
         </button>
 
         <observe on="$entries" for="selected-item-changed">
-            <update on="$fileInfo" key.selected_type="$?.type" key.selected_name="$?.name" />
+            <update on="$fileInfo" at="$?.type" with="$?.name" />
         </observe>
 
         <observe on="$open" for="click">
@@ -47,8 +47,8 @@
 
                     <empty on="#entries" />
                     <call on="$fillDirEntries" with="$new_path" />
-                    <update on="$fileInfo" key.curr_path="$new_path" />
-                    <update on="#path" textContent="$new_path" />
+                    <update on="$fileInfo" with="$new_path" />
+                    <update on="#path" with="$new_path" />
                 </match>
                 <match for="file" exclusively>
                     <back to="_caller" with="$fileInfo" />

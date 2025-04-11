@@ -51,7 +51,7 @@
 
             <reduce on="$users" to="choose clear iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
                 <choose on="$?" to="update" in="> h2 > span" by="KEY: 'count'">
-                    <update on="$@" textContent="$?" />
+                    <update on="$@" with="$?" />
                 </choose>
                 <clear in="#the-user-statistics > dl" />
                 <iterate on="$?.regions" to="append" in="> dl" with="#region-to-users" by="KEY: ALL" ascendingly>

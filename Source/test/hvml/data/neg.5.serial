@@ -127,7 +127,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<choose on=getVariable("?") to="update" in="> h2 > span" by="KEY: 'count'">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on=getVariable("@") textContent=getVariable("?")/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("@") at=getVariable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</choose>

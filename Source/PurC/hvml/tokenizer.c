@@ -424,6 +424,18 @@ next_state:                                                             \
         tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
+#define VERIFY_VERB_TAG_ATTR_NAME()                                         \
+    do {                                                                    \
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(        \
+                parser->token);                                             \
+        if (pchvml_parser_is_verb_tag_token(parser->token) && attr          \
+            && !pchvml_parser_is_prep_or_adverb_attribute(attr)) {          \
+            struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
+            struct tkz_uc *p = &uc;                                         \
+            SET_ERR_WITH_UC(PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);   \
+            RETURN_AND_STOP_PARSE();                                        \
+        }                                                                   \
+    } while (false)
 
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
@@ -457,6 +469,18 @@ bool pchvml_parser_is_operation_tag(const char* name)
             strlen(name));
     return (entry &&
             (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_verb_tag(const char* name)
+{
+    if (!name) {
+        return false;
+    }
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry &&
+            (entry->cats & PCHVML_TAGCAT_VERB));
 }
 
 static UNUSED_FUNCTION
@@ -516,6 +540,13 @@ bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 {
     const char* name = pchvml_token_get_name(token);
     return pchvml_parser_is_operation_tag(name);
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_verb_tag_token (struct pchvml_token* token)
+{
+    const char* name = pchvml_token_get_name(token);
+    return pchvml_parser_is_verb_tag(name);
 }
 
 static UNUSED_FUNCTION
@@ -940,6 +971,9 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
     if (is_whitespace(character)) {
         ADVANCE_TO(TKZ_STATE_AFTER_ATTRIBUTE_NAME);
     }
+
+    VERIFY_VERB_TAG_ATTR_NAME();
+
     if (character == '=') {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
@@ -966,15 +1000,6 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
         RECONSUME_IN(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
 
-    if (pchvml_parser_is_operation_tag_token(parser->token)
-        && !pchvml_parser_is_prep_or_adverb_attribute(
-                pchvml_token_get_curr_attr(parser->token))) {
-        struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);
-        struct tkz_uc *p = &uc;
-        SET_ERR_WITH_UC(PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);
-        RETURN_AND_STOP_PARSE();
-    }
-
     if (character == '/') {
         END_TOKEN_ATTR();
         RESET_TEMP_BUFFER();
@@ -986,6 +1011,8 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
+    VERIFY_VERB_TAG_ATTR_NAME();
+
     if (is_whitespace(character)) {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }

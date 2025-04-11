@@ -1,6 +1,6 @@
 <hvml>
     <body>
-        <choose on="$aaa.bbb" to="iterate" end="$XXX.YYY">
+        <choose on="$aaa.bbb" to="iterate" at="$XXX.YYY">
         </choose>
     </body>
 </hvml>

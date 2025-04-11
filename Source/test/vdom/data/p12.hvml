@@ -3,7 +3,7 @@
     <body>
         <reduce on="$?" to="choose clear iterate" in="#the-user-statistics" by="class: RUserRegionStats">
             <choose on="$?.count" to="update" in="> h2 > span">
-                <update on="$@" textContent="$?" />
+                <update on="$@" with="$?" />
             </choose>
             <clear in="#the-user-statistics > dl" />
             <iterate on="$?.regions" to="append" in="> dl" with="#region-to-users" by="class: IUserRegions">
