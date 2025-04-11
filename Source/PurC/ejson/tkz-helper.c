@@ -1263,7 +1263,6 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
         goto out;
     }
 
-
     info->character = uc->character;
 
     /* line,column,position starts at 0 */
@@ -1273,10 +1272,11 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
     info->error = error;
 
     if (extra) {
-        info->extra = strdup(extra);
-        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s:%s",
-                error, type, info->line, info->column,
-                purc_get_error_message(error), extra);
+        const char *err_msg = purc_get_error_message(error);
+        /* type: err_msg */
+        size_t nr = strlen(type) + strlen(err_msg) + strlen(extra) + 5;
+        info->extra = malloc(nr);
+        sprintf(info->extra, "%s: %s: %s", type, err_msg, extra);
     }
     else {
         const char *err_msg = purc_get_error_message(error);
@@ -1284,9 +1284,6 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
         size_t nr = strlen(type) + strlen(err_msg) + 3;
         info->extra = malloc(nr);
         sprintf(info->extra, "%s: %s", type, err_msg);
-        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s",
-                error, type, info->line, info->column,
-                purc_get_error_message(error));
     }
 
     if (reader->lc) {
@@ -1346,6 +1343,28 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
     }
     purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
             free_error_info);
+
+    purc_rwstream_t ext_rws = purc_rwstream_new_buffer(1024, 0);
+    purc_rwstream_write(ext_rws, info->extra, strlen(info->extra));
+    purc_rwstream_write(ext_rws, "\n", 1);
+    char tmp_buf[1024] = {0};
+    sprintf(tmp_buf, "Position: %d,%d\n", info->line, info->column);
+    purc_rwstream_write(ext_rws, tmp_buf, strlen(tmp_buf));
+    if (info->code_snippets) {
+        purc_rwstream_write(ext_rws, info->code_snippets,
+                strlen(info->code_snippets));
+    }
+
+    size_t sz_content, sz_buff;
+    bool res_buff = true;
+    char *p = (char*)purc_rwstream_get_mem_buffer_ex(ext_rws,
+            &sz_content, &sz_buff, res_buff);
+    purc_rwstream_destroy(ext_rws);
+    purc_variant_t ext_info = purc_variant_make_string_reuse_buff(p,
+            sz_content, false);
+
+    purc_set_error_exinfo(error, ext_info);
+
 out:
     return 0;
 }

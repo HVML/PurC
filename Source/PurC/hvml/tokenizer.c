@@ -89,7 +89,7 @@
             PARSER_ERROR_TYPE, NULL);                                       \
 } while (0)
 
-#define SET_ERR_WITH_UC(err, uc)    do {                                    \
+#define SET_ERR_WITH_UC(err, uc, extra)    do {                             \
     if (uc) {                                                               \
         char buf[ERROR_BUF_SIZE+1];                                         \
         snprintf(buf, ERROR_BUF_SIZE,                                       \
@@ -102,7 +102,7 @@
         }                                                                   \
     }                                                                       \
     tkz_set_error_info(parser->reader, uc, err,                             \
-            PARSER_ERROR_TYPE, NULL);                                       \
+            PARSER_ERROR_TYPE, extra);                                      \
 } while (0)
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
@@ -434,11 +434,12 @@ next_state:                                                             \
             struct tkz_uc *p = &uc;                                         \
             if (!is_ascii_alpha(p->character)) {                            \
                 SET_ERR_WITH_UC(                                            \
-                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);             \
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p, NULL);       \
             }                                                               \
             else {                                                          \
                 SET_ERR_WITH_UC(                                            \
-                  PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT, p); \
+                    PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT,   \
+                    p, NULL);                                               \
             }                                                               \
             RETURN_AND_STOP_PARSE();                                        \
         }                                                                   \
@@ -452,8 +453,17 @@ next_state:                                                             \
             && pchvml_token_is_curr_attr_duplicate(parser->token)) {        \
             struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
             struct tkz_uc *p = &uc;                                         \
-            SET_ERR_WITH_UC(                                                \
-                PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p);   \
+            const char *name = pchvml_token_attr_get_name(attr);            \
+            if (name) {                                                     \
+                char extra[PURC_LEN_PROPERTY_NAME * 2] = {0};               \
+                sprintf(extra, "`%s`.", name);                              \
+                SET_ERR_WITH_UC(                                            \
+                    PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p, extra);       \
+            }                                                               \
+            else {                                                          \
+                SET_ERR_WITH_UC(                                            \
+                    PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p, NULL);        \
+            }                                                               \
             RETURN_AND_STOP_PARSE();                                        \
         }                                                                   \
     } while (false)
@@ -981,7 +991,8 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_NAME)
             const char *name = pchvml_token_attr_get_name(attr);
             if (!name) {
                 SET_ERR_WITH_UC(
-                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, parser->curr_uc);
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, parser->curr_uc,
+                  NULL);
                 RETURN_AND_STOP_PARSE();
             }
         }
