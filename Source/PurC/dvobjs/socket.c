@@ -1730,12 +1730,13 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (ret_var) {
         socket->url = url;
         socket->observed = ret_var;
+        socket->refc = 1;
     }
     else {
         pcdvobjs_socket_delete(socket);
+        goto error_free_url;
     }
 
-    socket->refc = 1;
     return ret_var;
 
 error_free_url:
@@ -1990,10 +1991,11 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (ret_var) {
         socket->url = url;
         socket->observed = ret_var;
+        socket->refc = 1;
     }
     else {
         pcdvobjs_socket_delete(socket);
-        goto error;
+        goto error_free_url;
     }
 
     return ret_var;
