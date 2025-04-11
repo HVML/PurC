@@ -416,9 +416,23 @@ fetch_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 
     purc_vdom_t vdom = load_vdom(ctxt->resp);
     if (!vdom) {
+        int err = purc_get_last_error();
+        if (err) {
+            PC_ERROR("Failed to parse HVML from %s\n", ctxt->from_uri);
+            fprintf(stderr, "Failed to parse HVML from %s\n", ctxt->from_uri);
+            purc_variant_t ext = purc_get_last_error_ex();
+            if (ext) {
+                const char *err_msg = purc_variant_get_string_const(ext);
+                PC_ERROR("%s\n", err_msg);
+                fprintf(stderr, "%s\n", err_msg);
+            }
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
+                    "load vdom from on/from failed");
+        }
+
         frame->next_step = NEXT_STEP_ON_POPPING;
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
-                "load vdom from on/from failed");
         goto out;
     }
 
