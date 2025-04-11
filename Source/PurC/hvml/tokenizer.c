@@ -89,6 +89,22 @@
             PARSER_ERROR_TYPE, NULL);                                       \
 } while (0)
 
+#define SET_ERR_WITH_UC(err, uc)    do {                                    \
+    if (uc) {                                                               \
+        char buf[ERROR_BUF_SIZE+1];                                         \
+        snprintf(buf, ERROR_BUF_SIZE,                                       \
+                "line=%d, column=%d, character=%c",                         \
+                uc->line,                                                   \
+                uc->column,                                                 \
+                uc->character);                                             \
+        if (parser->enable_log) {                                           \
+            PLOG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);          \
+        }                                                                   \
+    }                                                                       \
+    tkz_set_error_info(parser->reader, uc, err,                             \
+            PARSER_ERROR_TYPE, NULL);                                       \
+} while (0)
+
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser)    \
 {                                                                       \
@@ -529,6 +545,18 @@ bool pchvml_parser_is_preposition_attribute (
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_prep_or_adverb_attribute (
+        struct pchvml_token_attr* attr)
+{
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && (entry->type == PCHVML_ATTR_TYPE_PREP ||
+                entry->type == PCHVML_ATTR_TYPE_ADVERB));
+}
+
+
+static UNUSED_FUNCTION
 bool pchvml_parser_is_template_tag (const char* name)
 {
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
@@ -874,6 +902,7 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_NAME)
         RETURN_AND_STOP_PARSE();
     }
     BEGIN_TOKEN_ATTR();
+    RESET_TEMP_UCS();
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
 
@@ -902,6 +931,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_NAME)
     if (character == '/') {
         RECONSUME_IN(TKZ_STATE_AFTER_ATTRIBUTE_NAME);
     }
+    APPEND_TO_TEMP_UCS(*parser->curr_uc);
     APPEND_TO_TOKEN_ATTR_NAME(character);
     ADVANCE_TO(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
@@ -929,11 +959,22 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
         TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME
         );
     }
+
     if (pchvml_parser_is_operation_tag_token(parser->token)
         && pchvml_parser_is_preposition_attribute(
                 pchvml_token_get_curr_attr(parser->token))) {
         RECONSUME_IN(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
+
+    if (pchvml_parser_is_operation_tag_token(parser->token)
+        && !pchvml_parser_is_prep_or_adverb_attribute(
+                pchvml_token_get_curr_attr(parser->token))) {
+        struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);
+        struct tkz_uc *p = &uc;
+        SET_ERR_WITH_UC(PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p);
+        RETURN_AND_STOP_PARSE();
+    }
+
     if (character == '/') {
         END_TOKEN_ATTR();
         RESET_TEMP_BUFFER();

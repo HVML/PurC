@@ -333,3 +333,7 @@ UnexpectedUnescapedControlCharacter
     flags: None
     msg: "Unexpected unescaped control character"
 
+NotExplicitAttributeName
+    except: BadHVMLAttrName
+    flags: None
+    msg: "Not explicit attribute name"
