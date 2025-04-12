@@ -1633,6 +1633,11 @@ displace_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
             return -1;
         }
 
+        /* The new value is the same as the original value */
+        if (origin == s) {
+            return 0;
+        }
+
         r = pcintr_util_set_attribute(stack->doc, target,
                 PCDOC_OP_DISPLACE, pos, s, sz, true, is_no_return());
         purc_variant_unref(v);

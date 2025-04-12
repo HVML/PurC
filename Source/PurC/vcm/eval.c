@@ -219,7 +219,7 @@ get_jsonee(struct pcvcm_node *node, size_t *nr_bytes,
         err_node->position = pcvcm_node_min_position(err_node);
     }
     int err_pos = err_node->position;
-    assert(err_position >= 0);
+    assert(err_pos >= 0);
 
     size_t begin = 0;
     if (nr_ucs > 3) {
