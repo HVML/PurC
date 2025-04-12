@@ -456,7 +456,7 @@ next_state:                                                             \
             const char *name = pchvml_token_attr_get_name(attr);            \
             if (name) {                                                     \
                 char extra[PURC_LEN_PROPERTY_NAME * 2] = {0};               \
-                sprintf(extra, "`%s`.", name);                              \
+                snprintf(extra, sizeof(extra), "`%s`.", name);              \
                 SET_ERR_WITH_UC(                                            \
                     PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p, extra);       \
             }                                                               \
