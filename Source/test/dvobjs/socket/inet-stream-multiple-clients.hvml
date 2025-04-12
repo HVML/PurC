@@ -56,7 +56,7 @@
                                     $STREAM.stdout.writelines("Server got: $client")
                                 </inherit>
 
-                                <update on $got at ".$client" with $?[0] } />
+                                <update on $got at ".$client" with $?[0] />
 
                                 <!-- echo -->
                                 <choose on $_observedOn.writelines($?) >

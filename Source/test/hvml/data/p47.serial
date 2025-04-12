@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<bind as="me">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("id",concatString(getElement(getVariable("currUser"),"id")),"avatar",concatString("/img/avatars/",getElement(getElement(getVariable("currUser"),"id"),"png")),"name",concatString(getElement(getVariable("currUser"),"name")),"region",concatString(getElement(getVariable("currUser"),"locale")))
+PCHVML_TOKEN_VCM_TREE|make_object("id", concatString(getMember(getVariable("currUser"), "id")), "avatar", concatString("/img/avatars/", getMember(getMember(getVariable("currUser"), "id"), "png")), "name", concatString(getMember(getVariable("currUser"), "name")), "region", concatString(getMember(getVariable("currUser"), "locale")))
 PCHVML_TOKEN_END_TAG|</bind>
 PCHVML_TOKEN_VCM_TREE|"
 

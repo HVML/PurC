@@ -54,7 +54,7 @@
         </init>
 
         <define as 'sendDatagram' >
-            <init as 'dgramSocket' with $SOCKET.dgram('inet://localhost:$?.port', 'default') >
+            <init as 'dgramSocket' with $SOCKET.dgram("inet://localhost:$?.port", 'default') >
                 <catch for `ANY`>
                     <return with "Client $2?.port failed with $?.name when calling SOCKET.dgram()" />
                 </catch>

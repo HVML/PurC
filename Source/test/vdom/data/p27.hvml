@@ -8,7 +8,7 @@
         </div>
 
         <reduce on="$users" to="update emtpy iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
-            <update on="> h2 > span" textContent="$?.count" />
+            <update on="> h2 > span" with="$?.count" />
             <clear on="> dl" />
             <iterate on="$?.regions" to="append" in="> dl" with="#region-to-users" by="KEY: ALL" descendingly>
             </iterate>

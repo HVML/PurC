@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"base"),concatString("file://",{{ getElement(getVariable("REQ"),"base") || getElement(getVariable("SYS"),"cwd") }})) hvml:silently/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getMember(getVariable("CRTN"), "base"), concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }})) hvml:silently/>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</head>
@@ -16,14 +16,14 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|concatString("file://",{{ getElement(getVariable("REQ"),"base") || getElement(getVariable("SYS"),"cwd") }},"/abc.txt")
+PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}, "/abc.txt")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|concatString("file://",{{ getElement(getVariable("REQ"),"base") || getElement(getVariable("SYS"),"cwd") }},"/abc.txt
+PCHVML_TOKEN_VCM_TREE|concatString("file://", {{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}, "/abc.txt
         ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
@@ -31,21 +31,21 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("key",concatString({{ getElement(getVariable("REQ"),"base") || getElement(getVariable("SYS"),"cwd") }}))
+PCHVML_TOKEN_VCM_TREE|make_object("key", concatString({{ getMember(getVariable("REQ"), "base") || getMember(getVariable("SYS"), "cwd") }}))
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init as="b">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("packetType","auth","protocolName","HBDBUS","protocolVersion",200,"hostName","localhost","appName","cn.fmsoft.hybridos.inetd","runnerName","main","signature","RFVNQg==","encodedIn","base64")
+PCHVML_TOKEN_VCM_TREE|make_object("packetType", "auth", "protocolName", "HBDBUS", "protocolVersion", 200, "hostName", "localhost", "appName", "cn.fmsoft.hybridos.inetd", "runnerName", "main", "signature", "RFVNQg==", "encodedIn", "base64")
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init as="c">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("packetType","call","callId","CALLXXXX-0000000067DF79CA-0000000024EA133F-0000000000000000","toEndpoint","edpt://localhost/cn.fmsoft.hybridos.databus/builtin","toMethod","registerProcedure","expectedTime",5,"parameter","{"methodName": "terminate","forHost": "localhost","forApp": "cn.fmsoft.hybridos.*"}")
+PCHVML_TOKEN_VCM_TREE|make_object("packetType", "call", "callId", "CALLXXXX-0000000067DF79CA-0000000024EA133F-0000000000000000", "toEndpoint", "edpt://localhost/cn.fmsoft.hybridos.databus/builtin", "toMethod", "registerProcedure", "expectedTime", 5, "parameter", "{"methodName": "terminate","forHost": "localhost","forApp": "cn.fmsoft.hybridos.*"}")
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
     "

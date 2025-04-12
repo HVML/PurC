@@ -53,10 +53,10 @@ PCHVML_TOKEN_START_TAG|<init as="last_two" with=1 temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<iterate on=1 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),2000) with=callGetter(getElement(getVariable("MATH"),"add"),getVariable("0<"),getElement(getVariable("!"),"last_one"))>
+PCHVML_TOKEN_START_TAG|<iterate on=1 onlyif=callGetter(getMember(getVariable("L"), "lt"), getVariable("0<"), 2000) with=callGetter(getMember(getVariable("MATH"), "add"), getVariable("0<"), getMember(getVariable("!"), "last_one"))>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<init at="last_one" with=getElement(getVariable("1!"),"last_two") temporarily/>
+PCHVML_TOKEN_START_TAG|<init at="last_one" with=getMember(getVariable("1!"), "last_two") temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<init at="last_two" with=getVariable("?") temporarily/>
@@ -90,7 +90,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concatString("Totally ",getElement(getVariable("1!"),"count")," numbers.")
+PCHVML_TOKEN_VCM_TREE|concatString("Totally ", getMember(getVariable("1!"), "count"), " numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "

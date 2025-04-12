@@ -54,12 +54,18 @@ struct pchvml_parser {
     unsigned int tag_has_raw_attr:1;
     unsigned int enable_log:1;
     unsigned int is_in_file_header:1;
+    unsigned int record_ucs:1;
 
     struct tkz_uc* curr_uc;
     struct tkz_reader* reader;
+    struct tkz_lc*     lc;
     struct tkz_buffer* temp_buffer;
     struct tkz_buffer* tag_name;
     struct tkz_buffer* string_buffer;
+
+    struct tkz_ucs*    temp_ucs;        /* keep ucs for ejson parser */
+
+
     struct pchvml_token* token;
     struct tkz_sbst* sbst;
     struct pcutils_stack* ejson_stack;
@@ -72,15 +78,15 @@ struct pchvml_parser {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size);
+struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size,
+        purc_rwstream_t rws);
 
 void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         size_t queue_size);
 
 void pchvml_destroy(struct pchvml_parser* parser);
 
-struct pchvml_token* pchvml_next_token(struct pchvml_parser* hvml,
-                                          purc_rwstream_t rws);
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* hvml);
 
 void pchvml_switch_to_ejson_state(struct pchvml_parser* parser);
 

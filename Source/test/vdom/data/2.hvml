@@ -14,7 +14,7 @@
     <body>
         <p>
             <choose on="$messages" to="update" by="KEY: $SYS.locale">
-                <update on="$@" textContent="$?" />
+                <update on="$@" at="$?" />
                 <except on=`NoSuchKey`>
                     No valid locale defined.
                 </except>

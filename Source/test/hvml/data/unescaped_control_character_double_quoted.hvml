@@ -4,7 +4,7 @@
     <body>
         <iterate on="$users" to="update" in="#the-user-list"
                 by="RANGE: FROM 0 TO $DATA.number($users)  ADVANCE 2">
-            <update on="~[id=user-$?.id] span" attr.class *= "text-* text-info" />
+            <update on="~[id=user-$?.id] span" at *= "text-* text-info" />
         </iterate>
 
         <init as a with "foobar foo bar \n after $abc escape' >

@@ -177,165 +177,6 @@ pcejson_token_stack_is_empty(struct pcejson_token_stack *stack)
 }
 
 struct pcejson_token *
-pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type)
-{
-    struct pcejson_token *token = pcejson_token_new(type);
-    if (!token) {
-        goto failed;
-    }
-
-    switch (type) {
-    case ETT_PROTECT:
-        token->node = NULL;
-        break;
-
-    case ETT_OBJECT:
-        token->node = pcvcm_node_new_object(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_ARRAY:
-        token->node = pcvcm_node_new_array(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_TUPLE:
-        token->node = pcvcm_node_new_tuple(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_CALL_GETTER:
-        token->node = pcvcm_node_new_call_getter(NULL, 0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_CALL_SETTER:
-        token->node = pcvcm_node_new_call_setter(NULL, 0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_GET_VARIABLE:
-        token->node = pcvcm_node_new_get_variable(NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_GET_ELEMENT:
-    case ETT_GET_ELEMENT_BY_BRACKET:
-        token->node = pcvcm_node_new_get_element(NULL, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_CJSONEE:
-        token->node = pcvcm_node_new_cjsonee();
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_STRING:
-        break;
-
-    case ETT_MULTI_QUOTED_S:       /* multiple double quoted */
-    case ETT_MULTI_UNQUOTED_S:       /* multiple unquoted*/
-        token->node = pcvcm_node_new_concat_string(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_KEY:           /* json object key */
-        break;
-
-    case ETT_VALUE:           /* json object value */
-        break;
-
-    case ETT_DOUBLE_S:           /* double quoted string */
-        break;
-
-    case ETT_SINGLE_S:           /* single quoted string */
-        break;
-
-    case ETT_UNQUOTED_S:           /* unquoted string */
-        break;
-
-    case ETT_KEYWORD:           /* keywords true, false, null */
-        break;
-
-    case ETT_AND:
-        token->node = pcvcm_node_new_cjsonee_op_and();
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_OR:
-        token->node = pcvcm_node_new_cjsonee_op_or();
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_SEMICOLON:
-        token->node = pcvcm_node_new_cjsonee_op_semicolon();
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_BACKQUOTE:
-        token->node = pcvcm_node_new_constant(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-
-    case ETT_TRIPLE_DOUBLE_QUOTED:
-        token->node = pcvcm_node_new_concat_string(0, NULL);
-        if (!token->node) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto failed;
-        }
-        break;
-    }
-
-    pcutils_stack_push(stack->stack, (uintptr_t)token);
-    return token;
-
-failed:
-    if (token) {
-        pcejson_token_destroy(token);
-    }
-    return token;
-}
-
-struct pcejson_token *
 pcejson_token_stack_push_token(struct pcejson_token_stack *stack,
         struct pcejson_token *token)
 {
@@ -397,6 +238,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->tkz_reader = NULL;
     parser->temp_buffer = tkz_buffer_new();
     parser->string_buffer = tkz_buffer_new();
+    parser->temp_ucs = tkz_ucs_new();
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_single_quoted = 0;
@@ -415,6 +257,7 @@ void pcejson_destroy(struct pcejson *parser)
     if (parser) {
         tkz_buffer_destroy(parser->temp_buffer);
         tkz_buffer_destroy(parser->string_buffer);
+        tkz_ucs_destroy(parser->temp_ucs);
         pcejson_token_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
         tkz_buffer_destroy(parser->raw_buffer);
@@ -433,12 +276,15 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     tkz_buffer_reset(parser->temp_buffer);
     tkz_buffer_reset(parser->string_buffer);
     tkz_buffer_reset(parser->raw_buffer);
+    tkz_ucs_reset(parser->temp_ucs);
 
     pcejson_token_stack_destroy(parser->tkz_stack);
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_single_quoted = 0;
     parser->nr_double_quoted = 0;
+    parser->finished_by_callback = 0;
+    parser->record_ucs = 0;
 }
 
 static bool
@@ -449,20 +295,34 @@ is_finished_default(struct pcejson *parser, uint32_t character)
     return false;
 }
 
+#define EJSON_PARSER_LC_SIZE         3
+
 int pcejson_parse(struct pcvcm_node **vcm_tree,
         struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
 {
     int ret;
-    struct tkz_reader *reader = tkz_reader_new(0, 0);
+    struct tkz_reader *reader = tkz_reader_new();
     if (!reader) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         ret = -1;
         goto out;
     }
-    tkz_reader_set_rwstream(reader, rws);
+    struct tkz_lc *lc = tkz_lc_new(EJSON_PARSER_LC_SIZE);
+    if (!lc) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        ret = -1;
+        goto out_clear_reader;
+    }
+
+    tkz_reader_set_data_source_rws(reader, rws);
+    tkz_reader_set_lc(reader, lc);
     ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth,
             is_finished_default);
+    tkz_lc_destroy(lc);
+
+out_clear_reader:
     tkz_reader_destroy(reader);
+
 out:
     return ret;
 }

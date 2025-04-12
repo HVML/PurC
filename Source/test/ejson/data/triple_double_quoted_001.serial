@@ -1,8 +1,8 @@
-make_object("id",1234567890UL,"nickname","David","signature",concatString("
+make_object("id", 1234567890UL, "nickname", "David", "signature", concatString("
 一个
 
     被'程序'耽误的
 
         "文艺"青年。
-        ",getVariable("ABC"),"
+        ", getVariable("ABC"), "
 "))

@@ -120,6 +120,7 @@ struct pcvcm_eval_ctxt {
     const char            **names;
 #endif
 
+    struct pcvcm_node      *err_node;
     int                     err;
     unsigned int            enable_log:1;
     unsigned int            free_on_destroy:1;

@@ -78,20 +78,12 @@
 
 #define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
-#define PARSER_ERROR_TYPE       "heeParsing"
+#define PARSER_ERROR_TYPE       "HEE parse error"
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
-        int hee_line = tkz_reader_hee_line(parser->tkz_reader);             \
-        int hee_column = tkz_reader_hee_column(parser->tkz_reader);         \
         int line = parser->curr_uc->line;                                   \
         int column = parser->curr_uc->column;                               \
-        if (hee_line > 0) {                                                 \
-            line = line + hee_line - 1;                                     \
-        }                                                                   \
-        if (parser->curr_uc->line == 1) {                                   \
-            column = column + hee_column;                                   \
-        }                                                                   \
         char buf[ERROR_BUF_SIZE+1];                                         \
         snprintf(buf, ERROR_BUF_SIZE,                                       \
                 "line=%d, column=%d, character=%c",                         \
@@ -194,6 +186,33 @@
         tkz_buffer_delete_tail_chars(parser->raw_buffer, n);                \
     } while (false)
 
+#define RESET_TEMP_UCS()                                                    \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+    } while (false)
+
+#define APPEND_TO_TEMP_UCS(uc)                                              \
+    do {                                                                    \
+        tkz_ucs_add_tail(parser->temp_ucs, uc);                             \
+    } while (false)
+
+#define START_RECORD_UCS(uc)                                                \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+        parser->record_ucs = 1;                                             \
+    } while (false)
+
+#define STOP_RECORD_UCS(uc)                                                 \
+    do {                                                                    \
+        parser->record_ucs = 0;                                             \
+    } while (false)
+
+#define RECONSUME_LAST_CHAR()                                               \
+    do {                                                                    \
+        tkz_ucs_delete_tail(parser->temp_ucs, 1);                           \
+        tkz_reader_reconsume_last_char(parser->tkz_reader);                 \
+    } while (false)
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
@@ -289,6 +308,8 @@ struct pcejson {
     struct tkz_reader *tkz_reader;
     struct tkz_buffer *temp_buffer;
     struct tkz_buffer *string_buffer;
+    struct tkz_ucs    *temp_ucs;
+
     struct pcvcm_node *vcm_node;
     struct tkz_sbst *sbst;
     struct tkz_buffer *raw_buffer;
@@ -301,6 +322,10 @@ struct pcejson {
     uint32_t prev_separator;
     uint32_t nr_single_quoted;
     uint32_t nr_double_quoted;
+
+    uint32_t record_ucs:1;
+    uint32_t finished_by_callback:1;
+
     bool enable_log;
 };
 
@@ -329,9 +354,6 @@ bool
 pcejson_token_stack_is_empty(struct pcejson_token_stack *stack);
 
 struct pcejson_token *
-pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type);
-
-struct pcejson_token *
 pcejson_token_stack_push_token(struct pcejson_token_stack *stack,
         struct pcejson_token *token);
 
@@ -358,12 +380,6 @@ pcejson_dec_depth (struct pcejson* parser);
 
 struct pcvcm_node *
 create_byte_sequenct(struct tkz_buffer *buffer);
-
-int pcejson_parse_o(struct pcvcm_node **vcm_tree,
-        struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth);
-
-int pcejson_parse_n(struct pcvcm_node **vcm_tree,
-        struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth);
 
 PCA_EXTERN_C_END
 

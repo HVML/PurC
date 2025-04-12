@@ -40,7 +40,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stm)
     struct pcvdom_document *doc = NULL;
     struct pchvml_token *token = NULL;
 
-    parser = pchvml_create(0, 0);
+    parser = pchvml_create(0, 0, stm);
     if (!parser)
         goto error;
 
@@ -52,7 +52,7 @@ again:
     if (token)
         pchvml_token_destroy(token);
 
-    token = pchvml_next_token(parser, stm);
+    token = pchvml_next_token(parser);
 
     if (!token)
         goto error;

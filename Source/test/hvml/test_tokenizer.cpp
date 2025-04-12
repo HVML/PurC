@@ -247,16 +247,17 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     int error_code = get_error();
     PRINTF("test case : %s\n", get_name());
 
-    struct pchvml_parser* parser = pchvml_create(0, 32);
     //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
     //fprintf(stderr, "comp=%s\n", comp);
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
+    struct pchvml_parser* parser = pchvml_create(0, 32, rws);
+
     struct tkz_buffer* buffer = tkz_buffer_new();
 
     struct pchvml_token* token = NULL;
-    while((token = pchvml_next_token(parser, rws)) != NULL) {
+    while((token = pchvml_next_token(parser)) != NULL) {
         struct tkz_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             const char* type_name = pchvml_token_get_type_name(token);

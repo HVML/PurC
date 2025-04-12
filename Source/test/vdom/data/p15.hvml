@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html">
     <body>
-        <update on="$users[1]" property.locale="$?.locale" />
+        <update on="$users[1]" with="$?.locale" />
     </body>
 </hvml>
 

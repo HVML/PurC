@@ -1387,6 +1387,10 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
                         purc_atom_to_string(term_info->except));
             }
 
+            if (term_info->exinfo) {
+                fprintf(stderr, "%s\n", purc_variant_get_string_const(term_info->exinfo));
+            }
+
             fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
@@ -1458,19 +1462,35 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             nr_executed++;
         }
         else {
-            fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
-                    purc_get_error_message(purc_get_last_error()));
-
             if (opts->verbose) {
+                fprintf(stderr, "Failed to parse HVML from %s\n", url);
+
                 struct purc_parse_error_info *parse_error = NULL;
                 purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
                         (uintptr_t *)(void *)&parse_error, NULL);
                 if (parse_error) {
-                    fprintf(stderr,
-                            "Parse %s failed : line=%d, column=%d, character=0x%x\n",
-                            url, parse_error->line, parse_error->column,
-                            parse_error->character);
+                    if (parse_error->extra) {
+                        fprintf(stderr, "%s\n", parse_error->extra);
+                    }
+                    else {
+                        fprintf(stderr, "%s\n",
+                                purc_get_error_message(purc_get_last_error()));
+                    }
+                    fprintf(stderr, "Source: %s\n", url);
+                    fprintf(stderr, "Position: %d,%d\n",
+                            parse_error->line, parse_error->column);
+                    if (parse_error->code_snippets) {
+                        fprintf(stderr, "%s\n", parse_error->code_snippets);
+                    }
                 }
+                else {
+                    fprintf(stderr, "%s\n",
+                            purc_get_error_message(purc_get_last_error()));
+                }
+            }
+            else {
+                fprintf(stderr, "Failed to parse HVML from %s\n%s\n", url,
+                        purc_get_error_message(purc_get_last_error()));
             }
         }
     }

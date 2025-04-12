@@ -50,19 +50,24 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
+/* data source */
+struct tkz_reader_ds {
+    const char *(*type)(struct tkz_reader_ds *ds);
+    struct tkz_uc (*read)(struct tkz_reader_ds *ds);
+    int (*set_lc)(struct tkz_reader_ds *ds, struct tkz_lc *lc);
+    void (*destroy)(struct tkz_reader_ds *ds);
+};
+
 struct tkz_reader {
-    purc_rwstream_t rws;
-    struct list_head reconsume_list;
-    struct list_head consumed_list;
+    /* data source type */
+    struct tkz_reader_ds *ds;
+
+    struct tkz_ucs *reconsume_ucs;
+    struct tkz_ucs *consumed_ucs;
     size_t nr_consumed_list;
 
     struct tkz_uc curr_uc;
-    int line;
-    int column;
-    int consumed;
-
-    int hee_line;
-    int hee_column;
+    struct tkz_lc *lc;
 };
 
 
@@ -93,110 +98,306 @@ bool is_unihan(uint32_t uc)
     return false;
 }
 
-struct tkz_uc *tkz_uc_new(void)
+/* tkz_uc begin */
+static struct tkz_uc *tkz_uc_new(void)
 {
     return PCHVML_ALLOC(sizeof(struct tkz_uc));
 }
 
-void tkz_uc_destroy(struct tkz_uc *uc)
+static void tkz_uc_destroy(struct tkz_uc *uc)
 {
     if (uc) {
         PCHVML_FREE(uc);
     }
 }
+/* tkz_uc end */
 
-struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
+/* tkz_reader_ds begin */
+
+/* tkz_reader_ds_rws begin */
+struct tkz_reader_ds_rws {
+    struct tkz_reader_ds ds;
+    purc_rwstream_t      rws;
+    struct tkz_ucs      *preload_ucs;
+    struct tkz_lc       *lc;
+    int                  line;
+    int                  column;
+    int                  position;
+};
+
+static const char *
+tkz_reader_ds_rws_type(struct tkz_reader_ds *ds)
 {
-    struct tkz_reader *reader = PCHVML_ALLOC(sizeof(struct tkz_reader));
-    if (!reader) {
-        return NULL;
-    }
-    INIT_LIST_HEAD(&reader->reconsume_list);
-    INIT_LIST_HEAD(&reader->consumed_list);
-    reader->line = 1;
-    reader->column = 0;
-    reader->consumed = 0;
-
-    reader->hee_line = hee_line;
-    reader->hee_column = hee_column;
-    return reader;
+    (void) ds;
+    return "purc_rwstream";
 }
 
-void tkz_reader_set_rwstream(struct tkz_reader *reader,
-        purc_rwstream_t rws)
-{
-    reader->rws = rws;
-}
-
-static struct tkz_uc*
-tkz_reader_read_from_rwstream(struct tkz_reader *reader)
+static void
+tkz_reader_ds_rws_read_line(struct tkz_reader_ds_rws *ds_rws)
 {
     char c[8] = {0};
     uint32_t uc = 0;
-    int nr_c = purc_rwstream_read_utf8_char(reader->rws, c, &uc);
+    int nr_c = 0;
+    struct tkz_uc curr_uc = {0};
+
+again:
+    nr_c = purc_rwstream_read_utf8_char(ds_rws->rws, c, &uc);
     if (nr_c < 0) {
         uc = TKZ_INVALID_CHARACTER;
     }
-    reader->column++;
-    reader->consumed++;
-
-    reader->curr_uc.character = uc;
-    reader->curr_uc.line = reader->line;
-    reader->curr_uc.column = reader->column;
-    reader->curr_uc.position = reader->consumed;
-    if (uc == '\n') {
-        reader->line++;
-        reader->column = 0;
+    else {
+        c[nr_c] = 0;
     }
+
+    curr_uc.character = uc;
+    curr_uc.line = ds_rws->line;
+    curr_uc.column = ds_rws->column++;
+    curr_uc.position = ds_rws->position++;
+    strcpy((char *)curr_uc.utf8_buf, c);
+
+    tkz_ucs_add_tail(ds_rws->preload_ucs, curr_uc);
+    if (uc == '\n' || uc == 0) {
+        if (ds_rws->lc) {
+            tkz_lc_commit(ds_rws->lc, ds_rws->line);
+        }
+
+        ds_rws->line++;
+        ds_rws->column = 0;
+    }
+    else {
+        if (ds_rws->lc) {
+            tkz_lc_append_bytes(ds_rws->lc, c, strlen(c));
+        }
+        uc = 0;
+        c[0] = 0;
+        goto again;
+    }
+}
+
+static struct tkz_uc
+tkz_reader_ds_rws_read(struct tkz_reader_ds *ds)
+{
+    struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
+    if (tkz_ucs_is_empty(ds_rws->preload_ucs)) {
+        tkz_reader_ds_rws_read_line(ds_rws);
+    }
+
+    return tkz_ucs_read_head(ds_rws->preload_ucs);
+}
+
+static int
+tkz_reader_ds_rws_set_lc(struct tkz_reader_ds *ds, struct tkz_lc *lc)
+{
+    struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
+    ds_rws->lc = lc;
+    return 0;
+}
+
+static void
+tkz_reader_ds_rws_destroy(struct tkz_reader_ds *ds)
+{
+    if (!ds) {
+        return;
+    }
+
+    struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
+
+    if (ds_rws->preload_ucs) {
+        tkz_ucs_destroy(ds_rws->preload_ucs);
+    }
+
+    free(ds_rws);
+}
+
+static struct tkz_reader_ds *
+tkz_reader_ds_rws_new(purc_rwstream_t rws)
+{
+    struct tkz_reader_ds *ds = NULL;
+    struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)calloc(1,
+            sizeof(*ds_rws));
+    if (!ds_rws) {
+        PC_ERROR("Failed to allocate memory for tkz_reader_ds_rws (%zu)\n",
+                sizeof(*ds_rws));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    ds_rws->rws = rws;
+    ds_rws->preload_ucs = tkz_ucs_new();
+    if (!ds_rws->preload_ucs) {
+        goto out_clear_ds;
+    }
+
+
+    ds = (struct tkz_reader_ds *) ds_rws;
+    ds->type = tkz_reader_ds_rws_type;
+    ds->read = tkz_reader_ds_rws_read;
+    ds->set_lc = tkz_reader_ds_rws_set_lc;
+    ds->destroy = tkz_reader_ds_rws_destroy;
+
+    return ds;
+
+out_clear_ds:
+    tkz_reader_ds_rws_destroy((struct tkz_reader_ds*)ds_rws);
+
+out:
+    return NULL;
+}
+/* tkz_reader_ds_rws end */
+
+/* tkz_reader_ds_ucs begin */
+struct tkz_reader_ds_ucs {
+    struct tkz_reader_ds ds;
+    struct tkz_ucs      *ucs;
+};
+
+static const char *
+tkz_reader_ds_ucs_type(struct tkz_reader_ds *ds)
+{
+    (void) ds;
+    return "tkz_ucs";
+}
+
+static struct tkz_uc
+tkz_reader_ds_ucs_read(struct tkz_reader_ds *ds)
+{
+    struct tkz_reader_ds_ucs *ds_ucs = (struct tkz_reader_ds_ucs *)ds;
+    return tkz_ucs_read_head(ds_ucs->ucs);
+}
+
+static int
+tkz_reader_ds_ucs_set_lc(struct tkz_reader_ds *ds, struct tkz_lc *lc)
+{
+    (void) ds;
+    (void) lc;
+    return 0;
+}
+
+static void
+tkz_reader_ds_ucs_destroy(struct tkz_reader_ds *ds)
+{
+    if (!ds) {
+        return;
+    }
+
+    struct tkz_reader_ds_ucs *ds_ucs = (struct tkz_reader_ds_ucs *)ds;
+
+
+    free(ds_ucs);
+}
+
+static struct tkz_reader_ds *
+tkz_reader_ds_ucs_new(struct tkz_ucs *ucs)
+{
+    struct tkz_reader_ds *ds = NULL;
+    struct tkz_reader_ds_ucs *ds_ucs = (struct tkz_reader_ds_ucs *)calloc(1,
+            sizeof(*ds_ucs));
+    if (!ds_ucs) {
+        PC_ERROR("Failed to allocate memory for tkz_reader_ds_ucs (%zu)\n",
+                sizeof(*ds_ucs));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    ds_ucs->ucs = ucs;
+
+    ds = (struct tkz_reader_ds *) ds_ucs;
+    ds->type = tkz_reader_ds_ucs_type;
+    ds->read = tkz_reader_ds_ucs_read;
+    ds->set_lc = tkz_reader_ds_ucs_set_lc;
+    ds->destroy = tkz_reader_ds_ucs_destroy;
+
+out:
+    return ds;
+}
+
+
+/* tkz_reader_ds_ucs end */
+
+/* tkz_reader_ds end */
+
+struct tkz_reader *tkz_reader_new(void)
+{
+    struct tkz_reader *reader = PCHVML_ALLOC(sizeof(struct tkz_reader));
+    if (!reader) {
+        PC_ERROR("Failed to allocate memory for tkz_reader (%zu)\n",
+                sizeof(*reader));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    reader->reconsume_ucs = tkz_ucs_new();
+    if (!reader->reconsume_ucs) {
+        goto failed_clear_reader;
+    }
+
+    reader->consumed_ucs = tkz_ucs_new();
+    if (!reader->consumed_ucs) {
+        goto failed_clear_reconsume_ucs;
+    }
+
+    return reader;
+
+failed_clear_reconsume_ucs:
+    tkz_ucs_destroy(reader->reconsume_ucs);
+
+failed_clear_reader:
+    free(reader);
+
+failed:
+    return NULL;
+}
+
+void tkz_reader_set_data_source_rws(struct tkz_reader *reader,
+        purc_rwstream_t rws)
+{
+    if (reader->ds) {
+        reader->ds->destroy(reader->ds);
+    }
+    reader->ds = tkz_reader_ds_rws_new(rws);
+}
+
+void tkz_reader_set_data_source_ucs(struct tkz_reader *reader,
+        struct tkz_ucs *ucs)
+{
+    if (reader->ds) {
+        reader->ds->destroy(reader->ds);
+    }
+    reader->ds = tkz_reader_ds_ucs_new(ucs);
+}
+
+void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc)
+{
+    reader->lc = lc;
+    if (reader->ds) {
+        reader->ds->set_lc(reader->ds, lc);
+    }
+}
+
+static struct tkz_uc*
+tkz_reader_read_from_data_source(struct tkz_reader *reader)
+{
+    reader->curr_uc = reader->ds->read(reader->ds);
     return &reader->curr_uc;
 }
 
 static struct tkz_uc*
 tkz_reader_read_from_reconsume_list(struct tkz_reader *reader)
 {
-    struct tkz_uc *puc = list_entry(reader->reconsume_list.next,
-            struct tkz_uc, list);
-    reader->curr_uc = *puc;
-    list_del_init(&puc->list);
-    tkz_uc_destroy(puc);
+    reader->curr_uc = tkz_ucs_read_head(reader->reconsume_ucs);
     return &reader->curr_uc;
 }
-
-#define print_uc_list(uc_list, tag)                                         \
-    do {                                                                    \
-        PC_DEBUG("begin print %s list\n|", tag);                            \
-        struct list_head *p, *n;                                            \
-        list_for_each_safe(p, n, uc_list) {                                 \
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);        \
-            PC_DEBUG("%c", puc->character);                                 \
-        }                                                                   \
-        PC_DEBUG("|\nend print %s list\n", tag);                            \
-    } while(0)
-
-#define PRINT_CONSUMED_LIST(reader)    \
-        print_uc_list(&reader->consumed_list, "consumed")
-
-#define PRINT_RECONSUM_LIST(reader)    \
-        print_uc_list(&reader->reconsume_list, "reconsume")
 
 static bool
 tkz_reader_add_consumed(struct tkz_reader *reader, struct tkz_uc *uc)
 {
-    struct tkz_uc *p = tkz_uc_new();
-    if (!p) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (tkz_ucs_add_tail(reader->consumed_ucs, *uc)) {
         return false;
     }
-
-    *p = *uc;
-    list_add_tail(&p->list, &reader->consumed_list);
     reader->nr_consumed_list++;
 
     if (reader->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
-        struct tkz_uc *first = list_first_entry(
-                &reader->consumed_list, struct tkz_uc, list);
-        list_del_init(&first->list);
-        tkz_uc_destroy(first);
+        tkz_ucs_read_head(reader->consumed_ucs);
         reader->nr_consumed_list--;
     }
     return true;
@@ -208,12 +409,10 @@ bool tkz_reader_reconsume_last_char(struct tkz_reader *reader)
         return true;
     }
 
-    struct tkz_uc *last = list_last_entry(
-            &reader->consumed_list, struct tkz_uc, list);
-    list_del_init(&last->list);
+    struct tkz_uc uc = tkz_ucs_read_tail(reader->consumed_ucs);
     reader->nr_consumed_list--;
 
-    list_add(&last->list, &reader->reconsume_list);
+    tkz_ucs_add_head(reader->reconsume_ucs, uc);
     return true;
 }
 
@@ -225,8 +424,8 @@ struct tkz_uc *tkz_reader_current(struct tkz_reader *reader)
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
 {
     struct tkz_uc *ret = NULL;
-    if (list_empty(&reader->reconsume_list)) {
-        ret = tkz_reader_read_from_rwstream(reader);
+    if (tkz_ucs_is_empty(reader->reconsume_ucs)) {
+        ret = tkz_reader_read_from_data_source(reader);
     }
     else {
         ret = tkz_reader_read_from_reconsume_list(reader);
@@ -238,32 +437,312 @@ struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
     return NULL;
 }
 
-int tkz_reader_hee_line(struct tkz_reader *reader)
-{
-    return reader->hee_line;
-}
-
-int tkz_reader_hee_column(struct tkz_reader *reader)
-{
-    return reader->hee_column;
-}
-
 void tkz_reader_destroy(struct tkz_reader *reader)
 {
     if (reader) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, &reader->reconsume_list) {
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);
-            list_del_init(&puc->list);
-            tkz_uc_destroy(puc);
+        if (reader->ds) {
+            reader->ds->destroy(reader->ds);
         }
-        list_for_each_safe(p, n, &reader->consumed_list) {
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);
-            list_del_init(&puc->list);
-            tkz_uc_destroy(puc);
+
+        if (reader->reconsume_ucs) {
+            tkz_ucs_destroy(reader->reconsume_ucs);
         }
+
+        if (reader->consumed_ucs) {
+            tkz_ucs_destroy(reader->consumed_ucs);
+        }
+
         PCHVML_FREE(reader);
     }
+}
+
+struct tkz_buffer *tkz_reader_get_line_from_cache(struct tkz_reader *reader,
+        int line_num)
+{
+    if (reader->lc && line_num >= 0) {
+        return tkz_lc_get_line(reader->lc, line_num);
+    }
+    return NULL;
+}
+
+struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader)
+{
+    return reader->lc ? tkz_lc_get_current(reader->lc) : NULL;
+}
+
+/* tkz uc list */
+struct tkz_ucs *tkz_ucs_new(void)
+{
+    struct tkz_ucs *ucs = (struct tkz_ucs*) calloc(1, sizeof(*ucs));
+    if (!ucs) {
+        PC_ERROR("Failed to allocate memory for tkz_ucs (%zu)\n", sizeof(*ucs));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    INIT_LIST_HEAD(&ucs->list);
+
+out:
+    return ucs;
+}
+
+bool tkz_ucs_is_empty(struct tkz_ucs *ucs)
+{
+    return list_empty(&ucs->list);
+}
+
+struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs)
+{
+    struct tkz_uc ret = {0};
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
+
+    struct tkz_uc *uc = list_first_entry(&ucs->list, struct tkz_uc, ln);
+
+    ret = *uc;
+    list_del(&uc->ln);
+    tkz_uc_destroy(uc);
+    ucs->nr_ucs--;
+
+out:
+    return ret;
+}
+
+struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs)
+{
+    struct tkz_uc ret = {0};
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
+    struct tkz_uc *uc = list_last_entry(&ucs->list, struct tkz_uc, ln);
+
+    ret = *uc;
+    list_del(&uc->ln);
+    tkz_uc_destroy(uc);
+    ucs->nr_ucs--;
+
+out:
+    return ret;
+}
+
+int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz)
+{
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (sz == 0) {
+            break;
+        }
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+        ucs->nr_ucs--;
+        sz--;
+    }
+    return 0;
+}
+
+int tkz_ucs_trim_tail(struct tkz_ucs *ucs)
+{
+    size_t count = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (purc_isspace(p->character)) {
+            list_del(&p->ln);
+            tkz_uc_destroy(p);
+            ucs->nr_ucs--;
+            count++;
+        }
+        else {
+            break;
+        }
+    }
+    return count;
+}
+
+int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc)
+{
+    struct tkz_uc *p = tkz_uc_new();
+    if (!p) {
+        PC_ERROR("Failed to allocate memory for tkz_uc (%zu)\n", sizeof(*p));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    *p = uc;
+    list_add(&p->ln, &ucs->list);
+    ucs->nr_ucs++;
+
+    return 0;
+out:
+    return -1;
+}
+
+int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc)
+{
+    struct tkz_uc *p = tkz_uc_new();
+    if (!p) {
+        PC_ERROR("Failed to allocate memory for tkz_uc (%zu)\n", sizeof(*p));
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    *p = uc;
+    list_add_tail(&p->ln, &ucs->list);
+    ucs->nr_ucs++;
+
+    return 0;
+out:
+    return -1;
+}
+
+int tkz_ucs_dump(struct tkz_ucs *ucs)
+{
+    fprintf(stderr, "dump tkz ucs begin\n");
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        fprintf(stderr, "%s", p->utf8_buf);
+    }
+    fprintf(stderr, "|\ndump tkz ucs end\n");
+    return 0;
+}
+
+int tkz_ucs_reset(struct tkz_ucs *ucs)
+{
+    if (tkz_ucs_is_empty(ucs)) {
+        goto out;
+    }
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+    }
+    INIT_LIST_HEAD(&ucs->list);
+    ucs->nr_ucs = 0;
+
+out:
+    return 0;
+}
+
+int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src)
+{
+    int nr_move = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &src->list, ln) {
+        list_del(&p->ln);
+        list_add_tail(&p->ln, &dst->list);
+        nr_move++;
+    }
+    dst->nr_ucs = src->nr_ucs;
+    src->nr_ucs = 0;
+    return nr_move;
+}
+
+size_t tkz_ucs_size(struct tkz_ucs *ucs)
+{
+    return ucs->nr_ucs;
+}
+
+int tkz_ucs_renumber(struct tkz_ucs *ucs)
+{
+    int line = 0;
+    int column = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        p->line = line;
+        p->column = column++;
+        if (p->character == '\n') {
+            line++;
+            column = 0;
+        }
+    }
+    return 0;
+}
+
+char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size)
+{
+    char *result = NULL;
+    purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+    if (!rws) {
+        PC_ERROR("Failed to allocate memory for rwstream\n");
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        size_t c = strlen((char *)p->utf8_buf);
+        purc_rwstream_write(rws, p->utf8_buf, c);
+    }
+
+    size_t sz_content = 0;
+    result = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+                &sz_content, NULL, true);
+    if (nr_size) {
+        *nr_size = sz_content;
+    }
+    purc_rwstream_destroy(rws);
+
+out:
+    return result;
+}
+
+int tkz_ucs_for_each(struct tkz_ucs *ucs, tkz_ucs_for_each_cb cb, void *ctxt)
+{
+    size_t idx = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        if (cb(ctxt, idx++, *p)) {
+            break;
+        }
+    }
+    return 0;
+}
+
+int tkz_ucs_find(struct tkz_ucs *ucs, uint32_t c)
+{
+    int result = -1;
+    int idx = 0;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        if (p->character == c) {
+            result = idx;
+            break;
+        }
+        idx++;
+    }
+
+    return result;
+}
+
+int tkz_ucs_find_reverse(struct tkz_ucs *ucs, uint32_t c)
+{
+    int result = -1;
+    int idx = ucs->nr_ucs - 1;
+    struct tkz_uc *p, *n;
+    list_for_each_entry_reverse_safe(p, n, &ucs->list, ln) {
+        if (p->character == c) {
+            result = idx;
+            break;
+        }
+        idx--;
+    }
+
+    return result;
+}
+
+void tkz_ucs_destroy(struct tkz_ucs *ucs)
+{
+    if (tkz_ucs_is_empty(ucs)) {
+        goto clear_ucs;
+    }
+
+    struct tkz_uc *p, *n;
+    list_for_each_entry_safe(p, n, &ucs->list, ln) {
+        list_del(&p->ln);
+        tkz_uc_destroy(p);
+    }
+
+clear_ucs:
+    free(ucs);
 }
 
 // tokenizer buffer
@@ -519,6 +998,168 @@ void tkz_buffer_destroy(struct tkz_buffer *buffer)
     }
 }
 
+/* line cache begin */
+struct tkz_lc *
+tkz_lc_new(size_t max_size)
+{
+    struct tkz_lc *lc = (struct tkz_lc *)calloc(1, sizeof(*lc));
+    if (!lc) {
+        PC_ERROR("Failed to allocate memory for line cache (%zu)\n", sizeof(*lc));
+        goto out;
+    }
+
+    lc->current = tkz_buffer_new();
+    if (!lc) {
+        PC_ERROR("Failed to allocate memory for line cache current (%zu)\n",
+                sizeof(*lc->current));
+        goto clear_lc;
+    }
+
+    lc->size = 0;
+    lc->max_size = max_size;
+    INIT_LIST_HEAD(&lc->cache);
+
+    return lc;
+
+clear_lc:
+    PCHVML_FREE(lc);
+
+out:
+    return lc;
+}
+
+void
+tkz_lc_destroy(struct tkz_lc *lc)
+{
+    if (!lc) {
+        return;
+    }
+
+    if (lc->current) {
+        tkz_buffer_destroy(lc->current);
+        lc->current = NULL;
+    }
+
+    struct tkz_lc_node *p, *n;
+    list_for_each_entry_safe(p, n, &lc->cache, ln) {
+        list_del(&p->ln);
+        if (p->buf) {
+            tkz_buffer_destroy(p->buf);
+        }
+        free(p);
+    }
+
+    free(lc);
+}
+
+void
+tkz_lc_reset(struct tkz_lc *lc)
+{
+    assert(lc);
+    tkz_buffer_reset(lc->current);
+    struct tkz_lc_node *p, *n;
+    list_for_each_entry_safe(p, n, &lc->cache, ln) {
+        list_del(&p->ln);
+        if (p->buf) {
+            tkz_buffer_destroy(p->buf);
+        }
+        free(p);
+    }
+    lc->size = 0;
+    INIT_LIST_HEAD(&lc->cache);
+}
+
+int
+tkz_lc_append(struct tkz_lc *lc, char c)
+{
+    assert(lc);
+    tkz_buffer_append_bytes(lc->current, &c, 1);
+    return 0;
+}
+
+int
+tkz_lc_append_bytes(struct tkz_lc *lc, const char *bytes, size_t nr_bytes)
+{
+    assert(lc && bytes && nr_bytes);
+    tkz_buffer_append_bytes(lc->current, bytes, nr_bytes);
+    return 0;
+}
+
+int
+tkz_lc_commit(struct tkz_lc *lc, int line_num)
+{
+    assert(lc && line_num >= 0);
+
+    int ret = -1;
+    size_t nr_bytes = tkz_buffer_get_size_in_bytes(lc->current);
+    if (nr_bytes == 0) {
+        ret = 0;
+        goto out;
+    }
+
+    /* create new line cache node */
+    struct tkz_lc_node *node = (struct tkz_lc_node *)calloc(1, sizeof(*node));
+    if (!node) {
+        PC_ERROR("Failed to allocate memory for line cache node(%zu)\n",
+                sizeof(*node));
+        ret = -1;
+        goto out;
+    }
+
+    node->buf = tkz_buffer_new();
+    if (!node->buf) {
+        PC_ERROR("Failed to allocate memory for line cache node buf (%zu)\n",
+                sizeof(*node->buf));
+        goto out_clear_node;
+    }
+
+    tkz_buffer_append_another(node->buf, lc->current);
+    node->line = line_num;
+
+    list_add(&node->ln, &lc->cache);
+    lc->size++;
+
+    /* clear old node */
+    while (lc->size > lc->max_size) {
+        struct tkz_lc_node *last =
+            list_last_entry(&lc->cache, struct tkz_lc_node, ln);
+        list_del(&last->ln);
+        tkz_buffer_destroy(last->buf);
+        free(last);
+        lc->size--;
+    }
+
+    tkz_buffer_reset(lc->current);
+    ret = 0;
+
+    return ret;
+
+out_clear_node:
+    free(node);
+
+out:
+    return ret;
+}
+
+struct tkz_buffer *
+tkz_lc_get_line(const struct tkz_lc *lc, int line_num)
+{
+    struct tkz_lc_node *node;
+    list_for_each_entry(node, &lc->cache, ln) {
+        if (node->line == line_num)
+            return node->buf;
+    }
+    return NULL;
+}
+
+struct tkz_buffer *
+tkz_lc_get_current(const struct tkz_lc *lc)
+{
+    return lc ? lc->current : NULL;
+}
+
+/* line cache end */
+
 struct tkz_sbst {
     const pcutils_sbst_entry_static_t *strt;
     const pcutils_sbst_entry_static_t *root;
@@ -591,7 +1232,19 @@ static void
 free_error_info(void *key, void *local_data)
 {
     free_key_string(key);
-    free(local_data);
+
+    struct purc_parse_error_info *info =
+        (struct purc_parse_error_info *) local_data;
+
+    if (info->extra) {
+        free(info->extra);
+    }
+
+    if (info->code_snippets) {
+        free(info->code_snippets);
+    }
+
+    free(info);
 }
 
 int
@@ -609,35 +1262,109 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    int hee_line = tkz_reader_hee_line(reader);
-    int hee_column = tkz_reader_hee_column(reader);
-    int line = uc->line;
-    int column = uc->column;
-    if (hee_line > 0) {
-        line = line + hee_line - 1;
-    }
-    if (uc->line == 1) {
-        column = column + hee_column;
-    }
+
     info->character = uc->character;
-    info->line = line;
-    info->column = column;
-    info->position = uc->position;
+
+    /* line,column,position starts at 0 */
+    info->line = uc->line + 1;
+    info->column = uc->column + 1;
+    info->position = uc->position + 1;
     info->error = error;
 
     if (extra) {
-        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s:%s",
-                error, type, info->line, info->column,
-                purc_get_error_message(error), extra);
+        const char *err_msg = purc_get_error_message(error);
+        /* type: err_msg */
+        size_t nr = strlen(type) + strlen(err_msg) + strlen(extra) + 5;
+        info->extra = malloc(nr);
+        sprintf(info->extra, "%s: %s: %s", type, err_msg, extra);
     }
     else {
-        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s",
-                error, type, info->line, info->column,
-                purc_get_error_message(error));
+        const char *err_msg = purc_get_error_message(error);
+        /* type: err_msg */
+        size_t nr = strlen(type) + strlen(err_msg) + 3;
+        info->extra = malloc(nr);
+        sprintf(info->extra, "%s: %s", type, err_msg);
     }
 
+    if (reader->lc) {
+        purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+        purc_rwstream_write(rws, "<<<<\n", 5);
+
+        int curr_ln = uc->line;
+        if (curr_ln > 0) {
+            struct tkz_buffer *line = tkz_reader_get_line_from_cache(reader,
+                    curr_ln - 1);
+            if (line) {
+                const char *buf = tkz_buffer_get_bytes(line);
+                size_t nr_buf = tkz_buffer_get_size_in_bytes(line);
+                purc_rwstream_write(rws, buf, nr_buf);
+                purc_rwstream_write(rws, "\n", 1);
+            }
+        }
+
+        struct tkz_buffer *line = tkz_reader_get_line_from_cache(reader, curr_ln);
+        if (!line) {
+            line = tkz_reader_get_curr_line(reader);
+        }
+        if (line) {
+            const char *buf = tkz_buffer_get_bytes(line);
+            size_t nr_buf = tkz_buffer_get_size_in_bytes(line);
+            purc_rwstream_write(rws, buf, nr_buf);
+            purc_rwstream_write(rws, "\n", 1);
+
+            int column = uc->column;
+            int chars = 0;
+            for (const char *p = buf; *p && chars < column; ) {
+                char c = *p;
+                int nr_c = (*p & 0x80) == 0 ? 1 : ((*p & 0xE0) == 0xC0 ? 2 : 3);
+
+                purc_rwstream_write(rws, " ", 1);
+                if ((c & 0xF0) == 0xE0) {
+                    purc_rwstream_write(rws, " ", 1);
+                }
+
+                p += nr_c;
+                chars++;
+            }
+
+            purc_rwstream_write(rws, "^", 1);
+            purc_rwstream_write(rws, "\n", 1);
+        }
+        purc_rwstream_write(rws, ">>>>\n", 5);
+
+        size_t sz_content, sz_buff;
+        bool res_buff = true;
+        char *p;
+        p = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+                &sz_content, &sz_buff, res_buff);
+
+        info->code_snippets = p;
+        purc_rwstream_destroy(rws);
+    }
     purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
             free_error_info);
+
+    purc_rwstream_t ext_rws = purc_rwstream_new_buffer(1024, 0);
+    purc_rwstream_write(ext_rws, info->extra, strlen(info->extra));
+    purc_rwstream_write(ext_rws, "\n", 1);
+    char tmp_buf[1024] = {0};
+    sprintf(tmp_buf, "Position: %d,%d\n", info->line, info->column);
+    purc_rwstream_write(ext_rws, tmp_buf, strlen(tmp_buf));
+    if (info->code_snippets) {
+        purc_rwstream_write(ext_rws, info->code_snippets,
+                strlen(info->code_snippets));
+    }
+
+    size_t sz_content, sz_buff;
+    bool res_buff = true;
+    char *p = (char*)purc_rwstream_get_mem_buffer_ex(ext_rws,
+            &sz_content, &sz_buff, res_buff);
+    purc_rwstream_destroy(ext_rws);
+    purc_variant_t ext_info = purc_variant_make_string_reuse_buff(p,
+            sz_content, false);
+
+    purc_set_error_exinfo(error, ext_info);
+
 out:
     return 0;
 }

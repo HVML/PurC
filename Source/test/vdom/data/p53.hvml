@@ -3,7 +3,7 @@
     <body>
         <iterate on="$users" to="update" in="#the-user-list"
                 by="RANGE: FROM 0 TO $DATA.number($users), ADVANCE 2">
-            <update on="~[id=user-$?.id] span" attr.class *= "text-* text-info" />
+            <update on="~[id=user-$?.id] span" with *= "text-* text-info" />
         </iterate>
     </body>
 </hvml>

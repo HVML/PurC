@@ -36,6 +36,7 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 #include "private/utils.h"
+#include "private/tkz-helper.h"
 
 #include "eval.h"
 #include "ops.h"
@@ -160,11 +161,174 @@ print_indent(purc_rwstream_t rws, int level, size_t *len_expected)
     return purc_rwstream_write(rws, buff, n);
 }
 
-static char *
-get_jsonee(struct pcvcm_node *node, size_t *len)
+struct build_jsonee_ctxt {
+    struct tkz_uc *data;
+};
+
+static int get_origin_ucs_cb(void *context, size_t idx, struct tkz_uc uc)
 {
-    /* TODO: used the origin jsonee */
-    return pcvcm_node_serialize(node, len);
+    struct build_jsonee_ctxt *ctxt = (struct build_jsonee_ctxt *)context;
+    ctxt->data[idx] = uc;
+    return 0;
+}
+
+static void
+write_space(purc_rwstream_t rws, size_t count)
+{
+    char buf[count + 1];
+    memset(buf, ' ', count);
+    purc_rwstream_write(rws, buf, count);
+}
+
+static char *
+get_jsonee(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg)
+{
+#if 1
+    if (!node->ucs) {
+        return pcvcm_node_serialize_ex(node, nr_bytes, err_node,
+                err_msg, nr_err_msg);
+    }
+
+    size_t nr_ucs = tkz_ucs_size(node->ucs);
+    struct tkz_uc uc_data[nr_ucs];
+    struct build_jsonee_ctxt ctxt = { uc_data };
+    tkz_ucs_for_each(node->ucs, get_origin_ucs_cb, &ctxt);
+
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+    if (!rws) {
+        if (nr_bytes) {
+            *nr_bytes = 0;
+        }
+        return NULL;
+    }
+
+    purc_rwstream_t err_rws = NULL;
+    if (err_msg) {
+        err_rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+        if (!err_rws) {
+            if (nr_err_msg) {
+                *nr_err_msg = 0;
+            }
+            purc_rwstream_destroy(rws);
+            return NULL;
+        }
+    }
+
+    if (err_node->position == -1) {
+        err_node->position = pcvcm_node_min_position(err_node);
+    }
+    int err_pos = err_node->position;
+    assert(err_position >= 0);
+
+    size_t begin = 0;
+    if (nr_ucs > 3) {
+        if ((uc_data[0].character == '"' &&
+                uc_data[1].character == '"' &&
+                uc_data[2].character == '"') ||
+                (uc_data[0].character == '\'' &&
+                 uc_data[1].character == '\'' &&
+                 uc_data[2].character == '\'') ) {
+            begin += 3;
+            purc_rwstream_write(rws, uc_data[0].utf8_buf, 1);
+            if (err_rws) {
+                if (err_pos > 0) {
+                    write_space(err_rws, 1);
+                }
+                else {
+                    purc_rwstream_write(err_rws, "^", 1);
+                }
+            }
+        }
+    }
+
+    size_t end = nr_ucs;
+    bool write_end_quoted = false;
+    char end_char = 0;
+    if (nr_ucs > 5) {
+        if ((uc_data[end - 1].character == '"' &&
+                uc_data[end - 2].character == '"' &&
+                uc_data[end - 3].character == '"') ||
+                (uc_data[end - 1].character == '\'' &&
+                 uc_data[end - 2].character == '\'' &&
+                 uc_data[end - 3].character == '\'') ) {
+            end_char = uc_data[end - 1].utf8_buf[0];
+            write_end_quoted = true;
+            end = nr_ucs - 3;
+        }
+    }
+
+    for (size_t i = begin; i < end; i++) {
+        struct tkz_uc *uc = &uc_data[i];
+        size_t nr = strlen((char *)uc->utf8_buf);
+        if (uc->character == '\n') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "n", 1);
+            nr = 2;
+        }
+        else if (uc->character == '\r') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "r", 1);
+            nr = 2;
+        }
+        else if (uc->character == '\t') {
+            purc_rwstream_write(rws, "\\", 1);
+            purc_rwstream_write(rws, "t", 1);
+            nr = 2;
+        }
+        else {
+            purc_rwstream_write(rws, uc->utf8_buf, nr);
+        }
+        if (i == (size_t)err_pos) {
+            purc_rwstream_write(err_rws, "^", 1);
+        }
+        else if (i < (size_t)err_pos) {
+            if (nr > 1) {
+                write_space(err_rws, 2);
+            }
+            else {
+                write_space(err_rws, 1);
+            }
+        }
+    }
+
+    if (write_end_quoted) {
+        purc_rwstream_write(rws, &end_char, 1);
+    }
+
+    size_t sz_content = 0;
+    char *buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
+        NULL, true);
+    if (nr_bytes) {
+        *nr_bytes = sz_content;
+    }
+
+    if (err_rws) {
+        size_t sz_err_buf = 0;
+        char *err_buf = (char*)purc_rwstream_get_mem_buffer_ex(err_rws, &sz_err_buf,
+            NULL, true);
+        *err_msg = err_buf;
+        char *end = err_buf + sz_err_buf;
+        while (end > err_buf) {
+            if (!purc_isspace(*(end-1))) {
+                break;
+            }
+            end--;
+        }
+        sz_err_buf = end - err_buf;
+        if (nr_err_msg) {
+            *nr_err_msg = sz_err_buf;
+        }
+        purc_rwstream_destroy(err_rws);
+    }
+
+    purc_rwstream_destroy(rws);
+
+    return buf;
+    //return tkz_ucs_to_string(node->ucs, nr_bytes);
+#else
+    return pcvcm_node_serialize_ex(node, nr_bytes, err_node, err_msg, nr_err_msg);
+#endif
 }
 
 int
@@ -180,7 +344,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
     snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(rws, buf, strlen(buf));
 
-    char *jsonee = get_jsonee(frame->node, &len);
+    char *jsonee = get_jsonee(frame->node, &len, NULL, NULL, NULL);
     purc_rwstream_write(rws, jsonee, len);
     purc_rwstream_write(rws, "\n", 1);
     free(jsonee);
@@ -245,7 +409,11 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     char buf[DUMP_BUF_SIZE];
     size_t len;
 
-    char *s = get_jsonee(ctxt->node, &len);
+    purc_rwstream_write(rws, "<<<<\n", 5);
+
+    char *err_msg = NULL;
+    size_t nr_err_msg = 0;
+    char *s = get_jsonee(ctxt->node, &len, ctxt->err_node, &err_msg, &nr_err_msg);
     if (!ignore_prefix) {
         print_indent(rws, indent, NULL);
         snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
@@ -255,14 +423,31 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     purc_rwstream_write(rws, "\n", 1);
     free(s);
 
+    if (err_msg) {
+        purc_rwstream_write(rws, err_msg, nr_err_msg);
+        purc_rwstream_write(rws, "\n", 1);
+        free(err_msg);
+    }
+
+    purc_rwstream_write(rws, "====\n", 5);
+
     /* vcm */
-    print_indent(rws, indent, NULL);
-    snprintf(buf, DUMP_BUF_SIZE, "  Variant Creation Model: ");
-    purc_rwstream_write(rws, buf, strlen(buf));
-    s = pcvcm_node_to_string(ctxt->node, &len);
+    const char *title = "The equivalent variant creation model:\n";
+    purc_rwstream_write(rws, title, strlen(title));
+    err_msg = NULL;
+    nr_err_msg = 0;
+    s = pcvcm_node_to_string_ex(ctxt->node, &len, ctxt->err_node, &err_msg,
+            &nr_err_msg);
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
     free(s);
+    if (err_msg) {
+        purc_rwstream_write(rws, err_msg, nr_err_msg);
+        purc_rwstream_write(rws, "\n", 1);
+        free(err_msg);
+    }
+
+    purc_rwstream_write(rws, ">>>>\n", 5);
 
     if (ctxt->result) {
         print_indent(rws, indent, NULL);
@@ -298,6 +483,8 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         purc_rwstream_write(rws, "\n", 1);
     }
 
+#if 0
+    /* 25-04-08 disable not impl call stack */
     if (ctxt->frame_idx >= 0) {
         print_indent(rws, indent, NULL);
         snprintf(buf, DUMP_BUF_SIZE, "  Call stack:\n");
@@ -312,6 +499,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         }
 #endif
     }
+#endif
     return 0;
 }
 
@@ -577,6 +765,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
             case STEP_AFTER_PUSH:
                 ret = frame->ops->after_pushed(ctxt, frame);
                 if (ret != PURC_ERROR_OK) {
+                    int err = purc_get_last_error();
+                    if (err && err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                        ctxt->err_node = frame->node;
+                    }
                     goto out;
                 }
                 frame->step = STEP_EVAL_PARAMS;
@@ -596,7 +788,11 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
                             continue;
                         }
                         ctxt->err = purc_get_last_error();
-                        if (ctxt->err != 0) {
+                        if (ctxt->err) {
+                            if (ctxt->err != PURC_ERROR_AGAIN &&
+                                    !ctxt->err_node) {
+                                ctxt->err_node = frame->node;
+                            }
                             goto out;
                         }
                         break;
@@ -622,6 +818,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
             case STEP_EVAL_VCM:
                 result = frame->ops->eval(ctxt, frame, name);
                 if (!result) {
+                    int err = purc_get_last_error();
+                    if (err && err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                        ctxt->err_node = frame->node;
+                    }
                     goto out;
                 }
                 frame->step = STEP_DONE;
@@ -652,7 +852,7 @@ out:
     if (ctxt->enable_log && ctxt) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
-        char *s = get_jsonee(frame->node, &len);
+        char *s = get_jsonee(frame->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
@@ -710,6 +910,9 @@ eval_vcm(struct pcvcm_eval_node *tree,
         result = eval_frame(ctxt, frame->idx, return_pos, &name);
         ctxt->err = purc_get_last_error();
         if (!result || ctxt->err) {
+            if (ctxt->err && ctxt->err != PURC_ERROR_AGAIN && !ctxt->err_node) {
+                ctxt->err_node = frame->node;
+            }
             goto out;
         }
         pop_frame(ctxt);
@@ -882,7 +1085,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     if (enable_log && ctxt) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
-        char *s = get_jsonee(ctxt->node, &len);
+        char *s = get_jsonee(ctxt->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
@@ -937,6 +1140,7 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         ctxt->err = purc_get_last_error();
         if (ctxt->err == PURC_ERROR_AGAIN) {
             ctxt->err = 0;
+            ctxt->err_node = NULL;
             purc_clr_error();
         }
 
@@ -947,7 +1151,7 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     if (enable_log) {
         size_t len;
         pcintr_coroutine_t co = pcintr_get_coroutine();
-        char *s = get_jsonee(ctxt->node, &len);
+        char *s = get_jsonee(ctxt->node, &len, NULL, NULL, NULL);
         if (result) {
             char *buf = pcvariant_to_string(result);
             PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);

@@ -143,3 +143,5 @@ template
 via
     type: prep
 
+while
+    type: prep

@@ -1,7 +1,7 @@
 <hvml>
     <body>
         <observe on=$_TIMERS for=foo to=update in=#the-header >
-            <update on="> span.local-time" textContent=$SYS.time('%H:%m') />
+            <update on="> span.local-time" with=$SYS.time('%H:%m') />
         </observe>
     </body>
 </hvml>

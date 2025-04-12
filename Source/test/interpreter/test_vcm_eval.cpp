@@ -391,13 +391,14 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     int error_code = get_error();
     PRINTF("test case : %s\n", get_name());
 
-    struct pchvml_parser* parser = pchvml_create(0, 32);
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
+    struct pchvml_parser* parser = pchvml_create(0, 32, rws);
+
     pchvml_switch_to_ejson_state(parser);
 
-    struct pchvml_token* token = pchvml_next_token(parser, rws);
+    struct pchvml_token* token = pchvml_next_token(parser);
 
     int error = purc_get_last_error();
     ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();

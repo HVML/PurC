@@ -1,1 +1,1 @@
-getVariable(getElement(getElement(getVariable("a"),"attr"),"class"))
+getVariable(getMember(getMember(getVariable("a"), "attr"), "class"))

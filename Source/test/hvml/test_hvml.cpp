@@ -41,14 +41,15 @@ TEST(hvml, basic)
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    struct pchvml_parser* parser = pchvml_create(0, 32);
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
+
+    struct pchvml_parser* parser = pchvml_create(0, 32, rws);
 
     struct tkz_buffer* buffer = tkz_buffer_new();
 
     struct pchvml_token* token = NULL;
-    while((token = pchvml_next_token(parser, rws)) != NULL) {
+    while((token = pchvml_next_token(parser)) != NULL) {
         struct tkz_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             tkz_buffer_append_another(buffer, token_buff);
