@@ -1635,6 +1635,7 @@ displace_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
         /* The new value is the same as the original value */
         if (origin == s) {
+            purc_variant_unref(v);
             return 0;
         }
 
