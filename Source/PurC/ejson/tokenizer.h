@@ -292,8 +292,9 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_BACKQUOTE,
     EJSON_TKZ_STATE_BACKQUOTE_CONTENT,
     EJSON_TKZ_STATE_PARAM_STRING,
+    EJSON_TKZ_STATE_ATTR_VALUE,
 
-    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_PARAM_STRING,
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_ATTR_VALUE,
 };
 
 
@@ -325,6 +326,7 @@ struct pcejson {
 
     uint32_t record_ucs:1;
     uint32_t finished_by_callback:1;
+    uint32_t hvml_double_quoted_attr_value:1;
 
     bool enable_log;
 };

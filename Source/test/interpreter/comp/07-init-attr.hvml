@@ -1,0 +1,33 @@
+#!/usr/bin/purc
+
+# RESULT: [ "   ", true, [ 1, true ], "5/10" ]
+
+<!DOCTYPE hvml>
+<hvml target='void'>
+    <init as 'v1' with "   " />
+    <inherit>
+        $STREAM.stdout.writelines("type is $DATA.type($v1), |$v1|");
+    </inherit>
+
+    <init as 'va' with "true" />
+    <inherit>
+        $STREAM.stdout.writelines("type is $DATA.type($va), |$va|");
+    </inherit>
+
+    <init as 'vb' with "[1, true]" />
+    <inherit>
+        $STREAM.stdout.writelines("type is $DATA.type($vb), |$vb|");
+    </inherit>
+
+    <init as directive >
+        [5L, 10L ]
+    </init>
+
+    <init as 'vc' with "$directive[0]/$directive[1]" />
+    <inherit>
+        $STREAM.stdout.writelines("type is $DATA.type($vc), |$vc|");
+    </inherit>
+
+    <exit with [$v1, $va, $vb, $vc] />
+
+</hvml>

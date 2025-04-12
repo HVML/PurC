@@ -285,6 +285,13 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->nr_double_quoted = 0;
     parser->finished_by_callback = 0;
     parser->record_ucs = 0;
+    parser->hvml_double_quoted_attr_value = 0;
+}
+
+void pcejson_update_state_to_parse_double_quoted_attr_value(struct pcejson* parser)
+{
+    parser->state = EJSON_TKZ_STATE_ATTR_VALUE;
+    parser->hvml_double_quoted_attr_value = 1;
 }
 
 static bool

@@ -731,7 +731,8 @@ is_finished_default(struct pcejson *parser, uint32_t character)
 }
 
 struct pcvcm_node *
-parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs)
+parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs,
+        bool parse_double_quoted_value)
 {
     struct pcvcm_node *node = NULL;
     if (!ucs) {
@@ -753,6 +754,10 @@ parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs)
     tkz_reader_set_lc(reader, parser->lc);
 
     /* use temp reader */
+    if (parse_double_quoted_value) {
+        pcejson_update_state_to_parse_double_quoted_attr_value(
+                parser->ejson_parser);
+    }
     pcejson_parse_full(&node, &parser->ejson_parser, reader,
             parser->ejson_parser_max_depth, is_finished_default);
     tkz_reader_destroy(reader);
@@ -931,6 +936,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TAG_NAME)
     if (is_whitespace(character)) {
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
@@ -1048,6 +1054,7 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
         RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
+    RESET_TEMP_UCS();
     END_TOKEN_ATTR();
     BEGIN_TOKEN_ATTR();
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
@@ -1090,6 +1097,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_VALUE)
     if (is_whitespace(character)) {
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
@@ -2055,7 +2063,7 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     }
     else {
         STOP_RECORD_UCS();
-        node = parse_ejson_ex(parser, parser->temp_ucs);
+        node = parse_ejson_ex(parser, parser->temp_ucs, false);
         RESET_TEMP_UCS();
     }
 
@@ -2135,7 +2143,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         STOP_RECORD_UCS();
         /* end with '"' + other char */
         tkz_ucs_delete_tail(parser->temp_ucs, 2);
-        node = parse_ejson_ex(parser, parser->temp_ucs);
+        node = parse_ejson_ex(parser, parser->temp_ucs, true);
         RESET_TEMP_UCS();
     }
     if (node) {
@@ -2206,6 +2214,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     RETURN_AND_STOP_PARSE();

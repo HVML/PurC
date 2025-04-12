@@ -63,6 +63,8 @@ void pcejson_destroy (struct pcejson* parser);
  */
 void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
 
+void pcejson_update_state_to_parse_double_quoted_attr_value(struct pcejson* parser);
+
 /*
  * Parse ejson.
  */
