@@ -76,13 +76,13 @@ $data
 """
     </init>
 
-    <include with $logMsg on $message />
+    <execute with $logMsg on $message />
 
     <inherit>
         $clients[$clientId].stream.send($message)
 
         <catch for `ANY`>
-            <include with $logMsg on 'Failed to send message to peer.' />
+            <execute with $logMsg on 'Failed to send message to peer.' />
         </catch>
     </inherit>
 
@@ -161,8 +161,8 @@ $data
         </differ>
     </test>
 
-    <include with $logMsg on "parsed message:" />
-    <include with $logMsg on $parsedMsg />
+    <execute with $logMsg on "parsed message:" />
+    <execute with $logMsg on $parsedMsg />
     <return with $parsedMsg />
 
 </define>

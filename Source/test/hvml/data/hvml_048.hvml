@@ -41,11 +41,11 @@
         </define>
 
         <!--
-            This statement includes one of the operation sets defined above
+            This statement execute one of the operation sets defined above
             according to the value of `target` attribute of `hvml` element,
             and pass the result returned by `$T.get('Hello, world!')`.
         -->
-        <include with=${output_$CRTN.target} on="$T.get('Hello, world!')" />
+        <execute with=${output_$CRTN.target} on="$T.get('Hello, world!')" />
 
         <inherit>
         $STREAM.stdout.writelines("End of 'Hello, world!'");

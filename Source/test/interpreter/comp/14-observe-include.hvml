@@ -39,7 +39,7 @@
                 $STREAM.stdout.writelines("##### main print : timer clock fire for $_observedFor $?")
             </inherit>
             <forget on $_observedOn for 'expired:clock' />
-            <include with $second_module />
+            <execute with $second_module />
         </define>
 
         <observe on="$TIMERS" for='expired:clock'>
@@ -47,7 +47,7 @@
                 <inherit>
                     $STREAM.stdout.writelines("##### main print : choose set 'on' : $?")
                 </inherit>
-                <include with $on_clock_fire />
+                <execute with $on_clock_fire />
             </choose>
         </observe>
 

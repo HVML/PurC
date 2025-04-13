@@ -15,7 +15,7 @@
     </head>
 
     <body>
-        <include with $logMsg on "Worker is running now..." />
+        <execute with $logMsg on "Worker is running now..." />
 
         <init as wsSettings with {
             'secure': {{ $L.streq('caseless', $REQ.secure, 'true') && true || false }},
@@ -23,11 +23,11 @@
             'sslsessioncacheid': $REQ.sslsessioncacheid,
         } silently />
 
-        <include with $logMsg on $wsSettings />
+        <execute with $logMsg on $wsSettings />
 
         <init as wsStream with $STREAM.from($DATA.numerify($REQ.fd), 'keep', 'websocket', $wsSettings)>
             <catch for `ANY`>
-                <include with $logMsg on "Worker failed with $?.name ..." />
+                <execute with $logMsg on "Worker failed with $?.name ..." />
                 <exit with 'Worker failed' />
             </catch>
         </init>
@@ -46,8 +46,8 @@
         </observe>
 
         <observe on $wsStream for 'message'>
-            <include with $logMsg on "Worker got message:" />
-            <include with $logMsg on $? />
+            <execute with $logMsg on "Worker got message:" />
+            <execute with $logMsg on $? />
 
             <test with $L.streq('case', $?, 'Bye')>
                 <inherit>

@@ -278,9 +278,9 @@
             -->
             <iterate on $dlist>
                 <test with "$DATA.isequal($?.type, 'd')">
-                    <include with "$handlDirInfo" on $2? />
+                    <execute with "$handlDirInfo" on $2? />
                     <differ>
-                        <include with "$handlFileInfo" on $3? />
+                        <execute with "$handlFileInfo" on $3? />
                     </differ>
                 </test>
             </iterate>
@@ -319,7 +319,7 @@
                 <update on="#$2?.targetId" at="attr.class" with="$dataCenter.activeClass" />
                 <sleep for='50ms' />
                 <update on="$dataCenter" at=".currDir" with="$currData.full_path"/>
-                <include with "$refreshList" />
+                <execute with "$refreshList" />
             </test>
         </observe>
 
@@ -327,7 +327,7 @@
             <test with "$DATA.isequal($dataCenter.currDir, '/')">
                 <differ>
                     <update on="$dataCenter" at=".currDir" with="$FS.dirname($dataCenter.currDir)"/>
-                    <include with "$refreshList" />
+                    <execute with "$refreshList" />
                 </differ>
             </test>
         </observe>
@@ -340,7 +340,7 @@
 
         <observe on="$TIMERS" for="expired:clock">
             <clear on $TIMERS />
-            <include with "$refreshList" />
+            <execute with "$refreshList" />
         </observe>
 
     </body>
@@ -404,7 +404,7 @@
         </observe>
 
         <observe on="$CRTN" for="request:showDetail">
-            <include with "$refreshFileList" on $? />
+            <execute with "$refreshFileList" on $? />
         </observe>
 
         <observe on ".f-sub-item" for "click">

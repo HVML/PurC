@@ -1874,7 +1874,7 @@ pcintr_find_prev_include_frame(pcintr_coroutine_t co,
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     while (parent && parent->pos &&
-            parent->pos->tag_id != PCHVML_TAG_INCLUDE) {
+            parent->pos->tag_id != PCHVML_TAG_EXECUTE) {
         parent = pcintr_stack_frame_get_parent(parent);
     }
     if (parent == NULL || parent->pos == NULL) {

@@ -82,13 +82,13 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_COMMENT|<!--
-            This statement includes one of the operation sets defined above
+            This statement execute one of the operation sets defined above
             according to the value of `target` attribute of `hvml` element,
             and pass the result returned by `$T.get('Hello, world!')`.
         -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<include with=getVariable(concatString("output_", getMember(getVariable("CRTN"), "target"))) on=callGetter(getMember(getVariable("T"), "get"), "Hello, world!")/>
+PCHVML_TOKEN_START_TAG|<execute with=getVariable(concatString("output_", getMember(getVariable("CRTN"), "target"))) on=callGetter(getMember(getVariable("T"), "get"), "Hello, world!")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

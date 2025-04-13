@@ -6,7 +6,7 @@
     <body>
 
         <load from "#secondPage" onto 'null:'>
-            <include with $varOnSecondPage />
+            <execute with $varOnSecondPage />
         </load>
 
     </body>

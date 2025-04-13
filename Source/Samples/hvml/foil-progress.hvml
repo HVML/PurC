@@ -122,7 +122,7 @@
             <H1 style="color:red;text-align:center">Used case: $styleCase</H1>
         </HEADER>
 
-        <include with ${$styleCase} />
+        <execute with ${$styleCase} />
 
     </body>
 

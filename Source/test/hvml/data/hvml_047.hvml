@@ -1,5 +1,5 @@
 <hvml>
-    <include with=${output_$CRTN.target} />
-    <include with=${output_$CRTN.target}/>
+    <execute with=${output_$CRTN.target} />
+    <execute with=${output_$CRTN.target}/>
 </hvml>
 

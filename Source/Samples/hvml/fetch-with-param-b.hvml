@@ -14,10 +14,10 @@
             </inherit>
         </define>
 
-        <!-- use `include` element to execute one of the above operation groups
+        <!-- use `execute` element to execute one of the above operation groups
             in place, according to the target document type of
             the current HVML coroutine -->
-        <include with ${output_$CRTN.target} on 'Hello, world!' />
+        <execute with ${output_$CRTN.target} on 'Hello, world!' />
     </body>
 
 </hvml>

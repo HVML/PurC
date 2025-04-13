@@ -15,8 +15,8 @@
 
     <body id='server' >
 
-        <include with $logMsg on 'The server is running...request: ' />
-        <include with $logMsg on $REQ />
+        <execute with $logMsg on 'The server is running...request: ' />
+        <execute with $logMsg on $REQ />
 
         <init as 'sslSettings' with {} />
         <test with $L.streq('caseless', $REQ.secure, 'true') >
@@ -29,7 +29,7 @@
             </update>
         </test>
 
-        <include with $logMsg on $sslSettings />
+        <execute with $logMsg on $sslSettings />
 
         <define as spawnWorker>
             <init as stdout_pipe with $SYS.pipe() temp>
@@ -78,8 +78,8 @@
         <init as 'clients' with {} />
 
         <observe on $clients for 'change:deflated'>
-            <include with $logMsg on 'clients shrunken:' />
-            <include with $logMsg on $clients />
+            <execute with $logMsg on 'clients shrunken:' />
+            <execute with $logMsg on $clients />
 
             <test with $DATA.count($clients)>
                 <differ>
@@ -106,7 +106,7 @@
             </observe>
         <!-- /iterate -->
 
-        <include with $logMsg on 'The server is accepting...' />
+        <execute with $logMsg on 'The server is accepting...' />
 
         <choose on $srvListenSocket.accept('nonblock', 'websocket', $sslSettings)>
             <catch for `ANY`>
@@ -115,7 +115,7 @@
 
             <test with $L.not($DATA.isequal($?, null)) >
 
-                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+                <execute with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
 
                 <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
 
@@ -155,7 +155,7 @@
                                 $clientId
 
                                 <choose on $_observedOn.readlines(1) >
-                                    <include with $logMsg on $?[0] />
+                                    <execute with $logMsg on $?[0] />
                                     <test with $L.streq('caseless', $?[0], 'Ready') >
                                         <inherit on $clients[$_observedContent].wsStream.send_handshake_resp(101) />
                                         <inherit on $clients[$_observedContent].wsStream.finish() />
@@ -173,10 +173,10 @@
                                 $clientId
 
                                 <choose on $_observedOn.readlines(1) >
-                                    <include with $logMsg on $?[0] />
+                                    <execute with $logMsg on $?[0] />
                                     <catch for `BrokenPipe`>
                                         <inherit on $_observedOn.close() />
-                                        <include with $logMsg on "Removing $_observedContent" />
+                                        <execute with $logMsg on "Removing $_observedContent" />
                                         <update on $clients at ".$_observedContent" to 'remove' silently />
                                         <forget on $_observedOn for '*' />
                                     </catch>
@@ -244,22 +244,22 @@
     <!-- A plain client -->
     <body id="plain">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: false } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDKSHAKE event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDKSHAKE event' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to send some words.' />
+            <execute with $logMsg on 'Client is going to send some words.' />
 
             <inherit>
                 {{
@@ -273,10 +273,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'message'>
-            <include with $logMsg on 'Client got MESSAGE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got MESSAGE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <inherit>
                 {{
@@ -291,10 +291,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'close'>
-            <include with $logMsg on 'Client got CLOSE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got CLOSE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{
@@ -310,10 +310,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got ERROR event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{
@@ -332,22 +332,22 @@
     <!-- A secure client -->
     <body id="secure">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDKSHAKE event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDKSHAKE event' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to send some words.' />
+            <execute with $logMsg on 'Client is going to send some words.' />
 
             <inherit>
                 {{
@@ -361,10 +361,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'message'>
-            <include with $logMsg on 'Client got MESSAGE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got MESSAGE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <inherit>
                 {{
@@ -379,10 +379,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'close'>
-            <include with $logMsg on 'Client got CLOSE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got CLOSE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{
@@ -398,10 +398,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got ERROR event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{

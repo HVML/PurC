@@ -45,3 +45,8 @@
 #sed -i 's/\<pcdoc_special_elem\>/pcdoc_special_elem_k/g' `grep '\<pcdoc_special_elem\>' * -rl`
 #sed -i 's/\<pcdoc_operation\>/pcdoc_operation_k/g' `grep '\<pcdoc_operation\>' * -rl`
 #sed -i 's/\<pcdoc_special_attr\>/pcdoc_special_attr_k/g' `grep '\<pcdoc_special_attr\>' * -rl`
+
+
+# include -> execute
+#sed -i 's/<include/<execute/g' `grep '<include' * -rl`
+#sed -i 's/<\/include/<\/execute/g' `grep '</include' * -rl`

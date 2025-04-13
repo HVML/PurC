@@ -312,7 +312,7 @@
             <H1 style="color:red;text-align:center">Used Layout: $styleCase</H1>
         </HEADER>
 
-        <include with ${$styleCase} />
+        <execute with ${$styleCase} />
 
     </body>
 

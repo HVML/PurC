@@ -15,8 +15,8 @@
 
     <body id='server' >
 
-        <include with $logMsg on 'The server is running...' />
-        <include with $logMsg on "The server load module : $REQ.module" />
+        <execute with $logMsg on 'The server is running...' />
+        <execute with $logMsg on "The server load module : $REQ.module" />
 
         <init as varDefOnMain with "var define on server" />
 
@@ -50,8 +50,8 @@
             </update>
         </test>
 
-        <include with $logMsg on $DATA.serialize($sslSettings) />
-        <include with $logMsg on $DATA.serialize($wsSettings) />
+        <execute with $logMsg on $DATA.serialize($sslSettings) />
+        <execute with $logMsg on $DATA.serialize($wsSettings) />
 
         <init as 'clients' with {} />
 
@@ -73,7 +73,7 @@
             </inherit>
         </observe>
 
-        <include with $logMsg on 'The server is accepting...' />
+        <execute with $logMsg on 'The server is accepting...' />
 
         <choose on $srvListenSocket.accept('default', 'websocket', $wsSettings)>
             <catch for `ANY`>
@@ -82,7 +82,7 @@
 
             <test with $L.not($DATA.isequal($?, null)) >
 
-                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+                <execute with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
 
                 <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
 
@@ -98,11 +98,11 @@
                         $_observedOn.send_handshake_resp(101);
                     }}
                     </inherit>
-                    <include with $wsModule />
+                    <execute with $wsModule />
 
                     <!-- test access variable   -->
-                    <include with $logMsg on "The server access variable define on module \$varDefOnModule : $varDefOnModule" />
-                    <include with $logMsg on "The server access variable define on module \$varDefOnModuleBindById : $varDefOnModuleBindById" />
+                    <execute with $logMsg on "The server access variable define on module \$varDefOnModule : $varDefOnModule" />
+                    <execute with $logMsg on "The server access variable define on module \$varDefOnModuleBindById : $varDefOnModuleBindById" />
 
                 </observe>
 
@@ -114,22 +114,22 @@
     <!-- A plain client -->
     <body id="plain">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: false } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDKSHAKE event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDKSHAKE event' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to send some words.' />
+            <execute with $logMsg on 'Client is going to send some words.' />
 
             <inherit>
                 {{
@@ -143,10 +143,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'message'>
-            <include with $logMsg on 'Client got MESSAGE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got MESSAGE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <inherit>
                 {{
@@ -161,10 +161,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'close'>
-            <include with $logMsg on 'Client got CLOSE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got CLOSE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{
@@ -180,10 +180,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got ERROR event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 {{

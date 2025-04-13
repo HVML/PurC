@@ -15,7 +15,7 @@
 
     <body>
 
-        <include with $logMsg on 'The program is spawning...' />
+        <execute with $logMsg on 'The program is spawning...' />
 
         <init as stdin_pipe with $SYS.pipe() >
             <catch for `ANY`>

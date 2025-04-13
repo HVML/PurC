@@ -22,7 +22,7 @@
             <init as="hello">
                 "if you see this, that means the interpreter is ill-implemented!!!"
             </init>
-            <include with="$updating" on="can you see me?"/>
+            <execute with="$updating" on="can you see me?"/>
         </div>
     </body>
 

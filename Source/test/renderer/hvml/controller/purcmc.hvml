@@ -49,8 +49,8 @@
 
 <define as 'load' at '_topmost'>
 
-    <include with $logMsg on 'plainwindows:' />
-    <include with $logMsg on $plainwindows />
+    <execute with $logMsg on 'plainwindows:' />
+    <execute with $logMsg on $plainwindows />
 
     <update on $plainwindows[$parsedMsg.targetValue] to 'merge' >
         {
@@ -67,7 +67,7 @@
 
 <define as 'loadFromURL' at '_topmost'>
 
-    <include with $logMsg on "loadFromURL: $parsedMsg.data" />
+    <execute with $logMsg on "loadFromURL: $parsedMsg.data" />
     <choose on $STR.explode($parsedMsg.data, '_filesystem/_file/-', 2)>
         <inherit>
             {{

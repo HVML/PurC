@@ -441,8 +441,8 @@ style_001
 # script
 js_001
 
-include_001
-include_002
+execute_001
+execute_002
 
 sleep_001
 sleep_002

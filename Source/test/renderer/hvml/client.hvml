@@ -24,7 +24,7 @@
     </head>
 
     <body>
-        <include with $logMsg on 'The client is running...' />
+        <execute with $logMsg on 'The client is running...' />
 
         <h1>Client: Time</h1>
         <p>Current Time: <input id="clock"></input><p>
@@ -36,7 +36,7 @@
         </ul>
 
         <observe on $TIMERS for "expired:clock">
-            <include with $logMsg on 'clock timer expired' />
+            <execute with $logMsg on 'clock timer expired' />
             <update on '#clock' at 'textContent' with $DATETIME.time_prt() />
         </observe>
 

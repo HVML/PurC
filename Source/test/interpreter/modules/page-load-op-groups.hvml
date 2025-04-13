@@ -9,8 +9,8 @@
 
         <init as 'tag' with 'LOAD_OP_GROUPS' />
 
-        <include with $logMsg on 'The main used define on second page  ' />
-        <include with $print on  'The main used define on second page  ' />
+        <execute with $logMsg on 'The main used define on second page  ' />
+        <execute with $print on  'The main used define on second page  ' />
 
         <exit with 'Success' />
 

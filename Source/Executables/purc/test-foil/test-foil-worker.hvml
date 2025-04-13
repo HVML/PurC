@@ -28,7 +28,7 @@
             <H1 style="color:red;text-align:center">Used Case: $styleCase</H1>
         </HEADER>
 
-        <include with ${$styleCase} />
+        <execute with ${$styleCase} />
 
         <!-- inherit>
             $STREAM.stdout.writelines("$caseName done.")
