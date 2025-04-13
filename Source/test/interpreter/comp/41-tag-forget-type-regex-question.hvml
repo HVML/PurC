@@ -1,0 +1,23 @@
+<!DOCTYPE hvml>
+<hvml target='void'>
+    <body>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+
+        <init as 'count' with 0UL />
+
+        <observe on $TIMERS for "expired:clock">
+            <inherit>
+                $STREAM.stdout.writelines("timer: clock");
+            </inherit>
+            <init as 'count' at '_grandparent' with $DATA.arith('+', $count, 1UL) />
+            <test with $L.ge($count, 5UL) >
+                <forget on $_observedOn for 'expireda?:clock' />
+            </test>
+        </observe>
+    </body>
+
+</hvml>

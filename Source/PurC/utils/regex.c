@@ -241,7 +241,7 @@ bool pcregex_is_match_ex(const char *pattern, const char *str,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
-    if (!pattern || !str) {
+    if (!pattern || !pattern[0] || !str || !str[0]) {
         return false;
     }
     return g_regex_match_simple(pattern, str,
