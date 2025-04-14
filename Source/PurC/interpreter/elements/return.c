@@ -231,7 +231,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    PRINT_VARIANT(ctxt->with);
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;

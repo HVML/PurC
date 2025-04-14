@@ -35,8 +35,6 @@
 #include "private/utils.h"
 #include "private/tkz-helper.h"
 
-#define __DEV_EJSON__                0
-
 #define EJSON_MAX_DEPTH              32
 #define EJSON_MIN_BUFFER_SIZE        128
 #define EJSON_MAX_BUFFER_SIZE        1024 * 1024 * 1024
@@ -70,15 +68,8 @@
 #define ETT_TRIPLE_DOUBLE_QUOTED        'T'         /* triple double quoted  */
 
 
-#if (defined __DEV_EJSON__ && __DEV_EJSON__)
-#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
-#else
-#define PLOG               PC_INFO
-#endif /* (defined __DEV_EJSON__ && __DEV_EJSON__) */
-
-#define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
-
-#define PARSER_ERROR_TYPE       "HEE parse error"
+#define PARSER_ERROR_TYPE               "HEE parse error"
+#define PLOG                            PC_INFO
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
@@ -91,7 +82,7 @@
                 column,                                                     \
                 parser->curr_uc->character);                                \
         if (parser->enable_log) {                                           \
-            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
+            PLOG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);          \
         }                                                                   \
     }                                                                       \
     tkz_set_error_info(parser->tkz_reader, parser->curr_uc, err,            \

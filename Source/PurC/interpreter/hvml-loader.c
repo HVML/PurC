@@ -140,7 +140,7 @@ static void cleanup_loader_once(void)
 {
 #ifndef NDEBUG
     size_t n = pcutils_map_get_size(md5_vdom_map);
-    fprintf(stderr, "Totally cached vdom: %llu/%llu\n",
+    PC_INFO("Totally cached vdom: %llu/%llu\n",
             (unsigned long long)total_orig_size,
             (unsigned long long)n);
 #endif

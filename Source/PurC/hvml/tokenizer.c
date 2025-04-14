@@ -55,13 +55,7 @@
 
 #define PARSER_ERROR_TYPE       "HVML parse error"
 
-#define __DEV_HVML__                0
-
-#if (defined __DEV_HVML__ && __DEV_HVML__)
-#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
-#else
-#define PLOG               PC_INFO
-#endif /* (defined __DEV_HVML__ && __DEV_HVML__) */
+#define PLOG                    PC_INFO
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \

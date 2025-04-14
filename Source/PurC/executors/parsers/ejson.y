@@ -781,7 +781,7 @@ yyerror(
     (void)yylloc;
     (void)arg;
     (void)param;
-    fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
+    PC_ERROR("(%d,%d)->(%d,%d): %s\n",
         yylloc->first_line, yylloc->first_column,
         yylloc->last_line, yylloc->last_column,
         errsg);
