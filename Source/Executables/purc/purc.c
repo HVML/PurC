@@ -4,7 +4,7 @@
  * @date 2022/03/07
  * @brief A standalone HVML interpreter/debugger based on PurC.
  *
- * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of purc, which is an HVML interpreter with
  * a command line interface (CLI).
@@ -85,7 +85,7 @@ static void print_version(FILE *fp)
 static void print_short_copying(FILE *fp)
 {
     fputs(
-        "Copyright (C) 2022, 2023 FMSoft Technologies.\n"
+        "Copyright (C) 2022 ~ 2025 FMSoft Technologies.\n"
         "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
         "This is free software: you are free to change and redistribute it.\n"
         "There is NO WARRANTY, to the extent permitted by law.\n",
@@ -95,7 +95,7 @@ static void print_short_copying(FILE *fp)
 static void print_long_copying(FILE *fp)
 {
     fputs(
-        "Copyright (C) 2022, 2023 FMSoft Technologies.\n"
+        "Copyright (C) 2022 ~ 2025 FMSoft Technologies.\n"
         "\n"
         "This program is free software: you can redistribute it and/or modify\n"
         "it under the terms of the GNU General Public License as\n"

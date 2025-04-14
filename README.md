@@ -282,15 +282,22 @@ You can run `purc` with the option `-v` for a verbose message:
 ```bash
 $ purc -v error.hvml
 purc 0.9.22
-Copyright (C) 2022, 2023 FMSoft Technologies.
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
-Failed to load HVML from file:///srv/devel/hvml/purc/build/error.hvml: pcejson unexpected eof parse error
-Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, character=0x0
+Failed to parse HVML from file:///srv/devel/hvml/purc/build/error.hvml
+HEE parse error: Unexpected unescaped control character
+Source: file:///srv/devel/hvml/purc/build/error.hvml
+Position: 3,46
+<<<<
+<hvml target="void">
+    $STREAM.stdout.writelines('Hello, world!)
+                                             ^
+>>>>
 ```
 
-This time, `purc` reported the error it encountered when it was parsing the HVML program: the wrong line and column.
+This time, `purc` reported the error it encountered when it was parsing the HVML program: the wrong line and column (`Position: 3,46`).
 
 If you change the program to add the missing single quote, `purc` will be happy to execute the HVML program.
 
@@ -309,36 +316,38 @@ For example, you can save the following program as `exception.hvml`:
 
 This HVML program refers to an inexistent property (`foo`) of `$CRTN`.
 
-Run `purc` to execute this HVML program with `-b` option, it will report the executing stack:
+Run `purc` to execute this HVML program with `-v` option, it will report the executing stack:
 
 ```
 $ purc -v exception.hvml
 purc 0.9.22
-Copyright (C) 2022, 2023 FMSoft Technologies.
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Executing HVML program from `file:///srv/devel/hvml/purc/build/exception.hvml`...
-
-The main coroutine terminated due to an uncaught exception: NoSuchKey.
 >> The document generated:
 
+
+The main coroutine terminated due to an uncaught exception: NoSuchKey.
 >> The executing stack frame(s):
-#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$DATA.arith( "+", $0<, 1 ) nosetotail>
+#00: <iterate on 0 onlyif $L.lt( $0<, 10 ) with $DATA.arith( '+', $0<, 1 ) nosetotail>
   ATTRIBUTES:
     on: 0
     onlyif: true
-    with: 1L
-  CONTENT: `NoSuckKey` raised when evaluating the expression: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
-    Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
-    Call stack:
-      #00: $CRTN.foo
-        Variant Creation Model: getElement(getVariable("CRTN"),"foo")
-      #01: "$0<) Hello, world! $CRTN.foo"
-        Variant Creation Model: concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo"))
-      #02: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
-        Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+    with: <not evaluated>
+    nosetotail: true
+  CONTENT: `NoSuchKey` raised when evaluating the expression.
+<<<<
+$STREAM.stdout.writelines("$0<) Hello, world! $CRTN.foo")
+                                                   ^
+====
+The equivalent variant creation model:
+callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), concatString(getVariable("0<"), ") Hello, world! ", getMember(getVariable("CRTN"), "foo")))
+                                                                                                                                    ^
+>>>>
+    Exception: NoSuchKey
   CONTEXT VARIABLES:
     < 0
     @ null
@@ -472,7 +481,7 @@ The command will give you the following output:
 
 ```
 purc 0.9.22
-Copyright (C) 2022, 2023 FMSoft Technologies.
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -653,7 +662,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 ```bash
 $ purc -h
 purc (0.9.22) - a standalone HVML interpreter/debugger based on PurC.
-Copyright (C) 2022, 2023 FMSoft Technologies.
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
