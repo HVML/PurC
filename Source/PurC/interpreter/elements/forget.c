@@ -37,6 +37,8 @@
 #include <unistd.h>
 
 #define EVENT_SEPARATOR      ':'
+#define REGEX_ALL            ".*"
+
 
 struct ctxt_for_forget {
     struct pcvdom_node           *curr;
@@ -151,7 +153,23 @@ process_attr_for(struct pcintr_stack_frame *frame,
     const char *p = strchr(s, EVENT_SEPARATOR);
     if (p) {
         ctxt->msg_type = strndup(s, p-s);
-        ctxt->sub_type = strdup(p+1);
+        char c = *(p + 1);
+        if (c) {
+            p = p + 1;
+            size_t nr = strlen(p);
+            if (*p == '/') {
+                p = p + 1;
+                nr = nr - 1;
+            }
+
+            if (nr > 0 && p[nr - 1] == '/') {
+                nr = nr - 1;
+            }
+
+            if (nr > 0) {
+                ctxt->sub_type = strndup(p, nr);
+            }
+        }
     }
     else {
         ctxt->msg_type = strdup(s);
@@ -233,15 +251,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     purc_variant_t for_var = ctxt->for_var;
     if (for_var == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "`for` not specified");
+                "ArgumentMissed: `for` not specified.");
         return ctxt;
     }
 
     if (ctxt->on == PURC_VARIANT_INVALID &&
             ctxt->at == PURC_VARIANT_INVALID)
     {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "neither `on` nor `at` is specified");
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "ArgumentMissed: neither `on` nor `at` is specified.");
         return ctxt;
     }
 
@@ -249,10 +267,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
+    const char *type = ctxt->msg_type;
+    const char *sub_type = ctxt->sub_type;
+
+    if (!type || !type[0]) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "InvalidValue: `for` is empty.");
+        return ctxt;
+    }
+
+    if (strcmp(type, "*") == 0) {
+        type = REGEX_ALL;
+    }
+
+    if (sub_type && strcmp(sub_type, "*") == 0) {
+        sub_type = REGEX_ALL;
+    }
+
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t v = pcintr_get_named_var_for_event(stack, name, NULL);
-        pcintr_revoke_observer_ex(stack, v, ctxt->msg_type, ctxt->sub_type);
+        pcintr_revoke_observer_ex(stack, v, type, sub_type);
         purc_variant_unref(v);
     }
     else {
@@ -261,8 +296,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c did_matched
-            pcintr_revoke_observer_ex(stack, on,
-                ctxt->msg_type, ctxt->sub_type);
+            pcintr_revoke_observer_ex(stack, on, type, sub_type);
         }
         else
         {
@@ -273,8 +307,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             else {
                 observed = purc_variant_ref(on);
             }
-            pcintr_revoke_observer_ex(stack, observed,
-                ctxt->msg_type, ctxt->sub_type);
+            pcintr_revoke_observer_ex(stack, observed, type, sub_type);
             purc_variant_unref(observed);
         }
     }

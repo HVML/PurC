@@ -911,9 +911,14 @@ failed:
 
 #include <stdatomic.h>
 
+static atomic_ullong atomic_accumulator;
+unsigned long long purc_generate_unique_ulongint(void)
+{
+    return atomic_fetch_add(&atomic_accumulator, 1);
+}
+
 void purc_generate_unique_id(char* id_buff, const char* prefix)
 {
-    static atomic_ullong atomic_accumulator;
     struct timespec tp;
     int i, n = strlen(prefix);
     char my_prefix[9];
@@ -929,7 +934,7 @@ void purc_generate_unique_id(char* id_buff, const char* prefix)
 
     clock_gettime(CLOCK_REALTIME, &tp);
 
-    unsigned long long accumulator =atomic_fetch_add(&atomic_accumulator, 1);
+    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
     snprintf(id_buff, PURC_LEN_UNIQUE_ID + 1,
             "%s-%016lX-%016lX-%016llX",
             my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
@@ -937,10 +942,16 @@ void purc_generate_unique_id(char* id_buff, const char* prefix)
 
 #else /* HAVE(STDATOMIC_H) */
 
+static unsigned long long accumulator;
+unsigned long long purc_generate_unique_ulongint(void)
+{
+    /* TODO: avoid race-condition */
+    return ++accumulator;
+}
+
 /* see the atomic version at the end of this file */
 void purc_generate_unique_id(char* id_buff, const char* prefix)
 {
-    static unsigned long long accumulator;
     struct timespec tp;
     int i, n = strlen(prefix);
     char my_prefix[9];

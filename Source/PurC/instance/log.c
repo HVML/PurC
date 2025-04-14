@@ -180,7 +180,10 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
 
     if (fp == LOG_FILE_SYSLOG) {
 #if HAVE(VSYSLOG)
-        const char *ident = purc_atom_to_string(inst->endpoint_atom);
+        const char *ident = "edpt://[unknown]/[unknown]";
+        if (inst && inst->endpoint_atom)
+            ident = purc_atom_to_string(inst->endpoint_atom);
+
         // TODO: we may need a lock to make sure the following two calls
         // can finish atomically.
         openlog(ident, LOG_PID, LOG_USER);
@@ -192,10 +195,11 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
     }
 
     const char *ident = "[unknown]";
-    if (inst && inst->endpoint_atom)
-        ident = purc_atom_to_string(inst->endpoint_atom);
+    if (inst && inst->runner_name)
+        ident = inst->runner_name;
 
-    fprintf(fp, "%s %s >> ", ident, tag ? tag : level_info[level].tag);
+    fprintf(fp, "edpt://.../%-10s %s >> ",
+            ident, tag ? tag : level_info[level].tag);
     vfprintf(fp, msg, ap);
     if (fp != stderr)
         fflush(fp);

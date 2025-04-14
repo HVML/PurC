@@ -29,27 +29,27 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
                    "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("Going to handle Frame ",getVariable("step"),"...")) ; callGetter(getElement(getElement(getVariable("PY"),"global"),"update_lines"),getVariable("step"),getElement(getElement(getVariable("PY"),"global"),"walks"),getElement(getElement(getVariable("PY"),"global"),"lines")) ; callGetter(getElement(getElement(getElement(getElement(getVariable("PY"),"global"),"fig"),"canvas"),"draw_idle")) ; callGetter(getElement(getElement(getElement(getVariable("PY"),"global"),"fig"),"savefig"),concatString("frame-",getVariable("run"),"-",getElement(getVariable("step"),"svg"))) ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("File frame-",getVariable("run"),"-",getVariable("xyz"),"-",getElement(getVariable("step"),"svg")," generated")) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), concatString("Going to handle Frame ", getVariable("step"), "...")) ; callGetter(getMember(getMember(getVariable("PY"), "global"), "update_lines"), getVariable("step"), getMember(getMember(getVariable("PY"), "global"), "walks"), getMember(getMember(getVariable("PY"), "global"), "lines")) ; callGetter(getMember(getMember(getMember(getMember(getVariable("PY"), "global"), "fig"), "canvas"), "draw_idle")) ; callGetter(getMember(getMember(getMember(getVariable("PY"), "global"), "fig"), "savefig"), concatString("frame-", getVariable("run"), "-", getMember(getVariable("step"), "svg"))) ; callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), concatString("File frame-", getVariable("run"), "-", getVariable("xyz"), "-", getMember(getVariable("step"), "svg"), " generated")) }}
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
                "
-PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-",getElement(getVariable("SYS"),"cwd"),"/frame-",getVariable("run"),"-",getVariable("a"),"-",getVariable("b"),"-",getVariable("c"),"-",getElement(getVariable("step"),"svg"),"?once=yes")/>
+PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-", getMember(getVariable("SYS"), "cwd"), "/frame-", getVariable("run"), "-", getVariable("a"), "-", getVariable("b"), "-", getVariable("c"), "-", getMember(getVariable("step"), "svg"), "?once=yes")/>
 PCHVML_TOKEN_VCM_TREE|"
                "
-PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-",getElement(getVariable("SYS"),"cwd"),"/frame-",getVariable("a"),"-1-2-3-4-5-",getElement(getVariable("step"),"svg"),"?once=yes")/>
+PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-", getMember(getVariable("SYS"), "cwd"), "/frame-", getVariable("a"), "-1-2-3-4-5-", getMember(getVariable("step"), "svg"), "?once=yes")/>
 PCHVML_TOKEN_VCM_TREE|"
                "
-PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-",getElement(getVariable("SYS"),"cwd"),"/frame-",getVariable("a"),"1-2-3-4-5-",getElement(getVariable("step"),"svg"),"?once=yes")/>
+PCHVML_TOKEN_START_TAG|<update on="#theFigure" at="attr.src" with=concatString("hvml://localhost/_system/_filesystem/-", getMember(getVariable("SYS"), "cwd"), "/frame-", getVariable("a"), "1-2-3-4-5-", getMember(getVariable("step"), "svg"), "?once=yes")/>
 PCHVML_TOKEN_VCM_TREE|"
                "
-PCHVML_TOKEN_START_TAG|<init as="step" at="#myNS" with=callGetter(getElement(getVariable("DATA"),"arith"),"+",getVariable("step"),1)/>
+PCHVML_TOKEN_START_TAG|<init as="step" at="#myNS" with=callGetter(getMember(getVariable("DATA"), "arith"), "+", getVariable("step"), 1)/>
 PCHVML_TOKEN_VCM_TREE|"
                "
-PCHVML_TOKEN_START_TAG|<test with=callGetter(getElement(getVariable("L"),"gt"),getVariable("step"),30)>
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getMember(getVariable("L"), "gt"), getVariable("step"), 30)>
 PCHVML_TOKEN_VCM_TREE|"
                    "
-PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="subtract" with=make_array(make_object("id","clock"))/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="subtract" with=make_array(make_object("id", "clock"))/>
 PCHVML_TOKEN_VCM_TREE|"
                "
 PCHVML_TOKEN_END_TAG|</test>
@@ -63,7 +63,7 @@ PCHVML_TOKEN_START_TAG|<catch for=`ExternalFailure`>
 PCHVML_TOKEN_VCM_TREE|"
                "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concatString("A Python exception raised: ",getElement(getVariable("PY"),"except"))
+PCHVML_TOKEN_VCM_TREE|concatString("A Python exception raised: ", getMember(getVariable("PY"), "except"))
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
            "

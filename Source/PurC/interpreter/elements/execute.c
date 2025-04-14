@@ -4,7 +4,7 @@
  * @date 2022/04/13
  * @brief
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  * 
@@ -35,7 +35,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-struct ctxt_for_include {
+struct ctxt_for_execute {
     struct pcvdom_node           *curr;
 
     purc_variant_t                with;
@@ -45,7 +45,7 @@ struct ctxt_for_include {
 };
 
 static void
-ctxt_for_include_destroy(struct ctxt_for_include *ctxt)
+ctxt_for_execute_destroy(struct ctxt_for_execute *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
@@ -57,7 +57,7 @@ ctxt_for_include_destroy(struct ctxt_for_include *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_include_destroy((struct ctxt_for_include*)ctxt);
+    ctxt_for_execute_destroy((struct ctxt_for_execute*)ctxt);
 }
 
 static int
@@ -65,8 +65,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
-    struct ctxt_for_include *ctxt;
-    ctxt = (struct ctxt_for_include*)frame->ctxt;
+    struct ctxt_for_execute *ctxt;
+    ctxt = (struct ctxt_for_execute*)frame->ctxt;
     if (ctxt->with == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'with' for element <%s>",
@@ -114,8 +114,8 @@ process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_include *ctxt;
-    ctxt = (struct ctxt_for_include*)frame->ctxt;
+    struct ctxt_for_execute *ctxt;
+    ctxt = (struct ctxt_for_execute*)frame->ctxt;
     if (ctxt->with != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -139,8 +139,8 @@ process_attr_on(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_include *ctxt;
-    ctxt = (struct ctxt_for_include*)frame->ctxt;
+    struct ctxt_for_execute *ctxt;
+    ctxt = (struct ctxt_for_execute*)frame->ctxt;
     if (ctxt->on != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -194,9 +194,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    struct ctxt_for_include *ctxt = frame->ctxt;
+    struct ctxt_for_execute *ctxt = frame->ctxt;
     if (!ctxt) {
-        ctxt = (struct ctxt_for_include*)calloc(1, sizeof(*ctxt));
+        ctxt = (struct ctxt_for_execute*)calloc(1, sizeof(*ctxt));
         if (!ctxt) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return NULL;
@@ -250,10 +250,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (frame->ctxt == NULL)
         return true;
 
-    struct ctxt_for_include *ctxt;
-    ctxt = (struct ctxt_for_include*)frame->ctxt;
+    struct ctxt_for_execute *ctxt;
+    ctxt = (struct ctxt_for_execute*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_include_destroy(ctxt);
+        ctxt_for_execute_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -305,8 +305,8 @@ select_child(pcintr_stack_t stack, void* ud)
     if (stack->back_anchor)
         return NULL;
 
-    struct ctxt_for_include *ctxt;
-    ctxt = (struct ctxt_for_include*)frame->ctxt;
+    struct ctxt_for_execute *ctxt;
+    ctxt = (struct ctxt_for_execute*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
@@ -365,7 +365,7 @@ ops = {
     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_get_include_ops(void)
+struct pcintr_element_ops* pcintr_get_execute_ops(void)
 {
     return &ops;
 }

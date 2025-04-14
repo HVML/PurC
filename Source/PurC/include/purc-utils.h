@@ -860,7 +860,8 @@ PCA_EXPORT const char *
 pcutils_get_next_token_len(const char *str, size_t str_len,
         const char *delims, size_t *length);
 
-/** Get the pointer of the next valid line and length in a string */
+/** Get the line length in a string and return
+    the pointer to the next line. */
 PCA_EXPORT const char *
 pcutils_get_next_line_len(const char *str, size_t str_len,
         const char *seperator, size_t *length);
@@ -1336,7 +1337,14 @@ char *pcutils_strtolower(const char *str, ssize_t len, size_t *new_len);
 int pcutils_strncasecmp(const char *s1, const char *s2, size_t n);
 
 /** the UTF-8 compliant version of strcasestr */
-char *pcutils_strcasestr(const char *haystack, const char *needle);
+char *pcutils_strcasestr_ex(const char *haystack, const char *needle,
+        size_t *matched_len);
+
+/** the UTF-8 compliant version of strcasestr */
+static inline char *
+pcutils_strcasestr(const char *haystack, const char *needle) {
+    return pcutils_strcasestr_ex(haystack, needle, NULL);
+}
 
 /** the UTF-8 compliant version of strreverse */
 char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars);

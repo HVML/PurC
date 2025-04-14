@@ -206,6 +206,9 @@ static void print_usage(FILE *fp)
         "        This help.\n"
         "\n"
         "(root only options)\n"
+        "  -D --daemon\n"
+        "        Run as a daemon.\n"
+        "\n"
         "  -R --chroot <directory>\n"
         "       Change root to the specified directory\n"
         "       (default is the `/app/<app_name>/`)\n"
@@ -247,6 +250,7 @@ struct my_opts {
 
     bool parallel;
     bool verbose;
+    bool daemon;
 };
 
 static const char *archedata_header =
@@ -435,7 +439,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:DlvCVh";
     static const struct option long_opts[] = {
         { "app"                         , required_argument , NULL , 'a' },
         { "runner"                      , required_argument , NULL , 'r' },
@@ -453,6 +457,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "chroot"                      , required_argument , NULL , 'R' },
         { "setuser"                     , required_argument , NULL , 'U' },
         { "setgroup"                    , required_argument , NULL , 'G' },
+        { "daemon"                      , no_argument       , NULL , 'D' },
         { "parallel"                    , no_argument       , NULL , 'l' },
         { "verbose"                     , no_argument       , NULL , 'v' },
         { "copying"                     , no_argument       , NULL , 'C' },
@@ -605,6 +610,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'v':
             opts->verbose = true;
+            break;
+
+        case 'D':
+            opts->daemon = true;
             break;
 
         case '?':
@@ -866,7 +875,8 @@ static pcrdr_page_type_k get_page_type(purc_variant_t rdr)
 
     const char *str = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageType");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey_ex(rdr, "pageType", true);
     if (tmp)
         str = purc_variant_get_string_const(tmp);
 
@@ -886,7 +896,8 @@ static const char *get_workspace(purc_variant_t rdr)
 {
     const char *workspace = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "workspace");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey_ex(rdr, "workspace", true);
     if (tmp)
         workspace = purc_variant_get_string_const(tmp);
 
@@ -897,7 +908,8 @@ static const char *get_page_group(purc_variant_t rdr)
 {
     const char *page_group = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageGroupId");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey_ex(rdr, "pageGroupId", true);
     if (tmp)
         page_group = purc_variant_get_string_const(tmp);
 
@@ -908,7 +920,8 @@ static const char *get_page_name(purc_variant_t rdr)
 {
     const char *page_name = NULL;
 
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageName");
+    purc_variant_t tmp =
+        purc_variant_object_get_by_ckey_ex(rdr, "pageName", true);
     if (tmp)
         page_name = purc_variant_get_string_const(tmp);
 
@@ -921,29 +934,29 @@ fill_cor_rdr_info(struct my_opts *opts,
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "class");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "class", true);
     if (tmp)
         rdr_info->klass = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "title");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "title", true);
     if (tmp)
         rdr_info->title = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "layoutStyle", true);
     if (tmp)
         rdr_info->layout_style = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "transitionStyle", true);
     if (tmp)
         rdr_info->transition_style = purc_variant_get_string_const(tmp);
 
-    rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
-            "toolkitStyle");
+    rdr_info->toolkit_style = purc_variant_object_get_by_ckey_ex(rdr,
+            "toolkitStyle", true);
 
-    rdr_info->keep_contents = purc_variant_object_get_by_ckey(rdr,
-            "keepContents");
+    rdr_info->keep_contents = purc_variant_object_get_by_ckey_ex(rdr,
+            "keepContents", true);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "pageGroups", true);
     if (tmp) {
         const char *file = purc_variant_get_string_const(tmp);
         if (file) {
@@ -958,7 +971,7 @@ fill_run_rdr_info(struct my_opts *opts,
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "commMethod");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "commMethod", true);
     if (tmp) {
         const char *str = purc_variant_get_string_const(tmp);
         if (str) {
@@ -974,28 +987,28 @@ fill_run_rdr_info(struct my_opts *opts,
         }
     }
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "uri");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "uri", true);
     if (tmp)
         rdr_info->renderer_uri = purc_variant_get_string_const(tmp);
 
     /* XXX: Removed since 0.9.22
-    tmp = purc_variant_object_get_by_ckey(rdr, "sslCert");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "sslCert");
     if (tmp)
         rdr_info->ssl_cert = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "sslKey");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "sslKey");
     if (tmp)
         rdr_info->ssl_key = purc_variant_get_string_const(tmp); */
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "workspaceName", true);
     if (tmp)
         rdr_info->workspace_name = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceTitle");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "workspaceTitle", true);
     if (tmp)
         rdr_info->workspace_title = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceLayout");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "workspaceLayout", true);
     if (tmp) {
         const char *file = purc_variant_get_string_const(tmp);
         if (file) {
@@ -1027,7 +1040,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         app_name = curr_app_name;
     }
 
-    tmp = purc_variant_object_get_by_ckey(runner, "runner");
+    tmp = purc_variant_object_get_by_ckey_ex(runner, "runner", true);
     if (tmp) {
         run_name = purc_variant_get_string_const(tmp);
     }
@@ -1052,7 +1065,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             }
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "allowSwitchingRdr");
+        tmp = purc_variant_object_get_by_ckey_ex(runner,
+                "allowSwitchingRdr", true);
         if (tmp) {
             inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
@@ -1067,12 +1081,13 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             }
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "allowScalingByDensity");
+        tmp = purc_variant_object_get_by_ckey_ex(runner,
+                "allowScalingByDensity", true);
         if (tmp) {
             inst_info.allow_scaling_by_density = purc_variant_booleanize(tmp);
         }
 
-        tmp = purc_variant_object_get_by_ckey(runner, "renderer");
+        tmp = purc_variant_object_get_by_ckey_ex(runner, "renderer", true);
         if (tmp)
             fill_run_rdr_info(opts, &inst_info, tmp);
 
@@ -1100,7 +1115,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             continue;
         }
 
-        tmp = purc_variant_object_get_by_ckey(crtn, "url");
+        tmp = purc_variant_object_get_by_ckey_ex(crtn, "url", true);
         const char *url = NULL;
         if (tmp) {
             url = purc_variant_get_string_const(tmp);
@@ -1132,10 +1147,10 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         }
 
         purc_variant_t request =
-            purc_variant_object_get_by_ckey(crtn, "request");
+            purc_variant_object_get_by_ckey_ex(crtn, "request", true);
 
         const char *body_id = NULL;
-        tmp = purc_variant_object_get_by_ckey(crtn, "bodyId");
+        tmp = purc_variant_object_get_by_ckey_ex(crtn, "bodyId", true);
         if (tmp) {
             body_id = purc_variant_get_string_const(tmp);
         }
@@ -1147,7 +1162,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_renderer_extra_info rdr_info = {};
 
         purc_variant_t rdr =
-            purc_variant_object_get_by_ckey(crtn, "renderer");
+            purc_variant_object_get_by_ckey_ex(crtn, "renderer", true);
         if (purc_variant_is_object(rdr)) {
             page_type = get_page_type(rdr);
             target_workspace = get_workspace(rdr);
@@ -1225,10 +1240,10 @@ static bool run_app(struct my_opts *opts)
 #endif
 
     purc_variant_t app =
-        purc_variant_object_get_by_ckey(run_info.app_info, "app");
+        purc_variant_object_get_by_ckey_ex(run_info.app_info, "app", true);
 
     purc_variant_t runners =
-        purc_variant_object_get_by_ckey(run_info.app_info, "runners");
+        purc_variant_object_get_by_ckey_ex(run_info.app_info, "runners", true);
     size_t nr_runners = 0;
     if (!purc_variant_array_size(runners, &nr_runners) || nr_runners == 0) {
         fprintf(stderr, "No runner defined.\n");
@@ -1241,7 +1256,7 @@ static bool run_app(struct my_opts *opts)
         purc_variant_t runner = purc_variant_array_get(runners, i);
 
         purc_variant_t coroutines =
-            purc_variant_object_get_by_ckey(runner, "coroutines");
+            purc_variant_object_get_by_ckey_ex(runner, "coroutines", true);
 
         if (!coroutines) {
             fprintf(stderr, "No coroutines for runner #%u\n",
@@ -1372,6 +1387,10 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
                         purc_atom_to_string(term_info->except));
             }
 
+            if (term_info->exinfo) {
+                fprintf(stderr, "%s\n", purc_variant_get_string_const(term_info->exinfo));
+            }
+
             fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
@@ -1443,19 +1462,35 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             nr_executed++;
         }
         else {
-            fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
-                    purc_get_error_message(purc_get_last_error()));
-
             if (opts->verbose) {
+                fprintf(stderr, "Failed to parse HVML from %s\n", url);
+
                 struct purc_parse_error_info *parse_error = NULL;
                 purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
                         (uintptr_t *)(void *)&parse_error, NULL);
                 if (parse_error) {
-                    fprintf(stderr,
-                            "Parse %s failed : line=%d, column=%d, character=0x%x\n",
-                            url, parse_error->line, parse_error->column,
-                            parse_error->character);
+                    if (parse_error->extra) {
+                        fprintf(stderr, "%s\n", parse_error->extra);
+                    }
+                    else {
+                        fprintf(stderr, "%s\n",
+                                purc_get_error_message(purc_get_last_error()));
+                    }
+                    fprintf(stderr, "Source: %s\n", url);
+                    fprintf(stderr, "Position: %d,%d\n",
+                            parse_error->line, parse_error->column);
+                    if (parse_error->code_snippets) {
+                        fprintf(stderr, "%s\n", parse_error->code_snippets);
+                    }
                 }
+                else {
+                    fprintf(stderr, "%s\n",
+                            purc_get_error_message(purc_get_last_error()));
+                }
+            }
+            else {
+                fprintf(stderr, "Failed to parse HVML from %s\n%s\n", url,
+                        purc_get_error_message(purc_get_last_error()));
             }
         }
     }
@@ -1711,6 +1746,25 @@ static int drop_root_privilege(const struct my_opts *opts)
 {
     const char *username;
     const char *groupname;
+
+    if (opts->daemon) {
+        pid_t pid;
+
+        pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "Failed fork(): %s\n", strerror(errno));
+            return -1;
+        }
+
+        if (pid > 0) {
+            _exit(0);
+        }
+
+        if (setsid() < 0) {
+            fprintf(stderr, "Failed setsid(): %s\n", strerror(errno));
+            return -1;
+        }
+    }
 
     if (opts->setuser) {
         username = opts->setuser;

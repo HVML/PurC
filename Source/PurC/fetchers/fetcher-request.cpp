@@ -343,14 +343,13 @@ static int fill_request_param(
     }
 
     if (purc_variant_is_object(params)) {
-        purc_variant_t raw = purc_variant_object_get_by_ckey(params,
-                FETCHER_PARAM_RAW_HEADER);
+        purc_variant_t raw = purc_variant_object_get_by_ckey_ex(params,
+                FETCHER_PARAM_RAW_HEADER, true);
         if (raw && purc_variant_booleanize(raw)) {
             raw_header = true;
-            params = purc_variant_object_get_by_ckey(params,
-                    FETCHER_PARAM_DATA);
+            params = purc_variant_object_get_by_ckey_ex(params,
+                    FETCHER_PARAM_DATA, true);
         }
-        purc_clr_error();
     }
 
     if (!params) {

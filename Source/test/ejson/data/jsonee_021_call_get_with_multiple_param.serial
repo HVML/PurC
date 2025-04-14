@@ -1,1 +1,1 @@
-callGetter(getElement(getVariable("ABC"),"b"),123,456)
+callGetter(getMember(getVariable("ABC"), "b"), 123, 456)

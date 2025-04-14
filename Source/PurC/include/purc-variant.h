@@ -1186,6 +1186,25 @@ purc_variant_make_object_0(void)
 }
 
 /**
+ * purc_variant_object_get_by_ckey_ex:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: Indicate whether to report the following error(s):
+ *  - PURC_ERROR_NO_SUCH_KEY
+ *
+ * Gets the property value in @obj by the key value specified with
+ * a null-terminated string @key.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_object_get_by_ckey_ex(purc_variant_t obj, const char* key,
+        bool silently);
+
+/**
  * purc_variant_object_get_by_ckey:
  *
  * @obj: An object variant.
@@ -1198,8 +1217,37 @@ purc_variant_make_object_0(void)
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
+PCA_INLINE purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key) {
+    return purc_variant_object_get_by_ckey_ex(obj, key, true);
+}
+
+/**
+ * purc_variant_object_get_ex:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: Indicate whether to report the following error(s):
+ *  - PURC_ERROR_NO_SUCH_KEY
+ *
+ * Gets the property value in @obj by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get_ex(purc_variant_t obj, purc_variant_t key,
+        bool silently)
+{
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_get_by_ckey_ex(obj, sk, silently);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
 
 /**
  * purc_variant_object_get:
@@ -1219,7 +1267,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 {
     const char *sk = purc_variant_get_string_const(key);
     if (sk) {
-        return purc_variant_object_get_by_ckey(obj, sk);
+        return purc_variant_object_get_by_ckey_ex(obj, sk, true);
     }
 
     return PURC_VARIANT_INVALID;
@@ -3432,6 +3480,27 @@ PCA_EXPORT ssize_t
 purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
 
 /**
+ * purc_variant_stringify_alloc_ex:
+ *
+ * @strp: The pointer to a char * buffer to receive the pointer to
+ *      the allocated space.
+ * @value: The variant value to be stringified.
+ * @sz_buff_p (nullable): The pointer to a size_t buffer to received the size of
+ *  the buffer.
+ *
+ * Stringifies a variant value in the similar way as `asprintf` does.
+ *
+ * Returns: Totol number of result content in bytes that has been succesfully
+ *      written or shall be written if the buffer is large enough,
+ *      or -1 in case of other failure.
+ *
+ * Since: 0.9.22
+ */
+PCA_EXPORT ssize_t
+purc_variant_stringify_alloc_ex(char **strp, purc_variant_t value,
+        size_t *sz_buff);
+
+/**
  * purc_variant_stringify_alloc:
  *
  * @strp: The pointer to a char * buffer to receive the pointer to
@@ -3446,8 +3515,10 @@ purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
  *
  * Since: 0.0.3
  */
-PCA_EXPORT ssize_t
-purc_variant_stringify_alloc(char **strp, purc_variant_t value);
+static inline ssize_t
+purc_variant_stringify_alloc(char **strp, purc_variant_t value) {
+    return purc_variant_stringify_alloc_ex(strp, value, NULL);
+}
 
 /**
  * A flag for the purc_variant_stringify() function which causes
@@ -3504,9 +3575,9 @@ typedef struct pcvar_listener pcvar_listener;
 typedef struct pcvar_listener *pcvar_listener_t;
 
 typedef enum {
-    PCVAR_OPERATION_GROW         = (0x01 << 0),
-    PCVAR_OPERATION_SHRINK       = (0x01 << 1),
-    PCVAR_OPERATION_CHANGE       = (0x01 << 2),
+    PCVAR_OPERATION_INFLATED     = (0x01 << 0),
+    PCVAR_OPERATION_DEFLATED     = (0x01 << 1),
+    PCVAR_OPERATION_MODIFIED     = (0x01 << 2),
     PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
     PCVAR_OPERATION_RELEASING    = (0x01 << 4),
     PCVAR_OPERATION_ALL          = ((0x01 << 5) - 1),
@@ -3525,11 +3596,11 @@ typedef bool (*pcvar_op_handler) (
  *
  * @v: The variant that is to be listened.
  * @op: The operations to be listened, can OR'd by the following values:
- *      - PCVAR_OPERATION_GROW:
+ *      - PCVAR_OPERATION_INFLATED:
  *        A new member will be added to the container.
- *      - PCVAR_OPERATION_SHRINK:
+ *      - PCVAR_OPERATION_DEFLATED:
  *        A member will be removed from the container.
- *      - PCVAR_OPERATION_CHANGE:
+ *      - PCVAR_OPERATION_MODIFIED:
  *        The contents of the container will change.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant will be referenced as a child of another container.
@@ -3551,11 +3622,11 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *
  * @v: The variant that is to be listened, it must be a container.
  * @op: The operations to be listened, can OR'd by the following values:
- *      - PCVAR_OPERATION_GROW:
+ *      - PCVAR_OPERATION_INFLATED:
  *        A new member has been added to the container.
- *      - PCVAR_OPERATION_SHRINK:
+ *      - PCVAR_OPERATION_DEFLATED:
  *        A member has be removed from the container.
- *      - PCVAR_OPERATION_CHANGE:
+ *      - PCVAR_OPERATION_MODIFIED:
  *        The contents of the container have changed.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant was referenced as a child of another container.

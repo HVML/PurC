@@ -17,7 +17,7 @@
         </footer>
 
         <choose on="$locales" to="update" in="#the-footer" by="KEY: $global.locale">
-            <update on="~ p > a" textContent="$?.se_name" attr.href="$?.se_url" attr.title="$?.se_title" />
+            <update on="~ p > a" with="$?.se_name" at="$?.se_url" />
         </choose>
     </body>
 </hvml>

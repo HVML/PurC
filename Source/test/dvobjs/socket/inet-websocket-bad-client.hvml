@@ -15,7 +15,7 @@
 
     <body id='server' >
 
-        <include with $logMsg on 'The server is running...' />
+        <execute with $logMsg on 'The server is running...' />
 
         <init as 'sslSettings' with {} />
         <test with $L.streq('caseless', $REQ.secure, 'true') >
@@ -45,8 +45,8 @@
             </update>
         </test>
 
-        <include with $logMsg on $DATA.serialize($sslSettings) />
-        <include with $logMsg on $DATA.serialize($wsSettings) />
+        <execute with $logMsg on $DATA.serialize($sslSettings) />
+        <execute with $logMsg on $DATA.serialize($wsSettings) />
 
         <init as 'clients' with {} />
 
@@ -68,7 +68,7 @@
             </inherit>
         </observe>
 
-        <include with $logMsg on 'The server is accepting...' />
+        <execute with $logMsg on 'The server is accepting...' />
 
         <choose on $srvListenSocket.accept('default', 'websocket', $wsSettings)>
             <catch for `ANY`>
@@ -77,7 +77,7 @@
 
             <test with $L.not($DATA.isequal($?, null)) >
 
-                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+                <execute with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
 
                 <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
 
@@ -128,31 +128,31 @@
     <!-- a raw client -->
     <body id="raw">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default') >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
             <inherit>
                 $cliStreamSocket.writelines('Hello')
 
-                <include with $logMsg on 'Client has wrotten a line to the server.' />
+                <execute with $logMsg on 'Client has wrotten a line to the server.' />
 
                 <catch for `ANY`>
                     <exit with "Client failed with $?.name when calling stream.writelines()" />
                 </catch>
             </inherit>
 
-            <include with $logMsg on 'Client try to read one line from the server.' />
+            <execute with $logMsg on 'Client try to read one line from the server.' />
 
             <choose on $cliStreamSocket.readlines(1) >
 
-                <include with $logMsg on 'Client has got one line from the server and going to exit:' />
-                <include with $logMsg on $?[0] />
+                <execute with $logMsg on 'Client has got one line from the server and going to exit:' />
+                <execute with $logMsg on $?[0] />
 
                 <choose on $cliStreamSocket.close() >
                     <catch for `ANY`>
@@ -175,14 +175,14 @@
     <!-- long time no response client -->
     <body id="ltnr">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default') >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
         </init>
 
         <sleep for '10s' />
@@ -197,14 +197,14 @@
     <!-- long time no response but secure client -->
     <body id="sltnr">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
         </init>
 
         <sleep for '5s' />
@@ -223,24 +223,24 @@
     <!-- long time no response after handshake but secure client -->
     <body id="sltnrafterhandshake">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Got handshake event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Got handshake event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
             <sleep for '5s' />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 $cliStreamSocket.close()
@@ -257,22 +257,22 @@
     <!-- A not secure client with a too large handshake request -->
     <body id="tlr">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { subprotocols: $STR.repeat('0123456789,', 1024) } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDSHAKE event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDSHAKE event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 $cliStreamSocket.close()
@@ -289,22 +289,22 @@
     <!-- A secure client with a too large handshake request -->
     <body id="stlr">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('inet://localhost:8080/', 'default', 'websocket', { secure: true, subprotocols: $STR.repeat('0123456789,', 1024) } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDSHAKE event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDSHAKE event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 $cliStreamSocket.close()
@@ -318,10 +318,10 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got ERROR event:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to exit.' />
+            <execute with $logMsg on 'Client is going to exit.' />
 
             <inherit>
                 $cliStreamSocket.close()

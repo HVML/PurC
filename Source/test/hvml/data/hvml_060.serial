@@ -10,35 +10,35 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Hello, world!") || callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Hello, world!") }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), "Hello, world!") || callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), "Hello, world!") }}
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Hello, world!") || callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Hello, world!") }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), "Hello, world!") || callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), "Hello, world!") }}
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init as="test">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("key","v1","k2","v2","k3","v3")
+PCHVML_TOKEN_VCM_TREE|make_object("key", "v1", "k2", "v2", "k3", "v3")
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init as="test2">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_array("v1","v2","v3")
+PCHVML_TOKEN_VCM_TREE|make_array("v1", "v2", "v3")
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init as="test3">
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|make_object("key",make_object("a",1),"key2",make_array(1,2,3),"key3",callGetter(getVariable("abc"),1,2),"key4",getVariable("xyz"))
+PCHVML_TOKEN_VCM_TREE|make_object("key", make_object("a", 1), "key2", make_array(1, 2, 3), "key3", callGetter(getVariable("abc"), 1, 2), "key4", getVariable("xyz"))
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
     "

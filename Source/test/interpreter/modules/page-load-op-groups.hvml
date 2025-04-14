@@ -1,0 +1,19 @@
+#!/usr/bin/purc
+
+# RESULT: 'Success'
+
+<hvml target="void">
+    <body>
+
+        <load from "$REQ.module" onto 'null:' as 'client' />
+
+        <init as 'tag' with 'LOAD_OP_GROUPS' />
+
+        <execute with $logMsg on 'The main used define on second page  ' />
+        <execute with $print on  'The main used define on second page  ' />
+
+        <exit with 'Success' />
+
+    </body>
+
+</hvml>

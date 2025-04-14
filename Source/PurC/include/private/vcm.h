@@ -80,7 +80,7 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_FUNC_CONCAT_STRING,
 #define PCVCM_NODE_TYPE_NAME_GET_VARIABLE           "getVariable"
     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE,
-#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "getElement"
+#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "getMember"
     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
 #define PCVCM_NODE_TYPE_NAME_CALL_GETTER            "callGetter"
     PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
@@ -103,21 +103,31 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NR \
     (PCVCM_NODE_TYPE_LAST - PCVCM_NODE_TYPE_FIRST + 1)
 
+enum pcvcm_node_quoted_type {
+    PCVCM_NODE_QUOTED_TYPE_NONE,
+    PCVCM_NODE_QUOTED_TYPE_SINGLE,
+    PCVCM_NODE_QUOTED_TYPE_DOUBLE,
+    PCVCM_NODE_QUOTED_TYPE_BACKQUOTE,
+};
+
 struct pcvcm_node {
-    struct pctree_node tree_node;
-    enum pcvcm_node_type type;
-    uint32_t extra;
-    uintptr_t attach;
-    int32_t   idx;
-    int32_t   nr_nodes; /* nr_nodes of the tree */
-    bool is_closed;
+    struct pctree_node          tree_node;
+    enum pcvcm_node_type        type;
+    enum pcvcm_node_quoted_type quoted_type;
+    struct tkz_ucs             *ucs;
+    uintptr_t                   attach;
+    uint32_t                    extra;
+    int32_t                     position;
+    int32_t                     idx;
+    int32_t                     nr_nodes; /* nr_nodes of the tree */
+    bool                        is_closed;
     union {
-        bool        b;
-        double      d;
-        int64_t     i64;
-        uint64_t    u64;
-        long double ld;
-        uintptr_t   sz_ptr[2];
+        bool                    b;
+        double                  d;
+        int64_t                 i64;
+        uint64_t                u64;
+        long double             ld;
+        uintptr_t               sz_ptr[2];
     };
 };
 
@@ -252,9 +262,26 @@ pcvcm_node_append_child(struct pcvcm_node *parent, struct pcvcm_node *child)
     return pctree_node_append_child(&parent->tree_node, &child->tree_node);
 }
 
-char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
+char *pcvcm_node_to_string_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg);
 
-char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
+static inline char *pcvcm_node_to_string(struct pcvcm_node *node,
+        size_t *nr_bytes)
+{
+    return pcvcm_node_to_string_ex(node, nr_bytes, NULL, NULL, NULL);
+}
+
+
+char *pcvcm_node_serialize_ex(struct pcvcm_node *node, size_t *nr_bytes,
+        struct pcvcm_node *err_node, char **err_msg, size_t *nr_err_msg);
+
+static inline char *pcvcm_node_serialize(struct pcvcm_node *node,
+        size_t *nr_bytes)
+{
+    return pcvcm_node_serialize_ex(node, nr_bytes, NULL, NULL, NULL);
+}
+
+int pcvcm_node_min_position(struct pcvcm_node *node);
 
 /*
  * Removes root and its children from the tree, freeing any memory allocated.

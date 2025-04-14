@@ -42,8 +42,8 @@
 
 /* Constants */
 #define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
-#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "160"
-#define PCRDR_PURCMC_PROTOCOL_VERSION           160
+#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "170"
+#define PCRDR_PURCMC_PROTOCOL_VERSION           170
 #define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   160
 
 #define PCRDR_PURCMC_US_NAME                "purcmc.sock"
@@ -76,7 +76,9 @@
 #define PCRDR_GROUP_DYNAMIC             "_dynamic"
 #define PCRDR_PAGE_NULL                 "-"
 
-#define PCRDR_PATH_EXPORTED         "exported"
+#define PCRDR_PATH_EXPORTED         "exported/"
+#define PCRDR_PATH_EXPORTED_TMP     "exported/tmp/"
+#define PCRDR_PATH_FORMAT_DOC       "/app/%s/" PCRDR_PATH_EXPORTED_TMP
 #define PCRDR_HVML_URI_STATIC       "hvml://_originhost/_self/_%s/_static/%s"
 #define PCRDR_HVML_URI_DYNAMIC      "hvml://_originhost/_self/_%s/_dynamic/%s"
 #define PCRDR_FILE_URI_PATTERN      "file://" PURC_HVML_APP_PREFIX  "%s/%s"

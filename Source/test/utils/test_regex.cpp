@@ -65,6 +65,30 @@ TEST(regex, is_match)
     match = pcregex_is_match("...", "abc");
     ASSERT_EQ(match, true);
 
+    match = pcregex_is_match("abc?", "abc");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("abc?", "abcd");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("abc?", "abd");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("abc?", "ab");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("abc?", "a");
+    ASSERT_EQ(match, false);
+
+    match = pcregex_is_match("", "a");
+    ASSERT_EQ(match, false);
+
+    match = pcregex_is_match("NULL", "a");
+    ASSERT_EQ(match, false);
+
+    match = pcregex_is_match(NULL, "a");
+    ASSERT_EQ(match, false);
+
     match = pcregex_is_match("^[A-Za-z_][A-Za-z0-9_]*$", "123a");
     ASSERT_EQ(match, false);
 

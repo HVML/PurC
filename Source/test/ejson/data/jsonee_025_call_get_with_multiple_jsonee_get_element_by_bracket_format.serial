@@ -1,1 +1,1 @@
-callGetter(getElement(getVariable("ABC"),"b"),getElement(getVariable("PA"),123),getElement(getVariable("PB"),456))
+callGetter(getMember(getVariable("ABC"), "b"), getMember(getVariable("PA"), 123), getMember(getVariable("PB"), 456))

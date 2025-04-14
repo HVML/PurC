@@ -52,18 +52,27 @@ struct ejson_test_data {
     char *name;
     char *json;
     char *comp;
+    char *comp_path;
     int error;
 };
 
 static inline void
 push_back(std::vector<ejson_test_data> &vec,
-        const char *name, const char *json, const char *comp, int error)
+        const char *name, const char *json, const char *comp,
+        const char *comp_path, int error)
 {
     ejson_test_data data;
     memset(&data, 0, sizeof(data));
     data.name = MemCollector::strdup(name);
     data.json = MemCollector::strdup(json);
-    data.comp = MemCollector::strdup(comp);
+    if (comp) {
+        data.comp = MemCollector::strdup(comp);
+        data.comp_path = NULL;
+    }
+    else {
+        data.comp = NULL;
+        data.comp_path = MemCollector::strdup(comp_path);
+    }
     data.error = error;
 
     vec.push_back(data);
@@ -75,31 +84,25 @@ protected:
     void SetUp() {
         purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test", "ejson",
                 NULL);
-        name = GetParam().name;
-        json = GetParam().json;
-        comp = GetParam().comp;
-        error = GetParam().error;
     }
     void TearDown() {
         purc_cleanup ();
     }
     const char* get_name() {
-        return name.c_str();
+        return GetParam().name;
     }
     const char* get_json() {
-        return json.c_str();
+        return GetParam().json;
     }
     const char* get_comp() {
-        return comp.c_str();
+        return GetParam().comp;
+    }
+    const char* get_comp_path() {
+        return GetParam().comp_path;
     }
     int get_error() {
-        return error;
+        return GetParam().error;
     }
-private:
-    string name;
-    string json;
-    string comp;
-    int error;
 };
 
 #define TO_ERROR(err_name)                                 \
@@ -172,8 +175,16 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     size_t nr_buf = 0;
     char* buf = pcvcm_node_to_string(root, &nr_buf);
     fprintf(stderr, "buf=%s\n", buf);
-    fprintf(stderr, "com=%s\n", comp);
-    ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    if (comp) {
+        fprintf(stderr, "com=%s\n", comp);
+        ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    }
+    else {
+        const char* comp_path = get_comp_path();
+        FILE* fp = fopen(comp_path, "w");
+        fprintf(fp, "%s", buf);
+        fclose(fp);
+    }
     free(buf);
 
 
@@ -303,15 +314,17 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         ;
                     }
                     char* comp_buf = read_file (file);
-                    if (!comp_buf) {
-                        free (json_buf);
-                        continue;
+                    if (comp_buf) {
+                        push_back(vec, name, json_buf, trim(comp_buf), file, error);
+                    }
+                    else {
+                        push_back(vec, name, json_buf, NULL, file, error);
                     }
 
-                    push_back(vec, name, json_buf, trim(comp_buf), error);
-
                     free (json_buf);
-                    free (comp_buf);
+                    if (comp_buf) {
+                        free (comp_buf);
+                    }
                 }
             }
             free (line);
@@ -321,7 +334,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
     }
 
     if (vec.empty()) {
-        push_back(vec, "array", "[123]", "make_array(123)", 0);
+        push_back(vec, "array", "[123]", "make_array(123)", NULL, 0);
     }
     return vec;
 }

@@ -117,6 +117,7 @@ typedef struct pcdvobjs_stream {
     uintptr_t monitor4r, monitor4w;
     int ioevents4r, ioevents4w;
     int fd4r, fd4w;
+    FILE *fp;               /* use this only for readlines (line-buffered) */
 
     pid_t cpid;             /* only for pipe, the pid of child */
     purc_atom_t cid;

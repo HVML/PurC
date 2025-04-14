@@ -42,9 +42,21 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <spawn.h>
+#include <signal.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/ioctl.h>
+
+#if OS(LINUX)
+#include <sys/sendfile.h>
+#include <termios.h>
+#elif OS(DARWIN)
+#include <util.h>
+#include <sys/uio.h>
+#endif
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
@@ -271,7 +283,7 @@ failed:
 #define _OS_NAME    "tvOS"
 #elif OS(WATCHOS)
 #define _OS_NAME    "watchOS"
-#elif OS(MAC_OS_X)
+#elif OS(Mac_OS_X)
 #define _OS_NAME    "macOS"
 #elif OS(DARWIN)
 #define _OS_NAME    "Darwin"
@@ -392,8 +404,6 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#define _KW_DELIMITERS  " \t\n\v\f\r"
-
 static purc_variant_t
 uname_prt_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
@@ -500,7 +510,7 @@ uname_prt_getter(purc_variant_t root,
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             size_t len_part = 0;
 
@@ -584,7 +594,7 @@ uname_prt_getter(purc_variant_t root,
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -781,10 +791,10 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_OBJECT) {
-        purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_sec);
-        purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_usec);
+        purc_variant_t v1 = purc_variant_object_get_by_ckey_ex(argv[0],
+                _KN_sec, true);
+        purc_variant_t v2 = purc_variant_object_get_by_ckey_ex(argv[0],
+                _KN_usec, true);
 
         if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1172,7 +1182,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t length;
 
         category = pcutils_get_next_token_len(categories, categories_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         while (category) {
             char *tmp = strndup(category, length);
             atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
@@ -1242,7 +1252,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             categories_len -= length;
             category = pcutils_get_next_token_len(category + length,
-                    categories_len, _KW_DELIMITERS, &length);
+                    categories_len, PURC_KW_DELIMITERS, &length);
         }
     }
 
@@ -1989,7 +1999,7 @@ int parse_pipe_flags(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -2018,7 +2028,7 @@ int parse_pipe_flags(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -2237,7 +2247,7 @@ int parse_fdflags_setter_flags(purc_variant_t option)
 
     size_t length = 0;
     const char *part = pcutils_get_next_token_len(parts, parts_len,
-            _KW_DELIMITERS, &length);
+            PURC_KW_DELIMITERS, &length);
     do {
         if (length == 0 || length > MAX_LEN_KEYWORD) {
             atom = 0;
@@ -2269,7 +2279,7 @@ int parse_fdflags_setter_flags(purc_variant_t option)
 
         parts_len -= length;
         part = pcutils_get_next_token_len(part + length, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
     } while (part);
 
 done:
@@ -2433,7 +2443,7 @@ sockopt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (getsockopt(fd, SOL_SOCKET, optname, optval, &optlen) == -1) {
-        PC_DEBUG("Failed getsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed getsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
@@ -2563,12 +2573,80 @@ sockopt_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (setsockopt(fd, SOL_SOCKET, optname, optval, optlen) == -1) {
-        PC_DEBUG("Failed setsockopt(): %s.\n", strerror(errno));
+        PC_ERROR("Failed setsockopt(): %s.\n", strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto error;
     }
 
     return purc_variant_make_boolean(true);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static struct pcdvobjs_option_to_atom seek_whence_skws[] = {
+    { "set",    0, SEEK_SET },
+    { "current",0, SEEK_CUR },
+    { "end",    0, SEEK_END },
+};
+
+static purc_variant_t
+seek_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    off_t offset = (off_t)tmp_l;
+
+    if (seek_whence_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(seek_whence_skws); j++) {
+            seek_whence_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, seek_whence_skws[j].option);
+        }
+    }
+
+    int whence = pcdvobjs_parse_options(
+            (nr_args > 2) ? argv[2] : PURC_VARIANT_INVALID,
+            seek_whence_skws, PCA_TABLESIZE(seek_whence_skws),
+            NULL, 0, SEEK_SET, -1);
+    if (whence == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    offset = lseek(fd, offset, whence);
+    if (offset == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    return purc_variant_make_longint((int64_t)offset);
 
 error:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -2621,7 +2699,7 @@ handle_file_action_close(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd");
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2661,6 +2739,47 @@ static struct pcdvobjs_option_to_atom open_flags_ckws[] = {
     { "nonblock",   0,  O_NONBLOCK },
 };
 
+#define DEF_OPEN_FLAGS (O_RDONLY | O_WRONLY | O_CLOEXEC)
+
+static mode_t
+parse_file_mode(purc_variant_t mode_vrt, int *ec)
+{
+    mode_t mode = 0666;
+    if (mode_vrt) {
+        const char *cmode = purc_variant_get_string_const(mode_vrt);
+        if (cmode == NULL) {
+            *ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+
+        if (cmode[0] == '0') {
+            long tmp;
+            char *endp;
+            tmp = strtol(cmode, &endp, 8);
+
+            if (errno == ERANGE) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            if (endp == cmode) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+
+            mode = (mode_t)tmp;
+        }
+        else {
+            /* TODO: for u+rwx,go+rx */
+            *ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+
+error:
+    return mode;
+}
+
 static int
 handle_file_action_open(posix_spawn_file_actions_t *file_actions,
         purc_variant_t fa)
@@ -2668,7 +2787,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd");
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2681,7 +2800,7 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
     }
     int fd = (int)tmp_l;
 
-    if ((v = purc_variant_object_get_by_ckey(fa, "path")) == NULL) {
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "path", true)) == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
     }
@@ -2692,59 +2811,25 @@ handle_file_action_open(posix_spawn_file_actions_t *file_actions,
         goto done;
     }
 
-    if ((v = purc_variant_object_get_by_ckey(fa, "oflags")) == NULL) {
+    if ((v = purc_variant_object_get_by_ckey_ex(fa, "oflags", true)) == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
-    }
-
-    if (open_flags_ckws[0].atom == 0) {
-        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
-            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
-                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
-        }
     }
 
     int flags;
     flags = pcdvobjs_parse_options(v, NULL, 0,
-            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws), 0, -1);
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
     if (flags == -1) {
-        ec = PURC_ERROR_INVALID_VALUE;
+        ec = purc_get_last_error();
         goto done;
     }
 
     mode_t mode;
-    if ((v = purc_variant_object_get_by_ckey(fa, "cmode"))) {
-        const char *cmode = purc_variant_get_string_const(v);
-        if (cmode == NULL) {
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto done;
-        }
-
-        if (cmode[0] == '0') {
-            long tmp;
-            char *endp;
-            tmp = strtol(cmode, &endp, 8);
-
-            if (errno == ERANGE) {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto done;
-            }
-
-            if (endp == cmode) {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto done;
-            }
-
-            mode = (mode_t)tmp;
-        }
-        else {
-            /* TODO: for u+rwx,go+rx */
-            ec = PURC_ERROR_INVALID_VALUE;
-            goto done;
-        }
-    }
-    else {
-        mode = 0666;
+    mode = parse_file_mode(purc_variant_object_get_by_ckey_ex(fa, "cmode", true),
+            &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto done;
     }
 
     switch (posix_spawn_file_actions_addopen(file_actions,
@@ -2771,7 +2856,7 @@ handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
     int ec = PURC_ERROR_OK;
     purc_variant_t v;
 
-    v = purc_variant_object_get_by_ckey(fa, "fd");
+    v = purc_variant_object_get_by_ckey_ex(fa, "fd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2785,7 +2870,7 @@ handle_file_action_dup2(posix_spawn_file_actions_t *file_actions,
 
     int fd = (int)tmp_l;
 
-    v = purc_variant_object_get_by_ckey(fa, "newfd");
+    v = purc_variant_object_get_by_ckey_ex(fa, "newfd", true);
     if (v == NULL) {
         ec = PURC_ERROR_INVALID_VALUE;
         goto done;
@@ -2942,7 +3027,8 @@ spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     const char *flags = NULL;
-    if (nr_args > 4 && (flags = purc_variant_get_string_const(argv[4])) == NULL) {
+    if (nr_args > 4 &&
+            (flags = purc_variant_get_string_const(argv[4])) == NULL) {
         ec = PURC_ERROR_WRONG_DATA_TYPE;
         goto error;
     }
@@ -2968,7 +3054,7 @@ spawn_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(fa, "action");
+        v = purc_variant_object_get_by_ckey_ex(fa, "action", true);
         const char *action = purc_variant_get_string_const(v);
         if (action == NULL) {
             ec = PURC_ERROR_WRONG_DATA_TYPE;
@@ -3088,6 +3174,976 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$SYS.kill(
+    <longint $pid: `The process identifier.`>
+    [, < ['HUP | INT | QUIT | ABRT | KILL | ALRM | TERM'] $signal = 'TERM':
+        `The signal to send:`
+        - 'HUP':  `hang up`
+        - 'INT':  `interrupt`
+        - 'QUIT': `quit`
+        - 'ABRT': `abort`
+        - 'KILL': `non-catchable, non-ignorable kill`
+        - 'ALRM': `alarm clock`
+        - 'TERM': `software termination signal` >
+    ]
+) true | false
+*/
+
+static struct pcdvobjs_option_to_atom signal_skws[] = {
+    { "HUP",    0, SIGHUP },
+    { "INT",    0, SIGINT },
+    { "QUIT",   0, SIGQUIT },
+    { "ABRT",   0, SIGABRT },
+    { "KILL",   0, SIGKILL },
+    { "ALRM",   0, SIGALRM },
+    { "TERM",   0, SIGTERM },
+};
+
+static purc_variant_t
+kill_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (signal_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(signal_skws); j++) {
+            signal_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, signal_skws[j].option);
+        }
+    }
+
+    int signal = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            signal_skws, PCA_TABLESIZE(signal_skws),
+            NULL, 0, SIGTERM, -1);
+    if (signal == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    if (kill(pid, signal) == -1) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.waitpid(
+    <longint $pid: `The process identifier.`>
+    [, < ['none || nohang || untraced || continued'] $options = 'none':
+            `The options:`
+        - 'none':    `No any options specified.`
+        - 'nohang':  `Indicate that the call should not block if there are no
+                processes that wish to report status.`
+        - 'untraced':  `Indicate that children of the current process that are
+                stopped due to a SIGTTIN, SIGTTOU, SIGTSTP, or SIGSTOP signal
+                also have their status reported.`
+        - 'continued':  `Indicate that children of the current process that are
+                continued due to a SIGCONT signal also have their status
+                reported (Linux-only).`
+    ]
+) false | object: `An object describes the exit status of one children:`
+    - 'pid':        < longint: `The process identifier .` >
+    - 'cause':      < 'exited | signaled | stopped | continued':
+            `Indicate the manner of exit of the process.` >
+    - 'exitstatus': < longint: `If the process terminated normally by a
+            call to _exit(2) or exit(3), this property evaluates to the
+            low-order 8 bits of the argument passed to _exit(2) or exit(3)
+            by the child.`
+    - 'termsignal': < longint: `If the process terminated due to receipt
+            of a signal, this property evaluates to the number of
+            the signal that caused the termination of the process.` >
+    - 'stopsignal': < boolean: `if the process has not terminated, but has
+            stopped and can be restarted, this property evaluates to
+            the number of the signal that caused the process to stop.` >
+    - 'cordump':    < boolean: `Indicate if the termination of the process was
+        accompanied by the creation of a core file containing an image of the
+        process when the signal was received.` >
+*/
+
+static struct pcdvobjs_option_to_atom waitpid_ckws[] = {
+    { "none",       0, 0 },
+    { "nohang",     0, WNOHANG },
+    { "untraced",   0, WUNTRACED },
+#if OS(LINUX)
+    { "continued",  0, WCONTINUED },
+#endif
+};
+
+static purc_variant_t
+waitpid_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    purc_variant_t retv = PURC_VARIANT_INVALID, val = PURC_VARIANT_INVALID;
+
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    pid_t pid = (pid_t)tmp_l;
+
+    if (waitpid_ckws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(waitpid_ckws); j++) {
+            waitpid_ckws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, waitpid_ckws[j].option);
+        }
+    }
+
+    int options = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            NULL, 0,
+            waitpid_ckws, PCA_TABLESIZE(waitpid_ckws), 0, -1);
+    if (options == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto failed;
+    }
+
+    pid_t exited;
+    int status;
+    if ((exited = waitpid(pid, &status, options)) == -1) {
+        PC_ERROR("Failed waitpid(%d, %x): %s.\n",
+                pid, status, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    if (options & WNOHANG && exited == 0) {
+        return purc_variant_make_boolean(false);
+    }
+
+    retv = purc_variant_make_object_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    val = purc_variant_make_longint(exited);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "pid", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WIFEXITED(status)) {
+        val = purc_variant_make_string_static("exited", false);
+    }
+    else if (WIFSIGNALED(status)) {
+        val = purc_variant_make_string_static("signaled", false);
+    }
+    else if (WIFSTOPPED(status)) {
+        val = purc_variant_make_string_static("stopped", false);
+    }
+#if OS(LINUX)
+    else if (WIFCONTINUED(status)) {
+        val = purc_variant_make_string_static("continued", false);
+    }
+#endif
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+
+    if (!purc_variant_object_set_by_static_ckey(retv, "cause", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    if (WCOREDUMP(status))
+        val = purc_variant_make_boolean(true);
+    else
+        val = purc_variant_make_boolean(false);
+
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, "coredump", val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    const char *key = NULL;
+    if (WIFEXITED(status)) {
+        key = "exitstatus";
+        val = purc_variant_make_longint(WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status)) {
+        key = "termsignal";
+        val = purc_variant_make_longint(WTERMSIG(status));
+    }
+    else if (WIFSTOPPED(status)) {
+        key = "stopsignal";
+        val = purc_variant_make_longint(WSTOPSIG(status));
+    }
+
+    if (key == NULL || val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, key, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    return retv;
+
+error:
+    purc_set_error(ec);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.open(
+    <string $file_path: `The path of the file to open.`>
+    [,
+        <'[read || write || append || create || excl || truncate ||
+            nonblock || cloexec]' $oflags = 'read write cloexec':
+            < `The open flags.` >
+        [,
+            < 'string $cmode: `The permission string like '0644' or
+                'u+rwx,go+rx' when creating a new file.` >
+        ]
+    ]
+) longint | false
+*/
+
+static purc_variant_t
+open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *path;
+    path = purc_variant_get_string_const(argv[0]);
+    if (path == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (path[0] == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(nr_args > 1 ? argv[1] : NULL, NULL, 0,
+            open_flags_ckws, PCA_TABLESIZE(open_flags_ckws),
+            DEF_OPEN_FLAGS, -1);
+    if (flags == -1) {
+        ec = purc_get_last_error();
+        goto error;
+    }
+
+    mode_t mode;
+    mode = parse_file_mode(nr_args > 2 ? argv[2] : NULL, &ec);
+    if (ec != PURC_ERROR_OK) {
+        goto error;
+    }
+
+    int fd = open(path, flags, mode);
+    if (fd < 0) {
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+
+    purc_clr_error();
+    return purc_variant_make_longint(fd);
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.sendfile(
+    <longint $out_fd: `The output file descriptor.`>,
+    <longint $in_fd: `The input file descriptor.`>
+    <ulongint $offset: `The file offset from which the method will
+            start reading data from $in_fd.` >
+    [,
+        <ulongint $count = 4096UL: `The number of bytes to copy between
+        the file descriptors. `>
+    ]
+) [! longint $bytes_copied, longint $new_offset ] | false
+*/
+
+static purc_variant_t
+sendfile_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 3) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int out_fd = (int)tmp_l;
+
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    int in_fd = (int)tmp_l;
+
+    uint64_t offset = 0;
+    if (!purc_variant_cast_to_ulongint(argv[2], &offset, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    uint64_t count = 4096UL;
+    if (nr_args > 3 &&
+            !purc_variant_cast_to_ulongint(argv[3], &count, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    ssize_t sbytes;
+    off_t off = offset;
+#if OS(LINUX)
+    sbytes = sendfile(out_fd, in_fd, &off, (size_t)count);
+#elif OS(DARWIN)
+    assert(offset >= 0);
+    off = offset;
+    off_t len;
+    int ret = sendfile(in_fd, out_fd, off, &len, NULL, 0);
+    if (ret == -1) {
+        sbytes = -1;
+    }
+    else {
+        sbytes = len;
+        off = off + len;
+    }
+#endif
+
+    if (sbytes == -1) {
+        PC_ERROR("Failed sendfile(%d, %d, %zu, %zu): %s.\n",
+                out_fd, in_fd, (size_t)offset, (size_t)count,
+                strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto error;
+    }
+    purc_clr_error();
+
+    purc_variant_t items[2] = {
+        purc_variant_make_longint(sbytes),
+        purc_variant_make_longint(off),
+    };
+
+    if (!items[0] || !items[1]) {
+        if (items[0])
+            purc_variant_unref(items[0]);
+        if (items[1])
+            purc_variant_unref(items[1]);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_tuple(2, items);
+    purc_variant_unref(items[0]);
+    purc_variant_unref(items[1]);
+
+    return retv;
+
+error:
+    purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.openpty(
+    < '[noctty || rdwr] | default | none' $flags:
+            `The flags when opening the new pseudoterminal device.`:
+       - 'noctty':      `Do not make this device the controlling terminal
+            for the process.`
+       - 'rdwr':        `Open the device for both reading and writing.`
+       - 'default':     `The equivalent to 'rdwr'.`
+       - 'none':        `No additinal flags are specified.`  >
+   [,
+        < ['default | inherit' ] | object $termio = 'default':
+                `The terminal parameters for slave:`
+            - 'none': `Use the system default.`
+            - 'inherit': `Use the current tty parameters if possible.`
+            - 'inherit-noecho': `Use the current tty parameters but w/o ECHO.`
+            - object: `An object specifying the parameters.`>
+        [,
+            < object $win_sz = { 'col': 80, 'row': 24 }:
+                `The window size of the pseudoterminal slave.` >
+        ]
+   ]
+) tuple  | false
+*/
+
+static int get_tty_termios(struct termios *termios)
+{
+    int fd = open("/dev/tty", O_RDONLY);
+    if (fd >= 0) {
+        int r = tcgetattr(fd, termios);
+        close(fd);
+        return r;
+    }
+    else {
+        PC_ERROR("Failed opening /dev/tty: %s\n", strerror(errno));
+    }
+
+    return -1;
+}
+
+static int parse_term_window_size(purc_variant_t arg, struct winsize *winsz)
+{
+    int ec = PURC_ERROR_OK;
+
+    if (!purc_variant_is_object(arg)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    uint32_t u32;
+    purc_variant_t item;
+
+    if (!(item = purc_variant_object_get_by_ckey(arg, "col"))) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    winsz->ws_col = (unsigned short)u32;
+
+    if (!(item = purc_variant_object_get_by_ckey(arg, "row"))) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    if (!purc_variant_cast_to_uint32(item, &u32, false)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+    winsz->ws_row = (unsigned short)u32;
+
+error:
+    return ec;
+}
+
+static struct pcdvobjs_option_to_atom pty_flags_ckws[] = {
+    { "rdwr",   0, O_RDWR },
+    { "noctty", 0, O_NOCTTY },
+};
+
+static struct pcdvobjs_option_to_atom pty_flags_skws[] = {
+    { "default",0, O_RDWR },
+    { "none",   0, 0 },
+};
+
+enum {
+    PTIO_DEFAULT,
+    PTIO_INHERIT,
+    PTIO_INHERIT_NOECHO,
+};
+
+static struct pcdvobjs_option_to_atom pty_termios_skws[] = {
+    { "default",        0, PTIO_DEFAULT },
+    { "inherit",        0, PTIO_INHERIT },
+    { "inherit-noecho", 0, PTIO_INHERIT_NOECHO },
+};
+
+static purc_variant_t
+openpty_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if (pty_flags_ckws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(pty_flags_ckws); j++) {
+            pty_flags_ckws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, pty_flags_ckws[j].option);
+        }
+
+        for (size_t j = 0; j < PCA_TABLESIZE(pty_flags_skws); j++) {
+            pty_flags_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, pty_flags_skws[j].option);
+        }
+
+        for (size_t j = 0; j < PCA_TABLESIZE(pty_termios_skws); j++) {
+            pty_termios_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, pty_termios_skws[j].option);
+        }
+    }
+
+    int flags = pcdvobjs_parse_options(argv[0],
+            pty_flags_skws, PCA_TABLESIZE(pty_flags_skws),
+            pty_flags_ckws, PCA_TABLESIZE(pty_flags_ckws),
+            -1, -1);
+    if (flags == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    struct termios termios, *termp = NULL;
+    if (nr_args > 1) {
+        if (purc_variant_is_string(argv[1])) {
+            int r = pcdvobjs_parse_options(argv[1],
+                pty_termios_skws, PCA_TABLESIZE(pty_termios_skws),
+                NULL, 0, -1, -1);
+
+            switch (r) {
+            case PTIO_DEFAULT:
+                termp = NULL;
+                break;
+
+            case PTIO_INHERIT:
+            case PTIO_INHERIT_NOECHO:
+                if (get_tty_termios(&termios) == -1) {
+                    ec = purc_error_from_errno(errno);
+                    goto error;
+                }
+                if (r == PTIO_INHERIT_NOECHO) {
+                    termios.c_lflag &= ~ECHO;
+                }
+                termp = &termios;
+                break;
+
+                if (get_tty_termios(&termios) == -1) {
+                    ec = purc_error_from_errno(errno);
+                    goto error;
+                }
+                termp = &termios;
+                break;
+
+            default:
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+        }
+        else if (purc_variant_is_object(argv[1])) {
+            // TODO:
+            ec = PURC_ERROR_NOT_IMPLEMENTED;
+            goto error;
+        }
+        else {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+    }
+
+    struct winsize winsz = { 0 };
+    if (nr_args > 2) {
+        ec = parse_term_window_size(argv[2], &winsz);
+        if (ec)
+            goto error;
+    }
+    else {
+        winsz.ws_col = 80;
+        winsz.ws_row = 24;
+    }
+
+    int fd_master = -1, fd_slave = -1;
+    char pts[NAME_MAX];
+#if OS(LINUX)
+    fd_master = posix_openpt(flags);
+    if (fd_master < 0) {
+        PC_ERROR("Failed posix_openpt(%x): %s\n", flags, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto failed;
+    }
+
+    if (grantpt(fd_master) == -1) {
+        PC_ERROR("Failed grantpt(%d): %s\n", fd_master, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto failed;
+    }
+
+    if (unlockpt(fd_master) == -1) {
+        PC_ERROR("Failed unlockpt(%d): %s\n", fd_master, strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto failed;
+    }
+
+    int error = ptsname_r(fd_master, pts, sizeof(pts));
+    if (error) {
+        PC_ERROR("Failed ptsname_r(%d): %s\n", fd_master, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    fd_slave = open(pts, O_RDWR);
+    if (fd_slave < 0) {
+        PC_ERROR("Failed open(%s): %s\n", pts, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (termp && tcsetattr(fd_slave, TCSANOW, termp) != 0) {
+        PC_ERROR("Failed tcsetattr(%d): %s\n",
+                fd_slave, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n",
+                fd_slave, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+#elif OS(DARWIN)
+    if (openpty(&fd_master, &fd_slave, pts, termp, &winsz) != 0) {
+        PC_ERROR("Failed openpty(): %s\n", strerror(errno));
+        ec = purc_error_from_errno(errno);
+        goto failed;
+    }
+#elif OS(BSD)
+    char ls, ln;
+
+    /* Looking for an unused primary pseudo terminal
+     * /dev/pty[p-sP-S][a-z0-9]     primary pseudo terminals
+     * /dev/tty[p-sP-S][a-z0-9]     replica pseudo terminals
+     */
+    for (ls = 'p'; ls <= 'w'; ls++) {
+        for (ln = 'a'; ln <= 'z'; ln++) {
+            snprintf(pts, sizeof(pts), "/dev/pty%1c%1c", ls, ln);
+            if ((fd_master = open(pts, flags)) >= 0)
+                break;
+
+            snprintf(pts, sizeof(pts), "/dev/pty%1c%1c", 'A' + ls - 'a', ln);
+            if ((fd_master = open(pts, flags)) >= 0)
+                break;
+        }
+
+        if (fd_master >= 0)
+            break;
+
+        for (ln = '0'; ln <= '9'; ln++) {
+            snprintf(pts, sizeof(pts), "/dev/pty%1c%1c", ls, ln);
+            if ((fd_master = open(pts, flags)) >= 0)
+                break;
+
+            snprintf(pts, sizeof(pts), "/dev/pty%1c%1c", 'A' + ls - 'a', ln);
+            if ((fd_master = open(pts, flags)) >= 0)
+                break;
+        }
+
+        if (fd_master >= 0)
+            break;
+    }
+
+    if (fd_master < 0) {
+        PC_ERROR("Failed to find one unused master pty!\n");
+        ec = PURC_ERROR_NO_FREE_SLOT;
+        goto error;
+    }
+
+    pts[5] = 't';   /* slave tty */
+    fd_slave = open(pts, O_RDWR);
+    if (fd_slave < 0) {
+        PC_ERROR("Failed open(%s): %s\n", pts, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (termp && tcsetattr(fd_slave, TCSANOW, termp) != 0) {
+        PC_ERROR("Failed tcsetattr(%d): %s\n",
+                fd_slave, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+
+    if (ioctl(fd_slave, TIOCSWINSZ, &winsz) != 0) {
+        PC_ERROR("Failed ioctl(%d, TIOCSWINSZ): %s\n",
+                fd_slave, strerror(errno));
+        ec = purc_error_from_errno(error);
+        goto failed;
+    }
+#endif
+
+    purc_variant_t items[3] = {
+        purc_variant_make_longint(fd_master),
+        purc_variant_make_longint(fd_slave),
+        purc_variant_make_string(pts, false),
+    };
+
+    if (!items[0] || !items[1] || !items[2]) {
+        if (items[0])
+            purc_variant_unref(items[0]);
+        if (items[1])
+            purc_variant_unref(items[1]);
+        if (items[2])
+            purc_variant_unref(items[2]);
+        goto failed;
+    }
+
+    purc_variant_t retv = purc_variant_make_tuple(3, items);
+    purc_variant_unref(items[0]);
+    purc_variant_unref(items[1]);
+    purc_variant_unref(items[2]);
+    if (retv == PURC_VARIANT_INVALID)
+        goto failed;
+
+    return retv;
+
+failed:
+    if (fd_master >= 0)
+        close(fd_master);
+    if (fd_slave >= 0)
+        close(fd_slave);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$SYS.ptyctl(
+    < longint $fd: `The file descriptor of the pseudoterminal device.` >
+    < '[ winsz ]' $opt_name: `The option name, can be one of the following
+            values:`
+       - 'winsz':    `Window size.`
+    >
+) number | array | tuple | object | false
+ */
+
+enum {
+    PTY_WINSZ,
+};
+
+static struct pcdvobjs_option_to_atom ptyctl_skws[] = {
+    { "winsz",  0, PTY_WINSZ },
+};
+
+static purc_variant_t
+ptyctl_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    if (ptyctl_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(ptyctl_skws); j++) {
+            ptyctl_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, ptyctl_skws[j].option);
+        }
+    }
+
+    int which = pcdvobjs_parse_options(
+            (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
+            ptyctl_skws, PCA_TABLESIZE(ptyctl_skws),
+            NULL, 0, -1, -1);
+    if (which == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    struct winsize winsz;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t item = PURC_VARIANT_INVALID;
+    if (which == PTY_WINSZ) {
+        if (ioctl(fd, TIOCGWINSZ, &winsz) != 0) {
+            PC_ERROR("Failed ioctl(%d, TIOCGWINSZ, ...)\n", fd);
+            ec = purc_error_from_errno(errno);
+            goto failed;
+        }
+
+        retv = purc_variant_make_object_0();
+        if (retv == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+
+        item = purc_variant_make_number(winsz.ws_col);
+        if (item == PURC_VARIANT_INVALID)
+            goto failed;
+        if (!purc_variant_object_set_by_static_ckey(retv, "col", item))
+            goto failed;
+        purc_variant_unref(item);
+        item = PURC_VARIANT_INVALID;
+
+        item = purc_variant_make_number(winsz.ws_row);
+        if (item == PURC_VARIANT_INVALID)
+            goto failed;
+        if (!purc_variant_object_set_by_static_ckey(retv, "row", item))
+            goto failed;
+        purc_variant_unref(item);
+        item = PURC_VARIANT_INVALID;
+    }
+
+    return retv;
+
+failed:
+    if (item)
+        purc_variant_unref(item);
+    if (retv)
+        purc_variant_unref(retv);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+ptyctl_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 3) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    int64_t tmp_l;
+    if (!purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_l < 0 || tmp_l > INT_MAX) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    int fd = (int)tmp_l;
+
+    if (ptyctl_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(ptyctl_skws); j++) {
+            ptyctl_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, ptyctl_skws[j].option);
+        }
+    }
+
+    int which = pcdvobjs_parse_options(argv[1],
+            ptyctl_skws, PCA_TABLESIZE(ptyctl_skws),
+            NULL, 0, -1, -1);
+    if (which == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    if (which == PTY_WINSZ) {
+        struct winsize winsz = { 0 };
+
+        ec = parse_term_window_size(argv[2], &winsz);
+        if (ec)
+            goto error;
+
+        if (ioctl(fd, TIOCSWINSZ, &winsz) != 0) {
+            PC_ERROR("Failed ioctl(%d, TIOCSWINSZ, ...)\n", fd);
+            ec = purc_error_from_errno(errno);
+            goto error;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
@@ -3108,8 +4164,15 @@ purc_variant_t purc_dvobj_system_new (void)
         { "pipe",       pipe_getter,        NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
+        { "open",       open_getter,        NULL },
+        { "seek",       seek_getter,        NULL },
         { "close",      close_getter,       NULL },
         { "spawn",      spawn_getter,       NULL },
+        { "kill",       kill_getter,        NULL },
+        { "waitpid",    waitpid_getter,     NULL },
+        { "sendfile",   sendfile_getter,    NULL },
+        { "openpty",    openpty_getter,     NULL },
+        { "ptyctl",     ptyctl_getter,      ptyctl_setter },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -3120,6 +4183,14 @@ purc_variant_t purc_dvobj_system_new (void)
         }
 
     }
+
+    if (open_flags_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(open_flags_ckws); i++) {
+            open_flags_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, open_flags_ckws[i].option);
+        }
+    }
+
 
 #if HAVE(RANDOM_R)
     /* allocate data for state of the random generator */

@@ -107,6 +107,33 @@ init_result_set_with_set(struct pcexec_exe_range_inst *exe_range_inst,
 }
 
 static inline bool
+init_result_set_with_tuple(struct pcexec_exe_range_inst *exe_range_inst,
+        purc_variant_t result_set)
+{
+    purc_exec_inst_t inst = &exe_range_inst->super;
+    purc_variant_t input = inst->input;
+
+    bool ok = true;
+    size_t sz = purc_variant_linear_container_get_size(input);
+    purc_variant_t v;
+
+    for (size_t i = 0; i < sz; i++) {
+        v = purc_variant_linear_container_get(input, i);
+        bool ok = purc_variant_array_append(result_set, v);
+        if (!ok)
+            break;
+    }
+
+    if (ok) {
+        PCEXE_CLR_VAR(exe_range_inst->result_set);
+        exe_range_inst->result_set = result_set;
+        purc_variant_ref(result_set);
+    }
+
+    return ok;
+}
+
+static inline bool
 init_result_set(struct pcexec_exe_range_inst *exe_range_inst,
         purc_variant_t result_set)
 {
@@ -118,6 +145,8 @@ init_result_set(struct pcexec_exe_range_inst *exe_range_inst,
             return init_result_set_with_array(exe_range_inst, result_set);
         case PURC_VARIANT_TYPE_SET:
             return init_result_set_with_set(exe_range_inst, result_set);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return init_result_set_with_tuple(exe_range_inst, result_set);
         default:
             PC_ASSERT(0);
             return false;
@@ -318,7 +347,8 @@ exe_range_create(enum purc_exec_type type,
 
     enum purc_variant_type vt = purc_variant_get_type(input);
     if (vt == PURC_VARIANT_TYPE_ARRAY ||
-        vt == PURC_VARIANT_TYPE_SET)
+        vt == PURC_VARIANT_TYPE_SET ||
+        vt == PURC_VARIANT_TYPE_TUPLE)
     {
         inst->input = input;
         purc_variant_ref(input);

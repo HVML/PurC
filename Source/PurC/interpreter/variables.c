@@ -110,13 +110,13 @@ myobj_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     switch (msg_type) {
-    case PCVAR_OPERATION_GROW:
+    case PCVAR_OPERATION_INFLATED:
         return myobj_grow_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_SHRINK:
+    case PCVAR_OPERATION_DEFLATED:
         return myobj_shrink_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_CHANGE:
+    case PCVAR_OPERATION_MODIFIED:
         return myobj_change_handler(source, msg_type, ctxt, nr_args, argv);
 
     default:
@@ -138,15 +138,18 @@ on_runner_myobj_release(void *native_entity)
 static bool
 add_runner_myobj_listener(purc_variant_t runner)
 {
-    purc_variant_t my_obj = purc_variant_object_get_by_ckey(runner, USER_OBJ);
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     struct runner_myobj_wrap *wrap = (struct runner_myobj_wrap*)calloc(1,
             sizeof(*wrap));
     if (!wrap) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
+
+    purc_variant_t my_obj =
+        purc_variant_object_get_by_ckey_ex(runner, USER_OBJ, true);
+    assert(my_obj);
 
     // do not need ref
     wrap->object = my_obj;

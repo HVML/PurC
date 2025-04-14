@@ -14,5 +14,24 @@
                 key:"{{ $REQ.base || $SYS.cwd }}"
             }
         </init>
+        <init as 'b'>
+            {
+                "packetType":"auth",
+                "protocolName":"HBDBUS",
+                "protocolVersion":200,
+                "hostName":"localhost",
+                "appName":"cn.fmsoft.hybridos.inetd","runnerName":"main","signature":"RFVNQg==","encodedIn":"base64"
+            }
+        </init>
+        <init as 'c'>
+            {
+                "packetType": "call",
+                "callId": "CALLXXXX-0000000067DF79CA-0000000024EA133F-0000000000000000",
+                "toEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
+                "toMethod": "registerProcedure",
+                "expectedTime": 5,
+                "parameter": "{\"methodName\": \"terminate\",\"forHost\": \"localhost\",\"forApp\": \"cn.fmsoft.hybridos.*\"}"
+            }
+        </init>
     </body>
 </hvml>

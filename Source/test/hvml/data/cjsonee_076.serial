@@ -1,5 +1,5 @@
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of `head`") ; "" }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), "End of `head`") ; "" }}
 PCHVML_TOKEN_END_TAG|</init>

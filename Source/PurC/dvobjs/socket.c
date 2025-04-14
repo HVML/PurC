@@ -23,6 +23,7 @@
  */
 
 #define _GNU_SOURCE
+#undef NDEBUG
 #include "config.h"
 #include "stream.h"
 #include "socket.h"
@@ -58,9 +59,6 @@
 #define SOCKET_EVENT_NAME               "socket"
 #define SOCKET_SUB_EVENT_CONNATTEMPT    "connAttempt"
 #define SOCKET_SUB_EVENT_NEWDATAGRAM    "newDatagram"
-
-#define MAX_LEN_KEYWORD             64
-#define _KW_DELIMITERS              " \t\n\v\f\r"
 
 #define SOCKET_ATOM_BUCKET              ATOM_BUCKET_DVOBJ
 
@@ -191,7 +189,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -223,7 +221,7 @@ int64_t parse_socket_stream_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -272,7 +270,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -307,7 +305,7 @@ int64_t parse_socket_dgram_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -339,7 +337,7 @@ parse_dgram_sendto_option(purc_variant_t option)
     if (atom != keywords2atoms[K_KW_default].atom) {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -367,7 +365,7 @@ parse_dgram_sendto_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -398,7 +396,7 @@ parse_dgram_recvfrom_option(purc_variant_t option)
     if (atom != keywords2atoms[K_KW_default].atom) {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 break;
@@ -428,7 +426,7 @@ parse_dgram_recvfrom_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -462,6 +460,20 @@ static struct pcdvobjs_option_to_atom access_users_ckws[] = {
     { "other",     0, 0006 },
 };
 
+static void pcdvobjs_socket_ssl_ctx_delete(struct pcdvobjs_socket *socket)
+{
+    if (socket->ssl_ctx) {
+        SSL_CTX_free(socket->ssl_ctx);
+        socket->ssl_ctx = NULL;
+
+        if (socket->ssl_shctx_wrapper) {
+            openssl_shctx_destroy(socket->ssl_shctx_wrapper);
+            free(socket->ssl_shctx_wrapper);
+            socket->ssl_shctx_wrapper = NULL;
+        }
+    }
+}
+
 static int
 create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
 {
@@ -474,10 +486,10 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslcert");
+    tmp = purc_variant_object_get_by_ckey_ex(opt_obj, "sslcert", true);
     ssl_cert = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslkey");
+    tmp = purc_variant_object_get_by_ckey_ex(opt_obj, "sslkey", true);
     ssl_key = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
 
     if (ssl_cert == NULL || ssl_key == NULL) {
@@ -485,7 +497,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         goto skip;
     }
 
-    tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheid");
+    tmp = purc_variant_object_get_by_ckey_ex(opt_obj, "sslsessioncacheid", true);
     ssl_session_cache_id = (!tmp) ? NULL : purc_variant_get_string_const(tmp);
     if (ssl_session_cache_id) {
         if (strlen(ssl_session_cache_id) > OPENSSL_SHCTX_ID_LEN) {
@@ -493,7 +505,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
             goto opt_failed;
         }
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncacheusers");
+        tmp = purc_variant_object_get_by_ckey_ex(opt_obj,
+                "sslsessioncacheusers", true);
         cache_mode = pcdvobjs_parse_options(tmp, NULL, 0,
             access_users_ckws, PCA_TABLESIZE(access_users_ckws), 0, -1);
         if (cache_mode == -1) {
@@ -502,7 +515,8 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
         }
         cache_mode |= 0600;
 
-        tmp = purc_variant_object_get_by_ckey(opt_obj, "sslsessioncachesize");
+        tmp = purc_variant_object_get_by_ckey_ex(opt_obj,
+                "sslsessioncachesize", true);
         if ((tmp && !purc_variant_cast_to_ulongint(tmp,
                     &cache_size, false)) ||
                 cache_size < OPENSSL_SHCTX_CACHESZ_MIN) {
@@ -514,7 +528,7 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
     SSL_CTX *ctx = NULL;
 
     /* ssl context */
-    if (!(ctx = SSL_CTX_new(SSLv23_server_method()))) {
+    if (!(ctx = SSL_CTX_new(TLS_server_method()))) {
         PC_ERROR("Failed SSL_CTX_new(): %s\n",
                 ERR_error_string(ERR_get_error(), NULL));
         error = PURC_ERROR_TLS_FAILURE;
@@ -550,6 +564,9 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
             SSL_MODE_ENABLE_PARTIAL_WRITE);
 
     if (ssl_session_cache_id) {
+        SSL_CTX_set_options(ctx,
+                SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+
         socket->ssl_shctx_wrapper = calloc(1, sizeof(*socket->ssl_shctx_wrapper));
 
         switch (openssl_shctx_create(socket->ssl_shctx_wrapper,
@@ -565,7 +582,12 @@ create_ssl_ctx(struct pcdvobjs_socket *socket, purc_variant_t opt_obj)
                 break;
         }
 
+        SSL_CTX_set_session_id_context(ctx,
+                (const unsigned char *)ssl_session_cache_id,
+                strlen(ssl_session_cache_id));
         if (error) {
+            PC_ERROR("Failed openssl_shctx_create(): %s\n",
+                    purc_get_error_message(error));
             goto ssl_failed;
         }
     }
@@ -577,36 +599,20 @@ skip:
     return 0;
 
 ssl_failed:
-    if (socket->ssl_shctx_wrapper) {
-        free(socket->ssl_shctx_wrapper);
-        socket->ssl_shctx_wrapper = NULL;
-    }
-
     if (ctx) {
         SSL_CTX_free(ctx);
     }
 
-    error = PURC_ERROR_BAD_STDC_CALL;
+    if (socket->ssl_shctx_wrapper) {
+        free(socket->ssl_shctx_wrapper);
+        socket->ssl_shctx_wrapper = NULL;
+    }
 
 opt_failed:
     purc_set_error(error);
     return -1;
 }
 
-static void
-destroy_ssl_ctx(struct pcdvobjs_socket *socket)
-{
-    if (socket->ssl_shctx_wrapper) {
-        openssl_shctx_destroy(socket->ssl_shctx_wrapper);
-        free(socket->ssl_shctx_wrapper);
-        socket->ssl_shctx_wrapper = NULL;
-    }
-
-    if (socket->ssl_ctx) {
-        SSL_CTX_free(socket->ssl_ctx);
-        socket->ssl_ctx = NULL;
-    }
-}
 #endif  // HAVE(OPENSSL)
 
 static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
@@ -618,9 +624,7 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
     }
 
 #if HAVE(OPENSSL)
-    if (socket->ssl_ctx) {
-        destroy_ssl_ctx(socket);
-    }
+    pcdvobjs_socket_ssl_ctx_delete(socket);
 #endif
 
     if (socket->fd >= 0) {
@@ -629,8 +633,10 @@ static void dvobjs_socket_close(struct pcdvobjs_socket *socket)
     }
 }
 
-static void dvobjs_socket_delete(struct pcdvobjs_socket *socket)
+void pcdvobjs_socket_delete(struct pcdvobjs_socket *socket)
 {
+    assert(socket->refc == 0);
+
     dvobjs_socket_close(socket);
 
     if (socket->url) {
@@ -743,7 +749,7 @@ int parse_accept_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = keywords2atoms[K_KW_cloexec].atom;
@@ -772,7 +778,7 @@ int parse_accept_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -1427,7 +1433,7 @@ on_forget(void *native_entity, const char *event_name,
 static void
 on_release(void *native_entity)
 {
-    dvobjs_socket_delete((struct pcdvobjs_socket *)native_entity);
+    pcdvobjs_socket_release((struct pcdvobjs_socket *)native_entity);
 }
 
 static struct pcdvobjs_socket *
@@ -1712,7 +1718,7 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (nr_args > 3) {
             // initilize SSL_CTX and shared context wrapper here.
             if (create_ssl_ctx(socket, argv[3])) {
-                dvobjs_socket_delete(socket);
+                pcdvobjs_socket_delete(socket);
                 goto error;
             }
         }
@@ -1724,9 +1730,11 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (ret_var) {
         socket->url = url;
         socket->observed = ret_var;
+        socket->refc = 1;
     }
     else {
-        dvobjs_socket_delete(socket);
+        pcdvobjs_socket_delete(socket);
+        goto error_free_url;
     }
 
     return ret_var;
@@ -1983,14 +1991,14 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (ret_var) {
         socket->url = url;
         socket->observed = ret_var;
+        socket->refc = 1;
     }
     else {
-        dvobjs_socket_delete(socket);
+        pcdvobjs_socket_delete(socket);
+        goto error_free_url;
     }
 
     return ret_var;
-
-    return purc_variant_make_boolean(false);
 
 error_free_url:
     pcutils_broken_down_url_delete(url);

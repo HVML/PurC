@@ -1,1 +1,1 @@
-{{ getElement(callGetter(getElement(getElement(getElement(getVariable("RUNNER"),"myObj"),"bcPipe"),"status")),0) }}
+{{ getMember(callGetter(getMember(getMember(getMember(getVariable("RUNNER"), "myObj"), "bcPipe"), "status")), 0) }}

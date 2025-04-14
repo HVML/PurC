@@ -517,28 +517,21 @@ pcutils_get_next_line_len(const char *str, size_t str_len,
     if ((*str == 0) || (str_len == 0))
         return NULL;
 
-    /* Skip the seperator if the string starts with the seperator */
     size_t sep_len = strlen(sep);
-    if (sep_len <= str_len && strncmp(str, sep, sep_len) == 0) {
-        str += sep_len;
-        str_len -= sep_len;
-
-        if (str_len == 0)
-            return NULL;
-    }
 
     /* Find the line seprator in the string. */
     const char *p = strnstr(str, sep, str_len);
     if (p == NULL) {
         *length = str_len;
-        return str;
+        return str + str_len;
+    }
+    else {
+        *length = p - str;
+        if (*length == 0)
+            return str + sep_len;
     }
 
-    *length = p - str;
-    if (*length == 0)
-        return NULL;
-
-    return str;
+    return p + sep_len;
 }
 
 static const char *json_hex_chars = "0123456789abcdefABCDEF";

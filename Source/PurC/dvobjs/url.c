@@ -42,8 +42,6 @@ enum {
     K_KW_rfc3986,
 };
 
-#define _KW_DELIMITERS  " \t\n\v\f\r"
-
 static struct keyword_to_atom {
     const char *    keyword;
     unsigned int    flag;
@@ -430,7 +428,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (options) {
         size_t length = 0;
         const char *option = pcutils_get_next_token_len(options, options_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
 
         do {
 
@@ -464,7 +462,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             options_len -= length;
             option = pcutils_get_next_token_len(option + length, options_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (option);
     }
 

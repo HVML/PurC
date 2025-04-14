@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: { a: 0, b: 2, c: 3 }
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as object>
+        { a: 1, b: 2, c: 3 }
+    </init>
+
+    <observe on $object for 'change:modified'>
+        <exit with $_observedOn />
+    </observe>
+
+    <update on $object at '.a' with 0 />
+</hvml>

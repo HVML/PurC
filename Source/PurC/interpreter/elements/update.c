@@ -487,11 +487,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 break;
             }
 
-            purc_variant_t o = purc_variant_object_get(dst, k);
-            if (!o) {
-                purc_clr_error(); /* clear no such key */
-            }
-
+            purc_variant_t o = purc_variant_object_get_ex(dst, k, true);
             purc_variant_t v = attr_op_eval(o, src);
             if (!v) {
                 purc_variant_unref(k);
@@ -1135,7 +1131,11 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (!k) {
             goto out;
         }
-        ultimate = purc_variant_object_get(dest, k);
+        ultimate = purc_variant_object_get_ex(dest, k, true);
+        if (!ultimate && frame->silently) {
+            purc_variant_unref(k);
+            goto out;
+        }
         purc_variant_unref(k);
     }
     else {
@@ -1631,6 +1631,12 @@ displace_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
         if (!s) {
             purc_variant_unref(v);
             return -1;
+        }
+
+        /* The new value is the same as the original value */
+        if (origin == s) {
+            purc_variant_unref(v);
+            return 0;
         }
 
         r = pcintr_util_set_attribute(stack->doc, target,

@@ -81,7 +81,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (!pos)
             break;
         if (pos->tag_id == PCHVML_TAG_CALL ||
-            pos->tag_id == PCHVML_TAG_INCLUDE ||
+            pos->tag_id == PCHVML_TAG_EXECUTE ||
             pos->tag_id == PCHVML_TAG_OBSERVE)
         {
             ctxt->back_anchor = p;
@@ -91,7 +91,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ctxt->back_anchor == NULL) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "no matching <call>/<include> for <return>");
+                "no matching <call>/<execute> for <return>");
         return -1;
     }
 

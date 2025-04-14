@@ -99,7 +99,7 @@
         <observe on="$systemStatus" for="battery" by="FUNC: on_battery_changed">
         </observe>
 
-        <observe on=".avatar" for="clicked" foo="hello&amp;&quot;&apos;&lt;&gt;world" by="FUNC: on_avatar_clicked">
+        <observe on=".avatar" for="clicked" with="hello&amp;&quot;&apos;&lt;&gt;world" by="FUNC: on_avatar_clicked">
         </observe>
         &amp;&quot;&apos;&lt;&gt;
     </body>

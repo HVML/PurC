@@ -89,6 +89,8 @@ enum purc_feature {
 #define _PURC_ON      1
 #define _PURC_OFF     0
 
+#define PCA_LIB_INSTALL_DIR             "@LIB_INSTALL_DIR@"
+
 #define PCA_ENABLE_SOCKET_STREAM        _PURC_@ENABLE_SOCKET_STREAM@
 #define PCA_ENABLE_DOCTYPE_HTML         _PURC_@ENABLE_DOCTYPE_HTML@
 #define PCA_ENABLE_DOCTYPE_XML          _PURC_@ENABLE_DOCTYPE_XML@

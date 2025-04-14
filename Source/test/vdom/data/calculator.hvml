@@ -63,16 +63,16 @@
         </div>
 
         <observe on=".clear" for="click" to="update">
-            <update on="$expression" value="0" />
+            <update on="$expression" with="0" />
         </observe>
 
         <observe on=".letters" for="click" to="test">
             <test on="$expression">
                 <match for="~err*" to="update" exclusively>
-                    <update on="$expression" value="$@.textContent" />
+                    <update on="$expression" with="$@.textContent" />
                 </match>
                 <match for="~*" to="update">
-                    <update on="$expression" value="$expression$@.textContent" />
+                    <update on="$expression" with="$expression$@.textContent" />
                 </match>
             </test>
         </observe>
@@ -80,18 +80,18 @@
         <observe on=".backspace" for="click" to="test">
             <test on="$string.strlen($expression)">
                 <match for="1" to="update" exclusively>
-                    <update on="$expression" value="0" />
+                    <update on="$expression" with="0" />
                 </match>
                 <match for="*" to="update">
-                    <update on="$expression" value="$string.strip($expression, 1)" />
+                    <update on="$expression" with="$string.strip($expression, 1)" />
                 </match>
             </test>
         </observe>
 
         <observe on=".equal" for="click" to="update">
-            <update on="$expression" value="$_PY.eval($expression)">
+            <update on="$expression" with="$_PY.eval($expression)">
                 <catch for=`ANY` to="update">
-                    <update on="$expression" value="ERROR" />
+                    <update on="$expression" with="ERROR" />
                 </catch>
             </update>
         </observe>

@@ -1,1 +1,1 @@
-callGetter(getElement(getVariable("ABC"),"b"),make_object(getVariable("A"),1,getVariable("A2"),2,getVariable("A3"),getElement(getVariable("V3"),"E"),getVariable("A4"),getElement(getVariable("V4"),"E")))
+callGetter(getMember(getVariable("ABC"), "b"), make_object(getVariable("A"), 1, getVariable("A2"), 2, getVariable("A3"), getMember(getVariable("V3"), "E"), getVariable("A4"), getMember(getVariable("V4"), "E")))

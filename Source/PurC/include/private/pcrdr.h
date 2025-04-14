@@ -47,9 +47,16 @@ enum {
     PCRDR_K_SELECTOR_XPATH_b    = 0x10,
 };
 
+enum {
+#define PCRDR_DLM_direct        "direct"
+    PCRDR_K_DLM_direct          = 0,
+#define PCRDR_DLM_url           "url"
+    PCRDR_K_DLM_url             = 1,
+};
+
 /* the capabilities of a renderer */
 struct renderer_capabilities {
-#define NR_RDRCAP_STRINGS   9
+#define NR_RDRCAP_STRINGS   11
     char   *_strings[0];
 
     /* the protocol name */
@@ -72,8 +79,12 @@ struct renderer_capabilities {
     char   *locale;
     char   *display_density;
 
-    /* the protocol version number */
-    long int    prot_version;
+    /* Since v170 */
+    char   *vendor;
+    char   *js_to_inject;
+
+    int     doc_loading_method;
+    int     prot_version;
 
     /* the max number of workspaces;
        0 for not supported, -1 for unlimited */

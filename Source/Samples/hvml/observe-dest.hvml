@@ -17,14 +17,14 @@
         </div>
 
         <div class="text-primary">
-            this is container include first observe
+            this is container execute first observe
             <observe on="#dest" for="click" in="#dest">
                 <update on $@ at 'content' with 'update by "update $@" (observe with "in" attr) '/>
             </observe>
         </div>
 
         <div class="text-success">
-            this is container include second observe
+            this is container execute second observe
             <observe on="#id_dest_2" for="click">
                 <update on $@ at 'content' with 'update by "update $@" (observe without "in" attr) '/>
             </observe>

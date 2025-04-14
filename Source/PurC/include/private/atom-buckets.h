@@ -38,7 +38,7 @@ enum pcatom_bucket {
     ATOM_BUCKET_HTML,   /* HTML tag names and attribute names */
     ATOM_BUCKET_XGML,   /* XGML tag names and attribute names */
     ATOM_BUCKET_ACTION, /* the update actions: merge, displace, ... */
-    ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
+    ATOM_BUCKET_EVENT,  /* the event types such as changed, attached, ... */
     ATOM_BUCKET_RDROP,  /* the renderer operations: startSession, load, ... */
     ATOM_BUCKET_DVOBJ,  /* the keywords of DVObjs: all, default, ... */
     ATOM_BUCKET_RDRID,  /* the renderer unique id */

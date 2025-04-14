@@ -764,7 +764,7 @@ document_serialize(struct pcvdom_document *doc, int level, int push,
 }
 
 static int
-attr_serialize(void *key, void *val, void *ctxt)
+attr_serialize(void *key, void *val, void *ctxt, bool is_operation)
 {
     const char *sk = (const char*)key;
     struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
@@ -782,7 +782,12 @@ attr_serialize(void *key, void *val, void *ctxt)
 
     switch (op) {
         case PCHVML_ATTRIBUTE_OPERATOR:
-            ud->cb("=", 1, ud->ctxt);
+            if (is_operation) {
+                ud->cb(" ", 1, ud->ctxt);
+            }
+            else {
+                ud->cb("=", 1, ud->ctxt);
+            }
             break;
         case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
             ud->cb("+=", 2, ud->ctxt);
@@ -844,6 +849,7 @@ element_serialize(struct pcvdom_element *element, int level, int push,
 
     char *tag_name = element->tag_name;
     bool self_closing = element->self_closing;
+    bool is_operation = pcvdom_element_is_hvml_operation(element);
 
     if (push) {
         ud->cb("<", 1, ud->ctxt);
@@ -852,7 +858,7 @@ element_serialize(struct pcvdom_element *element, int level, int push,
         size_t nr = pcutils_array_length(element->attrs);
         for (size_t i = 0; i < nr; i++) {
             struct pcvdom_attr *attr = pcutils_array_get(element->attrs, i);
-            attr_serialize(attr->key, attr, ud);
+            attr_serialize(attr->key, attr, ud, is_operation);
         }
 
         if (self_closing) {

@@ -257,9 +257,15 @@ is_match_catch_tag(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     UNUSED_PARAM(frame);
 
     bool catch = false;
+
     pcvdom_element_t elem = frame->pos;
     struct pcvdom_node *node = &elem->node;
     if (node) {
+        catch = is_same_level_catched(stack, node);
+        if (catch) {
+            goto out;
+        }
+
         node = pcvdom_node_first_child(node);
         purc_clr_error();
         if (node) {
@@ -352,6 +358,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                 struct purc_cor_term_info term_info;
                 term_info.except = stack->exception.error_except;
                 term_info.doc = stack->doc;
+                term_info.exinfo = stack->exception.exinfo;
                 co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
                 /* Call purc_coroutine_dump_stack may set inst->errcode */
                 purc_clr_error();
@@ -372,9 +379,17 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             pcintr_coroutine_set_state(co, CO_STATE_READY);
             return;
         }
+
+        /* back on observe will reatch here */
+        if (frame == co->stack.back_anchor) {
+            co->stack.back_anchor = NULL;
+        }
+
         // CO_STAGE_FIRST_RUN or
         // observing finished (only HVML tag in stack)
-        one_run = true;
+        if (!co->stack.last_msg_read) {
+            one_run = true;
+        }
     }
 
     /* send doc to rdr */
@@ -726,6 +741,9 @@ again:
         if (separator) {
             event_sub_type = separator + 1;
         }
+        else {
+            event_sub_type = NULL;
+        }
 
         size_t nr_type = separator - event;
         if (nr_type) {
@@ -735,18 +753,20 @@ again:
                 goto out;
             }
 
-            event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
+            event_type = purc_atom_try_string_ex(ATOM_BUCKET_EVENT, type);
             if (event_sub_type && !event_type) {
+                PC_INFO("Not support event %s:%s\n", type, event_sub_type);
                 pcrdr_release_message(msg);
                 msg = NULL;
                 free(type);
                 type = NULL;
                 goto again;
             }
-            if (co->stack.exited && (
-                        (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)) == event_type)
-                        || (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CORSTATE)) == event_type)
-                        )) {
+            if (co->stack.exited &&
+                    ((pchvml_keyword(PCHVML_KEYWORD_ENUM(EVENT, CALLSTATE)) ==
+                      event_type) ||
+                     (pchvml_keyword(PCHVML_KEYWORD_ENUM(EVENT, CORSTATE)) ==
+                      event_type))) {
                 pcrdr_release_message(msg);
                 msg = NULL;
                 free(type);
@@ -1042,7 +1062,7 @@ dump_stack_frame(pcintr_stack_t stack,
                 int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
                 purc_atom_t atom = purc_get_error_exception(err);
                 snprintf(buf, DUMP_BUF_SIZE,
-                        "    %s: `%s` raised when evaluating the expression: ",
+                        "    %s: `%s` raised when evaluating the expression.\n",
                         attr->key, purc_atom_to_string(atom));
                 purc_rwstream_write(stm, buf, strlen(buf));
                 pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true);
@@ -1071,7 +1091,7 @@ dump_stack_frame(pcintr_stack_t stack,
             int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
             purc_atom_t atom = purc_get_error_exception(err);
             snprintf(buf, DUMP_BUF_SIZE,
-                    "  CONTENT: `%s` raised when evaluating the expression: ",
+                    "  CONTENT: `%s` raised when evaluating the expression.\n",
                     purc_atom_to_string(atom));
             purc_rwstream_write(stm, buf, strlen(buf));
             pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true);

@@ -1,0 +1,86 @@
+#!/usr/bin/purc
+
+# RESULT: 'closed'
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <head>
+        $RUNNER.enablelog('all', 'file')
+
+        <define as 'logMsg'>
+            <inherit>
+                $RUNNER.logmsg($DATA.serialize($?))
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+        <execute with $logMsg on "Worker is running now..." />
+
+        <init as wsSettings with {
+            'secure': {{ $L.streq('caseless', $REQ.secure, 'true') && true || false }},
+            'handshake': {{ $L.streq('caseless', $REQ.handshake, 'true') && true || false }},
+            'sslsessioncacheid': $REQ.sslsessioncacheid,
+        } silently />
+
+        <execute with $logMsg on $wsSettings />
+
+        <init as wsStream with $STREAM.from($DATA.numerify($REQ.fd), 'keep', 'websocket', $wsSettings)>
+            <catch for `ANY`>
+                <execute with $logMsg on "Worker failed with $?.name ..." />
+                <exit with 'Worker failed' />
+            </catch>
+        </init>
+
+        <inherit on $STREAM.stdout.writelines('Ready') />
+
+        <observe on $wsStream for 'error'>
+            <inherit>
+            {{
+                $STREAM.stdout.writelines("Worker got ERROR event; payload:");
+                $STREAM.stdout.writelines($DATA.serialize($?));
+            }}
+            </inherit>
+
+            <exit with 'Bad Client' />
+        </observe>
+
+        <observe on $wsStream for 'message'>
+            <execute with $logMsg on "Worker got message:" />
+            <execute with $logMsg on $? />
+
+            <test with $L.streq('case', $?, 'Bye')>
+                <inherit>
+                    $_observedOn.close();
+                </inherit>
+
+                <exit with 'Good Client' />
+
+                <differ>
+
+                    <inherit>
+                    {{
+                        $STREAM.stdout.writelines("Worker got MESSAGE event; payload:");
+                        $STREAM.stdout.writelines($DATA.serialize($?));
+                        $_observedOn.send("Hello from the server");
+                    }}
+                    </inherit>
+
+                </differ>
+            </test>
+        </observe>
+
+        <observe on $wsStream for 'close'>
+
+            <inherit>
+            {{
+                $STREAM.stdout.writelines("Worker got CLOSE event; payload:");
+                $STREAM.stdout.writelines($DATA.serialize($?))
+            }}
+            </inherit>
+
+            <exit with 'Good Client' />
+        </observe>
+
+    </body>
+</hvml>

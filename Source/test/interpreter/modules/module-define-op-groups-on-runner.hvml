@@ -1,0 +1,28 @@
+<!DOCTYPE hvml>
+<hvml target='void'>
+
+    <define as 'logMsg' at '_runner' >
+        <test with $DATA.is_container($?) >
+            <inherit on $RUNNER.logmsg($DATA.serialize($?)) />
+
+            <differ>
+                <inherit on $RUNNER.logmsg($DATA.stringify($?)) />
+            </differ>
+        </test>
+    </define>
+
+    <define as 'print' at '_runner' >
+        <test with $DATA.is_container($?) >
+            <inherit>
+                $STREAM.stdout.writelines("CID-$CRTN.cid-TAG-$tag-DOC-$DOC.doctype : $DATA.serialize($?)")
+            </inherit>
+
+            <differ>
+                <inherit>
+                    $STREAM.stdout.writelines("CID-$CRTN.cid-TAG-$tag-DOC-$DOC.doctype : $DATA.stringify($?)")
+                </inherit>
+            </differ>
+        </test>
+    </define>
+
+</hvml>

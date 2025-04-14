@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html">
     <body>
-        <update on="#the-user-stats > h2 > span" textContent="10" attr.class="text-warning" />
+        <update on="#the-user-stats > h2 > span" with="10" at="text-warning" />
     </body>
 </hvml>
 

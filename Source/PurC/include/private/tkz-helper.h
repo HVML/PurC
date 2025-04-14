@@ -46,12 +46,17 @@
 
 struct tkz_reader;
 struct tkz_uc {
-    struct list_head list;
+    struct list_head ln;
     uint32_t character;
     uint8_t  utf8_buf[UTF8_BUF_LEN];
     int line;
     int column;
     int position;
+};
+
+struct tkz_ucs {
+    struct list_head list;
+    size_t nr_ucs;
 };
 
 struct tkz_buffer {
@@ -275,19 +280,21 @@ bool
 is_unihan(uint32_t c);
 
 // tokenizer reader
-struct tkz_reader *tkz_reader_new(int hee_line, int hee_column);
+struct tkz_reader *tkz_reader_new(void);
 
-void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
+void tkz_reader_set_data_source_rws(struct tkz_reader *reader,
+        purc_rwstream_t rws);
+
+void tkz_reader_set_data_source_ucs(struct tkz_reader *reader,
+        struct tkz_ucs *ucs);
+
+void tkz_reader_set_lc(struct tkz_reader *reader, struct tkz_lc *lc);
 
 struct tkz_uc *tkz_reader_current(struct tkz_reader *reader);
 
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
 
 bool tkz_reader_reconsume_last_char(struct tkz_reader *reader);
-
-int tkz_reader_hee_line(struct tkz_reader *reader);
-
-int tkz_reader_hee_column(struct tkz_reader *reader);
 
 void tkz_reader_destroy(struct tkz_reader *reader);
 
@@ -296,8 +303,43 @@ struct tkz_buffer *tkz_reader_get_line_from_cache(struct tkz_reader *reader,
 
 struct tkz_buffer *tkz_reader_get_curr_line(struct tkz_reader *reader);
 
-int tkz_reader_get_line_number(struct tkz_reader *reader);
 
+/* tkz uc list */
+struct tkz_ucs *tkz_ucs_new(void);
+
+bool tkz_ucs_is_empty(struct tkz_ucs *ucs);
+
+struct tkz_uc tkz_ucs_read_head(struct tkz_ucs *ucs);
+
+struct tkz_uc tkz_ucs_read_tail(struct tkz_ucs *ucs);
+
+int tkz_ucs_delete_tail(struct tkz_ucs *ucs, size_t sz);
+int tkz_ucs_trim_tail(struct tkz_ucs *ucs);
+
+int tkz_ucs_add_head(struct tkz_ucs *ucs, struct tkz_uc uc);
+int tkz_ucs_add_tail(struct tkz_ucs *ucs, struct tkz_uc uc);
+
+int tkz_ucs_dump(struct tkz_ucs *ucs);
+
+
+int tkz_ucs_reset(struct tkz_ucs *ucs);
+
+int tkz_ucs_move(struct tkz_ucs *dst, struct tkz_ucs *src);
+
+size_t tkz_ucs_size(struct tkz_ucs *ucs);
+
+int tkz_ucs_renumber(struct tkz_ucs *ucs);
+
+char *tkz_ucs_to_string(struct tkz_ucs *ucs, size_t *nr_size);
+
+typedef int (*tkz_ucs_for_each_cb)(void *ctxt, size_t idx, struct tkz_uc uc);
+int tkz_ucs_for_each(struct tkz_ucs *ucs, tkz_ucs_for_each_cb cb, void *ctxt);
+
+/* return idx */
+int tkz_ucs_find(struct tkz_ucs *ucs, uint32_t c);
+int tkz_ucs_find_reverse(struct tkz_ucs *ucs, uint32_t c);
+
+void tkz_ucs_destroy(struct tkz_ucs *ucs);
 
 
 // tokenizer buffer
@@ -396,6 +438,9 @@ tkz_lc_new(size_t max_size);
 
 void
 tkz_lc_destroy(struct tkz_lc *lc);
+
+void
+tkz_lc_reset(struct tkz_lc *lc);
 
 int
 tkz_lc_append(struct tkz_lc *lc, char c);

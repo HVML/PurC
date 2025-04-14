@@ -222,6 +222,13 @@ void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
     }
 }
 
+void pchvml_token_set_quote(struct pchvml_token* token, uint32_t quote)
+{
+    if (token->curr_attr) {
+        token->curr_attr->quote = quote;
+    }
+}
+
 #define RAW_STRING          "raw"
 #define HVML_RAW_STRING     "hvml:raw"
 
@@ -234,6 +241,12 @@ void pchvml_token_end_attr(struct pchvml_token* token)
     if (token->curr_attr->value) {
         token->curr_attr->vcm = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(token->curr_attr->value));
+        if (token->curr_attr->quote == '\'') {
+            token->curr_attr->vcm->quoted_type = PCVCM_NODE_QUOTED_TYPE_SINGLE;
+        }
+        else if (token->curr_attr->quote == '"') {
+            token->curr_attr->vcm->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
+        }
     }
 
     if (!token->attr_list) {
@@ -424,6 +437,30 @@ struct pchvml_token_attr* pchvml_token_get_curr_attr(
     return token->curr_attr;
 }
 
+bool pchvml_token_is_curr_attr_duplicate(
+        struct pchvml_token* token)
+{
+    bool ret = false;
+    struct pchvml_token_attr* curr = token->curr_attr;
+    if (!curr) {
+        goto out;
+    }
+
+    const char* name = pchvml_token_attr_get_name(curr);
+    size_t nr_attrs = pchvml_token_get_attr_size(token);
+    for (size_t i = 0; i < nr_attrs; ++i) {
+        struct pchvml_token_attr* attr = pchvml_token_get_attr(token, i);
+        const char *attr_name = pchvml_token_attr_get_name(attr);
+        if (strcmp(name, attr_name) == 0) {
+            ret = true;
+            break;
+        }
+    }
+
+out:
+    return ret;
+}
+
 bool pchvml_token_is_in_attr(struct pchvml_token* token)
 {
     return token->curr_attr != NULL;
@@ -451,7 +488,7 @@ struct pchvml_token_attr* pchvml_token_get_attr(
 
 const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr)
 {
-    return tkz_buffer_get_bytes(attr->name);
+    return attr->name ? tkz_buffer_get_bytes(attr->name) : NULL;
 }
 
 struct pcvcm_node* pchvml_token_attr_get_value_ex(

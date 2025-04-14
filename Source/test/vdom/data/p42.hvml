@@ -8,7 +8,7 @@
         </define>
 
         <listbox id="entries">
-            <include on="$fillDirEntries" with="/home" />
+            <execute on="$fillDirEntries" with="/home" />
         </listbox>
 
         <button id="goRoot">
@@ -21,12 +21,12 @@
 
         <observe on="#goRoot" for="click">
             <clear on="#entries" />
-            <include on="$fillDirEntries" with="/" />
+            <execute on="$fillDirEntries" with="/" />
         </observe>
 
         <observe on="#goHome" for="click">
             <clear on="#entries" />
-            <include on="$fillDirEntries" with="/home" />
+            <execute on="$fillDirEntries" with="/home" />
         </observe>
 
     </body>

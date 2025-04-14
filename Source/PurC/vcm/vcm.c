@@ -36,6 +36,7 @@
 #include "private/stack.h"
 #include "private/interpreter.h"
 #include "private/utils.h"
+#include "private/tkz-helper.h"
 
 #include "eval.h"
 
@@ -87,6 +88,7 @@ pcvcm_node_new(enum pcvcm_node_type type, bool closed)
     }
     node->type = type;
     node->is_closed = closed;
+    node->position = -1;
     node->idx = -1;
     node->nr_nodes = -1;
     return node;
@@ -146,6 +148,7 @@ pcvcm_node_new_string(const char *str_utf8)
     memcpy(buf, str_utf8, nr_bytes);
     buf[nr_bytes] = 0;
 
+    n->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
     n->sz_ptr[0] = nr_bytes;
     n->sz_ptr[1] = (uintptr_t)buf;
 
@@ -499,6 +502,9 @@ pcvcm_node_destroy_callback(struct pctree_node *n,  void *data)
                 || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
         ) && node->sz_ptr[1]) {
         free((void*)node->sz_ptr[1]);
+    }
+    if (node->ucs) {
+        tkz_ucs_destroy(node->ucs);
     }
     free(node);
 }

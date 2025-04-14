@@ -1,0 +1,29 @@
+#!/usr/bin/purc
+
+# RESULT: 'exit on runner var'
+
+<hvml target="void">
+    <body>
+
+        <load from "#secondPage" onto 'null:'>
+            <execute with $varOnSecondPage />
+        </load>
+
+    </body>
+
+    <body id="secondPage">
+
+        <inherit>
+            $STREAM.stdout.writelines("####   second page load...")
+        </inherit>
+
+        <define as 'varOnSecondPage' at '_runner'>
+            <exit with 'exit on runner var' />
+        </define>
+
+        <inherit>
+            $STREAM.stdout.writelines("####   second page exit...")
+        </inherit>
+
+    </body>
+</hvml>

@@ -101,7 +101,7 @@ bool is_variant_match_observe(pcintr_coroutine_t co, purc_variant_t observed,
         purc_variant_t val)
 {
     UNUSED_PARAM(co);
-    if (observed == val || purc_variant_is_equal_to(observed, val)) {
+    if (observed == val) {
         return true;
     }
     else if (purc_variant_is_native(observed)) {
@@ -109,8 +109,7 @@ bool is_variant_match_observe(pcintr_coroutine_t co, purc_variant_t observed,
         if (ops == NULL || ops->did_matched == NULL) {
             return false;
         }
-        return ops->did_matched(purc_variant_native_get_entity(observed),
-                val);
+        return ops->did_matched(purc_variant_native_get_entity(observed), val);
     }
     else if (pcintr_is_crtn_observed(observed)) {
         if (pcintr_crtn_observed_is_match(observed, val)) {
@@ -144,12 +143,14 @@ is_match_default(pcintr_coroutine_t co, struct pcintr_observer *observer,
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
     if ((is_variant_match_observe(co, observer->observed, observed)) &&
-                (strcmp(observer->type, type) == 0)) {
-        if (observer->sub_type == sub_type ||
-                pcregex_is_match(observer->sub_type, sub_type)) {
-            return true;
-        }
+            ((observer->type == type) ||
+             pcregex_is_match(type, observer->type)) &&
+            ((observer->sub_type == sub_type) ||
+             pcregex_is_match(sub_type, observer->sub_type))
+            ) {
+        return true;
     }
+
     return false;
 }
 
@@ -352,7 +353,6 @@ revoke_observer_from_list(pcintr_coroutine_t co, struct list_head *list,
     list_for_each_entry_safe(p, n, list, node) {
         if (p->is_match(co, p, NULL, observed, type, sub_type)) {
             pcintr_revoke_observer(p);
-            break;
         }
     }
 }

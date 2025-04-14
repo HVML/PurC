@@ -1,1 +1,1 @@
-concatString(getVariable("<")," Hello, world! --from COROUTINE-",getElement(getVariable("CRTN"),"cid"))
+concatString(getVariable("<"), " Hello, world! --from COROUTINE-", getMember(getVariable("CRTN"), "cid"))

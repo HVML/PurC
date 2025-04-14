@@ -57,7 +57,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_FIRE,              pcintr_get_fire_ops},
     {PCHVML_TAG_BACK,              pcintr_get_back_ops},
     {PCHVML_TAG_DEFINE,            pcintr_get_define_ops},
-    {PCHVML_TAG_INCLUDE,           pcintr_get_include_ops},
+    {PCHVML_TAG_EXECUTE,           pcintr_get_execute_ops},
     {PCHVML_TAG_CALL,              pcintr_get_call_ops},
     {PCHVML_TAG_RETURN,            pcintr_get_return_ops},
     {PCHVML_TAG_INHERIT,           pcintr_get_inherit_ops},

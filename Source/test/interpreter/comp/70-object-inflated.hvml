@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: { a: 1, b: 2, c: 3, d: 4 }
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as object>
+        { a: 1, b: 2, c: 3 }
+    </init>
+
+    <observe on $object for 'change:inflated'>
+        <exit with $_observedOn />
+    </observe>
+
+    <update on $object to merge with { d: 4 } />
+</hvml>

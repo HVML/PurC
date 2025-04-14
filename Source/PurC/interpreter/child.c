@@ -116,29 +116,29 @@ fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "class");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "class", true);
     if (tmp)
         rdr_info->klass = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "title");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "title", true);
     if (tmp)
         rdr_info->title = purc_variant_get_string_const(tmp);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "layoutStyle", true);
     if (tmp)
         rdr_info->layout_style = purc_variant_get_string_const(tmp);
 
-    rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
-            "toolkitStyle");
+    rdr_info->toolkit_style = purc_variant_object_get_by_ckey_ex(rdr,
+            "toolkitStyle", true);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "transitionStyle");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "transitionStyle", true);
     if (tmp)
         rdr_info->transition_style = purc_variant_get_string_const(tmp);
 
-    rdr_info->keep_contents = purc_variant_object_get_by_ckey(rdr,
-            "keepContents");
+    rdr_info->keep_contents = purc_variant_object_get_by_ckey_ex(rdr,
+            "keepContents", true);
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
+    tmp = purc_variant_object_get_by_ckey_ex(rdr, "pageGroups", true);
     if (tmp) {
         rdr_info->page_groups = purc_variant_get_string_const(tmp);
     }
@@ -190,8 +190,7 @@ pcintr_schedule_child_co(purc_vdom_t vdom, purc_atom_t curator,
     purc_renderer_extra_info rdr_info = {};
     if (request && purc_variant_is_object(request)) {
         purc_variant_t rdr =
-            purc_variant_object_get_by_ckey(request, "_renderer");
-        purc_clr_error();
+            purc_variant_object_get_by_ckey_ex(request, "_renderer", true);
         if (rdr && purc_variant_is_object(rdr)) {
             fill_cor_rdr_info(&rdr_info, rdr);
         }

@@ -8,18 +8,14 @@
             <p>$?</p>
         </define>
 
-        <div id="dest">
-            <div>this is dest div</div>
+        <div>
+           this is div before execute
         </div>
 
-        <div>
-           this is div before include
-        </div>
-
-        <include with $tmpl_a on 'Hello, world!' in="#dest"/>
+        <execute with $tmpl_a on 'Hello, world!' />
 
         <div>
-           this is div after include
+           this is div after execute
         </div>
 
     </body>

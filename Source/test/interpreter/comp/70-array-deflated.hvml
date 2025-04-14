@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: [2, 3]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as array>
+        [ 1, 2, 3 ]
+    </init>
+
+    <observe on $array for 'change:deflated'>
+        <exit with $array />
+    </observe>
+
+    <update on $array at 0 to remove />
+</hvml>

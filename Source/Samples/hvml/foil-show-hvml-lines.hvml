@@ -125,8 +125,8 @@ header h1 {
         </define>
 
         <div>
-            <include with $one_column on 'cases_part_one' />
-            <include with $one_column on 'cases_part_two' />
+            <execute with $one_column on 'cases_part_one' />
+            <execute with $one_column on 'cases_part_two' />
         </div>
 
         <init as 'cases_part_one' with undefined />

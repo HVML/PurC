@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: true
+# RESULT: 10UL
 
 <!-- The expected output of this HVML program should be like
 
@@ -10,25 +10,43 @@
 <hvml target="void">
 
     <body id="main">
-        <update on $RUNNER.myObj to "merge" with { 'channel0': [], 'primes': [] } />
+        <update on $RUNNER.myObj to "merge" with { 'primes': [], 'exitFlag':false } />
 
-        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $DATA.arith('+', $0<, 1) nosetotail >
+        <init as 'nrPrimes' with 10L />
+        <iterate on 0 onlyif $L.lt($0<, $nrPrimes) with $DATA.arith('+', $0<, 1) nosetotail >
             <init as channelIdx with "$?" />
             <init as inChannel with "channel$?" />
-            <observe on $RUNNER.myObj[$inChannel] for "grown" >
-                <update on $RUNNER.myObj.primes to "append" with $RUNNER.myObj[$inChannel][-1] />
-                <forget on $RUNNER.myObj[$inChannel] for "grown" />
+            <update on $RUNNER.myObj at ".$inChannel" with [] />
+            <observe on $RUNNER.myObj[$inChannel] for "change:inflated" >
+                $channelIdx
 
-                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $RUNNER.myObj.primes[-1] } async >
+                <update on $RUNNER.myObj.primes to "append" with $_observedOn[-1] />
+                <forget on $_observedOn for 'change:inflated' />
+
+                <load from "#sieve" with {'idx': $_observedContent, 'prime': $RUNNER.myObj.primes[-1] } as 'sieve' async />
             </observe>
         </iterate>
 
-        <load from "_self#first" with { 'maxn': -1UL } async />
+        <observe on $RUNNER.myObj.primes for "change:inflated" >
+            <inherit>
+                $STREAM.stdout.writelines("#####prime : $DATA.serialize($RUNNER.myObj.primes)")
+            </inherit>
+            <test with $L.ge($DATA.count($RUNNER.myObj.primes), $nrPrimes)>
+                <update on $RUNNER.myObj at ".exitFlag" with true />
+                <exit with $DATA.count($RUNNER.myObj.primes) />
+            </test>
+        </observe>
+
+        <load from "#first" with { 'maxn': 1000UL } async />
     </body>
 
     <body id="first">
         <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $DATA.arith('+', $0<, 1) nosetotail >
             <update on $RUNNER.myObj.channel0 to append with $? />
+            <sleep for '500ms' />
+            <test with $RUNNER.myObj.exitFlag >
+                <exit with true />
+            </test>
         </iterate>
     </body>
 
@@ -36,8 +54,20 @@
         <init as inChannel with "channel$REQ.idx" />
         <init as outChannel with "channel$DATA.arith('+', $REQ.idx, 1)" />
 
-        <observe on $RUNNER.myObj[$inChannel] for "grown" >
-            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : $inChannel, "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:$inChannel">
+            <test with $RUNNER.myObj.exitFlag >
+                <exit with true />
+            </test>
+        </observe>
+
+        <observe on $RUNNER.myObj[$inChannel] for "change:inflated" >
+            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime) >
                 <update on $RUNNER.myObj[$outChannel] to "append" with $RUNNER.myObj[$inChannel][-1] />
             </test>
         </observe>

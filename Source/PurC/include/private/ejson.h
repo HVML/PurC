@@ -38,6 +38,7 @@
 #define PCEJSON_FLAG_NONE               0x0000
 #define PCEJSON_FLAG_MULTI_JSONEE       0x0001
 #define PCEJSON_FLAG_GET_VARIABLE       0x0002
+#define PCEJSON_FLAG_KEEP_LAST_CHAR     0x0004
 #define PCEJSON_FLAG_ALL                0xFFFF
 
 struct pcejson;
@@ -61,6 +62,8 @@ void pcejson_destroy (struct pcejson* parser);
  * Reset ejson parser.
  */
 void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
+
+void pcejson_update_state_to_parse_double_quoted_attr_value(struct pcejson* parser);
 
 /*
  * Parse ejson.

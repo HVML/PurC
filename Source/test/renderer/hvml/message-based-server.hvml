@@ -4,7 +4,7 @@
 
 <hvml target="void">
     <head>
-        $RUNNER.enablelog('all', 'stderr')
+        $RUNNER.enablelog('info error', 'stderr')
 
         <define as 'logMsg'>
             <inherit>
@@ -18,12 +18,12 @@
     <body id='server' >
 
         <define as 'mainFuncs' from 'controller/main.hvml' />
-        <include with $mainFuncs />
+        <execute with $mainFuncs />
 
         <define as 'purcmcFuncs' from 'controller/purcmc.hvml' />
-        <include with $purcmcFuncs />
+        <execute with $purcmcFuncs />
 
-        <include with $logMsg on 'The server is running...' />
+        <execute with $logMsg on 'The server is running...' />
 
         <init as 'msgSettings' >
             {
@@ -32,7 +32,7 @@
             }
         </init>
 
-        <include with $logMsg on $msgSettings />
+        <execute with $logMsg on $msgSettings />
 
         <init as 'clients' at '_topmost' with {} />
         <init as 'workspaces' at '_topmost' with {} />
@@ -44,13 +44,13 @@
             </catch>
         </init>
 
-        <include with $logMsg on 'The server is accepting...' />
+        <execute with $logMsg on 'The server is accepting...' />
 
-        <observe on $clients for 'shrink'>
-            <include with $logMsg on 'clients shrunken:' />
-            <include with $logMsg on $clients />
+        <observe on $clients for 'change:deflated'>
+            <execute with $logMsg on 'clients shrunken:' />
+            <execute with $logMsg on $clients />
 
-            <test with $DATA.count()>
+            <test with $DATA.count($clients)>
                 <differ>
                     <exit with 'No any clients' />
                 </differ>
@@ -59,7 +59,7 @@
 
         <observe on $srvListenSocket for 'socket:connAttempt'>
 
-            <include with $logMsg on "Server got a new socket:connAttempt event" />
+            <execute with $logMsg on "Server got a new socket:connAttempt event" />
 
             <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
                 <catch for `ANY`>
@@ -68,7 +68,7 @@
 
                 <test with $L.not($DATA.isequal($?, null)) >
 
-                    <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+                    <execute with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
 
                     <init as 'clientId' with $DATA.stringify($DATA.key($?)) />
 
@@ -80,7 +80,7 @@
                     <observe on $clients[$clientId].stream for 'message'>
                         $clientId
 
-                        <include with $logMsg on "Server got a MESSAGE event from $_observedContent" />
+                        <execute with $logMsg on "Server got a MESSAGE event from $_observedContent" />
 
                         <call on $parseMessage with { message: $? } >
 
@@ -93,20 +93,20 @@
                     <observe on $clients[$clientId].stream for 'error'>
                         $clientId
 
-                        <include with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
-                        <include with $logMsg on $? />
+                        <execute with $logMsg on "Server got an ERROR event from `$_observedContent`; payload:" />
+                        <execute with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 
                     <observe on $clients[$clientId].stream for 'close'>
                         $clientId
 
-                        <include with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
-                        <include with $logMsg on $? />
+                        <execute with $logMsg on "Server got CLOSE event from `$_observedContent`; payload:" />
+                        <execute with $logMsg on $? />
 
-                        <update on $clients at ".$_observedContent" to 'remove' />
+                        <update on $clients at ".$_observedContent" to 'remove' silently />
                         <forget on $_observedOn for '*' />
                     </observe>
 

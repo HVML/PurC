@@ -63,7 +63,11 @@ PCA_EXTERN_C_BEGIN
 #define PRINT_MIN_BUFFER     512
 #define PRINT_MAX_BUFFER     1024 * 1024 * 1024
 
-#define PRINT_VARIANT(_v) do {                                                \
+#ifdef NDEBUG
+#define PRINT_VARIANT(_v)   do { (void)_v; } while (0)
+#else
+#define PRINT_VARIANT(_v)                                                     \
+do {                                                                          \
     if (_v == PURC_VARIANT_INVALID) {                                         \
         PC_DEBUG("%s[%d]:%s(): %s[%p]=PURC_VARIANT_INVALID\n",                \
             pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v, _v);  \
@@ -76,6 +80,7 @@ PCA_EXTERN_C_BEGIN
             #_v, _v, _type, _buf);                                            \
     free(_buf);                                                               \
 } while (0)
+#endif
 
 
 // mutually exclusive
@@ -380,12 +385,13 @@ purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
-// TODO: better generate with tool
-extern purc_atom_t pcvariant_atom_grow;
-extern purc_atom_t pcvariant_atom_shrink;
-extern purc_atom_t pcvariant_atom_change;
+#if 0       // Since 0.9.22: obsolete
+extern purc_atom_t pcvariant_atom_inflated;
+extern purc_atom_t pcvariant_atom_deflated;
+extern purc_atom_t pcvariant_atom_modified;
 // extern purc_atom_t pcvariant_atom_reference;
 // extern purc_atom_t pcvariant_atom_unreference;
+#endif
 
 bool pcvariant_is_mutable(purc_variant_t val);
 

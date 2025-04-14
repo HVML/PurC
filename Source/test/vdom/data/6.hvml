@@ -85,31 +85,31 @@
         </footer>
 
         <observe on="$_TIMERS" for="foo" to="update" in="#the-header" >
-            <update on="> span.local-time" textContent="$SYS.time('%H:%m')" />
+            <update on="> span.local-time" with="$SYS.time('%H:%m')" />
         </observe>
 
         <observe on="$systemStatus" for="battery" to="test">
             <test on="$?.level" in="#the-header">
                 <match for="100" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-full.png" />
+                    <update on="img.mobile-status" with="/battery-level-full.png" />
                 </match>
                 <match for=">90" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-90.png" />
+                    <update on="img.mobile-status" with="/battery-level-90.png" />
                 </match>
                 <match for=">70" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-70.png" />
+                    <update on="img.mobile-status" with="/battery-level-70.png" />
                 </match>
                 <match for=">50" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-50.png" />
+                    <update on="img.mobile-status" with="/battery-level-50.png" />
                 </match>
                 <match for=">30" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-30.png" />
+                    <update on="img.mobile-status" with="/battery-level-30.png" />
                 </match>
                 <match for=">10" to="update" exclusively>
-                    <update on="img.mobile-status" attr.src="/battery-level-10.png" />
+                    <update on="img.mobile-status" with="/battery-level-10.png" />
                 </match>
                 <match for="*" to="update">
-                    <update on="img.mobile-status" attr.src="/battery-level-low.png" />
+                    <update on="img.mobile-status" with="/battery-level-low.png" />
                 </match>
             </test>
         </observe>

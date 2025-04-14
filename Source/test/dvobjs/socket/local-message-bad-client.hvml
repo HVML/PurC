@@ -15,7 +15,7 @@
 
     <body id='server' >
 
-        <include with $logMsg on 'The server is running...' />
+        <execute with $logMsg on 'The server is running...' />
 
         <init as 'msgSettings' with {} />
         <test with {{ $STR.contains($REQ.client, 'shorthello') || $STR.contains($REQ.client, 'ltnr') }} >
@@ -35,7 +35,7 @@
             </update>
         </test>
 
-        <include with $logMsg on $DATA.serialize($msgSettings) />
+        <execute with $logMsg on $DATA.serialize($msgSettings) />
 
         <init as 'clients' with {} />
 
@@ -57,7 +57,7 @@
             </inherit>
         </observe>
 
-        <include with $logMsg on 'The server is accepting...' />
+        <execute with $logMsg on 'The server is accepting...' />
 
         <choose on $srvListenSocket.accept('default', 'message', $msgSettings)>
             <catch for `ANY`>
@@ -66,7 +66,7 @@
 
             <test with $L.not($DATA.isequal($?, null)) >
 
-                <include with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
+                <execute with $logMsg on "Server accpeted a client from $?.peerAddr:$?.peerPort" />
 
                 <init as 'clientId' with "$?.peerAddr:$?.peerPort" temp />
 
@@ -117,32 +117,32 @@
     <!-- a raw client say short hello -->
     <body id="shorthello">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default') >
             <catch for `ANY`>
-                <include with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
+                <execute with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
             <inherit>
                 $cliStreamSocket.writelines('Hello')
 
-                <include with $logMsg on 'Client has wrotten a line to the server.' />
+                <execute with $logMsg on 'Client has wrotten a line to the server.' />
 
                 <catch for `ANY`>
                     <exit with "Client failed with $?.name when calling stream.writelines()" />
                 </catch>
             </inherit>
 
-            <include with $logMsg on 'Client try to read one line from the server.' />
+            <execute with $logMsg on 'Client try to read one line from the server.' />
 
             <choose on $cliStreamSocket.readlines(1) >
 
-                <include with $logMsg on 'Client has got one line from the server and going to exit:' />
-                <include with $logMsg on $?[0] />
+                <execute with $logMsg on 'Client has got one line from the server and going to exit:' />
+                <execute with $logMsg on $?[0] />
 
                 <choose on $cliStreamSocket.close() >
                     <catch for `ANY`>
@@ -165,32 +165,32 @@
     <!-- a raw client say long hello -->
     <body id="longhello">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default') >
             <catch for `ANY`>
-                <include with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
+                <execute with $logMsg on "Client failed with $?.name when calling STREAM.open()" />
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
             <inherit>
                 $cliStreamSocket.writelines('Hello from a client say long hello')
 
-                <include with $logMsg on 'Client has wrotten a line to the server.' />
+                <execute with $logMsg on 'Client has wrotten a line to the server.' />
 
                 <catch for `ANY`>
                     <exit with "Client failed with $?.name when calling stream.writelines()" />
                 </catch>
             </inherit>
 
-            <include with $logMsg on 'Client try to read one line from the server.' />
+            <execute with $logMsg on 'Client try to read one line from the server.' />
 
             <choose on $cliStreamSocket.readlines(1) >
 
-                <include with $logMsg on 'Client has got one line from the server and going to exit:' />
-                <include with $logMsg on $?[0] />
+                <execute with $logMsg on 'Client has got one line from the server and going to exit:' />
+                <execute with $logMsg on $?[0] />
 
                 <choose on $cliStreamSocket.close() >
                     <catch for `ANY`>
@@ -213,14 +213,14 @@
     <!-- long time no response client -->
     <body id="ltnr">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default') >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
         </init>
 
         <sleep for '10s' />
@@ -235,16 +235,16 @@
     <!-- A client sending a too large message -->
     <body id="tlmsg">
 
-        <include with $logMsg on 'Client is running...' />
+        <execute with $logMsg on 'Client is running...' />
 
         <init as 'cliStreamSocket' with $STREAM.open('local:///var/tmp/hvml-test-server', 'default', 'message', { secure: true } ) >
             <catch for `ANY`>
                 <exit with "Client failed with $?.name when calling STREAM.open()" />
             </catch>
 
-            <include with $logMsg on 'Client has connected to the server.' />
+            <execute with $logMsg on 'Client has connected to the server.' />
 
-            <include with $logMsg on 'Client is going to send a large message.' />
+            <execute with $logMsg on 'Client is going to send a large message.' />
 
             <inherit>
                 {{
@@ -258,15 +258,15 @@
         </init>
 
         <observe on $cliStreamSocket for 'handshake'>
-            <include with $logMsg on 'Client got HANDKSHAKE event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got HANDKSHAKE event' />
+            <execute with $logMsg on $DATA.serialize($?) />
         </observe>
 
         <observe on $cliStreamSocket for 'message'>
-            <include with $logMsg on 'Client got MESSAGE event from the server:' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got MESSAGE event from the server:' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <inherit>
                 {{
@@ -281,19 +281,19 @@
         </observe>
 
         <observe on $cliStreamSocket for 'error'>
-            <include with $logMsg on 'Client got ERROR event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got ERROR event' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <exit with 'Bye' />
         </observe>
 
         <observe on $cliStreamSocket for 'close'>
-            <include with $logMsg on 'Client got CLOSE event' />
-            <include with $logMsg on $DATA.serialize($?) />
+            <execute with $logMsg on 'Client got CLOSE event' />
+            <execute with $logMsg on $DATA.serialize($?) />
 
-            <include with $logMsg on 'Client is going to say bye.' />
+            <execute with $logMsg on 'Client is going to say bye.' />
 
             <exit with 'Bye' />
         </observe>

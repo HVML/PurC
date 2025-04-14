@@ -1,1 +1,1 @@
-make_object("name","xyz","value",123,"_inner","inner data")
+make_object("name", "xyz", "value", 123, "_inner", "inner data")

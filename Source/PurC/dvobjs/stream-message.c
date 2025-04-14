@@ -468,7 +468,7 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
     n = us_read_socket(stream, buf + ext->sz_read_header,
             ext->sz_header - ext->sz_read_header);
     if (n > 0) {
-        PC_DEBUG("Got %zd bytes from Unix socket\n", n);
+        PC_NONE("Got %zd bytes from Unix socket\n", n);
         ext->sz_read_header += n;
         if (ext->sz_read_header == ext->sz_header) {
             ext->sz_read_header = 0;
@@ -517,7 +517,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         if (n > 0) {
             ext->sz_read_payload += n;
 
-            PC_DEBUG("Read payload: %u/%u; message (%u/%u)\n",
+            PC_NONE("Read payload: %u/%u; message (%u/%u)\n",
                     (unsigned)ext->sz_read_payload,
                     (unsigned)ext->header.sz_payload,
                     (unsigned)ext->sz_read_message,
@@ -580,7 +580,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                 goto failed;
             }
 
-            PC_DEBUG("Got a frame header: %d\n", ext->header.op);
+            PC_NONE("Got a frame header: %d\n", ext->header.op);
             switch (ext->header.op) {
             case US_OPCODE_PING:
                 ext->msg_type = MT_PING;
@@ -655,7 +655,7 @@ us_handle_reads(int fd, int event, void *ctxt)
         else if (ext->status & US_WAITING4PAYLOAD) {
 
             retv = try_to_read_payload(stream);
-            PC_DEBUG("Got a new payload: %d\n", retv);
+            PC_NONE("Got a new payload: %d\n", retv);
             if (retv == READ_WHOLE) {
                 ext->status &= ~US_WAITING4PAYLOAD;
 
@@ -663,7 +663,7 @@ us_handle_reads(int fd, int event, void *ctxt)
                     if (ext->msg_type == MT_TEXT) {
                         ext->message[ext->sz_message] = 0;
                         ext->sz_message++;
-                        PC_DEBUG("Got a text payload: %s\n", ext->message);
+                        PC_NONE("Got a text payload: %s\n", ext->message);
                     }
 
                     int owner_taken = 0;
@@ -826,9 +826,9 @@ static void on_ping_timer(pcintr_timer_t timer, const char *id, void *data)
     assert(timer == ext->ping_timer);
 
     double elapsed = purc_get_elapsed_seconds(&ext->last_live_ts, NULL);
-    PC_DEBUG("ping timer elapsed: %f\n", elapsed);
 
     if (elapsed > ext->noresptimetoclose) {
+        PC_DEBUG("It's time to ping the peer: %f\n", elapsed);
         us_notify_to_close(stream);
         ext->status = US_ERR_LTNR | US_CLOSING;
         us_handle_rwerr_close(stream);
@@ -997,7 +997,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
     purc_variant_t data = PURC_VARIANT_INVALID;
     const char *event = NULL;
 
-    PC_DEBUG("Got a message and prepare to fire a MESSAGE event\n");
+    PC_NONE("Got a message and prepare to fire a MESSAGE event\n");
 
     switch (type) {
         case MT_TEXT:
@@ -1246,28 +1246,32 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
 
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxframepayloadsize");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "maxframepayloadsize", true);
     uint64_t maxframepayloadsize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxframepayloadsize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "maxmessagesize");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "maxmessagesize", true);
     uint64_t maxmessagesize = 0;
     if (tmp && !purc_variant_cast_to_ulongint(tmp, &maxmessagesize, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoping");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "noresptimetoping", true);
     uint32_t noresptimetoping = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoping, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    tmp = purc_variant_object_get_by_ckey(extra_opts, "noresptimetoclose");
+    tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+            "noresptimetoclose", true);
     uint32_t noresptimetoclose = 0;
     if (tmp && !purc_variant_cast_to_uint32(tmp, &noresptimetoclose, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);

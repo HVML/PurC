@@ -49,6 +49,8 @@
 #define KEY_NAME                "name"
 #define KEY_MGR                 "mgr"
 
+#define ERROR_NOT_FOUND_FORMAT  "EntityNotFound: `%s`"
+
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
@@ -197,13 +199,13 @@ static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     switch (msg_type) {
-    case PCVAR_OPERATION_GROW:
+    case PCVAR_OPERATION_INFLATED:
         return mgr_grow_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_SHRINK:
+    case PCVAR_OPERATION_DEFLATED:
         return mgr_shrink_handler(source, msg_type, ctxt, nr_args, argv);
 
-    case PCVAR_OPERATION_CHANGE:
+    case PCVAR_OPERATION_MODIFIED:
         return mgr_change_handler(source, msg_type, ctxt, nr_args, argv);
 
     default:
@@ -215,8 +217,8 @@ static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
 static int
 add_listener_for_co_variables(pcvarmgr_t mgr)
 {
-    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
-        PCVAR_OPERATION_CHANGE;
+    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
+        PCVAR_OPERATION_MODIFIED;
     mgr->listener = purc_variant_register_post_listener(mgr->object,
         (pcvar_op_t)op, mgr_handler, mgr);
     if (mgr->listener) {
@@ -290,9 +292,8 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         return false;
     }
     bool ret = false;
-    purc_variant_t v = purc_variant_object_get(mgr->object, k);
+    purc_variant_t v = purc_variant_object_get_ex(mgr->object, k, true);
     if (v == PURC_VARIANT_INVALID) {
-        purc_clr_error();
         ret = purc_variant_object_set(mgr->object, k, variant);
     }
     else {
@@ -324,12 +325,12 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
     }
 
     purc_variant_t v;
-    v = purc_variant_object_get_by_ckey(mgr->object, name);
+    v = purc_variant_object_get_by_ckey_ex(mgr->object, name, true);
     if (v) {
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -387,7 +388,7 @@ again:
     if (elem)
         goto again;
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -395,18 +396,26 @@ static purc_variant_t
 _find_named_scope_var(purc_coroutine_t cor,
         struct pcintr_stack_frame *frame, const char* name, pcvarmgr_t* mgr)
 {
-    if (frame->scope)
-        return _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+    pcvdom_element_t scope = NULL;
+    purc_variant_t v;
+    if (frame->scope) {
+        v =  _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+        if (v) {
+            return v;
+        }
+        scope = frame->scope;
+        goto find_parent_vdom;
+    }
 
     pcvdom_element_t elem = frame->pos;
 
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
-        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v;
+    struct pcintr_stack_frame *parent = frame;
 
 again:
 
@@ -418,17 +427,43 @@ again:
         return v;
     }
 
-    frame = pcintr_stack_frame_get_parent(frame);
-    if (frame) {
-        if (frame->scope)
-            return _find_named_scope_var_in_vdom(cor, frame->scope, name, mgr);
+    parent = pcintr_stack_frame_get_parent(parent);
+    if (parent) {
+        if (parent->scope) {
+            v = _find_named_scope_var_in_vdom(cor, parent->scope, name, mgr);
+            if (v) {
+                return v;
+            }
+            scope = parent->scope;
+            goto find_parent_vdom;
+        }
 
-        elem = frame->pos;
-        if (elem)
+        elem = parent->pos;
+        if (elem) {
             goto again;
+        }
+
+        if (!parent->pos && !parent->scope) {
+            goto out;
+        }
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    scope = frame->pos;
+
+find_parent_vdom:
+    parent = pcintr_find_prev_include_frame(cor, frame, scope);
+    if (parent == NULL || parent->pos == NULL) {
+        goto out;
+    }
+
+    /* clear PCVRNT_ERROR_NOT_FOUND */
+    purc_clr_error();
+
+    elem = parent->pos;
+    goto again;
+
+out:
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -451,7 +486,7 @@ _find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -460,7 +495,7 @@ find_cor_level_var(purc_coroutine_t cor, const char* name)
 {
     PC_ASSERT(name);
     if (!cor) {
-        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -468,7 +503,7 @@ find_cor_level_var(purc_coroutine_t cor, const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -488,7 +523,7 @@ purc_get_runner_variable(const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -520,7 +555,7 @@ again:
             break;
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(tmp, name);
+        v = purc_variant_object_get_by_ckey_ex(tmp, name, false);
         if (v == PURC_VARIANT_INVALID)
             break;
 
@@ -574,7 +609,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -707,7 +742,7 @@ again:
             break;
 
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(tmp, name);
+        v = purc_variant_object_get_by_ckey_ex(tmp, name, false);
         if (v == PURC_VARIANT_INVALID)
             break;
 
@@ -774,7 +809,7 @@ pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
     if (_unbind_cor_level_var(stack->co, name)) {
         return PURC_ERROR_OK;
     }
-    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PCVRNT_ERROR_NOT_FOUND;
 }
 
@@ -787,18 +822,17 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
 
-    purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+    purc_variant_t flag = purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
     if (!flag) {
-        purc_clr_error();
         return false;
     }
 
     struct pcvarmgr_named_variables_observe *obs =
         (struct pcvarmgr_named_variables_observe*)native_entity;
 
-    purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+    purc_variant_t name_val = purc_variant_object_get_by_ckey_ex(val,
+            KEY_NAME, true);
     if (!name_val) {
-        purc_clr_error();
         return false;
     }
 
@@ -806,9 +840,8 @@ did_matched(void *native_entity, purc_variant_t val)
         return false;
     }
 
-    purc_variant_t mgr_val = purc_variant_object_get_by_ckey(val, KEY_MGR);
+    purc_variant_t mgr_val = purc_variant_object_get_by_ckey_ex(val, KEY_MGR, true);
     if (!mgr_val || !purc_variant_is_native(mgr_val)) {
-        purc_clr_error();
         return false;
     }
 
@@ -925,23 +958,23 @@ pcintr_is_named_var_for_event(purc_variant_t val)
         return false;
     }
 
-    purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+    purc_variant_t flag = purc_variant_object_get_by_ckey_ex(val, KEY_FLAG, true);
     if (!flag) {
-        purc_clr_error();
         return false;
     }
 
-    purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+    purc_variant_t name_val =
+        purc_variant_object_get_by_ckey_ex(val, KEY_NAME, true);
     if (!name_val) {
-        purc_clr_error();
         return false;
     }
 
-    purc_variant_t mgr_val = purc_variant_object_get_by_ckey(val, KEY_MGR);
+    purc_variant_t mgr_val =
+        purc_variant_object_get_by_ckey_ex(val, KEY_MGR, true);
     if (!mgr_val || !purc_variant_is_native(mgr_val)) {
-        purc_clr_error();
         return false;
     }
+
     return true;
 }
 

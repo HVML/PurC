@@ -53,7 +53,7 @@
         </init>
 
         <define as 'sendDatagram' >
-            <init as 'dgramSocket' with $SOCKET.dgram('local:///var/tmp/hvml-dgram-$?.name', 'default') >
+            <init as 'dgramSocket' with $SOCKET.dgram("local:///var/tmp/hvml-dgram-$?.name", 'default') >
                 <catch for `ANY`>
                     <return with "Client $2?.name failed with $?.name when calling SOCKET.dgram()" />
                 </catch>

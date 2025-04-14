@@ -14,7 +14,7 @@
 
         <send on="$databus" to="subscribe" at="@localhost/cn.fmsoft.hybridos.settings/inetd/NETWORKCHANGED">
             <observe on="$databus" for="event:$?" to="update" in="#the-header">
-                <update on="~span.mobile-operator" textContent="$?.name">
+                <update on="~span.mobile-operator" with="$?.name">
                     <error>
                         <p>Bad scope.</p>
                     </error>

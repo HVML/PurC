@@ -189,7 +189,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         retv->refc++;
     }
     else if (v->refc == 1) {
-        PC_DEBUG("Move in variant type %s (%u): %s\n",
+        PC_NONE("Move in variant type %s (%u): %s\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
                 purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);
@@ -199,7 +199,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
     }
     else {
         // clone the immutable variant
-        PC_DEBUG("Clone a variant type %s (%u): %s (%lu/%lu)\n",
+        PC_NONE("Clone a variant type %s (%u): %s (%lu/%lu)\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
                 purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL,
@@ -287,7 +287,7 @@ move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t obj)
     foreach_key_value_in_variant_object(obj, k, v) {
 
         if (IS_CONTAINER(v->type)) {
-            PC_DEBUG("Move in a key %s (%u): %s\n",
+            PC_NONE("Move in a key %s (%u): %s\n",
                     purc_variant_typename(k->type),
                     (unsigned)move_heap.stat.nr_values[k->type],
                     purc_variant_get_string_const(k));
@@ -499,7 +499,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
     foreach_key_value_in_variant_object(obj, k, v) {
         purc_variant_t retk, retv;
 
-        PC_DEBUG("a key when handling mutable variant: %s (%u)\n",
+        PC_NONE("a key when handling mutable variant: %s (%u)\n",
                 purc_variant_get_string_const(k), (unsigned)v->refc);
 
         switch (v->type) {
@@ -546,7 +546,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
                 /* XXX: for cloned object, we need to move in the cloned keys,
                  * cause purc_variant_container_clone_recursively() only
                  * references the keys */
-                PC_DEBUG("a container cloned for key %s: %s (%u)\n",
+                PC_NONE("a container cloned for key %s: %s (%u)\n",
                         purc_variant_get_string_const(k),
                         purc_variant_typename(retv->type),
                         (unsigned)retv->refc);
@@ -1239,7 +1239,7 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     inst->org_vrt_heap->stat.nr_values[v->type]++;
     inst->org_vrt_heap->stat.nr_total_values++;
 
-    PC_DEBUG("Move out a variant type: %s (%u): %s\n",
+    PC_NONE("Move out a variant type: %s (%u): %s\n",
             purc_variant_typename(v->type),
             (unsigned)move_heap.stat.nr_values[v->type],
             purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);

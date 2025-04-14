@@ -372,7 +372,7 @@ static int on_create_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto done;
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
+    if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data, "title", true))) {
         title = purc_variant_get_string_const(tmp);
     }
 
@@ -706,21 +706,21 @@ static int on_create_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoin
 
     if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON
            && purc_variant_is_object(msg->data)) {
-        if ((tmp = purc_variant_object_get_by_ckey(msg->data, "class"))) {
+        if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data, "class", true))) {
             class = purc_variant_get_string_const(tmp);
         }
 
-        if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
+        if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data, "title", true))) {
             title = purc_variant_get_string_const(tmp);
         }
 
-        if ((tmp = purc_variant_object_get_by_ckey(msg->data,
-                        "layoutStyle"))) {
+        if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data,
+                        "layoutStyle", true))) {
             layout_style = purc_variant_get_string_const(tmp);
         }
 
         toolkit_style =
-            purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
+            purc_variant_object_get_by_ckey_ex(msg->data, "toolkitStyle", true);
     }
 
     win = rdr->cbs.create_plainwin(endpoint->session, workspace,
@@ -924,19 +924,21 @@ static int on_create_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     purc_variant_t toolkit_style;
     purc_variant_t tmp;
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "class"))) {
+    if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data, "class", true))) {
         class = purc_variant_get_string_const(tmp);
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
+    if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data, "title", true))) {
         title = purc_variant_get_string_const(tmp);
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "layoutStyle"))) {
+    if ((tmp = purc_variant_object_get_by_ckey_ex(msg->data,
+                    "layoutStyle", true))) {
         layout_style = purc_variant_get_string_const(tmp);
     }
 
-    toolkit_style = purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
+    toolkit_style = purc_variant_object_get_by_ckey_ex(msg->data,
+            "toolkitStyle", true);
 
     page = rdr->cbs.create_widget(endpoint->session, workspace,
             idbuf, group, name, class, title, layout_style,
@@ -1344,7 +1346,7 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    if ((arg = purc_variant_object_get_by_ckey(msg->data, "method"))) {
+    if ((arg = purc_variant_object_get_by_ckey_ex(msg->data, "method", true))) {
         method = purc_variant_get_string_const(arg);
     }
     if (method == NULL) {
@@ -1352,7 +1354,7 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    arg = purc_variant_object_get_by_ckey(msg->data, "arg");
+    arg = purc_variant_object_get_by_ckey_ex(msg->data, "arg", true);
     const char *element_value;
     element_value = purc_variant_get_string_const(msg->elementValue);
 

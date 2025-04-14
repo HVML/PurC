@@ -1,0 +1,56 @@
+#!/usr/bin/purc
+
+# RESULT: "string from choose"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <body>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <init as result with "" at "_root"/>
+        <define as 'second_module'>
+            <inherit>
+                $STREAM.stdout.writelines("##### second module is load $?")
+            </inherit>
+
+            <init as result with $? at "_root"/>
+
+            <update on="$_observedOn" to="unite">
+                [
+                    { "id" : "second_clock", "interval" : 1000, "active" : "yes" },
+                ]
+            </update>
+            <observe on="$_observedOn" for="expired:second_clock">
+                <inherit>
+                    $STREAM.stdout.writelines("##### second clock fire : $_observedFor")
+                </inherit>
+                <forget on $_observedOn for 'expired:second_clock' />
+                <exit with $result />
+            </observe>
+        </define>
+
+
+        <define as 'on_clock_fire'>
+            <inherit>
+                $STREAM.stdout.writelines("##### main print : timer clock fire for $_observedFor $?")
+            </inherit>
+            <forget on $_observedOn for 'expired:clock' />
+            <execute with $second_module />
+        </define>
+
+        <observe on="$TIMERS" for='expired:clock'>
+            <choose on "string from choose" >
+                <inherit>
+                    $STREAM.stdout.writelines("##### main print : choose set 'on' : $?")
+                </inherit>
+                <execute with $on_clock_fire />
+            </choose>
+        </observe>
+
+    </body>
+</hvml>
+

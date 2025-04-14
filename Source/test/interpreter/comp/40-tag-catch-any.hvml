@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: "Exception raised: ArgumentMissed no matching <call>/<include> for <return>"
+# RESULT: "Exception raised: ArgumentMissed no matching <call>/<execute> for <return>"
 
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">

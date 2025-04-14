@@ -1547,7 +1547,7 @@ pcvdom_util_document_from_stream(purc_rwstream_t in, struct pcvdom_pos *pos)
 
     PC_ASSERT(in);
 
-    parser = pchvml_create(0, 0);
+    parser = pchvml_create(0, 0, in);
     if (!parser)
         goto end;
 
@@ -1559,7 +1559,7 @@ again:
     if (token)
         pchvml_token_destroy(token);
 
-    token = pchvml_next_token(parser, in);
+    token = pchvml_next_token(parser);
     if (token == NULL) {
         if (pos) {
             int r;

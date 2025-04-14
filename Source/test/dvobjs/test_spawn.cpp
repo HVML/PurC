@@ -40,3 +40,50 @@ TEST(spawn, bc)
     run_one_comp_test("dvobjs/spawn/spawn-bc.hvml");
 }
 
+TEST(spawn, plain_websocket_worker)
+{
+    PurCInstance purc(false);
+
+    purc_atom_t client_inst = purc_inst_create_or_get(APP_NAME,
+            "client", client_cond_handler, NULL);
+    assert(client_inst != 0);
+
+    char *query = make_query_with_base("client=plain&secure=false&base=%s", "dvobjs/");
+    run_one_comp_test("dvobjs/spawn/spawn-websocket-worker.hvml", query);
+    free(query);
+
+    purc_inst_ask_to_shutdown(client_inst);
+
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(client_inst)) {
+        purc_log_info("Wait for termination of client instance...\n");
+        sleep(1);
+        seconds++;
+        ASSERT_LT(seconds, 10);
+    }
+}
+
+#if 0 // HAVE(OPENSSL)
+TEST(spawn, secure_websocket_worker)
+{
+    PurCInstance purc(false);
+
+    purc_atom_t client_inst = purc_inst_create_or_get(APP_NAME,
+            "client", client_cond_handler, NULL);
+    assert(client_inst != 0);
+
+    char *query = make_query_with_base("client=secure&secure=true&base=%s", "dvobjs/");
+    run_one_comp_test("dvobjs/spawn/spawn-websocket-worker.hvml", query);
+    free(query);
+
+    purc_inst_ask_to_shutdown(client_inst);
+
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(client_inst)) {
+        purc_log_info("Wait for termination of client instance...\n");
+        sleep(1);
+        seconds++;
+        ASSERT_LT(seconds, 10);
+    }
+}
+#endif // HAVE(OPENSSL)

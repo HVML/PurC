@@ -563,7 +563,7 @@ on_dom_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
 
         buf[0] = '#';
         strcpy(buf+1, element);
-        source = purc_variant_make_string_reuse_buff(buf, nr, true);
+        source = purc_variant_make_string_reuse_buff(buf, nr + 1, true);
         if (!source) {
             free(buf);
             goto out;
@@ -651,10 +651,11 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
 
     if (strcmp(type, MSG_TYPE_DUP_RENDERER) == 0) {
         purc_variant_t data = msg->data;
-        purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
+        purc_variant_t uri = purc_variant_object_get_by_ckey_ex(data, KEY_URI,
+                true);
         if (!uri) {
-            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
-                    KEY_URI);
+            PC_WARN("Invalid '%s' event, '%s' not found.",
+                    MSG_TYPE_NEW_RENDERER, KEY_URI);
             return;
         }
 
@@ -665,10 +666,11 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
             return;
         }
 
-        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        purc_variant_t comm = purc_variant_object_get_by_ckey_ex(data,
+                KEY_COMM, true);
         if (!comm) {
-            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
-                    KEY_COMM);
+            PC_WARN("Invalid '%s' event, '%s' not found.",
+                    MSG_TYPE_NEW_RENDERER, KEY_COMM);
             return;
         }
 
@@ -700,17 +702,19 @@ on_session_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
     }
     else if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
         purc_variant_t data = msg->data;
-        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        purc_variant_t comm = purc_variant_object_get_by_ckey_ex(data,
+                KEY_COMM, true);
         if (!comm) {
-            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
-                    KEY_COMM);
+            PC_WARN("Invalid '%s' event, '%s' not found.",
+                    MSG_TYPE_NEW_RENDERER, KEY_COMM);
             return;
         }
 
-        purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
+        purc_variant_t uri = purc_variant_object_get_by_ckey_ex(data,
+                KEY_URI, true);
         if (!uri) {
-            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
-                    KEY_URI);
+            PC_WARN("Invalid '%s' event, '%s' not found.",
+                    MSG_TYPE_NEW_RENDERER, KEY_URI);
             return;
         }
 

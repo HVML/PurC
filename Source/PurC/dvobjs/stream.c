@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "stream.h"
+#include "socket.h"
 #include "helper.h"
 
 #include "purc-variant.h"
@@ -50,8 +51,6 @@
 #include <sys/un.h>
 #include <netdb.h>
 
-#define BUFFER_SIZE                 1024
-
 #define ENDIAN_PLATFORM             0
 #define ENDIAN_LITTLE               1
 #define ENDIAN_BIG                  2
@@ -68,10 +67,6 @@
 
 #define FILE_DEFAULT_MODE           0644
 #define FIFO_DEFAULT_MODE           0644
-
-#define MAX_LEN_KEYWORD             64
-
-#define _KW_DELIMITERS              " \t\n\v\f\r"
 
 #define STREAM_ATOM_BUCKET          ATOM_BUCKET_DVOBJ
 
@@ -237,6 +232,12 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
         }
     }
 
+    if (stream->fp) {
+        fclose(stream->fp);
+        stream->fp = NULL;
+        stream->fd4r = -1; /* fclose will close the file descriptor */
+    }
+
     if (stream->fd4r >= 0) {
         close(stream->fd4r);
     }
@@ -273,6 +274,11 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     if (stream->peer_port) {
         free(stream->peer_port);
         stream->peer_port = NULL;
+    }
+
+    if (stream->socket) {
+        pcdvobjs_socket_release(stream->socket);
+        stream->socket = NULL;
     }
 }
 
@@ -481,19 +487,21 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+#if 0
+#define _LINE_BUFFER_SIZE                 1024
+
 static int read_lines(struct pcdvobjs_stream *entity, int line_num,
         purc_variant_t array, const char *line_seperator)
 {
     purc_rwstream_t stream = entity->stm4r;
     size_t total_read = 0;
-    unsigned char buffer[BUFFER_SIZE + 1];
+    unsigned char buffer[_LINE_BUFFER_SIZE + 1];
     ssize_t read_size = 0;
     size_t length = 0;
     const char *head = NULL;
-    const char *end = NULL;
 
     while (line_num) {
-        read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);
+        read_size = purc_rwstream_read(stream, buffer, _LINE_BUFFER_SIZE);
         if (read_size == 0) {
             if (total_read == 0) {
                 if (entity->type == STREAM_TYPE_FILE) {
@@ -519,17 +527,22 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
             }
         }
         else {
-            buffer[read_size] = '\0';// terminating null byte.
+            buffer[read_size] = '\0';   // terminating null byte.
         }
 
         total_read += read_size;
-        end = (const char*)(buffer + read_size);
 
-        head = pcutils_get_next_line_len((const char*)buffer, read_size,
-                line_seperator, &length);
-        while (head && head < end) {
-            purc_variant_t var = purc_variant_make_string_ex(head, length,
-                    false);
+        const char *line = (const char*)buffer, *next_line;
+        size_t left = read_size;
+        while ((next_line = pcutils_get_next_line_len(line, left,
+                        line_seperator, &length))) {
+
+            purc_variant_t var;
+            if (length == 0)
+                var = purc_variant_make_string_static("", false);
+            else
+                var = purc_variant_make_string_ex(line, length, false);
+
             if (!var) {
                 return -1;
             }
@@ -543,10 +556,11 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcutils_get_next_line_len(head + length, end - head - length,
-                line_seperator, &length);
+            left -= next_line - line;
+            line = next_line;
         }
-        if (read_size < BUFFER_SIZE)           // to the end
+
+        if (read_size < _LINE_BUFFER_SIZE)           // to the end
             break;
 
         if (line_num == 0)
@@ -559,6 +573,122 @@ failed:
     return -1;
 }
 
+#else
+
+static int read_lines(struct pcdvobjs_stream *entity, int line_num,
+        purc_variant_t array, const char *line_seperator)
+{
+    size_t total_ucs = 0;
+
+    if (entity->fp == NULL) {
+        entity->fp = fdopen(entity->fd4r, "r");
+        if (entity->fp == NULL) {
+            PC_ERROR("Failed fdopen(%d): %s\n", entity->fd4r, strerror(errno));
+            purc_set_error(purc_error_from_errno(errno));
+            goto failed;
+        }
+    }
+
+    size_t sep_len = strlen(line_seperator);
+    size_t sep_ucs = pcutils_string_utf8_chars(line_seperator, sep_len);
+
+    struct pcutils_mystring mystr;
+    pcutils_mystring_init(&mystr);
+
+    while (line_num) {
+
+        unsigned char utf8ch[6];
+        int uchlen = 0;
+        int c = fgetc(entity->fp);
+        if (c == EOF || ferror(entity->fp)) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                clearerr(entity->fp);
+                break;
+            }
+            PC_WARN("fgetc() returns EOF\n");
+            if (total_ucs == 0) {
+                goto nothing;
+            }
+            else
+                break;
+        }
+        else {
+            uchlen = _pcutils_utf8_skip[(unsigned char)c];
+            if (uchlen > 1) {
+                ungetc(c, entity->fp);
+                int n = (int)fread(utf8ch, 1, uchlen, entity->fp);
+                if (n < uchlen) {
+                    PC_WARN("fread() returns less bytes %d for a uchar (%d)\n",
+                            n, uchlen);
+                    if (feof(entity->fp) || ferror(entity->fp)) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            clearerr(entity->fp);
+                            break;
+                        }
+
+                        if (total_ucs == 0)
+                            goto nothing;
+                        else
+                            break;
+                    }
+                    else {
+                        for (int i = 0; i < n; i++)
+                            ungetc(utf8ch[n - i - 1], entity->fp);
+                        break;
+                    }
+                }
+
+            }
+            else {
+                utf8ch[0] = (unsigned char)c;
+            }
+        }
+
+        total_ucs++;
+        pcutils_mystring_append_mchar(&mystr, utf8ch, uchlen);
+
+        if (total_ucs > 0 && (total_ucs % sep_ucs) == 0 &&
+                strncmp(mystr.buff + mystr.nr_bytes - sep_len,
+                    line_seperator, sep_len) == 0) {
+            mystr.buff[mystr.nr_bytes - sep_len] = 0;
+
+            purc_variant_t var;
+            var = purc_variant_make_string_reuse_buff(mystr.buff,
+                    mystr.sz_space, false);
+            pcutils_mystring_init(&mystr);
+
+            purc_variant_array_append(array, var);
+            purc_variant_unref(var);
+            line_num--;
+        }
+    }
+
+    if (mystr.nr_bytes > 0) {
+        purc_variant_t var;
+        pcutils_mystring_done(&mystr);
+        var = purc_variant_make_string_reuse_buff(mystr.buff,
+                mystr.sz_space, false);
+        purc_variant_array_append(array, var);
+        purc_variant_unref(var);
+    }
+
+    return 0;
+
+nothing:
+    if (entity->type == STREAM_TYPE_FILE) {
+        PC_WARN("Reached the EOF.\n");
+        purc_set_error(PURC_ERROR_NO_DATA);
+    }
+    else {
+        PC_WARN("The peer has been closed.\n");
+        purc_set_error(PURC_ERROR_BROKEN_PIPE);
+    }
+
+failed:
+    return -1;
+}
+#endif
+
 #define NEWLINE_SEPERATOR   "\n"
 
 static purc_variant_t
@@ -569,13 +699,8 @@ readlines_getter(void *native_entity, const char *property_name,
 
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
-    int64_t line_num = 0;
+    uint64_t line_num = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
 
     stream = get_stream(native_entity);
     rwstream = stream->stm4r;
@@ -596,11 +721,14 @@ readlines_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    if (!purc_variant_cast_to_longint(argv[0], &line_num, false)) {
+    if (!purc_variant_cast_to_ulongint(argv[0], &line_num, false)) {
         PC_ERROR("failed purc_variant_cast_to_longint()\n");
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
+
+    if (line_num == 0)
+        line_num = UINT64_MAX; // Read all available lines
 
     const char *line_seperator = NEWLINE_SEPERATOR;
     if (nr_args > 1) {
@@ -662,7 +790,10 @@ writelines_getter(void *native_entity, const char *property_name,
 
     const char *lt = NEWLINE_SEPERATOR;
     size_t sz_lt = sizeof(NEWLINE_SEPERATOR) - 1;
-    if (nr_args > 1) {
+
+    /* Only if the first argument is a linear container */
+    if (purc_variant_linear_container_get_size(argv[0]) >= 0 &&
+            nr_args > 1) {
         lt = purc_variant_get_string_const_ex(argv[1], &sz_lt);
         if (lt == NULL) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -681,7 +812,8 @@ writelines_getter(void *native_entity, const char *property_name,
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
             {
-                size_t sz_container = purc_variant_linear_container_get_size(data);
+                size_t sz_container =
+                    purc_variant_linear_container_get_size(data);
                 for (size_t i = 0; i < sz_container; i++) {
                     if (!purc_variant_is_string(
                                 purc_variant_linear_container_get(data, i))) {
@@ -698,8 +830,7 @@ writelines_getter(void *native_entity, const char *property_name,
 
         const char *buf = NULL;
         size_t sz_buf = 0;
-        if (purc_variant_is_string(data)) {
-            buf = purc_variant_get_string_const_ex(data, &sz_buf);
+        if ((buf = purc_variant_get_string_const_ex(data, &sz_buf))) {
             if (buf && sz_buf > 0) {
                 nr_written = purc_rwstream_write(rwstream, buf, sz_buf);
                 if (nr_written < 0) {
@@ -707,12 +838,13 @@ writelines_getter(void *native_entity, const char *property_name,
                 }
                 nr_total += nr_written;
 
-                nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
-                if (nr_written < 0) {
-                    goto done;
-                }
-                nr_total += nr_written;
             }
+
+            nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+            if (nr_written < 0) {
+                goto done;
+            }
+            nr_total += nr_written;
         }
         else {
             size_t sz_container = purc_variant_linear_container_get_size(data);
@@ -726,15 +858,15 @@ writelines_getter(void *native_entity, const char *property_name,
                         goto done;
                     }
                     nr_total += nr_written;
-
-                    nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
-                    if (nr_written < 0) {
-                        goto done;
-                    }
-                    nr_total += nr_written;
                 }
+                nr_written = purc_rwstream_write(rwstream, lt, sz_lt);
+                if (nr_written < 0) {
+                    goto done;
+                }
+                nr_total += nr_written;
             }
         }
+
     }
 
 done:
@@ -1498,6 +1630,7 @@ on_forget(void *native_entity, const char *event_name,
 {
     int matched = pcdvobjs_match_events(event_name, event_subname,
             stream_events, PCA_TABLESIZE(stream_events));
+    PC_DEBUG("%s(%s, %s): %d\n", __func__, event_name, event_subname, matched);
     if (matched == -1)
         return false;
 
@@ -1618,7 +1751,7 @@ static int get_stream_type_by_fd(int fd)
 {
     struct stat stat;
     if (fstat(fd, &stat)) {
-        PC_DEBUG("Failed fstat(): %s\n", strerror(errno));
+        PC_ERROR("Failed fstat(): %s\n", strerror(errno));
         return -1;
     }
 
@@ -1769,7 +1902,7 @@ int parse_from_option(purc_variant_t option)
     if (atom != keywords2atoms[K_KW_keep].atom) {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -1796,7 +1929,7 @@ int parse_from_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -1968,7 +2101,7 @@ int64_t parse_open_option(purc_variant_t option)
     else {
         size_t length = 0;
         const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
+                PURC_KW_DELIMITERS, &length);
         do {
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = 0;
@@ -2014,7 +2147,7 @@ int64_t parse_open_option(purc_variant_t option)
 
             parts_len -= length;
             part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
+                    PURC_KW_DELIMITERS, &length);
         } while (part);
     }
 
@@ -2347,7 +2480,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     }
 
     if (!file_exists(url->path)) {
-        PC_DEBUG("Path does not exist: %s\n", url->path);
+        PC_ERROR("Path does not exist: %s\n", url->path);
         purc_set_error(PURC_ERROR_NOT_EXISTS);
         goto error;
     }
@@ -2359,38 +2492,58 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     }
 
     if (!(flags & _O_NAMELESS)) {
-        char socket_path[33];
-        pcutils_md5_ctxt ctx;
-        unsigned char md5_digest[16];
+        char socket_prefix[33];
         struct pcinst* inst = pcinst_current();
 
+        pcutils_md5_ctxt ctx;
+        unsigned char md5_digest[16];
+
         pcutils_md5_begin(&ctx);
-        if (inst) {
-            pcutils_md5_hash(&ctx, inst->app_name, strlen(inst->app_name));
-            pcutils_md5_hash(&ctx, inst->runner_name, strlen(inst->runner_name));
-        }
+        struct timespec tp;
+        clock_gettime(CLOCK_REALTIME, &tp);
+        pcutils_md5_hash(&ctx, &tp, sizeof(tp));
         pcutils_md5_hash(&ctx, prot, strlen(prot));
         pcutils_md5_end(&ctx, md5_digest);
-        pcutils_bin2hex(md5_digest, 16, socket_path, false);
+        pcutils_bin2hex(md5_digest, 16, socket_prefix, false);
+        socket_prefix[16] = 0;  /* we only use the first 16 characters */
 
-        /* fill socket address structure w/our address */
+        const char *runner_name = "_unknown_";
+        if (inst) {
+            runner_name = inst->runner_name;
+        }
+
+        /* Fill socket address structure w/our address.
+           Since 0.9.22, we always include runner name. */
         memset(&unix_addr, 0, sizeof(unix_addr));
         unix_addr.sun_family = AF_UNIX;
         /* On Linux sun_path is 108 bytes in size */
-        snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path),
-                "%s%s-%05d", US_CLI_PATH, socket_path, getpid());
+        int r = snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path),
+                "%s%s-%s-%05d", US_CLI_PATH,
+                socket_prefix, runner_name, getpid());
+        if (r < 0) {
+            purc_set_error(purc_error_from_errno(errno));
+            goto error;
+        }
+
+        if ((size_t)r >= sizeof(unix_addr.sun_path)) {
+            PC_ERROR("Too long runner name for local socket file: %s\n",
+                    runner_name);
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto error;
+        }
+
         len = sizeof(unix_addr.sun_family);
         len += strlen(unix_addr.sun_path) + 1;
 
         unlink(unix_addr.sun_path);        /* in case it already exists */
         if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-            PC_DEBUG("Failed to call `bind`: %s\n", strerror(errno));
+            PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
 
         if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
-            PC_DEBUG("Failed to call `chmod`: %s\n", strerror(errno));
+            PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
@@ -2399,7 +2552,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     if (timeout) {
         socklen_t optlen = sizeof(struct timeval);
         if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout, optlen) == -1) {
-            PC_DEBUG("Failed setsockopt(): %s\n", strerror(errno));
+            PC_ERROR("Failed setsockopt(): %s\n", strerror(errno));
             purc_set_error(purc_error_from_errno(errno));
             goto out_close_fd;
         }
@@ -2411,7 +2564,7 @@ create_unix_socket_stream(struct purc_broken_down_url *url,
     strcpy(unix_addr.sun_path, url->path);
     len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG("Failed to call `connect`: %s\n",strerror(errno));
+        PC_ERROR("Failed connect(): %s\n",strerror(errno));
         purc_set_error(purc_error_from_errno(errno));
         goto out_close_fd;
     }
@@ -2468,7 +2621,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
     }
 
     if (port <= 0 || port > 65535) {
-        PC_DEBUG("Bad port value: (%d)\n", port);
+        PC_WARN("Bad port value: (%d)\n", port);
         goto done;
     }
 
@@ -2477,7 +2630,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
 
     hints.ai_socktype = SOCK_STREAM;
     if (0 != getaddrinfo(host, s_port, &hints, &addrinfo)) {
-        PC_DEBUG("Error while getting address info (%s:%d)\n",
+        PC_ERROR("Error while getting address info (%s:%d)\n",
                 host, port);
         goto done;
     }
@@ -2491,7 +2644,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
             socklen_t optlen = sizeof(struct timeval);
             if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, timeout,
                         optlen) == -1) {
-                PC_DEBUG ("Failed setsockopt(SO_RCVTIMEO)\n");
+                PC_ERROR("Failed setsockopt(SO_RCVTIMEO)\n");
                 close(fd);
                 fd = -1;
                 break;
@@ -2512,7 +2665,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
         if (0 != getnameinfo(p->ai_addr, p->ai_addrlen,
                     hbuf, sizeof(hbuf), sbuf, sizeof(sbuf),
                     NI_NUMERICHOST | NI_NUMERICSERV)) {
-            PC_DEBUG("Failed getnameinfo(%s:%d)\n", host, port);
+            PC_ERROR("Failed getnameinfo(%s:%d)\n", host, port);
             close(fd);
             fd = -1;
         }
@@ -2522,7 +2675,7 @@ static int inet_socket_connect(enum stream_inet_socket_family isf,
         }
     }
     else if (fd < 0) {
-        PC_DEBUG("Failed to create socket for %s:%d\n", host, port);
+        PC_ERROR("Failed to create socket for %s:%d\n", host, port);
     }
 
     freeaddrinfo(addrinfo);
@@ -2780,7 +2933,8 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
     const struct timeval *timeout = NULL;
     if (extra_opts) {
         purc_variant_t tmp;
-        tmp = purc_variant_object_get_by_ckey(extra_opts, "recv-timeout");
+        tmp = purc_variant_object_get_by_ckey_ex(extra_opts,
+                "recv-timeout", true);
         if (tmp) {
             pcdvobjs_cast_to_timeval(&tv, tmp);
             timeout = &tv;
@@ -3142,7 +3296,7 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
                 NULL);
 
         if (stream)
-            stream->socket = socket;
+            stream->socket = pcdvobjs_socket_acquire(socket);
 
         if (prot && stream) {
             purc_atom_t atom;

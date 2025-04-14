@@ -30,6 +30,15 @@
 #include "private/list.h"
 #include "private/utils.h"
 
+#if OS(UNIX)
+#   define TEMP_CHAN_PATH           "/tmp/"
+#   define TEMP_CHAN_PREEFIX        "_htc"
+#   define TEMP_CHAN_TEMPLATE_FILE  TEMP_CHAN_PREEFIX "XXXXXX"
+#   define TEMP_CHAN_TEMPLATE_PATH  TEMP_CHAN_PATH TEMP_CHAN_TEMPLATE_FILE
+#else
+#error Unsupported OS
+#endif
+
 #define PCCHAN_MAX_LEN_NAME     63
 
 struct pcchan {

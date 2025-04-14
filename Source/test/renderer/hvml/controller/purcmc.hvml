@@ -49,8 +49,32 @@
 
 <define as 'load' at '_topmost'>
 
-    <include with $logMsg on 'plainwindows:' />
-    <include with $logMsg on $plainwindows />
+    <execute with $logMsg on 'plainwindows:' />
+    <execute with $logMsg on $plainwindows />
+
+    <update on $plainwindows[$parsedMsg.targetValue] to 'merge' >
+        {
+            page: "placehodler",
+        }
+    </update>
+
+    <call on $sendResponse with {
+            clientId: $clientId, requestId : $parsedMsg.requestId, retCode: 200,
+            resultValue: $DATA.key($plainwindows[$parsedMsg.targetValue].page), dataType: "void" } />
+
+    <return with true />
+</define>
+
+<define as 'loadFromURL' at '_topmost'>
+
+    <execute with $logMsg on "loadFromURL: $parsedMsg.data" />
+    <choose on $STR.explode($parsedMsg.data, '_filesystem/_file/-', 2)>
+        <inherit>
+            {{
+                 $SYS.access($?[1]) && $SYS.remove($?[1])
+            }}
+        </inherit>
+    </choose>
 
     <update on $plainwindows[$parsedMsg.targetValue] to 'merge' >
         {

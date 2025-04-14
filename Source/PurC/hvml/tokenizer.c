@@ -53,7 +53,7 @@
 #define EXTERNAL_LANG_STYLE     "style"
 #define EXTERNAL_LANG_SCRIPT    "script"
 
-#define PARSER_ERROR_TYPE       "hvmlParsing"
+#define PARSER_ERROR_TYPE       "HVML parse error"
 
 #define __DEV_HVML__                0
 
@@ -65,18 +65,11 @@
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
-        int line = tkz_reader_get_line_number(parser->reader);              \
-        struct tkz_buffer *pre_line =                                       \
-            tkz_reader_get_line_from_cache(parser->reader, line - 1);       \
-        struct tkz_buffer *curr_line =                                      \
-            tkz_reader_get_curr_line(parser->reader);                       \
         PLOG(                                                               \
-            "in %s|uc=%c|hex=0x%X|utf8=%s|fh=%d|line=\n%s\n%s\n",           \
+            "in %s|uc=%c|hex=0x%X|utf8=%s|fh=%d\n",                         \
             curr_state_name, character, character,                          \
             parser->curr_uc->utf8_buf,                                      \
-            parser->is_in_file_header,                                      \
-            pre_line ? tkz_buffer_get_bytes(pre_line) : NULL,               \
-            curr_line ? tkz_buffer_get_bytes(curr_line) : NULL              \
+            parser->is_in_file_header                                       \
             );                                                              \
     }
 
@@ -96,14 +89,27 @@
             PARSER_ERROR_TYPE, NULL);                                       \
 } while (0)
 
+#define SET_ERR_WITH_UC(err, uc, extra)    do {                             \
+    if (uc) {                                                               \
+        char buf[ERROR_BUF_SIZE+1];                                         \
+        snprintf(buf, ERROR_BUF_SIZE,                                       \
+                "line=%d, column=%d, character=%c",                         \
+                uc->line,                                                   \
+                uc->column,                                                 \
+                uc->character);                                             \
+        if (parser->enable_log) {                                           \
+            PLOG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);          \
+        }                                                                   \
+    }                                                                       \
+    tkz_set_error_info(parser->reader, uc, err,                             \
+            PARSER_ERROR_TYPE, extra);                                      \
+} while (0)
+
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
-struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
-                                          purc_rwstream_t rws)          \
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser)    \
 {                                                                       \
     struct tkz_uc first_uc = {};                                        \
     struct tkz_uc multi_token_first_uc = {};                            \
-    int hee_line = -1;                                                  \
-    int hee_column = -1;                                                \
     uint32_t character = 0;                                             \
     if (parser->token) {                                                \
         struct pchvml_token* token = parser->token;                     \
@@ -111,8 +117,6 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
         parser->last_token_type = pchvml_token_get_type(token);         \
         return token;                                                   \
     }                                                                   \
-                                                                        \
-    tkz_reader_set_rwstream (parser->reader, rws);                      \
                                                                         \
 next_input:                                                             \
     parser->curr_uc = tkz_reader_next_char (parser->reader);            \
@@ -138,6 +142,10 @@ next_input:                                                             \
     }                                                                   \
     else if (!is_whitespace(character)) {                               \
         parser->prev_separator = 0;                                     \
+    }                                                                   \
+                                                                        \
+    if (parser->record_ucs) {                                           \
+        APPEND_TO_TEMP_UCS(*parser->curr_uc);                           \
     }                                                                   \
                                                                         \
 next_state:                                                             \
@@ -201,6 +209,8 @@ next_state:                                                             \
                 pchvml_parser_is_template_tag(name)) {                      \
             RESET_TEMP_BUFFER();                                            \
             RESET_STRING_BUFFER();                                          \
+            RESET_TEMP_UCS();                                               \
+            START_RECORD_UCS();                                             \
             parser->state = TKZ_STATE_TEMPLATE_DATA;                        \
         }                                                                   \
     } while (false)
@@ -272,22 +282,22 @@ next_state:                                                             \
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
 #define APPEND_TO_TEMP_BUFFER(c)                                            \
     do {                                                                    \
-        tkz_buffer_append(parser->temp_buffer, c);                       \
+        tkz_buffer_append(parser->temp_buffer, c);                          \
     } while (false)
 
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);      \
     } while (false)
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        tkz_buffer_append_another(parser->temp_buffer, buffer);          \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);             \
     } while (false)
 
 #define IS_TEMP_BUFFER_EMPTY()                                              \
@@ -295,17 +305,38 @@ next_state:                                                             \
 
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        tkz_buffer_reset(parser->string_buffer);                         \
+        tkz_buffer_reset(parser->string_buffer);                            \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        tkz_buffer_append(parser->string_buffer, uc);                    \
+        tkz_buffer_append(parser->string_buffer, uc);                       \
     } while (false)
 
 #define APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes)                      \
     do {                                                                    \
-        tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes); \
+        tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes);    \
+    } while (false)
+
+#define RESET_TEMP_UCS()                                                    \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+    } while (false)
+
+#define APPEND_TO_TEMP_UCS(uc)                                              \
+    do {                                                                    \
+        tkz_ucs_add_tail(parser->temp_ucs, uc);                             \
+    } while (false)
+
+#define START_RECORD_UCS(uc)                                                \
+    do {                                                                    \
+        tkz_ucs_reset(parser->temp_ucs);                                    \
+        parser->record_ucs = 1;                                             \
+    } while (false)
+
+#define STOP_RECORD_UCS(uc)                                                 \
+    do {                                                                    \
+        parser->record_ucs = 0;                                             \
     } while (false)
 
 #define RESET_SINGLE_QUOTED_COUNTER()                                       \
@@ -325,11 +356,11 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);          \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                         \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
 #define APPEND_TO_TOKEN_PUBLIC_ID(uc)                                       \
@@ -374,8 +405,8 @@ next_state:                                                             \
 
 #define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(buffer);                   \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(buffer);              \
+        const char* c = tkz_buffer_get_bytes(buffer);                       \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(buffer);                 \
         pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
     } while (false)
 
@@ -386,13 +417,56 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME()                             \
     do {                                                                    \
-        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
-        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);          \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                         \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_attr_name(parser->token, c, nr_c);     \
-        tkz_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                              \
     } while (false)
 
+#define VERIFY_VERB_TAG_ATTR_NAME()                                         \
+    do {                                                                    \
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(        \
+                parser->token);                                             \
+        if (pchvml_parser_is_verb_tag_token(parser->token) && attr          \
+            && !pchvml_parser_is_prep_or_adverb_attribute(attr)) {          \
+            struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
+            struct tkz_uc *p = &uc;                                         \
+            if (!is_ascii_alpha(p->character)) {                            \
+                SET_ERR_WITH_UC(                                            \
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, p, NULL);       \
+            }                                                               \
+            else {                                                          \
+                SET_ERR_WITH_UC(                                            \
+                    PCHVML_ERROR_UNKNOWN_ATTRIBUTE_NAME_FOR_VERB_ELEMENT,   \
+                    p, NULL);                                               \
+            }                                                               \
+            RETURN_AND_STOP_PARSE();                                        \
+        }                                                                   \
+    } while (false)
+
+#define VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE()                               \
+    do {                                                                    \
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(        \
+                parser->token);                                             \
+        if (pchvml_parser_is_verb_tag_token(parser->token) && attr          \
+            && pchvml_token_is_curr_attr_duplicate(parser->token)) {        \
+            struct tkz_uc uc = tkz_ucs_read_head(parser->temp_ucs);         \
+            struct tkz_uc *p = &uc;                                         \
+            const char *name = pchvml_token_attr_get_name(attr);            \
+            if (name) {                                                     \
+                char extra[PURC_LEN_PROPERTY_NAME * 2] = {0};               \
+                snprintf(extra, sizeof(extra), "`%s`.", name);              \
+                SET_ERR_WITH_UC(                                            \
+                    PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p, extra);       \
+            }                                                               \
+            else {                                                          \
+                SET_ERR_WITH_UC(                                            \
+                    PCHVML_ERROR_DUPLICATE_ATTRIBUTE_NAME, p, NULL);        \
+            }                                                               \
+            RETURN_AND_STOP_PARSE();                                        \
+        }                                                                   \
+    } while (false)
 
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
@@ -426,6 +500,18 @@ bool pchvml_parser_is_operation_tag(const char* name)
             strlen(name));
     return (entry &&
             (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_verb_tag(const char* name)
+{
+    if (!name) {
+        return false;
+    }
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry &&
+            (entry->cats & PCHVML_TAGCAT_VERB));
 }
 
 static UNUSED_FUNCTION
@@ -488,6 +574,13 @@ bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_verb_tag_token (struct pchvml_token* token)
+{
+    const char* name = pchvml_token_get_name(token);
+    return pchvml_parser_is_verb_tag(name);
+}
+
+static UNUSED_FUNCTION
 bool pchvml_parser_is_json_content_tag_token (struct pchvml_token* token)
 {
     const char* name = pchvml_token_get_name(token);
@@ -512,6 +605,18 @@ bool pchvml_parser_is_preposition_attribute (
             strlen(name));
     return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
 }
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_prep_or_adverb_attribute (
+        struct pchvml_token_attr* attr)
+{
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && (entry->type == PCHVML_ATTR_TYPE_PREP ||
+                entry->type == PCHVML_ATTR_TYPE_ADVERB));
+}
+
 
 static UNUSED_FUNCTION
 bool pchvml_parser_is_template_tag (const char* name)
@@ -576,6 +681,7 @@ bool pchvml_parser_is_in_raw_template (struct pchvml_parser* parser)
     return template && parser->tag_has_raw_attr;
 }
 
+#if 0
 static UNUSED_FUNCTION
 struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     struct tkz_buffer* buffer)
@@ -595,6 +701,7 @@ struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     }
     return NULL;
 }
+#endif
 
 static UNUSED_FUNCTION
 struct pcvcm_node* tkz_buffer_to_vcm_node(struct tkz_buffer* buffer)
@@ -624,17 +731,11 @@ is_finished_default(struct pcejson *parser, uint32_t character)
 }
 
 struct pcvcm_node *
-parse_ejson(struct pchvml_parser *parser, const char *content,
-        int hee_line, int hee_column)
+parse_ejson_ex(struct pchvml_parser *parser, struct tkz_ucs *ucs,
+        bool parse_double_quoted_value)
 {
     struct pcvcm_node *node = NULL;
-    if (!content) {
-        goto out;
-    }
-
-    size_t nr = strlen(content) + 1;
-    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)content, nr);
-    if (!rws) {
+    if (!ucs) {
         goto out;
     }
 
@@ -644,16 +745,22 @@ parse_ejson(struct pchvml_parser *parser, const char *content,
     }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
-    struct tkz_reader *reader = tkz_reader_new(hee_line, hee_column);
+    struct tkz_reader *reader = tkz_reader_new();
     if (!reader) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
-    tkz_reader_set_rwstream(reader, rws);
+    tkz_reader_set_data_source_ucs(reader, ucs);
+    tkz_reader_set_lc(reader, parser->lc);
+
+    /* use temp reader */
+    if (parse_double_quoted_value) {
+        pcejson_update_state_to_parse_double_quoted_attr_value(
+                parser->ejson_parser);
+    }
     pcejson_parse_full(&node, &parser->ejson_parser, reader,
             parser->ejson_parser_max_depth, is_finished_default);
     tkz_reader_destroy(reader);
-    purc_rwstream_destroy(rws);
 out:
     return node;
 }
@@ -790,6 +897,7 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
             if (!node) {
                 RETURN_AND_STOP_PARSE();
             }
+            node->position = 0;
             RESET_TEMP_BUFFER();
             parser->token = pchvml_token_new_vcm(node);
             if (!parser->token) {
@@ -814,6 +922,7 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         if (!node) {
             RETURN_AND_STOP_PARSE();
         }
+        node->position = 0;
         RESET_TEMP_BUFFER();
         parser->token = pchvml_token_new_vcm(node);
         if (!parser->token) {
@@ -827,6 +936,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TAG_NAME)
     if (is_whitespace(character)) {
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
@@ -860,6 +970,7 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_NAME)
         RETURN_AND_STOP_PARSE();
     }
     BEGIN_TOKEN_ATTR();
+    RESET_TEMP_UCS();
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
 
@@ -880,6 +991,17 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_NAME)
     }
     if (is_attribute_value_operator(character)
             && pchvml_parser_is_operation_tag_token(parser->token)) {
+        struct pchvml_token_attr *attr = pchvml_token_get_curr_attr(
+                parser->token);
+        if (attr) {
+            const char *name = pchvml_token_attr_get_name(attr);
+            if (!name) {
+                SET_ERR_WITH_UC(
+                  PCHVML_ERROR_NOT_EXPLICIT_ATTRIBUTE_NAME, parser->curr_uc,
+                  NULL);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
         RESET_TEMP_BUFFER();
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(
@@ -888,6 +1010,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_NAME)
     if (character == '/') {
         RECONSUME_IN(TKZ_STATE_AFTER_ATTRIBUTE_NAME);
     }
+    APPEND_TO_TEMP_UCS(*parser->curr_uc);
     APPEND_TO_TOKEN_ATTR_NAME(character);
     ADVANCE_TO(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
@@ -896,6 +1019,10 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
     if (is_whitespace(character)) {
         ADVANCE_TO(TKZ_STATE_AFTER_ATTRIBUTE_NAME);
     }
+
+    VERIFY_VERB_TAG_ATTR_NAME();
+    VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE();
+
     if (character == '=') {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
@@ -915,22 +1042,28 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
         TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME
         );
     }
+
     if (pchvml_parser_is_operation_tag_token(parser->token)
         && pchvml_parser_is_preposition_attribute(
                 pchvml_token_get_curr_attr(parser->token))) {
         RECONSUME_IN(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
+
     if (character == '/') {
         END_TOKEN_ATTR();
         RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
+    RESET_TEMP_UCS();
     END_TOKEN_ATTR();
     BEGIN_TOKEN_ATTR();
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
+    VERIFY_VERB_TAG_ATTR_NAME();
+    VERIFY_VERB_TAG_ATTR_NAME_DUPLICATE();
+
     if (is_whitespace(character)) {
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
@@ -945,6 +1078,8 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
     if (character == '"') {
         RESET_TEMP_BUFFER();
         RESET_DOUBLE_QUOTED_COUNTER();
+        RESET_TEMP_UCS();
+        START_RECORD_UCS();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
     if (character == '\'') {
@@ -962,6 +1097,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_VALUE)
     if (is_whitespace(character)) {
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
@@ -1537,6 +1673,7 @@ BEGIN_STATE(TKZ_STATE_CDATA_SECTION_END)
         if (!node) {
             RETURN_AND_STOP_PARSE();
         }
+        node->position = 0;
         RESET_TEMP_BUFFER();
         parser->token = pchvml_token_new_vcm(node);
         RETURN_AND_SWITCH_TO(TKZ_STATE_DATA);
@@ -1872,10 +2009,6 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
-    if (hee_line == -1) {
-        hee_line = parser->curr_uc->line;
-        hee_column = parser->curr_uc->column;
-    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
@@ -1907,6 +2040,9 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME)
         const char* name = tkz_buffer_get_bytes(
                 parser->string_buffer);
         if (pchvml_parser_is_appropriate_tag_name(parser, name)) {
+            /* </ + tag_name + > */
+            size_t sz = strlen(name) + 3;
+            tkz_ucs_delete_tail(parser->temp_ucs, sz);
             RECONSUME_IN(TKZ_STATE_TEMPLATE_FINISHED);
         }
     }
@@ -1921,12 +2057,14 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     struct pcvcm_node *node = NULL;
     if (tkz_buffer_is_whitespace(parser->temp_buffer)) {
         node = TEMP_BUFFER_TO_VCM_NODE();
+        if (node) {
+            node->position = 0;
+        }
     }
     else {
-        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes, hee_line, hee_column);
-        hee_line = -1;
-        hee_column = -1;
+        STOP_RECORD_UCS();
+        node = parse_ejson_ex(parser, parser->temp_ucs, false);
+        RESET_TEMP_UCS();
     }
 
     if (!node) {
@@ -1977,10 +2115,13 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         }
     }
     if (parser->nr_double_quoted < 2) {
+#if 0
+        /* handle on ejson parser */
         if (character == '&') {
             SET_RETURN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
             ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
         }
+#endif
         if (is_c0(character)) {
             uint32_t c = tkz_buffer_get_last_char(parser->temp_buffer);
             if (c != '\\') {
@@ -1989,10 +2130,6 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
             }
         }
 
-        if (hee_line == -1) {
-            hee_line = parser->curr_uc->line;
-            hee_column = parser->curr_uc->column;
-        }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
@@ -2000,14 +2137,18 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
     struct pcvcm_node *node = NULL;
     if (tkz_buffer_is_empty(parser->temp_buffer)) {
         node = pcvcm_node_new_string("");
+        node->position = 0;
     }
     else {
-        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes, hee_line, hee_column);
-        hee_line = -1;
-        hee_column = -1;
+        STOP_RECORD_UCS();
+        /* end with '"' + other char */
+        tkz_ucs_delete_tail(parser->temp_ucs, 2);
+        node = parse_ejson_ex(parser, parser->temp_ucs, true);
+        RESET_TEMP_UCS();
     }
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_DOUBLE;
+        pchvml_token_set_quote(parser->token, '\"');
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
         RESET_TEMP_BUFFER();
@@ -2052,6 +2193,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
     }
+    pchvml_token_set_quote(parser->token, '\'');
     APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
     END_TOKEN_ATTR();
     RESET_TEMP_BUFFER();
@@ -2060,16 +2202,19 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_unquoted_attr_finished);
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_NONE;
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
+        RESET_TEMP_UCS();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     RETURN_AND_STOP_PARSE();
@@ -2077,13 +2222,15 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_backquote_attr_finished);
     if (node) {
+        node->quoted_type = PCVCM_NODE_QUOTED_TYPE_BACKQUOTE;
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
@@ -2204,6 +2351,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 struct pchvml_token* token = pchvml_token_new_vcm(node);
 
                 RESET_STRING_BUFFER();
@@ -2215,6 +2363,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 struct pchvml_token* next_token = pchvml_token_new_vcm(node);
                 pchvml_token_set_is_whitespace(next_token, true);
                 pchvml_token_set_first_uc(next_token, &multi_token_first_uc);
@@ -2228,6 +2377,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
                 }
+                node->position = 0;
                 RESET_TEMP_BUFFER();
                 parser->token = pchvml_token_new_vcm(node);
                 parser->nr_whitespace = 0;
@@ -2257,7 +2407,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     tkz_reader_reconsume_last_char(parser->reader);
-    uint32_t flags = PCEJSON_FLAG_ALL;
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_KEEP_LAST_CHAR;
     if (parser->tag_has_raw_attr) {
         flags = flags & ~PCEJSON_FLAG_GET_VARIABLE;
     }
@@ -2268,6 +2418,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     if (!pchvml_parser_is_in_json_content_tag(parser)) {
         pcejson_set_state_param_string(parser->ejson_parser);
     }
+    /* use hvml parser->reader */
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_content_text_finished);
     if (node) {

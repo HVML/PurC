@@ -1450,7 +1450,7 @@ TEST(variant, load_from_so)
     ASSERT_NE(value, PURC_VARIANT_INVALID);
     ASSERT_EQ(purc_variant_is_type (value, PURC_VARIANT_TYPE_OBJECT), true);
 
-    purc_variant_t val = purc_variant_object_get_by_ckey (value, "__intr_dlhandle", false);
+    purc_variant_t val = purc_variant_object_get_by_ckey_ex (value, "__intr_dlhandle", false);
     uint64_t u64 = 0;
     purc_variant_cast_to_ulongint (val, &u64, false);
 

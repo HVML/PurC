@@ -1,2 +1,2 @@
-PCHVML_TOKEN_START_TAG|<hvml name=concatString("test string with jsonee ",getElement(getVariable("VAR"),"BBB")," and end at here.")>
+PCHVML_TOKEN_START_TAG|<hvml name=concatString("test string with jsonee ", getMember(getVariable("VAR"), "BBB"), " and end at here.")>
 PCHVML_TOKEN_END_TAG|</hvml>

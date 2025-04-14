@@ -1,9 +1,9 @@
 <!DOCTYPE hvml PUBLIC "ppp" SYSTEM "v: MATH">
 <hvml>
     <choose on "$2.payload" to "append update" in "#the-user-list" with "$user_item">
-        <update abc=1 attr.class $= "text-* text-info" />
+        <update on=1 at $= "text-* text-info" />
     </choose>
     <choose on "$2.payload" to "append update" in "#the-user-list" with "$user_item">
-        <update abc=1 attr.class$= "text-* text-info" aaa />
+        <update on=1 at$= "text-* text-info" />
     </choose>
 </hvml>

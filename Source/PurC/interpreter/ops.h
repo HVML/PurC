@@ -55,7 +55,7 @@ struct pcintr_element_ops* pcintr_get_forget_ops(void);
 struct pcintr_element_ops* pcintr_get_fire_ops(void);
 struct pcintr_element_ops* pcintr_get_back_ops(void);
 struct pcintr_element_ops* pcintr_get_define_ops(void);
-struct pcintr_element_ops* pcintr_get_include_ops(void);
+struct pcintr_element_ops* pcintr_get_execute_ops(void);
 struct pcintr_element_ops* pcintr_get_call_ops(void);
 struct pcintr_element_ops* pcintr_get_return_ops(void);
 struct pcintr_element_ops* pcintr_get_inherit_ops(void);

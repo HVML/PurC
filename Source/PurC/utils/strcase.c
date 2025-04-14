@@ -232,7 +232,8 @@ int pcutils_strncasecmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
-char *pcutils_strcasestr(const char *haystack, const char *needle)
+char *pcutils_strcasestr_ex(const char *haystack, const char *needle,
+        size_t *matched_len)
 {
     locale_type lt = get_locale_type();
     gunichar ucs1[MAX_LOWER_CHARS];
@@ -264,6 +265,8 @@ char *pcutils_strcasestr(const char *haystack, const char *needle)
                 goto done;
 
             /* matched */
+            if (matched_len)
+                *matched_len = p1 - p;
             return p;
         }
 
@@ -332,7 +335,8 @@ int pcutils_strncasecmp(const char *s1, const char *s2, size_t n)
     return strncasecmp(s1, s2, n);
 }
 
-char *pcutils_strcasestr(const char *haystack, const char *needle)
+char *pcutils_strcasestr_ex(const char *haystack, const char *needle,
+        size_t *matched_len)
 {
     char* p = (char *)haystack;
 
@@ -357,6 +361,8 @@ char *pcutils_strcasestr(const char *haystack, const char *needle)
                 goto done;
 
             /* matched */
+            if (matched_len)
+                *matched_len = p1 - p;
             return p;
         }
 

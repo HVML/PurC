@@ -414,8 +414,6 @@ on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
 {
     char *result = NULL;
 
-    // PC_DEBUG("In %s: needle: %s, len: %lu\n", __func__, needle, len);
-
     if (len == 3 && needle[1] == 'm') {
         // {m}
         suseconds_t usec = *(suseconds_t *)ctxt;
@@ -475,7 +473,6 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     char *result = NULL;
 
     max = estimate_buffer_size(timeformat);
-    // PC_DEBUG("buffer size for %s: %lu\n", timeformat, max);
 
     result = malloc(max + 1);
     if (result == NULL) {
@@ -491,8 +488,6 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
         return PURC_VARIANT_INVALID;
     }
     unset_tz(tz_old);
-
-    // PC_DEBUG("formated time: %s\n", result);
 
     /* replace {m}, and {+/-HHMM:} here */
 #ifndef NDEBUG
@@ -775,7 +770,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
 
     /* we do not validate val and cval here, because we have done this
        in function get_broken_down_time() before calling this function. */
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_mday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_mday, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -788,7 +783,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
         purc_variant_unref(val);
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_mon);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_mon, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -801,7 +796,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
         purc_variant_unref(val);
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_year);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_year, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -814,7 +809,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
         purc_variant_unref(val);
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_wday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_wday, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -827,7 +822,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
         purc_variant_unref(val);
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_yday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_yday, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -840,7 +835,7 @@ reflect_changes_to_broken_down_time(purc_variant_t bdtime,
         purc_variant_unref(val);
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_isdst);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_isdst, true);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     purc_variant_cast_to_int32(val, &cval, false);
@@ -1027,7 +1022,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
         return NULL;
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_tz);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_tz, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1038,7 +1033,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
         goto failed;
     }
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_usec);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_usec, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1048,7 +1043,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     *usec = (suseconds_t)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_sec);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_sec, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1058,7 +1053,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_sec = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_min);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_min, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1068,7 +1063,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_min = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_hour);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_hour, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1078,7 +1073,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_hour = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_mday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_mday, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1088,7 +1083,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_mday = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_mon);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_mon, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1098,7 +1093,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_mon = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_year);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_year, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1107,7 +1102,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_year = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_wday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_wday, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1117,7 +1112,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_wday = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_yday);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_yday, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
@@ -1127,7 +1122,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     }
     tm->tm_yday = (int)number;
 
-    val = purc_variant_object_get_by_ckey(bdtime, _KN_isdst);
+    val = purc_variant_object_get_by_ckey_ex(bdtime, _KN_isdst, true);
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
