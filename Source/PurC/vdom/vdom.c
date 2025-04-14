@@ -2285,7 +2285,7 @@ int
 pcvdom_util_fprintf(const char *buf, size_t len, void *ctxt)
 {
     UNUSED_PARAM(ctxt);
-    PC_WARN("%.*s", (int)len, buf);
+    fprintf(stderr, "%.*s", (int)len, buf);
     return 0;
 }
 
