@@ -549,7 +549,7 @@ static int ws_verify_handshake_request(struct pcdvobjs_stream *stream)
             upgrade == NULL || connection == NULL ||
             origin == NULL || ws_key == NULL || ws_ver == NULL) {
         // Bad request.
-        PC_ERROR("Bad handshake request:\n");
+        PC_ERROR("Bad handshake request.\n");
         return -1;
     }
 
