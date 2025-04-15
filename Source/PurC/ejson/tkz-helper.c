@@ -1276,14 +1276,14 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
         /* type: err_msg */
         size_t nr = strlen(type) + strlen(err_msg) + strlen(extra) + 5;
         info->extra = malloc(nr);
-        sprintf(info->extra, "%s: %s: %s", type, err_msg, extra);
+        snprintf(info->extra, nr, "%s: %s: %s", type, err_msg, extra);
     }
     else {
         const char *err_msg = purc_get_error_message(error);
         /* type: err_msg */
         size_t nr = strlen(type) + strlen(err_msg) + 3;
         info->extra = malloc(nr);
-        sprintf(info->extra, "%s: %s", type, err_msg);
+        snprintf(info->extra, nr, "%s: %s", type, err_msg);
     }
 
     if (reader->lc) {
@@ -1347,8 +1347,9 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
     purc_rwstream_t ext_rws = purc_rwstream_new_buffer(1024, 0);
     purc_rwstream_write(ext_rws, info->extra, strlen(info->extra));
     purc_rwstream_write(ext_rws, "\n", 1);
-    char tmp_buf[1024] = {0};
-    sprintf(tmp_buf, "Position: %d,%d\n", info->line, info->column);
+    char tmp_buf[64] = {0};
+    snprintf(tmp_buf, sizeof(tmp_buf),
+            "Position: %d,%d\n", info->line, info->column);
     purc_rwstream_write(ext_rws, tmp_buf, strlen(tmp_buf));
     if (info->code_snippets) {
         purc_rwstream_write(ext_rws, info->code_snippets,
