@@ -596,12 +596,12 @@ out:
 
 int tkz_ucs_dump(struct tkz_ucs *ucs)
 {
-    fprintf(stderr, "dump tkz ucs begin\n");
+    PC_INFO("dump tkz ucs begin\n");
     struct tkz_uc *p, *n;
     list_for_each_entry_safe(p, n, &ucs->list, ln) {
-        fprintf(stderr, "%s", p->utf8_buf);
+        PC_INFO("%s", p->utf8_buf);
     }
-    fprintf(stderr, "|\ndump tkz ucs end\n");
+    PC_INFO("|\ndump tkz ucs end\n");
     return 0;
 }
 

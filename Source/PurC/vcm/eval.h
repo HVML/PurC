@@ -35,8 +35,6 @@
 #include "private/vcm.h"
 #include "purc-variant.h"
 
-#define __DEV_VCM__                0
-
 //#define PCVCM_KEEP_NAME
 
 #define PCVCM_EVAL_FLAG_NONE            0x0000
@@ -53,14 +51,6 @@
 
 #define MIN_BUF_SIZE                    32
 #define MAX_BUF_SIZE                    SIZE_MAX
-
-#if (defined __DEV_VCM__ && __DEV_VCM__)
-#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
-#else
-#define PLOG               PC_DEBUG
-#endif /* (defined __DEV_VCM__ && __DEV_VCM__) */
-
-#define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
 enum pcvcm_eval_stack_frame_step {
 #define STEP_NAME_AFTER_PUSH            "STEP_AFTER_PUSH"

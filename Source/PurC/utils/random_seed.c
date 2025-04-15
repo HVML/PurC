@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <private/debug.h>
 
 #define DEBUG_SEED(s)
 
@@ -204,7 +205,7 @@ static int get_getrandom_seed(void)
         if (errno == EAGAIN) /* entropy not yet initialized */
             return -1;
 
-        fprintf(stderr, "error from getrandom(): %s", strerror(errno));
+        PC_ERROR("error from getrandom(): %s", strerror(errno));
         exit(1);
     }
 
@@ -251,7 +252,7 @@ static int get_dev_random_seed(void)
     int fd = open(dev_random_file, O_RDONLY);
     if (fd < 0)
     {
-        fprintf(stderr, "error opening %s: %s", dev_random_file, strerror(errno));
+        PC_ERROR("error opening %s: %s", dev_random_file, strerror(errno));
         exit(1);
     }
 
@@ -259,7 +260,7 @@ static int get_dev_random_seed(void)
     ssize_t nread = read(fd, &r, sizeof(r));
     if (nread != sizeof(r))
     {
-        fprintf(stderr, "error short read %s: %s", dev_random_file, strerror(errno));
+        PC_ERROR("error short read %s: %s", dev_random_file, strerror(errno));
         exit(1);
     }
 
@@ -303,7 +304,7 @@ static int get_cryptgenrandom_seed(void)
 
     if (!CryptAcquireContextA(&hProvider, 0, 0, PROV_RSA_FULL, dwFlags))
     {
-        fprintf(stderr, "error CryptAcquireContextA 0x%08lx", GetLastError());
+        PC_ERROR("error CryptAcquireContextA 0x%08lx", GetLastError());
         r = get_time_seed();
     }
     else
@@ -312,7 +313,7 @@ static int get_cryptgenrandom_seed(void)
         CryptReleaseContext(hProvider, 0);
         if (!ret)
         {
-            fprintf(stderr, "error CryptGenRandom 0x%08lx", GetLastError());
+            PC_ERROR("error CryptGenRandom 0x%08lx", GetLastError());
             r = get_time_seed();
         }
     }

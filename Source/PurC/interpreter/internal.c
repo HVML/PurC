@@ -893,7 +893,7 @@ pcintr_coroutine_dump(pcintr_coroutine_t co)
 #ifndef NDEBUG
     size_t nr_hvml = 0;
     const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
-    fprintf(stderr, "%s\n", hvml);
+    PC_INFO("%s\n", hvml);
 #endif
     purc_rwstream_destroy(rws);
     return 0;

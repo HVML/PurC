@@ -38,16 +38,6 @@
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */
 
-#define PLOG(...) do {                                                        \
-    FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
-    fprintf(fp, ##__VA_ARGS__);                                               \
-    fclose(fp);                                                               \
-    fprintf(stderr, ##__VA_ARGS__);                                           \
-} while (0)
-
-
-#define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
-
 #define PCINTR_HVML_RUN_SCHEMA                "hvml+run://"
 #define PCINTR_LEN_HVML_RUN_SCHEMA            11
 

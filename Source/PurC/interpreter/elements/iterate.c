@@ -1312,14 +1312,16 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     ctxt->step = STEP_BEFORE_ITERATE;
     int err = step_after_iterate(stack, frame, ctxt);
+
     bool ret = ctxt->stop;
+    if (stack->back_anchor || stack->co->stack.exited) {
+        ret = true;
+    }
+
     if (err) {
         ret = false;
     }
 
-    if (stack->back_anchor) {
-        ret = true;
-    }
     return ret;
 }
 

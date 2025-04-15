@@ -686,16 +686,14 @@ coroutine_set_current_with_location(struct pcintr_coroutine *co,
     struct pcintr_heap *heap = pcintr_get_heap();
     if (co) {
 #if 0           /* { */
-        fprintf(stderr, "%s[%d]: %s(): %s\n",
-            basename((char*)file), line, func,
+        PC_WARN("%s[%d]: %s(): %s\n", basename((char*)file), line, func,
             ">>>>>>>>>>>>>start>>>>>>>>>>>>>>>>>>>>>>>>>>");
 #endif          /* } */
         //PC_ASSERT(heap->running_coroutine == NULL);
     }
     else {
 #if 0           /* { */
-        fprintf(stderr, "%s[%d]: %s(): %s\n",
-            basename((char*)file), line, func,
+        PC_WARN("%s[%d]: %s(): %s\n", basename((char*)file), line, func,
             "<<<<<<<<<<<<<stop<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 #endif          /* } */
         //PC_ASSERT(heap->running_coroutine);
@@ -1153,15 +1151,15 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(stack);
 
     if (level == 0) {
-        fprintf(stderr, "document\n");
+        PC_WARN("document\n");
         return;
     }
     pcvdom_element_t scope = frame->scope;
     pcvdom_element_t pos = frame->pos;
     for (size_t i=0; i<level; ++i) {
-        fprintf(stderr, "  ");
+        PC_WARN("  ");
     }
-    fprintf(stderr, "scope:<%s>; pos:<%s>\n",
+    PC_WARN("scope:<%s>; pos:<%s>\n",
         (scope ? scope->tag_name : NULL),
         (pos ? pos->tag_name : NULL));
 }
@@ -1169,25 +1167,24 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 void
 pcintr_dump_stack(pcintr_stack_t stack)
 {
-    fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
+    PC_WARN("dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
     struct pcintr_exception *exception = &stack->exception;
     struct pcdebug_backtrace *bt = exception->bt;
 
     if (bt) {
-        fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+        PC_WARN("error_except: generated @%s[%d]:%s()\n",
                 pcutils_basename((char*)bt->file), bt->line, bt->func);
     }
     purc_atom_t     error_except = exception->error_except;
     purc_variant_t  err_except_info = exception->exinfo;
     if (error_except) {
-        fprintf(stderr, "error_except: %s\n",
-                purc_atom_to_string(error_except));
+        PC_WARN("error_except: %s\n", purc_atom_to_string(error_except));
     }
     if (err_except_info) {
         pcinst_dump_err_except_info(err_except_info);
     }
-    fprintf(stderr, "nr_frames: %zd\n", stack->nr_frames);
+    PC_WARN("nr_frames: %zd\n", stack->nr_frames);
     struct list_head *frames = &stack->frames;
     size_t level = 0;
     if (!list_empty(frames)) {
@@ -1207,7 +1204,7 @@ pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
         return;
 
     struct pcinst *inst = pcinst_current();
-    fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
+    PC_WARN("dumping stacks of purc instance [%p]......\n", inst);
     pcdebug_backtrace_dump(bt);
 }
 #endif                             /* } */
@@ -1673,8 +1670,7 @@ bool pcintr_is_ready_for_event(void)
 {
     struct pcinst *inst = pcinst_current();
     if (!inst) {
-        fprintf(stderr,
-                "purc instance not initialized or already cleaned up\n");
+        PC_ERROR("purc instance not initialized or already cleaned up\n");
         abort();
     }
 

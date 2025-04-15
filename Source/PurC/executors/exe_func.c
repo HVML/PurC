@@ -335,7 +335,7 @@ int pcexec_exe_func_register(void)
     if (ops.atom == 0) {
         ops.atom = PCHVML_KEYWORD_ATOM(HVML, name);
         if (ops.atom == 0) {
-            fprintf(stderr, "unknown atom: %s\n", name);
+            PC_ERROR("unknown atom: %s\n", name);
             PC_ASSERT(0);
             return -1;
         }

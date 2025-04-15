@@ -467,7 +467,7 @@ dump_stack_by_cmd(int *level, const char *cmd)
         PC_ASSERT(r > 0);
         file_line[r-1] = '\0';
 
-        fprintf(stderr, "%02d: %s (%s)\n", *level, func, file_line);
+        PC_WARN("%02d: %s (%s)\n", *level, func, file_line);
         *level = *level + 1;
     }
 
@@ -594,7 +594,7 @@ pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
     if (r) {
         char buf[1024];
         regerror(r, &regex, buf, sizeof(buf));
-        fprintf(stderr, "regcomp failed: [%s]\n", buf);
+        PC_WARN("regcomp failed: [%s]\n", buf);
         regfree(&regex);
         return;
     }
@@ -851,7 +851,7 @@ pcinst_dump_err_except_info(purc_variant_t err_except_info)
     // FIXME: do NOT forget to check if VARIANT module has been initialized!!!
 
     if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
-        fprintf(stderr, "err_except_info: %s\n",
+        PC_WARN("err_except_info: %s\n",
                 purc_variant_get_string_const(err_except_info));
     }
     else {
@@ -865,7 +865,7 @@ pcinst_dump_err_except_info(purc_variant_t err_except_info)
             buf[sizeof(buf)-3] = '.';
             buf[sizeof(buf)-4] = '.';
         }
-        fprintf(stderr, "err_except_info: %s\n", buf);
+        PC_WARN("err_except_info: %s\n", buf);
     }
 }
 
@@ -874,7 +874,7 @@ pcinst_dump_err_info(void)
 {
     const struct pcinst* inst = pcinst_current();
     if (!inst) {
-        fprintf(stderr, "warning: NO instance at all\n");
+        PC_WARN("warning: NO instance at all\n");
         return;
     }
 
@@ -883,12 +883,11 @@ pcinst_dump_err_info(void)
     struct pcdebug_backtrace *bt    = inst->bt;
 
     if (bt) {
-        fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+        PC_WARN("error_except: generated @%s[%d]:%s()\n",
                 pcutils_basename((char*)bt->file), bt->line, bt->func);
     }
     if (error_except) {
-        fprintf(stderr, "error_except: %s\n",
-                purc_atom_to_string(error_except));
+        PC_WARN("error_except: %s\n", purc_atom_to_string(error_except));
     }
     if (err_except_info) {
         pcinst_dump_err_except_info(err_except_info);
