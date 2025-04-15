@@ -435,3 +435,27 @@ positive:
     $DATA.type($SYS.openpty('default', 'inherit', {col:80, row:24}))
     'tuple'
 
+negative:
+    $SYS.socketpair(null)
+    WrongDataType
+
+negative:
+    $SYS.socketpair('')
+    InvalidValue
+
+negative:
+    $SYS.socketpair('foo')
+    InvalidValue
+
+positive:
+    $DATA.type($SYS.socketpair())
+    'tuple'
+
+positive:
+    $DATA.type($SYS.socketpair('local'))
+    'tuple'
+
+positive:
+    $DATA.type($SYS.socketpair('unix'))
+    'tuple'
+

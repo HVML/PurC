@@ -2096,6 +2096,65 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static struct pcdvobjs_option_to_atom socketpair_domain_skws[] = {
+    { "local",    0, PF_LOCAL },
+    { "unix",     0, PF_UNIX },
+};
+
+static purc_variant_t
+socketpair_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (socketpair_domain_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(socketpair_domain_skws); j++) {
+            socketpair_domain_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, socketpair_domain_skws[j].option);
+        }
+    }
+
+    int domain = pcdvobjs_parse_options(
+            (nr_args > 0) ? argv[0] : PURC_VARIANT_INVALID,
+            socketpair_domain_skws, PCA_TABLESIZE(socketpair_domain_skws),
+            NULL, 0, PF_LOCAL, -1);
+    if (domain == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    int fds[2];
+    if (socketpair(domain, SOCK_STREAM, 0, fds) != 0) {
+        PC_ERROR("Failed socketpair(): %s.\n", strerror(errno));
+        purc_set_error(purc_error_from_errno(errno));
+        goto error;
+    }
+
+    purc_variant_t items[2] = {
+        purc_variant_make_longint(fds[0]),
+        purc_variant_make_longint(fds[1]),
+    };
+
+    if (!items[0] || !items[1]) {
+        if (items[0])
+            purc_variant_unref(items[0]);
+        if (items[1])
+            purc_variant_unref(items[1]);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_tuple(2, items);
+    purc_variant_unref(items[0]);
+    purc_variant_unref(items[1]);
+    return retv;
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static
 int parse_fdflags_getter_flags(purc_variant_t option)
 {
@@ -4162,6 +4221,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "access",     access_getter,      NULL },
         { "remove",     remove_getter,      NULL },
         { "pipe",       pipe_getter,        NULL },
+        { "socketpair", socketpair_getter,  NULL },
         { "fdflags",    fdflags_getter,     fdflags_setter },
         { "sockopt",    sockopt_getter,     sockopt_setter },
         { "open",       open_getter,        NULL },
