@@ -57,7 +57,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.22
 
-In this version, we fixed a few bugs and made some major enhancements:
+In this version, we made a lot of major enhancements and fixed some bugs:
 
 * CHANGES:
    - Upgrade PURCMC to version 170.
