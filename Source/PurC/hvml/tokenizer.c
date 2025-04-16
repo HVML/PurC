@@ -1978,6 +1978,7 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
         }
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
+
     if (tkz_buffer_equal_to(parser->temp_buffer, "$", 1)) {
         tkz_reader_reconsume_last_char(parser->reader);
         tkz_reader_reconsume_last_char(parser->reader);
@@ -1989,9 +1990,11 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
-    BEGIN_TOKEN_ATTR();
-    APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
-    RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
+
+    RESET_TEMP_BUFFER();
+    tkz_reader_reconsume_last_char(parser->reader);
+    tkz_reader_reconsume_last_char(parser->reader);
+    ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
