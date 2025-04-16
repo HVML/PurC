@@ -38,7 +38,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 
 我们在 LGPLv3 许可证下发布 PurC 函数库，而可执行程序使用 GPLv3 发布。因此，如果你遵循 LGPLv3/GPLv3 的条件和条款，你可以将 PurC 以及 `purc` 工具免费用于商业用途。
 
-这是 PurC 的 0.9.20 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
+这是 PurC 的 0.9.22 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
 
 要了解有关 HVML 编程的基本概念，请参考以下教程或文章：
 
@@ -252,15 +252,22 @@ $ echo $?
 
 你想获得详细的输出信息，可以使用 `-v` 选项运行 `purc`：
 
-```bash
+```console
 $ purc -v error.hvml
-purc 0.9.20
-Copyright (C) 2022 FMSoft Technologies.
+purc 0.9.22
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
-Failed to load HVML from file:///srv/devel/hvml/purc/build/error.hvml: pcejson unexpected eof parse error
-Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, character=0x0
+Failed to parse HVML from file:///srv/devel/hvml/purc/build/error.hvml
+HEE parse error: Unexpected unescaped control character
+Source: file:///srv/devel/hvml/purc/build/error.hvml
+Position: 3,46
+<<<<
+<hvml target="void">
+    $STREAM.stdout.writelines('Hello, world!)
+                                             ^
+>>>>
 ```
 
 这时，`purc` 报告了它在解析 HVML 程序时遇到的错误：错误所在的行和列。
@@ -282,34 +289,36 @@ Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, ch
 
 使用 `-v` 选项运行 `purc` 来执行这个 HVML 程序，它将输出异常信息以及执行栈：
 
-```
+```console
 $ purc -v exception.hvml
-purc 0.9.20
-Copyright (C) 2022 FMSoft Technologies.
+purc 0.9.22
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Executing HVML program from `file:///srv/devel/hvml/purc/build/exception.hvml`...
-
-The main coroutine terminated due to an uncaught exception: NoSuchKey.
 >> The document generated:
 
+
+The main coroutine terminated due to an uncaught exception: NoSuchKey.
 >> The executing stack frame(s):
-#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$DATA.arith( "+", $0<, 1 ) nosetotail>
+#00: <iterate on 0 onlyif $L.lt( $0<, 10 ) with $DATA.arith( '+', $0<, 1 ) nosetotail>
   ATTRIBUTES:
     on: 0
     onlyif: true
-    with: 1L
-  CONTENT: `NoSuckKey` raised when evaluating the experssion: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
-    Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
-    Call stack:
-      #00: $CRTN.foo
-        Variant Creation Model: getElement(getVariable("CRTN"),"foo")
-      #01: "$0<) Hello, world! $CRTN.foo"
-        Variant Creation Model: concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo"))
-      #02: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
-        Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+    with: <not evaluated>
+    nosetotail: true
+  CONTENT: `NoSuchKey` raised when evaluating the expression.
+<<<<
+$STREAM.stdout.writelines("$0<) Hello, world! $CRTN.foo")
+                                                   ^
+====
+The equivalent variant creation model:
+callGetter(getMember(getMember(getVariable("STREAM"), "stdout"), "writelines"), concatString(getVariable("0<"), ") Hello, world! ", getMember(getVariable("CRTN"), "foo")))
+                                                                                                                                    ^
+>>>>
+    Exception: NoSuchKey
   CONTEXT VARIABLES:
     < 0
     @ null
@@ -429,8 +438,8 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 以上命令行的输出内容如下：
 
 ```
-purc 0.9.20
-Copyright (C) 2022 FMSoft Technologies.
+purc 0.9.22
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -507,7 +516,7 @@ $ purc -c thread hvml/fibonacci-html-temp.hvml
 
 ![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
-请注意，在当前版本（0.9.20）中，Foil 功能还不完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器在字符终端上获得类似网页浏览器一样的体验。
+请注意，在当前版本（0.9.22）中，Foil 功能还不完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器在字符终端上获得类似网页浏览器一样的体验。
 
 你还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。`xGUI Pro` 是一种基于 WebKit 的高级 HVML 渲染器。
 
@@ -594,8 +603,8 @@ $ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
 
 ```bash
 $ purc -h
-purc (0.9.20) - a standalone HVML interpreter/debugger based-on PurC.
-Copyright (C) 2022 FMSoft Technologies.
+purc (0.9.22) - a standalone HVML interpreter/debugger based on PurC.
+Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -605,10 +614,10 @@ Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejso
 The following options can be supplied to the command:
 
   -a --app=< app_name >
-        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).
+        Run with the specified app name (default: `cn.fmsoft.hvml.purc`).
 
   -r --runner=< runner_name >
-        Run with the specified runner name (default value is `main`).
+        Run with the specified runner name (default: the md5sum of the URL of first HVML program).
 
   -d --data-fetcher=< local | remote >
         The data fetcher; use `local` or `remote`.
@@ -617,29 +626,49 @@ The following options can be supplied to the command:
             - `remote`: use the remote data fetcher to support more URL schemas,
                such as `http`, `https`, `ftp` and so on.
 
-  -c --rdr-comm=< headless | thread | socket >
+  -c --rdr-comm=< headless | thread | socket>
         The renderer commnunication method; use `headless` (default), `thread`, or `socket`.
-            - `headless`: use the built-in headlesss renderer.
+            - `headless`: use the built-in headless renderer.
             - `thread`: use the built-in thread-based renderer.
-            - `socket`: use the remote socket-based renderer;
+            - `socket`: use the remote UNIX domain socket-based renderer or websocket-based renderer;
               `purc` will connect to the renderer via Unix Socket or WebSocket.
+
   -u --rdr-uri=< renderer_uri >
-        The renderer uri:
-            - For the renderer comm method `headleass`,
-              default value is `file:///dev/null`.
+        The renderer uri or shortname:
+            - For the renderer comm method `headless`,
+              the default value is `file:///dev/null`.
             - For the renderer comm method `thread`,
-              default value is `edpt://localhost/cn.fmsoft.hvml.renderer/foil`.
+              the default value is the first available one:
+              `foil` if Foil is enabled, otherwise `seeker`.
             - For the renderer comm method `socket`,
-              default value is `unix:///var/tmp/purcmc.sock`.
+              the default value is `unix:///var/tmp/purcmc.sock`.
 
   -j --request=< json_file | - >
         The JSON file contains the request data which will be passed to
         the HVML programs; use `-` if the JSON data will be given through
-        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)
+        STDIN stream. (Ctrl+D for end of input after you input the JSON data in a terminal.)
 
   -q --query=< query_string >
-        Use a URL query string (in RFC 3986) for the request data which will be passed to
+        Use a URL query string (in RFC 3986) for the request data which will be passed to 
         the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
+
+  -P --pageid
+        The page identifier for the HVML programs which do not run in parallel.
+
+  -L --layout-style
+        The layout style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin` or `widget`.
+
+  -T --toolkit-style
+        The toolkit style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin` or `widget`.
+
+  -A --transition-style
+        The transition style for the HVML programs which do not run in parallel.
+        This option is only valid if the page type is `plainwin`.
+
+  -s --allow-switching-rdr=< true | false >
+        Allow switching renderer.
 
   -l --parallel
         Execute multiple programs in parallel.
@@ -655,6 +684,22 @@ The following options can be supplied to the command:
 
   -h --help
         This help.
+
+(root only options)
+  -D --daemon
+        Run as a daemon.
+
+  -R --chroot <directory>
+       Change root to the specified directory
+       (default is the `/app/<app_name>/`)
+
+  -U --setuser <user>
+      Set user identity to the user specified
+       (default is the user named <app_name> if it exists).
+
+  -G --setgroup <group>
+      Set group identity to the group specified
+       (default is the group named <app_name> if it exists>).
 ```
 
 ### 在多个行者中运行 HVML 应用程序
@@ -776,7 +821,7 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 ### 当前状态
 
-该项目于 2021 年 6 月启动，并于 2022 年 7 月公开了此代码仓库。PurC 的当前版本是 0.9.20。
+该项目于 2021 年 6 月启动，并于 2022 年 7 月公开了此代码仓库。PurC 的当前版本是 0.9.22。
 
 PurC 的主要目的是为开发者提供一个函数库来编写自己的 HVML 解释器，同时也包含有一个完整的 HVML 解释器实现（即 `purc` 命令行程序）。截止目前，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。我们预计将在 2023 年 6 月底发布 PurC 1.0 正式版。
 

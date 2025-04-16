@@ -75,10 +75,9 @@
 
 1. [0.9.30] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
-   - The element `error`: support for `src`, `param`, and `method` attributes.
 1. [0.9.30] Review all uses of exception names.
 1. [0.9.30] Review the implementation of all elements.
-1. [0.9.22] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
+1. [0.9.24] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
 1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to RCd of HVML Spec V1.0:
    - The default result data of a foreign element: inheriting from the proceeding operation.
    - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.

@@ -45,7 +45,7 @@ gantt
 
 ## Version 0.9.22
 
-On May 31, 2025, HVML Community announces the availability of PurC 0.9.22,
+On Apr. 30, 2025, HVML Community announces the availability of PurC 0.9.22,
    which is also the 17th alpha release of PurC 1.0.x.
 
 For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
@@ -55,23 +55,35 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 In this version, we fixed a few bugs and made some major enhancements:
 
 * CHANGES:
+   - Upgrade PURCMC to version 170.
+   - Rename element `include` to `execute`.
+   - Use `change:inflated`, `change:deflated`, and `change:modified` event names for container instead of `grow`, `shrunk`, and `change`.
    - Remove `ssl_cert` and `ssl_key` fields from `struct purc_instance_extra_info`.
    - Use new implementation of dvobjs-based socket connection to the renderer.
    - Use communication method socket for both UNIX/local socket and websocket socket, and remove obsolete code for websocket connection.
 * ENHANCEMENTS:
+   - Add new option for purc: `-D (--daemon)`
+   - Fine-tune the error reports for parsing and interpreting HVML.
    - Add two new exceptions: ProtocolViolation and TLSFailure.
    - Complete implementation of `$STREAM`: enhance the extension protocol `websocket` for stream socket and provide support for SSL/TLS.
    - Enhance or tune for xGUI.
    - Implement `$SOCKET.stream()` and `$SOCKET.dgram()` methods for stream socket and datagram socket respectively.
    - Implement `$SOCKET.accept()` method.
    - Implement `$dgramSocket.sendto()` and `$dgramSocket.recvfrom()`.
+   - Implement `$SYS.open()` method.
    - Implement `$SYS.pipe()` method.
+   - Implement `$SYS.socketpair()` method.
    - Implement `$SYS.close()` method.
    - Implement `$SYS.fdflags()` method.
    - Implement `$SYS.sockopt()` property.
    - Implement `$SYS.spawn()` method.
+   - Implement `$SYS.waitpid()` method.
+   - Implement `$SYS.kill()` method.
    - Implement `$SYS.access()` method.
+   - Implement `$SYS.seek()` method.
    - Implement `$SYS.remove()` method.
+   - Implement `$SYS.sendfile()` method.
+   - Implement `$SYS.openpty()` method.
    - Implement `$stream.fd()` property.
    - Implement `$stream.peerAddr` property.
    - Implement `$stream.peerPort` property.
@@ -84,6 +96,16 @@ In this version, we fixed a few bugs and made some major enhancements:
    - Implement `$DATA.key()` method.
    - Implement `$STR.trim()` method.
    - Implement `$STR.strstr()` method.
+   - Implement `$STR.strpbrk()` method.
+   - Implement `$STR.strpos()` method.
+   - Implement `$STR.tokenize()` method.
+   - Implement `$STR.translate()` method.
+   - Implement `$STR.rot13()` method.
+   - Implement `$STR.count_chars()` method.
+   - Implement `$STR.count_bytes()` method.
+   - Implement `$STR.codepoints()` method.
+   - Implement `$RUNNER.mktempchan()`.
+   - Implement `$DATA.is_container()`.
    - Refactor `$STR.explode()`, `$STR.implode()`, `$STR.format_c()`, and `$STR.replace()` methods.
    - Enhance `$STREAM.readlines()` to support the customized line seperator.
    - Rename `$DATA.size()` to `$DATA.memsize()`.

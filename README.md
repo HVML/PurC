@@ -271,7 +271,7 @@ Please save the following contents in a file named `error.hvml` in your working 
 We missed the second single quote of `Hello, world!` in the code above.
 The interpreter will exit with a nonzero return value if you run `purc` without any options:
 
-```bash
+```console
 $ purc error.hvml
 $ echo $?
 1
@@ -279,7 +279,7 @@ $ echo $?
 
 You can run `purc` with the option `-v` for a verbose message:
 
-```bash
+```console
 $ purc -v error.hvml
 purc 0.9.22
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
@@ -318,7 +318,7 @@ This HVML program refers to an inexistent property (`foo`) of `$CRTN`.
 
 Run `purc` to execute this HVML program with `-v` option, it will report the executing stack:
 
-```
+```console
 $ purc -v exception.hvml
 purc 0.9.22
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
