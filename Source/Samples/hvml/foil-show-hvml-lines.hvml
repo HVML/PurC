@@ -145,7 +145,7 @@ header h1 {
 
         <define as 'count_lines_in_file' >
             <init as 'lines' with $FILE.txt.head($?) temp>
-                <catch `ANY`>
+                <catch for `ANY`>
                     <return with -1L />
                 </catch>
             </init>
