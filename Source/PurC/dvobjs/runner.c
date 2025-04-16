@@ -377,7 +377,7 @@ mktempchan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *chan_name = temp_chan + sizeof(TEMP_CHAN_PATH) - 1;
     pcchan_t chan = pcchan_retrieve(chan_name);
 
-    PC_DEBUG("%s: %s, %s\n", __func__, temp_chan, chan_name);
+    PC_NONE("%s: %s, %s\n", __func__, temp_chan, chan_name);
 
     if (chan) {
         if (!pcchan_ctrl(chan, cap)) {

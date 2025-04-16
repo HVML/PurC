@@ -1630,7 +1630,7 @@ on_forget(void *native_entity, const char *event_name,
 {
     int matched = pcdvobjs_match_events(event_name, event_subname,
             stream_events, PCA_TABLESIZE(stream_events));
-    PC_DEBUG("%s(%s, %s): %d\n", __func__, event_name, event_subname, matched);
+    PC_NONE("%s(%s, %s): %d\n", __func__, event_name, event_subname, matched);
     if (matched == -1)
         return false;
 
