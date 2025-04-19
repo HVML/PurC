@@ -1128,20 +1128,37 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
-            fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
-                    url, (unsigned)i,
-                    purc_get_error_message(purc_get_last_error()));
-
             if (opts->verbose) {
+                fprintf(stderr, "Failed to parse HVML from %s for crtn[%u]\n",
+                        url, (unsigned)i);
+
                 struct purc_parse_error_info *parse_error = NULL;
                 purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
                         (uintptr_t *)(void *)&parse_error, NULL);
                 if (parse_error) {
-                    fprintf(stdout,
-                            "Parse %s failed : line=%d, column=%d, character=0x%x\n",
-                            url, parse_error->line, parse_error->column,
-                            parse_error->character);
+                    if (parse_error->extra) {
+                        fprintf(stderr, "%s\n", parse_error->extra);
+                    }
+                    else {
+                        fprintf(stderr, "%s\n",
+                                purc_get_error_message(purc_get_last_error()));
+                    }
+                    fprintf(stderr, "Source: %s\n", url);
+                    fprintf(stderr, "Position: %d,%d\n",
+                            parse_error->line, parse_error->column);
+                    if (parse_error->code_snippets) {
+                        fprintf(stderr, "%s\n", parse_error->code_snippets);
+                    }
                 }
+                else {
+                    fprintf(stderr, "%s\n",
+                            purc_get_error_message(purc_get_last_error()));
+                }
+            }
+            else {
+                fprintf(stderr, "Failed to parse HVML from %s for crtn[%u]: %s\n",
+                        url, (unsigned)i,
+                        purc_get_error_message(purc_get_last_error()));
             }
             continue;
         }

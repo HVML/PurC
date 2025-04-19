@@ -297,6 +297,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(content);
 
+    co->stack.vcm_eval_pos = -1;
     int err = 0;
     pcintr_stack_t stack = &co->stack;
     if (stack->except) {
@@ -400,8 +401,13 @@ again:
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+        {
+            int ret = on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            if (ret) {
+                return NULL;
+            }
             goto again;
+        }
         case PCVDOM_NODE_COMMENT:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
