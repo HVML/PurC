@@ -154,10 +154,6 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         int event, purc_runloop_io_callback callback,
         void *ctxt)
 {
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(pcintr_get_runloop() == runloop);
-
     RunLoop *runLoop = (RunLoop*)runloop;
 
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
