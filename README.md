@@ -981,9 +981,9 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 
 ## Authors and Contributors
 
-- Vincent Wei: The architect.
+- Vincent Wei: The architect and the maintainer.
 - XUE Shuming: A key developer, the maintainer of most modules, and PurC Fetcher.
-- LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
+- LIU Xin: An early developer, who implemented some features of the external dynamic variant object `FILE`.
 - XU Xiaohong: An early developer, who implemented most features of the variant module and most features of the HVML interperter.
 - GENG Yue: An early developer, who implemented some built-in dynamic variant objects.
 
@@ -1067,8 +1067,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### ExtDVObjs/fs
 
+Copyright (C) 2022 ~ 2025 [FMSoft Technologies]
 Copyright (C) 2022 LIU Xin  
-Copyright (C) 2022 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1085,7 +1085,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
 
-Copyright (C) 2022, 2025 [FMSoft Technologies]
+Copyright (C) 2022 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

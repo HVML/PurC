@@ -906,9 +906,9 @@ PurC 的源代码树包含以下模块：
 
 ## 作者和贡献者
 
-- 魏永明：架构师。
+- 魏永明：架构师及维护者。
 - 薛淑明：主要开发者，大多数模块和 Purc Fetcher 的维护者。
-- 刘新：开发者，外部动态变量对象 `FILE` 和 `FS` 的维护者。
+- 刘新：早期开发者，实现了外部动态变量对象 `FILE` 和 `FS` 的大部分功能。
 - 徐晓宏：早期开发者，实现了变量的大部分功能和 HVML 解释器的大部分功能。
 - 耿岳：早期开发者，实现了一些内置动态变量对象。
 
@@ -920,7 +920,7 @@ PurC 的源代码树包含以下模块：
 
 ### PurC
 
-Copyright (C) 2021, 2022 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -958,7 +958,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 The new source files developed by FMSoft are licensed under LGPLv3:
 
-Copyright (C) 2021, 2022 [FMSoft Technologies]
+Copyright (C) 2021 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -992,8 +992,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### ExtDVObjs/fs
 
+Copyright (C) 2022 ~ 2025 [FMSoft Technologies]
 Copyright (C) 2022 LIU Xin
-Copyright (C) 2022 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1010,7 +1010,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
 
-Copyright (C) 2022 [FMSoft Technologies]
+Copyright (C) 2022 ~ 2025 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
