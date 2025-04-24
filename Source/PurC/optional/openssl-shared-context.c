@@ -93,7 +93,7 @@ struct shared_session {
 
 struct _openssl_shared_context {
 #ifdef USE_SYSCALL_FUTEX
-    unsigned                waiters;
+    atomic_uint             waiters;
 #else
     pthread_mutex_t         mutex;
 #endif
@@ -103,51 +103,23 @@ struct _openssl_shared_context {
 
 /* Lock functions */
 #ifdef USE_SYSCALL_FUTEX
-static inline unsigned
-xchg(unsigned *ptr, unsigned x)
+static inline atomic_uint
+xchg(atomic_uint *ptr, unsigned x)
 {
-#if 0
-    __asm volatile("lock xchgl %0,%1"
-             : "=r" (x), "+m" (*ptr)
-             : "0" (x)
-             : "memory");
-    return (x);
-#else
     return atomic_exchange(ptr, x);
-#endif
 }
 
-static inline unsigned
-cmpxchg(unsigned *ptr, unsigned old, unsigned new)
+static inline atomic_uint
+cmpxchg(atomic_uint *ptr, unsigned old, unsigned new)
 {
-#if 0
-    unsigned ret;
-
-    __asm volatile("lock cmpxchgl %2,%1"
-             : "=a" (ret), "+m" (*ptr)
-             : "r" (new), "0" (old)
-             : "memory");
-    return (ret);
-#else
     atomic_compare_exchange_strong(ptr, &old, new);
     return old;
-#endif
 }
 
-static inline unsigned
-atomic_dec(unsigned *ptr)
+static inline atomic_uint
+atomic_dec(atomic_uint *ptr)
 {
-#if 0
-    unsigned char ret;
-    __asm volatile("lock decl %0\n"
-             "setne %1\n"
-             : "+m" (*ptr), "=qm" (ret)
-             :
-             : "memory");
-    return (ret);
-#else
     return atomic_fetch_sub(ptr, 1);
-#endif
 }
 
 static inline void
