@@ -103,20 +103,20 @@ struct _openssl_shared_context {
 
 /* Lock functions */
 #ifdef USE_SYSCALL_FUTEX
-static inline atomic_uint
+static inline unsigned
 xchg(atomic_uint *ptr, unsigned x)
 {
     return atomic_exchange(ptr, x);
 }
 
-static inline atomic_uint
+static inline unsigned
 cmpxchg(atomic_uint *ptr, unsigned old, unsigned new)
 {
     atomic_compare_exchange_strong(ptr, &old, new);
     return old;
 }
 
-static inline atomic_uint
+static inline unsigned
 atomic_dec(atomic_uint *ptr)
 {
     return atomic_fetch_sub(ptr, 1);
