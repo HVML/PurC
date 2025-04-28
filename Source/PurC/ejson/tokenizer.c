@@ -3697,6 +3697,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
         }
         top = tkz_stack_top();
+        if (top && top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
         if (is_parse_finished(parser, character)) {
             if (top->type == ETT_MULTI_UNQUOTED_S) {
                 close_token(parser, top);
