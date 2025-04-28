@@ -1,0 +1,173 @@
+PCHVML_TOKEN_DOCTYPE|<!DOCTYPE hvml>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<hvml target="html" lang={{ getMember(getVariable("REQ"), "lang") || callGetter(getMember(getVariable("STR"), "substr"), getMember(getVariable("SYS"), "locale"), 0, 2) }} silently>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<head>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getMember(getVariable("CRTN"), "base"), concatString("file://", getMember(getVariable("SYS"), "cwd"))) hvml:silently/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with=getMember(getVariable("REQ"), "case")>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<catch>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_COMMENT|<!-- set the default case -->
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with="overall"/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</catch>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<link rel="stylesheet" type="text/css" href=concatString("hvml/assets/foil-progress-", getMember(getVariable("styleCase"), "css"))/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<title>
+PCHVML_TOKEN_VCM_TREE|concatString("Foil progress - ", getVariable("styleCase"))
+PCHVML_TOKEN_END_TAG|</title>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</head>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<div>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|"f"
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|"t"
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|"n"
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|"u"
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"f "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"t "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"n "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"u "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"fa "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"tb "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"nc "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"ud "
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</div>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="unite">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|make_array(make_object("id", "gogogo", "interval", 1000, "active", "yes"))
+PCHVML_TOKEN_END_TAG|</update>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<init as="progress" with=10UL/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("CRTN") for="rdrState:pageClosed">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<exit with="Ok"/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:gogogo">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="progress" at="_grandparent" with=callGetter(getMember(getVariable("DATA"), "arith"), "+", getVariable("progress"), 10UL)/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getMember(getVariable("L"), "ge"), getVariable("progress"), 100UL)>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="subtract" with=make_array(make_object("id", "gogogo"))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<forget on=getVariable("TIMERS") for="expired:*"/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<exit with="Ok"/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_END_TAG|</hvml>
