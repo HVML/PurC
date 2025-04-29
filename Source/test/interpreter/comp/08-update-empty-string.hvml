@@ -1,0 +1,29 @@
+#!/usr/bin/env purc
+
+# RESULT: true
+
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    <body id="id_main">
+        <inherit>
+            $STREAM.stdout.writelines("begin main hvml")
+        </inherit>
+
+        <div id="dest">
+        </div>
+
+        <init as 'emptyString' with '' />
+
+        <update on '#dest' to 'displace' at 'content' with $emptyString />
+        <update on "#dest" at "attr.value" with $emptyString />
+
+        <update on "#dest" at "attr.temp" with null />
+        <update on '#dest' to 'displace' at 'content' with null />
+
+        <exit with true />
+    </body>
+
+</hvml>
+
+
