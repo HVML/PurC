@@ -460,8 +460,40 @@ positive:
     false
 
 positive:
+    $DATA.is_container(bx00)
+    false
+
+positive:
     $DATA.is_container([])
     true
+
+positive:
+    $DATA.is_container([!])
+    true
+
+positive:
+    $DATA.is_container({})
+    true
+
+positive:
+    $DATA.is_linear_container
+    false
+
+positive:
+    $DATA.is_linear_container(bx00)
+    false
+
+positive:
+    $DATA.is_linear_container([])
+    true
+
+positive:
+    $DATA.is_linear_container([!])
+    true
+
+positive:
+    $DATA.is_linear_container({})
+    false
 
 positive:
     $DATA.numerify('00123')

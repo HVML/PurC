@@ -81,6 +81,39 @@ type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_string_static(type, false);
 }
 
+/*
+$DATA.is_linear_container(
+        [ <any $data> ]
+) boolean
+*/
+static purc_variant_t
+islinctnr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    bool retv;
+    if (nr_args == 0) {
+        // treat as undefined
+        retv = false;
+    }
+    else {
+        switch (purc_variant_get_type(argv[0])) {
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            retv = true;
+            break;
+        default:
+            retv = false;
+            break;
+        }
+    }
+
+    return purc_variant_make_boolean(retv);
+}
+
 static purc_variant_t
 memsize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3748,6 +3781,7 @@ purc_variant_t purc_dvobj_data_new(void)
         { "key",        key_getter, NULL },
         { "type",       type_getter, NULL },
         { "is_container",   is_container_getter, NULL },
+        { "is_linear_container",  islinctnr_getter, NULL },
         { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },
         { "nr_children",nr_children_getter, NULL },
@@ -3807,3 +3841,4 @@ purc_variant_t purc_dvobj_data_new(void)
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }
+

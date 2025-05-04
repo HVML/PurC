@@ -3012,6 +3012,243 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$STR.htmlentities_encode(
+  <string $string: `The input string.`>
+  [,
+   <'[single-quotes || double-quotes || convert-all || double-encode'
+        $flags = 'single-quotes double-quotes double-encode':
+    - 'single-quotes':  `Will convert single-quotes.`
+    - 'double-quotes':  `Will convert double quotes.`
+    - 'convert-all':    `All characters which have HTML character entity
+                        equivalents are translated into these entities;
+                        or only the certain characters have special significance
+                        in HTML are translated into these entities.`
+    - 'double-encode':  `Convert everything; or keep the existing HTML entities.`
+   >
+ ]
+) string | false
+*/
+
+enum {
+    HEF_SINGLE_QUOTES   = 0x1 << 0,
+    HEF_DOUBLE_QUOTES   = 0x1 << 1,
+    HEF_CONVERT_ALL     = 0x1 << 2,
+    HEF_DOUBLE_ENCODE   = 0x1 << 3,
+};
+
+static struct pcdvobjs_option_to_atom htmlentities_en_ckws[] = {
+    { "single-quotes",  0,  HEF_SINGLE_QUOTES },
+    { "double-quotes",  0,  HEF_DOUBLE_QUOTES },
+    { "convert-all",    0,  HEF_CONVERT_ALL },
+    { "double-encode",  0,  HEF_DOUBLE_ENCODE },
+};
+
+static purc_variant_t
+htmlentities_encode_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_rwstream_t rwstream = NULL;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *str;
+    size_t len;
+
+    if ((str = purc_variant_get_string_const_ex(argv[0], &len)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (htmlentities_en_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(htmlentities_en_ckws); i++) {
+            htmlentities_en_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, htmlentities_en_ckws[i].option);
+        }
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID, NULL, 0,
+            htmlentities_en_ckws, PCA_TABLESIZE(type_skws),
+            HEF_SINGLE_QUOTES | HEF_DOUBLE_QUOTES | HEF_DOUBLE_ENCODE, -1);
+    if (flags == -1) {
+        goto error;
+    }
+
+    if (len == 0)
+        goto empty_done;
+
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    char *p = (char *)str;
+    while (*p) {
+
+        uint32_t uc = pcutils_utf8_to_unichar((unsigned char *)p);
+
+        /* TODO: encode HTML entities here */
+        unsigned char utf8[10];
+        unsigned utf8_len = pcutils_unichar_to_utf8(uc, utf8);
+
+        if (purc_rwstream_write(rwstream, utf8, utf8_len) < utf8_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+
+        p = pcutils_utf8_next_char(p);
+    }
+
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+empty_done:
+    return purc_variant_ref(argv[0]);
+
+failed:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$STR.htmlentities_decode(
+    <string $string: `The input string.`>
+    [,
+        <'keep-double-quotes || keep-single-quotes || substitute-invalid ]'
+                $flags = 'substitute-invalid':
+            - 'keep-single-quotes': `Keep single-quotes unconverted.`
+            - 'keep-double-quotes': `Keep double-quotes unconverted.`
+            - 'substitute-invalid': `Replace invalid HTML entity with a
+                    Unicode Replacement Character U+FFFD; or ignore it.` >
+    ]
+) string
+ */
+enum {
+    HEF_KEEP_SINGLE_QUOTES  = 0x1 << 0,
+    HEF_KEEP_DOUBLE_QUOTES  = 0x1 << 1,
+    HEF_SUBSTITUE_INVALID   = 0x1 << 2,
+};
+
+static struct pcdvobjs_option_to_atom htmlentities_de_ckws[] = {
+    { "keep-single-quotes",  0,  HEF_KEEP_SINGLE_QUOTES },
+    { "keep-double-quotes",  0,  HEF_KEEP_DOUBLE_QUOTES },
+    { "substitue-invalid",   0,  HEF_SUBSTITUE_INVALID },
+};
+
+static purc_variant_t
+htmlentities_decode_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_rwstream_t rwstream = NULL;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *str;
+    size_t len;
+
+    if ((str = purc_variant_get_string_const_ex(argv[0], &len)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (htmlentities_de_ckws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(htmlentities_de_ckws); i++) {
+            htmlentities_de_ckws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, htmlentities_de_ckws[i].option);
+        }
+    }
+
+    int flags;
+    flags = pcdvobjs_parse_options(
+            nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID, NULL, 0,
+            htmlentities_de_ckws, PCA_TABLESIZE(type_skws),
+            HEF_SUBSTITUE_INVALID, -1);
+    if (flags == -1) {
+        goto error;
+    }
+
+    if (len == 0)
+        goto empty_done;
+
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    char *p = (char *)str;
+    while (*p) {
+
+        uint32_t uc = pcutils_utf8_to_unichar((unsigned char *)p);
+
+        /* TODO: decode HTML entities here */
+        unsigned char utf8[10];
+        unsigned utf8_len = pcutils_unichar_to_utf8(uc, utf8);
+
+        if (purc_rwstream_write(rwstream, utf8, utf8_len) < utf8_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+
+        p = pcutils_utf8_next_char(p);
+    }
+
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+empty_done:
+    return purc_variant_ref(argv[0]);
+
+failed:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+
+error:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -3042,6 +3279,8 @@ purc_variant_t purc_dvobj_string_new(void)
         { "count_chars",count_chars_getter, NULL },
         { "count_bytes",count_bytes_getter, NULL },
         { "codepoints", codepoints_getter,  NULL },
+        { "htmlentities_encode", htmlentities_encode_getter,  NULL },
+        { "htmlentities_decode", htmlentities_decode_getter,  NULL },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
