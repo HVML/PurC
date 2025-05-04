@@ -847,3 +847,43 @@ positive:
     $STR.strpbrk('ａｂｃ', 'Ａ', true)
     'ａｂｃ'
 
+negative:
+    $STR.htmlentities_encode
+    ArgumentMissed
+
+negative:
+    $STR.htmlentities_encode(null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities_encode('', null)
+    WrongDataType
+
+positive:
+    $STR.htmlentities_encode('')
+    ''
+
+positive:
+    $STR.htmlentities_encode('normal text')
+    'normal text'
+
+negative:
+    $STR.htmlentities_decode
+    ArgumentMissed
+
+negative:
+    $STR.htmlentities_decode(null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities_decode('', null)
+    WrongDataType
+
+positive:
+    $STR.htmlentities_decode('')
+    ''
+
+positive:
+    $STR.htmlentities_decode('normal text')
+    'normal text'
+
