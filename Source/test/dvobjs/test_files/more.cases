@@ -859,6 +859,10 @@ negative:
     $STR.htmlentities_encode('', null)
     WrongDataType
 
+negative:
+    $STR.htmlentities_encode('', 'foo')
+    InvalidValue
+
 positive:
     $STR.htmlentities_encode('')
     ''
@@ -866,6 +870,26 @@ positive:
 positive:
     $STR.htmlentities_encode('normal text')
     'normal text'
+
+positive:
+    $STR.htmlentities_encode('"')
+    '&quot;'
+
+positive:
+    $STR.htmlentities_encode('<foo>')
+    '&lt;foo&gt;'
+
+positive:
+    $STR.htmlentities_encode('<foo name="bar">')
+    '&lt;foo name=&quot;bar&quot;&gt;'
+
+positive:
+    $STR.htmlentities_encode('<foo name="bar &amp; foobar">')
+    '&lt;foo name=&quot;bar &amp;amp; foobar&quot;&gt;'
+
+positive:
+    $STR.htmlentities_encode('<foo name="bar &amp; foo\'bar">', 'double-quotes')
+    '&lt;foo name=&quot;bar &amp; foo\'bar&quot;&gt;'
 
 negative:
     $STR.htmlentities_decode
@@ -878,6 +902,10 @@ negative:
 negative:
     $STR.htmlentities_decode('', null)
     WrongDataType
+
+negative:
+    $STR.htmlentities_decode('', 'foo')
+    InvalidValue
 
 positive:
     $STR.htmlentities_decode('')

@@ -3044,6 +3044,22 @@ static struct pcdvobjs_option_to_atom htmlentities_en_ckws[] = {
     { "double-encode",  0,  HEF_DOUBLE_ENCODE },
 };
 
+static bool is_valid_entity(const char *p)
+{
+    if (p[1] == 0 || (p[1] != '#' && !isalpha(p[1])))
+        return false;
+
+    /* TODO: we do not check the validation of entity name or code point */
+    p++;
+    while (*p) {
+        if (*p == ';')
+            return true;
+        p++;
+    }
+
+    return false;
+}
+
 static purc_variant_t
 htmlentities_encode_getter(purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, unsigned call_flags)
@@ -3085,6 +3101,9 @@ htmlentities_encode_getter(purc_variant_t root, size_t nr_args,
     if (len == 0)
         goto empty_done;
 
+    if (!(flags & HEF_CONVERT_ALL) && strpbrk(str, "<>&'\"") == NULL)
+        goto empty_done;
+
     rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
     if (rwstream == NULL) {
         ec = PURC_ERROR_OUT_OF_MEMORY;
@@ -3096,13 +3115,65 @@ htmlentities_encode_getter(purc_variant_t root, size_t nr_args,
 
         uint32_t uc = pcutils_utf8_to_unichar((unsigned char *)p);
 
-        /* TODO: encode HTML entities here */
-        unsigned char utf8[10];
-        unsigned utf8_len = pcutils_unichar_to_utf8(uc, utf8);
+        const char *entity = NULL;
+        if (!(flags & HEF_CONVERT_ALL)) {
+            switch (uc) {
+                case '\'':
+                    if (flags & HEF_SINGLE_QUOTES)
+                        entity = "apos";
+                    break;
+                case '"':
+                    if (flags & HEF_DOUBLE_QUOTES)
+                        entity = "quot";
+                    break;
+                case '<':
+                    entity = "lt";
+                    break;
+                case '>':
+                    entity = "gt";
+                    break;
+                case '&':
+                    if (flags & HEF_DOUBLE_ENCODE)
+                        entity = "amp";
+                    else if (!is_valid_entity(p)) {
+                        entity = "amp";
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else {
+            if (uc == '&') {
+                if (flags & HEF_DOUBLE_ENCODE) {
+                    entity = "amp";
+                }
+                else if (!is_valid_entity(p)) {
+                    entity = "amp";
+                }
+            }
+            else {
+                // convert all possible entities.
+            }
+        }
 
-        if (purc_rwstream_write(rwstream, utf8, utf8_len) < utf8_len) {
-            ec = PURC_ERROR_OUT_OF_MEMORY;
-            goto failed;
+        if (entity == NULL) {
+            unsigned char utf8[10];
+            unsigned utf8_len = pcutils_unichar_to_utf8(uc, utf8);
+
+            if (purc_rwstream_write(rwstream, utf8, utf8_len) < utf8_len) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto failed;
+            }
+        }
+        else {
+            char buf[32];
+            int mylen = snprintf(buf, sizeof(buf), "&%s;", entity);
+            if (mylen > 0 &&
+                    purc_rwstream_write(rwstream, buf, mylen) < mylen) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto failed;
+            }
         }
 
         p = pcutils_utf8_next_char(p);
