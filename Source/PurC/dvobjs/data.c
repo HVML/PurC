@@ -2813,7 +2813,7 @@ fatal:
 }
 
 static purc_variant_t
-base64_encode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+base64_encoder(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -2863,7 +2863,7 @@ fatal:
 }
 
 static purc_variant_t
-base64_decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+base64_decoder(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -3805,8 +3805,9 @@ purc_variant_t purc_dvobj_data_new(void)
         { "sha1",       sha1_getter, NULL },
         { "bin2hex",    bin2hex_getter, NULL },
         { "hex2bin",    hex2bin_getter, NULL },
-        { "base64_encode",  base64_encode_getter, NULL },
-        { "base64_decode",  base64_decode_getter, NULL },
+        { "base64_encode",  base64_encoder, NULL },   /* XXX: obsolete */
+        { "base64_decode",  base64_decoder, NULL },   /* XXX: obsolete */
+        { "base64",         base64_encoder, base64_decoder },
         { "isdivisible",    isdivisible_getter, NULL },
         { "match_members",      match_members_getter, NULL },
         { "match_properties",   match_properties_getter, NULL },

@@ -3061,7 +3061,7 @@ static bool is_valid_entity(const char *p)
 }
 
 static purc_variant_t
-htmlentities_encode_getter(purc_variant_t root, size_t nr_args,
+htmlentities_getter(purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -3231,7 +3231,7 @@ static struct pcdvobjs_option_to_atom htmlentities_de_ckws[] = {
 };
 
 static purc_variant_t
-htmlentities_decode_getter(purc_variant_t root, size_t nr_args,
+htmlentities_setter(purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -3350,8 +3350,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "count_chars",count_chars_getter, NULL },
         { "count_bytes",count_bytes_getter, NULL },
         { "codepoints", codepoints_getter,  NULL },
-        { "htmlentities_encode", htmlentities_encode_getter,  NULL },
-        { "htmlentities_decode", htmlentities_decode_getter,  NULL },
+        { "htmlentities", htmlentities_getter,  htmlentities_setter },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

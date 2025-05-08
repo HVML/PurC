@@ -848,70 +848,70 @@ positive:
     'ａｂｃ'
 
 negative:
-    $STR.htmlentities_encode
+    $STR.htmlentities
     ArgumentMissed
 
 negative:
-    $STR.htmlentities_encode(null)
+    $STR.htmlentities(null)
     WrongDataType
 
 negative:
-    $STR.htmlentities_encode('', null)
+    $STR.htmlentities('', null)
     WrongDataType
 
 negative:
-    $STR.htmlentities_encode('', 'foo')
+    $STR.htmlentities('', 'foo')
     InvalidValue
 
 positive:
-    $STR.htmlentities_encode('')
+    $STR.htmlentities('')
     ''
 
 positive:
-    $STR.htmlentities_encode('normal text')
+    $STR.htmlentities('normal text')
     'normal text'
 
 positive:
-    $STR.htmlentities_encode('"')
+    $STR.htmlentities('"')
     '&quot;'
 
 positive:
-    $STR.htmlentities_encode('<foo>')
+    $STR.htmlentities('<foo>')
     '&lt;foo&gt;'
 
 positive:
-    $STR.htmlentities_encode('<foo name="bar">')
+    $STR.htmlentities('<foo name="bar">')
     '&lt;foo name=&quot;bar&quot;&gt;'
 
 positive:
-    $STR.htmlentities_encode('<foo name="bar &amp; foobar">')
+    $STR.htmlentities('<foo name="bar &amp; foobar">')
     '&lt;foo name=&quot;bar &amp;amp; foobar&quot;&gt;'
 
 positive:
-    $STR.htmlentities_encode('<foo name="bar &amp; foo\'bar">', 'double-quotes')
+    $STR.htmlentities('<foo name="bar &amp; foo\'bar">', 'double-quotes')
     '&lt;foo name=&quot;bar &amp; foo\'bar&quot;&gt;'
 
 negative:
-    $STR.htmlentities_decode
+    $STR.htmlentities(!)
     ArgumentMissed
 
 negative:
-    $STR.htmlentities_decode(null)
+    $STR.htmlentities(!null)
     WrongDataType
 
 negative:
-    $STR.htmlentities_decode('', null)
+    $STR.htmlentities(!'', null)
     WrongDataType
 
 negative:
-    $STR.htmlentities_decode('', 'foo')
+    $STR.htmlentities(!'', 'foo')
     InvalidValue
 
 positive:
-    $STR.htmlentities_decode('')
+    $STR.htmlentities(!'')
     ''
 
 positive:
-    $STR.htmlentities_decode('normal text')
+    $STR.htmlentities(!'normal text')
     'normal text'
 

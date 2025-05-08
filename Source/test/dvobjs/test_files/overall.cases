@@ -596,42 +596,42 @@ positive:
     $DATA.hex2bin('48564d4c')
     bx48564d4c
 
-# test cases for $DATA.base64_encode
+# test cases for $DATA.base64
 negative:
-    $DATA.base64_encode
+    $DATA.base64
     ArgumentMissed
 
 negative:
-    $DATA.base64_encode(false)
+    $DATA.base64(false)
     WrongDataType
 
 positive:
-    $DATA.base64_encode('HVML')
+    $DATA.base64('HVML')
     'SFZNTA=='
 
 positive:
-    $DATA.base64_encode(bx48564d4c)
+    $DATA.base64(bx48564d4c)
     'SFZNTA=='
 
 positive:
-    $DATA.base64_encode('HVML 是全球首款可编程标记语言')
+    $DATA.base64('HVML 是全球首款可编程标记语言')
     'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='
 
-# test cases for $DATA.base64_decode
+# test cases for $DATA.base64(! )
 negative:
-    $DATA.base64_decode
+    $DATA.base64(!)
     ArgumentMissed
 
 negative:
-    $DATA.base64_decode(false)
+    $DATA.base64(!false)
     WrongDataType
 
 positive:
-    $DATA.base64_decode('SFZNTA==')
+    $DATA.base64(!'SFZNTA==')
     bx48564d4c
 
 positive:
-    $DATA.fetchstr($DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
+    $DATA.fetchstr($DATA.base64(!'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
     'HVML 是全球首款可编程标记语言'
 
 # test cases for $DATA.pack
@@ -698,7 +698,7 @@ negative:
     []
 
 positive:
-    $DATA.unpack("utf8", $DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
+    $DATA.unpack("utf8", $DATA.base64(!'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
     'HVML 是全球首款可编程标记语言'
 
 positive:
