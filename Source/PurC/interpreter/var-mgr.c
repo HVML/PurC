@@ -416,6 +416,7 @@ _find_named_scope_var(purc_coroutine_t cor,
     }
 
     struct pcintr_stack_frame *parent = frame;
+    pcvdom_element_t last_elem = elem;
 
 again:
 
@@ -460,7 +461,10 @@ find_parent_vdom:
     purc_clr_error();
 
     elem = parent->pos;
-    goto again;
+    if (elem != last_elem) {
+        last_elem = elem;
+        goto again;
+    }
 
 out:
     purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);

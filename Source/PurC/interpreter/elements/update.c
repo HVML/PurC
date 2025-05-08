@@ -1548,10 +1548,14 @@ update_elem_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     pcdoc_operation_k op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
-        pcintr_util_new_content(stack->doc, target, op, s, 0,
-                template_data_type, true, is_no_return());
-        if (t)
+        size_t len = strlen(s);
+        if (len > 0) {
+            pcintr_util_new_content(stack->doc, target, op, s, 0,
+                    template_data_type, true, is_no_return());
+        }
+        if (t) {
             free(t);
+        }
 
         return 0;
     }
