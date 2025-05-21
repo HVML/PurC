@@ -279,7 +279,7 @@ find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
             break;
         }
 
-#if 1
+#if 0
         if (
                 (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
                                     p->tag_id == PCHVML_TAG_HVML)
