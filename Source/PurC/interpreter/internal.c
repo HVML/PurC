@@ -257,32 +257,85 @@ get_temp_by_level(struct pcintr_stack_frame *frame,
 
 static struct pcvdom_element *
 find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        uint64_t level)
+        uint64_t level, uint64_t *level_out)
 {
     /* avoid bind variable on the 'hvml' node of other vdom  */
     struct pcvdom_element *p = frame->pos;
+    assert(p);
+
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&p->node);
+    bool is_stack_vdom = (vdom == stack->vdom);
+
     for (; level > 0; level--) {
-        if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
-                || p->tag_id == PCHVML_TAG_HVML) {
+        if (p == NULL ||
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+            p = NULL;
             break;
         }
         p = pcvdom_element_parent(p);
+        if (!p) {
+            break;
+        }
+
+#if 1
+        if (
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+#else
+        if (p->tag_id == PCHVML_TAG_DEFINE ||
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+#endif
+            p = NULL;
+            break;
+        }
     }
 
-    if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
-                || p->tag_id == PCHVML_TAG_HVML) {
-
-        struct pcintr_stack_frame *parent =
-            pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+    uint64_t level_ret = level;
+    if (p == NULL) {
+        struct pcintr_stack_frame *parent = NULL;
+        parent = pcintr_stack_frame_get_parent(frame);
+        while (parent && parent->pos &&
+                (parent->pos->tag_id != PCHVML_TAG_EXECUTE) &&
+                (parent->pos->tag_id != PCHVML_TAG_CALL)
+                ) {
+            parent = pcintr_stack_frame_get_parent(parent);
+        }
 
         if (parent == NULL || parent->pos == NULL) {
             goto out;
         }
 
-        p = find_bind_position(stack, parent, level);
+        p = find_bind_position(stack, parent, level, &level_ret);
+    }
+
+    if (p == NULL) {
+        struct pcintr_stack_frame *parent = NULL;
+        parent = pcintr_stack_frame_get_parent(frame);
+        while (parent && parent->pos &&
+                parent->pos->tag_id != PCHVML_TAG_OBSERVE) {
+            parent = pcintr_stack_frame_get_parent(parent);
+        }
+
+        if (parent == NULL || parent->pos == NULL) {
+            goto out;
+        }
+
+        parent = pcintr_stack_frame_get_parent(parent);
+        level_ret--;
+        if (parent && parent->pos) {
+            p = find_bind_position(stack, parent, level_ret, NULL);
+        }
     }
 
 out:
+    if (level_out) {
+        *level_out = level;
+    }
     return p;
 }
 
@@ -302,7 +355,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_document_get_root(stack->vdom);
     }
     else {
-        p = find_bind_position(stack, frame, level);
+        p = find_bind_position(stack, frame, level, NULL);
     }
     purc_clr_error();
 
