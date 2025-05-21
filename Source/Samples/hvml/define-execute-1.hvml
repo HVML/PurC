@@ -1,0 +1,30 @@
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
+<hvml target="html">
+    <head>
+        <define as 'logMsg'>
+            <inherit>
+                $STREAM.stdout.writelines("## logMsg : $?")
+            </inherit>
+        </define>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 2000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <define as 'mainOgWithInit' at "_root">
+            <init as 'varInitInDefine' with 'var init in define on main body define' at "2"/>
+        </define>
+
+        <div id="idFirstLevel">
+            <div id="idSecondLevel">
+                <define as "dfModule" from "hvml/define-execute-module.hvml" />
+                <execute with $dfModule />
+            </div>
+        </div>
+    </body>
+
+</hvml>
