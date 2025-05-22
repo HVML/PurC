@@ -362,6 +362,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
     return true;
 }
 
+#if 0
 static purc_variant_t
 _find_named_scope_var_in_vdom(purc_coroutine_t cor,
         pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
@@ -470,6 +471,75 @@ out:
     purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
+
+#else
+
+static purc_variant_t
+_find_named_var_in_vdom(purc_coroutine_t cor,
+        pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&elem->node);
+    bool is_stack_vdom = (vdom == cor->stack.vdom);
+
+    while (elem) {
+        v = pcintr_get_scope_variable(cor, elem, name);
+        if (v) {
+            if (mgr) {
+                *mgr = pcintr_get_scope_variables(cor, elem);
+            }
+            goto out;
+        }
+
+        elem = pcvdom_element_parent(elem);
+        if (!elem) {
+            goto out_not_found;
+        }
+
+        if (elem->tag_id == PCHVML_TAG_DEFINE ||
+                (!is_stack_vdom && (elem->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    elem->tag_id == PCHVML_TAG_HVML))
+                ) {
+            goto out_not_found;
+        }
+    }
+
+out_not_found:
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT,
+            name);
+out:
+    return v;
+}
+
+static purc_variant_t
+_find_named_scope_var(purc_coroutine_t cor,
+        struct pcintr_stack_frame *frame, const char* name, pcvarmgr_t* mgr)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    pcvdom_element_t elem = frame->pos;
+    v = _find_named_var_in_vdom(cor, elem, name, mgr);
+    if (v) {
+        goto out;
+    }
+
+    struct pcintr_stack_frame *parent = NULL;
+    parent = pcintr_stack_frame_get_parent(frame);
+    while (parent && parent->pos &&
+            (parent->pos->tag_id != PCHVML_TAG_EXECUTE) &&
+            (parent->pos->tag_id != PCHVML_TAG_CALL) &&
+            (parent->pos->tag_id != PCHVML_TAG_OBSERVE)
+            ) {
+        parent = pcintr_stack_frame_get_parent(parent);
+    }
+
+    if (parent && parent->pos) {
+        v = _find_named_scope_var(cor, parent, name, mgr);
+    }
+
+out:
+    return v;
+}
+#endif
 
 static purc_variant_t
 _find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,

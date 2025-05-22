@@ -8,7 +8,7 @@
 
     <body>
         <init as="hello">
-            "world"
+            "if you see this, that means the interpreter is ill-implemented!!!"
         </init>
         <archetype name="bar">
             <li>$hello</li>
@@ -18,7 +18,7 @@
         </define>
         <div>
             <init as="hello">
-                "if you see this, that means the interpreter is ill-implemented!!!"
+                "world"
             </init>
             <call on="$updating" with="can you see me?" concurrently>
                 <update on="$@" to="append" with = "$?"/>
