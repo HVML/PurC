@@ -522,7 +522,7 @@ _find_named_scope_var(purc_coroutine_t cor,
         goto out;
     }
 
-    struct pcintr_stack_frame *parent = NULL;
+    struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     while (parent && parent->pos &&
             (parent->pos->tag_id != PCHVML_TAG_EXECUTE) &&
@@ -534,6 +534,34 @@ _find_named_scope_var(purc_coroutine_t cor,
 
     if (parent && parent->pos) {
         v = _find_named_scope_var(cor, parent, name, mgr);
+        if (v) {
+            goto out;
+        }
+
+        if (parent->pos->tag_id == PCHVML_TAG_OBSERVE) {
+            parent = pcintr_stack_frame_get_parent(parent);
+            if (parent && parent->pos) {
+                if (parent->pos->tag_id == PCHVML_TAG_HVML) {
+                    struct pcvdom_element *body = NULL;
+                    struct pcvdom_element *child =
+                        pcvdom_element_first_child_element(parent->pos);
+                    while(child) {
+                        if (child->tag_id == PCHVML_TAG_BODY) {
+                            body = child;
+                            break;
+                        }
+                        child = pcvdom_element_next_sibling_element(child);
+                    }
+                    if (body) {
+                        v = _find_named_var_in_vdom(cor, body, name, mgr);
+                        if (v) {
+                            goto out;
+                        }
+                    }
+                }
+                v = _find_named_scope_var(cor, parent, name, mgr);
+            }
+        }
     }
 
 out:
