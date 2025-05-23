@@ -51,6 +51,11 @@
 
 #define USE_REQUEST_ID_AS_CRTN_OBSERVED     1
 
+#define ERR_FMT_BIND_VAR_NOT_FOUND   \
+    "EntityNotFound: Target position not found for bind `%s`"
+#define ERR_FMT_VAR_NOT_FOUND        \
+    "EntityNotFound: Not found var `%s`"
+
 
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
@@ -372,7 +377,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return bind_at_element(stack->co, p, name, val, mgr);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_BIND_VAR_NOT_FOUND, name);
     return -1;
 }
 
@@ -415,7 +420,7 @@ get_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return get_from_element(stack->co, p, name);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_VAR_NOT_FOUND, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -480,7 +485,7 @@ bind_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     if (dest_frame == NULL) {
         if (!frame->silently) {
             purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                    "no vdom element exists");
+                    ERR_FMT_BIND_VAR_NOT_FOUND, name);
             return -1;
         }
 
@@ -511,7 +516,7 @@ get_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     if (dest_frame == NULL) {
         if (!frame->silently) {
             purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                    "no vdom element exists");
+                    ERR_FMT_VAR_NOT_FOUND, name);
             return PURC_VARIANT_INVALID;
         }
 
@@ -559,7 +564,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_BIND_VAR_NOT_FOUND, name);
     return -1;
 }
 
@@ -591,7 +596,7 @@ get_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_VAR_NOT_FOUND, name);
     return PURC_VARIANT_INVALID;
 }
 
