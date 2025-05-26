@@ -301,10 +301,9 @@ purc_get_app_icon_url(const char *display_density, const char *locale)
     }
     else {
         const char *file = purc_variant_get_string_const(v);
-        assert(file);
 
         char *strp = NULL;
-        if (file[0]) {
+        if (file && file[0]) {
             struct pcinst* inst = pcinst_current();
             assert(inst);
 
