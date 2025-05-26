@@ -46,6 +46,7 @@
 #define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 #define TIME_SLIECE             0.005           // s
+#define FULL_SPEED_TIME_SLIECE  0.010           // s
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
@@ -642,7 +643,9 @@ execute_one_step(struct pcinst *inst)
                 break;
             }
             double diff = purc_get_elapsed_seconds(&begin, NULL);
-            if (diff > TIME_SLIECE) {
+            float slice = (co->stage == CO_STAGE_FIRST_RUN) ?
+                FULL_SPEED_TIME_SLIECE : TIME_SLIECE;
+            if (diff > slice) {
                 break;
             }
         }
