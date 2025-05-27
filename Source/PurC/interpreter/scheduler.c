@@ -951,10 +951,23 @@ again:
     }
 
     // 5. broadcast idle event
-    double now = pcintr_get_current_time();
-    if (now - IDLE_EVENT_TIMEOUT > heap->timestamp) {
-        broadcast_idle_event(inst);
-        pcintr_update_timestamp(inst);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    bool have_first_run_co = false;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        if (co->stage == CO_STAGE_FIRST_RUN) {
+            have_first_run_co = true;
+            break;
+        }
+    }
+
+    if (!have_first_run_co) {
+        double now = pcintr_get_current_time();
+        if (now - IDLE_EVENT_TIMEOUT > heap->timestamp) {
+            broadcast_idle_event(inst);
+            pcintr_update_timestamp(inst);
+        }
     }
 
 out_sleep:
