@@ -108,7 +108,7 @@ int pcfetcher_local_term(struct pcfetcher* fetcher)
     return 0;
 }
 
-#define ASYNC_DELAY         0.05
+#define ASYNC_DELAY         0.01
 #define ASYNC_BUF_SIZE      4096
 
 purc_variant_t pcfetcher_local_request_async(
