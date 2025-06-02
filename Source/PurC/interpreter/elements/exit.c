@@ -156,6 +156,24 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
     else {
         with = purc_variant_ref(ctxt->with);
+        int r = pcintr_set_question_var(frame, ctxt->with);
+        if (r) {
+            return NULL;
+        }
+
+        if (purc_variant_is_object(ctxt->with)) {
+            purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+            purc_variant_t k, v;
+            foreach_key_value_in_variant_object(ctxt->with, k, v)
+                const char *key = purc_variant_get_string_const(k);
+            if (pcintr_is_variable_token(key)) {
+                bool ok = purc_variant_object_set(exclamation, k, v);
+                if (!ok) {
+                    return NULL;
+                }
+            }
+            end_foreach;
+        }
     }
 
     pcintr_set_exit(with);
