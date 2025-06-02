@@ -1066,8 +1066,7 @@ dump_stack_frame(pcintr_stack_t stack,
     pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
 
     if (frame->pos) {
-        snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
-        purc_rwstream_write(stm, buf, strlen(buf));
+        purc_rwstream_write(stm, "  ATTRIBUTES:\n", 14);
 
         pcutils_array_t *attrs = frame->pos->attrs;
         struct pcvdom_attr *attr = NULL;
@@ -1077,25 +1076,30 @@ dump_stack_frame(pcintr_stack_t stack,
             if (dump_vcm_ctxt && ((size_t)stack->vcm_eval_pos == i)) {
                 int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
                 purc_atom_t atom = purc_get_error_exception(err);
-                snprintf(buf, DUMP_BUF_SIZE,
-                        "    %s: `%s` raised when evaluating the expression.\n",
-                        attr->key, purc_atom_to_string(atom));
-                purc_rwstream_write(stm, buf, strlen(buf));
-                pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true);
+                purc_rwstream_write(stm, "    ", 4);
+                purc_rwstream_write(stm, attr->key, strlen(attr->key));
+                purc_rwstream_write(stm, ": `", 3);
+                const char *atom_str = purc_atom_to_string(atom);
+                purc_rwstream_write(stm, atom_str, strlen(atom_str));
+                purc_rwstream_write(stm, "` raised when evaluating the expression.\n", 41);
+                pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true, false);
             }
             else {
                 purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
                 if (val) {
                     char *val_buf = pcvariant_to_string(val);
-                    snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key,
-                            val_buf);
+                    purc_rwstream_write(stm, "    ", 4);
+                    purc_rwstream_write(stm, attr->key, strlen(attr->key));
+                    purc_rwstream_write(stm, " : ", 3);
+                    purc_rwstream_write(stm, val_buf, strlen(val_buf));
+                    purc_rwstream_write(stm, "\n", 1);
                     free(val_buf);
                 }
                 else {
-                    snprintf(buf, DUMP_BUF_SIZE, "    %s: <not evaluated>\n",
-                            attr->key);
+                    purc_rwstream_write(stm, "    ", 4);
+                    purc_rwstream_write(stm, attr->key, strlen(attr->key));
+                    purc_rwstream_write(stm, ": <not evaluated>\n", 17);
                 }
-                purc_rwstream_write(stm, buf, strlen(buf));
             }
 
         }
@@ -1106,35 +1110,32 @@ dump_stack_frame(pcintr_stack_t stack,
         if (dump_vcm_ctxt && stack->vcm_eval_pos == -1) {
             int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
             purc_atom_t atom = purc_get_error_exception(err);
-            snprintf(buf, DUMP_BUF_SIZE,
-                    "  CONTENT: `%s` raised when evaluating the expression.\n",
-                    purc_atom_to_string(atom));
-            purc_rwstream_write(stm, buf, strlen(buf));
-            pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true);
+            purc_rwstream_write(stm, "  CONTENT: `", 12);
+            const char *atom_str = purc_atom_to_string(atom);
+            purc_rwstream_write(stm, atom_str, strlen(atom_str));
+            purc_rwstream_write(stm, "` raised when evaluating the expression.\n", 41);
+            pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true, false);
         }
         else {
             purc_variant_t val = pcintr_get_symbol_var(frame,
                     PURC_SYMBOL_VAR_CARET);
             if (val) {
                 char *val_buf = pcvariant_to_string(val);
-                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: %s\n", val_buf);
+                purc_rwstream_write(stm, "  CONTENT: ", 11);
+                purc_rwstream_write(stm, val_buf, strlen(val_buf));
+                purc_rwstream_write(stm, "\n", 1);
                 free(val_buf);
             }
             else {
-                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
+                purc_rwstream_write(stm, "  CONTENT: undefined\n", 21);
             }
-            purc_rwstream_write(stm, buf, strlen(buf));
         }
     }
     else {
-        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
-        purc_rwstream_write(stm, buf, strlen(buf));
+        purc_rwstream_write(stm, "  CONTENT: undefined\n", 21);
     }
 
-
-
-    snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
-    purc_rwstream_write(stm, buf, strlen(buf));
+    purc_rwstream_write(stm, "  CONTEXT VARIABLES:\n", 21);
 
     serial_symbol_vars("    < ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
     serial_symbol_vars("    @ ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);

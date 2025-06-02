@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -362,7 +363,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 
 int
 pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
-        int indent, bool ignore_prefix)
+        int indent, bool ignore_prefix, bool print_exception)
 {
     char buf[DUMP_BUF_SIZE];
     size_t len;
@@ -426,7 +427,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
     }
 
     int err = ctxt->err;
-    if (err) {
+    if (err && print_exception) {
         print_indent(rws, indent, NULL);
         purc_atom_t except = purc_get_error_exception(err);
         const char *msg = purc_atom_to_string(except);
@@ -465,7 +466,7 @@ void
 pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
 {
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
-    pcvcm_dump_stack(ctxt, rws, 0, false);
+    pcvcm_dump_stack(ctxt, rws, 0, false, true);
 
     char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
     PC_DEBUG("\n%s\n", buf);

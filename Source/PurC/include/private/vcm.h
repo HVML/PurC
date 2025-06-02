@@ -321,7 +321,7 @@ pcvcm_eval_ctxt_error_code(struct pcvcm_eval_ctxt *ctxt);
 
 int
 pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
-        int indent, bool ignore_prefix);
+        int indent, bool ignore_prefix, bool print_exception);
 
 purc_variant_t
 pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
