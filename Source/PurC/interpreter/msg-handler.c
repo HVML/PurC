@@ -498,6 +498,22 @@ on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
+    else if (strcmp(event, MSG_SUB_TYPE_PAGE_ACTIVATED) == 0) {
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_ACTIVATED,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+    else if (strcmp(event, MSG_SUB_TYPE_PAGE_DEACTIVATED) == 0) {
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_DEACTIVATED,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
 }
 
 static void

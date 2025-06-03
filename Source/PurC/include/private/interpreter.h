@@ -81,6 +81,8 @@
 #define MSG_SUB_TYPE_PAGE_SUPPRESSED  "pageSuppressed"
 #define MSG_SUB_TYPE_PAGE_RELOADED    "pageReloaded"
 #define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
+#define MSG_SUB_TYPE_PAGE_ACTIVATED   "pageActivated"
+#define MSG_SUB_TYPE_PAGE_DEACTIVATED "pageDeactivated"
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
