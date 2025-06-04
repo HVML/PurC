@@ -350,12 +350,13 @@ String pcfetcher_build_uri(const char *base_url,  const char *url)
     }
 
     size_t nr = strlen(url);
-    char buf[PATH_MAX + nr + 2];
+    char *buf = NULL;
 
     PurCWTF::URL uri(URL(), base_url);
     if (uri.isLocalFile() && uri.host().isEmpty() && (uri.path() == "/") &&
             u.protocol().isEmpty() && url[0] != '/') {
-        if (getcwd(buf, sizeof(buf)) != NULL) {
+        buf = (char *)calloc(1, PATH_MAX + nr + 2);
+        if (getcwd(buf, PATH_MAX) != NULL) {
             strcat(buf, "/");
             strcat(buf, url);
             url = buf;
@@ -381,6 +382,9 @@ String pcfetcher_build_uri(const char *base_url,  const char *url)
         result.append(url);
     }
 
+    if (buf) {
+        free(buf);
+    }
     return result;
 }
 
