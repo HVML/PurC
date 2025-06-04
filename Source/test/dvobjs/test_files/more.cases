@@ -915,3 +915,63 @@ positive:
     $STR.htmlentities(!'normal text')
     'normal text'
 
+# The following test cases are generated with aid from AI
+negative:
+    $STR.split()
+    ArgumentMissed
+
+negative:
+    $STR.split(null)
+    WrongDataType
+
+negative:
+    $STR.split('', null)
+    WrongDataType
+
+negative:
+    $STR.split('', 0)
+    InvalidValue
+
+negative:
+    $STR.split('', -1)
+    InvalidValue
+
+positive:
+    $STR.split('')
+    []
+
+positive:
+    $STR.split('abc')
+    ['a', 'b', 'c']
+
+positive:
+    $STR.split('abc', 2)
+    ['ab', 'c']
+
+positive:
+    $STR.split('abcd', 2)
+    ['ab', 'cd']
+
+positive:
+    $STR.split('中国人民', 2)
+    ['中国', '人民']
+
+positive:
+    $STR.split('中国人民共和国', 3)
+    ['中国人', '民共和', '国']
+
+positive:
+    $STR.split('中国人民共和国', 4)
+    ['中国人民', '共和国']
+
+positive:
+    $STR.split('中国人民共和国', 5)
+    ['中国人民共', '和国']
+
+positive:
+    $STR.split('中国人民共和国', 7)
+    ['中国人民共和国']
+
+positive:
+    $STR.split('中国人民共和国', 8)
+    ['中国人民共和国']

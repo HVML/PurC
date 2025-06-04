@@ -2193,6 +2193,116 @@ error:
 }
 
 /*
+$STR.split(
+        <string $string: `The original string to split.`>
+        [, <real $length = 1: `The length of one substring.`> ]
+) array | false
+ */
+ // This function is written with aid from AI.
+ static purc_variant_t
+ split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+         unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    const char *str;
+    size_t len;
+    str = purc_variant_get_string_const_ex(argv[0], &len);
+    if (str == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    // Get substring length
+    int64_t substr_len;
+    if (nr_args > 1 &&
+            !purc_variant_cast_to_longint(argv[1], &substr_len, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+    else if (nr_args == 1)
+        substr_len = 1; // Default length is 1
+
+    // Check length validity
+    if (substr_len <= 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    // Create return array
+    retv = purc_variant_make_array_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Handle empty string
+    if (len == 0) {
+        return retv;
+    }
+
+    // Split string by UTF-8 characters
+    const char *curr = str;
+    size_t remaining_chars = pcutils_string_utf8_chars(str, len);
+    size_t remaining_bytes = len;
+
+    while (remaining_chars > 0) {
+        // Calculate number of characters for current substring
+        size_t chunk_chars = (remaining_chars < (size_t)substr_len) ? 
+                            remaining_chars : (size_t)substr_len;
+        
+        // Calculate byte length for these characters
+        const char *chunk_end = curr;
+        size_t actual_chars = 0;
+        size_t chunk_bytes = 0;
+        
+        while (actual_chars < chunk_chars && chunk_bytes < remaining_bytes) {
+            const char *next = pcutils_utf8_next_char(chunk_end);
+            chunk_bytes = next - curr;
+            chunk_end = next;
+            actual_chars++;
+        }
+
+        // Create substring and append to return array
+        purc_variant_t item = purc_variant_make_string_ex(curr, chunk_bytes, false);
+        if (!purc_variant_array_append(retv, item)) {
+            purc_variant_unref(item);
+            goto error;
+        }
+        purc_variant_unref(item);
+
+        curr = chunk_end;
+        remaining_chars -= actual_chars;
+        remaining_bytes -= chunk_bytes;
+    }
+
+    return retv;
+
+error:
+    if (retv) {
+        purc_variant_unref(retv);
+    }
+
+    if (ec) {
+        purc_set_error(ec);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.trim(
     <string $string: `The orignal string to trim.`>
     [, <string $characters = " \n\r\t\v\f": `The characters to trim from
@@ -3345,6 +3455,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "strstr",     strstr_getter,      NULL },
         { "strpos",     strpos_getter,      NULL },
         { "strpbrk",    strpbrk_getter,     NULL },
+        { "split",      split_getter,       NULL },
         { "trim",       trim_getter,        NULL },
         { "rot13",      rot13_getter,       NULL },
         { "count_chars",count_chars_getter, NULL },
