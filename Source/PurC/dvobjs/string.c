@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-errors.h"
 #define _GNU_SOURCE
 #include "config.h"
 
@@ -2536,11 +2537,199 @@ error:
 }
 
 /*
+$STR.pad(
+    <string $string: `The original string.`>,
+    <real $length: `The length of the new string after padded.`>,
+    [, <string $pad_string = " ": `The string use to pad.`>,
+        [, <'left | right | both' $pad_type = 'right': `The padding position.`> ]
+    ]
+) string | false
+*/
+enum {
+    PAD_RIGHT,
+    PAD_LEFT, 
+    PAD_BOTH
+};
+
+static struct pcdvobjs_option_to_atom pad_type_skws[] = {
+    { "right",  0,  PAD_RIGHT },
+    { "left",   0,  PAD_LEFT },
+    { "both",   0,  PAD_BOTH },
+};
+
+static purc_variant_t
+pad_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_rwstream_t rwstream = NULL;
+
+    // Check number of arguments
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    // Get original string
+    const char* str;
+    size_t str_len;
+    if ((str = purc_variant_get_string_const_ex(argv[0], &str_len)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+    // Get the number of characters in the original string
+    size_t str_chars;
+    if (!purc_variant_string_chars(argv[0], &str_chars)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    // Get the target number of characters
+    int64_t tmp_i64;
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_i64, FALSE)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (tmp_i64 < 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    size_t target_chars = (size_t)tmp_i64;
+    // If target length is less than or equal to original length, return original string
+    if (target_chars <= str_chars) {
+        return purc_variant_ref(argv[0]);
+    }
+
+    // Get padding string, default is space
+    const char* pad_str = " ";
+    size_t pad_str_len = 1;
+    size_t pad_str_chars = 1;
+    if (nr_args > 2) {
+        if ((pad_str = purc_variant_get_string_const_ex(argv[2], &pad_str_len)) == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+        if (pad_str_len == 0) {
+            pad_str = " ";
+            pad_str_len = 1;
+            pad_str_chars = 1;
+        }
+        else {
+            // Calculate number of characters in padding string
+            if (!pcutils_string_check_utf8(pad_str, pad_str_len, &pad_str_chars, NULL)) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+            if (pad_str_chars == 0) {
+                pad_str = " ";
+                pad_str_len = 1;
+                pad_str_chars = 1;
+            }
+        }
+    }
+
+    // Get padding type
+    if (pad_type_skws[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(pad_type_skws); i++) {
+            pad_type_skws[i].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, pad_type_skws[i].option);
+        }
+    }
+
+    int pad_type = pcdvobjs_parse_options(
+            nr_args > 3 ? argv[3] : PURC_VARIANT_INVALID,
+            pad_type_skws, PCA_TABLESIZE(pad_type_skws), NULL, 0, PAD_RIGHT, -1);
+    if (pad_type == -1) {
+        goto error;
+    }
+
+    // Create output stream
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Calculate number of characters to pad
+    size_t pad_chars = target_chars - str_chars;
+    size_t left_pad = 0, right_pad = 0;
+
+    // Calculate left and right padding based on padding type
+    switch (pad_type) {
+        case PAD_LEFT:
+            left_pad = pad_chars;
+            break;
+        case PAD_RIGHT:
+            right_pad = pad_chars;
+            break;
+        case PAD_BOTH:
+            left_pad = pad_chars / 2;
+            right_pad = pad_chars - left_pad;
+            break;
+    }
+
+    // Write left padding characters
+    const char *p = pad_str;
+    for (size_t i = 0; i < left_pad; i += pad_str_chars) {
+        if (purc_rwstream_write(rwstream, p, pad_str_len) < (ssize_t)pad_str_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+    }
+
+    // Write original string
+    ssize_t written = purc_rwstream_write(rwstream, str, str_len);
+    if (written < 0 || (size_t)written < str_len) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Write right padding characters
+    for (size_t i = 0; i < right_pad; i += pad_str_chars) {
+        if (purc_rwstream_write(rwstream, p, pad_str_len) < (ssize_t)pad_str_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+    }
+
+    // Write terminator
+    if (purc_rwstream_write(rwstream, "", 1) < 1) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Get result
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+error:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.rot13(
         <string $string: `The string to convert.`>
 ) string
  */
-
 static purc_variant_t
 rot13_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3457,6 +3646,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "strpbrk",    strpbrk_getter,     NULL },
         { "split",      split_getter,       NULL },
         { "trim",       trim_getter,        NULL },
+        {"pad",         pad_getter,         NULL },
         { "rot13",      rot13_getter,       NULL },
         { "count_chars",count_chars_getter, NULL },
         { "count_bytes",count_bytes_getter, NULL },

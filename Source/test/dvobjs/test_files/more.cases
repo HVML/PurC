@@ -975,3 +975,87 @@ positive:
 positive:
     $STR.split('中国人民共和国', 8)
     ['中国人民共和国']
+
+negative:
+    $STR.pad()
+    ArgumentMissed
+
+negative:
+    $STR.pad(null)
+    ArgumentMissed
+
+negative:
+    $STR.pad('', null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, '', null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, '', 'invalid')
+    InvalidValue
+
+negative:
+    $STR.pad('test', -1)
+    InvalidValue
+
+positive:
+    $STR.pad('', 0)
+    ''
+
+positive:
+    $STR.pad('test', 8)
+    'test    '
+
+positive:
+    $STR.pad('test', 8, '*')
+    'test****'
+
+positive:
+    $STR.pad('test', 8, '*', 'left')
+    '****test'
+
+positive:
+    $STR.pad('test', 8, '*', 'both')
+    '**test**'
+
+positive:
+    $STR.pad('测试', 6)
+    '测试    '
+
+positive:
+    $STR.pad('测试', 6, '中')
+    '测试中中中中'
+
+positive:
+    $STR.pad('测试', 6, '中', 'left')
+    '中中中中测试'
+
+positive:
+    $STR.pad('测试', 6, '中', 'both')
+    '中中测试中中'
+
+positive:
+    $STR.pad('test', 8, 'ab')
+    'testabab'
+
+positive:
+    $STR.pad('test', 8, 'ab', 'left')
+    'ababtest'
+
+positive:
+    $STR.pad('test', 8, 'ab', 'both')
+    'abtestab'
+
+positive:
+    $STR.pad('test', 4)
+    'test'
+
+positive:
+    $STR.pad('test', 3)
+    'test'
