@@ -22,6 +22,7 @@
 
 #include <glib.h>
 
+#include <openssl/core_dispatch.h>
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
@@ -183,5 +184,98 @@ TEST(test_transition_styles, transition_style)
         ASSERT_EQ(ret, positive_cases[i].ret);
         ASSERT_EQ(transition.move_func, positive_cases[i].move_func);
         ASSERT_EQ(transition.move_duration, positive_cases[i].move_duration);
+    }
+}
+
+// This test is written with aid from ChatGPT.
+TEST(test_url_encode_decode, url_encode_decode)
+{
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    // Test case structure
+    struct test_case {
+        const char* raw;          // Original string
+        const char* encoded;      // Expected encoded result
+        bool rfc1738;             // Whether to use RFC1738 encoding
+    };
+
+    // URL encoding test cases
+    static struct test_case encode_cases[] = {
+        // RFC 1738 test cases (using + to replace spaces)
+        {"Hello World", "Hello+World", true},
+        {"file name with spaces", "file+name+with+spaces", true},
+        {"!@#$%^&*()_+", "%21%40%23%24%25%5E%26%2A%28%29_%2B", true},
+        {"你好世界", "%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C", true},
+        {"中文 测试", "%E4%B8%AD%E6%96%87+%E6%B5%8B%E8%AF%95", true},
+
+        // RFC 3986 test cases (using %20 to replace spaces)
+        {"Hello World", "Hello%20World", false},
+        {"file name with spaces", "file%20name%20with%20spaces", false},
+        {"!@#$%^&*()_+", "%21%40%23%24%25%5E%26%2A%28%29_%2B", false},
+        {"你好世界", "%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C", false},
+        {"中文 测试", "%E4%B8%AD%E6%96%87%20%E6%B5%8B%E8%AF%95", false},
+
+        // General test cases (cases where both encoding methods produce the same result)
+        {"http://example.com/path?key=value", 
+         "http%3A%2F%2Fexample.com%2Fpath%3Fkey%3Dvalue", true},
+        {"path/to/resource", "path%2Fto%2Fresource", true},
+        {"Hello你好123", "Hello%E4%BD%A0%E5%A5%BD123", true},
+        {"测试@example.com", "%E6%B5%8B%E8%AF%95%40example.com", true},
+        {"文件名.txt", "%E6%96%87%E4%BB%B6%E5%90%8D.txt", true}
+    };
+
+    // Test URL encoding
+    for (size_t i = 0; i < sizeof(encode_cases)/sizeof(encode_cases[0]); i++) {
+        char* encoded = purc_url_encode_alloc(encode_cases[i].raw, 
+                encode_cases[i].rfc1738);
+        ASSERT_NE(encoded, nullptr);
+        ASSERT_STREQ(encoded, encode_cases[i].encoded);
+        free(encoded);
+    }
+
+    // URL decoding test cases
+    static struct test_case decode_cases[] = {
+        // RFC 1738 decoding tests
+        {"Hello World", "Hello+World", true},
+        {"file name with spaces", "file+name+with+spaces", true},
+        {"中文 测试", "%E4%B8%AD%E6%96%87+%E6%B5%8B%E8%AF%95", true},
+
+        // RFC 3986 decoding tests
+        {"Hello World", "Hello%20World", false},
+        {"file name with spaces", "file%20name%20with%20spaces", false},
+        {"中文 测试", "%E4%B8%AD%E6%96%87%20%E6%B5%8B%E8%AF%95", false},        
+        {"Hello 你好", "Hello%20%E4%BD%A0%E5%A5%BD", false},
+        {"Hello 你好", "Hello+%E4%BD%A0%E5%A5%BD", true},
+        {"测试/test", "%E6%B5%8B%E8%AF%95%2Ftest", false}
+    };
+
+    // Test URL decoding
+    for (size_t i = 0; i < sizeof(decode_cases)/sizeof(decode_cases[0]); i++) {
+        char* decoded = purc_url_decode_alloc(decode_cases[i].encoded, 
+                decode_cases[i].rfc1738);
+        ASSERT_NE(decoded, nullptr);
+        ASSERT_STREQ(decoded, decode_cases[i].raw);
+        free(decoded);
+    }
+
+    // Error encoding test cases
+    static struct error_test_case {
+        const char* input;        // Input with invalid encoding
+        const char* expected;     // Expected decoded result
+    } error_cases[] = {
+        {"%Xbc", ""},            // Invalid hexadecimal character
+        {"hello%", "hello"},     // Incomplete percent encoding
+        {"test%2", "test"},      // Incomplete percent encoding
+        {"abc%XXdef", "abc"},    // Invalid hexadecimal character
+        {"123%2G45", "123"},     // Invalid hexadecimal character
+        {"%e6%ad%a3%e5%b8%b8%XX%e9%94%99%e8%af%af", "正常"},   // Test with Chinese characters and invalid encoding
+    };
+
+    // Test handling of error encodings
+    for (size_t i = 0; i < sizeof(error_cases)/sizeof(error_cases[0]); i++) {
+        char* decoded = purc_url_decode_alloc(error_cases[i].input, true);
+        ASSERT_NE(decoded, nullptr);
+        ASSERT_STREQ(decoded, error_cases[i].expected);
+        free(decoded);
     }
 }
