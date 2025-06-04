@@ -2588,7 +2588,7 @@ pad_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // Get the target number of characters
     int64_t tmp_i64;
-    if (!purc_variant_cast_to_longint(argv[1], &tmp_i64, FALSE)) {
+    if (!purc_variant_cast_to_longint(argv[1], &tmp_i64, false)) {
         ec = PURC_ERROR_WRONG_DATA_TYPE;
         goto error;
     }
