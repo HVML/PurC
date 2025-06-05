@@ -112,7 +112,8 @@ int pcdvobj_url_encode(struct pcutils_mystring *mystr,
             len = 1;
         }
         else if (purc_isalnum(bytes[i]) ||
-                bytes[i] == '-' || bytes[i] == '_' || bytes[i] == '.') {
+                bytes[i] == '-' || bytes[i] == '_' || bytes[i] == '.' ||
+                (rfc == PURC_K_KW_rfc3986 && bytes[i] == '~')) {
             encoded[0] = bytes[i];
             len = 1;
         }
@@ -141,7 +142,8 @@ int pcdvobj_url_decode(struct pcutils_mystring *mystr,
             decoded = ' ';
         }
         else if (purc_isalnum(*string) ||
-                *string == '-' || *string == '_' || *string == '.') {
+                *string == '-' || *string == '_' || *string == '.' ||
+                (rfc == PURC_K_KW_rfc3986 && *string == '~')) {
             decoded = (unsigned char)*string;
         }
         else {
