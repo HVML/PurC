@@ -824,8 +824,8 @@ positive:
     'bc'
 
 positive:
-    $STR.strpbrk('abc', 'b')
-    'bc'
+    $STR.strpbrk('abc', 'ab')
+    'abc'
 
 positive:
     $STR.strpbrk('abc', 'B', true)
@@ -838,6 +838,10 @@ positive:
 positive:
     $STR.strpbrk('中国', '国')
     '国'
+
+positive:
+    $STR.strpbrk('中华人民共和国', '华国')
+    '华人民共和国'
 
 positive:
     $STR.strpbrk('ａｂｃ', 'ｃ')
