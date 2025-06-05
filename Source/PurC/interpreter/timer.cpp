@@ -383,23 +383,23 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
     purc_coroutine_t cor = (purc_coroutine_t)ctxt;
     struct pcvar_listener *listener = NULL;
 
-    pcintr_timer_t timer = get_inner_timer(cor, argv[0]);
+    pcintr_timer_t timer = get_inner_timer(cor, argv[1]);
     if (!timer) {
         return false;
     }
 
-    purc_variant_t interval = purc_variant_object_get_by_ckey_ex(argv[0],
+    purc_variant_t interval = purc_variant_object_get_by_ckey_ex(argv[1],
             TIMERS_STR_INTERVAL, true);
-    purc_variant_t active = purc_variant_object_get_by_ckey_ex(argv[0],
+    purc_variant_t active = purc_variant_object_get_by_ckey_ex(argv[1],
             TIMERS_STR_ACTIVE, true);
     // TODO: check validation of interval and active here.
 
-    listener = purc_variant_register_post_listener(argv[0],
+    listener = purc_variant_register_post_listener(argv[1],
             PCVAR_OPERATION_MODIFIED, timer_listener_handler, timer);
     if (!listener) {
         return false;
     }
-    listener_map_set_listener(cor->timers->listener_map, argv[0], listener);
+    listener_map_set_listener(cor->timers->listener_map, argv[1], listener);
 
     uint64_t ret = 0;
     purc_variant_cast_to_ulongint(interval, &ret, false);
@@ -420,8 +420,8 @@ timers_set_shrink(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(ctxt);
 
     purc_coroutine_t cor = (purc_coroutine_t)ctxt;
-    listener_map_remove_listener(cor->timers->listener_map, argv[0]);
-    destroy_inner_timer(cor, argv[0]);
+    listener_map_remove_listener(cor->timers->listener_map, argv[1]);
+    destroy_inner_timer(cor, argv[1]);
     return true;
 }
 
@@ -437,13 +437,13 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
     purc_coroutine_t cor = (purc_coroutine_t)ctxt;
     struct pcvar_listener *listener = NULL;
 
-    purc_variant_t nv = argv[1];
+    purc_variant_t nv = argv[2];
     pcintr_timer_t timer = get_inner_timer(cor, nv);
     if (!timer) {
         return false;
     }
 
-    listener_map_remove_listener(cor->timers->listener_map, argv[0]);
+    listener_map_remove_listener(cor->timers->listener_map, argv[1]);
     listener = purc_variant_register_post_listener(nv,
             PCVAR_OPERATION_MODIFIED, timer_listener_handler, timer);
     if (!listener) {
@@ -522,7 +522,7 @@ timers_set_pre_grow(purc_variant_t source, pcvar_op_t msg_type,
     purc_coroutine_t cor = (purc_coroutine_t) ctxt;
     bool silently = pcintr_is_current_silently(&cor->stack);
 
-    purc_variant_t timer_var = argv[0];
+    purc_variant_t timer_var = argv[1];
 
     /* verify id */
     v = purc_variant_object_get_by_ckey_ex(timer_var, TIMERS_STR_ID, true);
