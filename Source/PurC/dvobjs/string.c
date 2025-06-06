@@ -1306,6 +1306,48 @@ translate_characters(const char *subject, size_t nr_searches,
     return retv;
 }
 
+/* TODO: same manner as PHP's strtr() function. */
+static purc_variant_t
+translate_strings(const char *orig_subject, size_t nr_searches,
+        union string_or_utf8char *searches, union string_or_utf8char *replaces)
+{
+    purc_rwstream_t rwstream;
+    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
+
+    const char *subject = orig_subject;
+    for (size_t i = 0; i < nr_searches; i++) {
+        const char *search = searches[i].string;
+        const char *replace = replaces[i].string;
+
+        do_replace_case(rwstream, subject, search, strlen(search),
+                replace, strlen(replace));
+        purc_rwstream_write(rwstream, "", 1);
+
+        char *replaced = purc_rwstream_get_mem_buffer(rwstream, NULL);
+        if (subject != orig_subject)
+            free((char *)subject);
+
+        subject = strdup(replaced);
+        purc_rwstream_seek(rwstream, SEEK_SET, 0);
+    }
+
+    if (subject != orig_subject)
+        free((char *)subject);
+
+    size_t rw_size = 0;
+    char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
+            NULL, &rw_size, true);
+    if (rw_string == NULL) {
+        purc_rwstream_destroy(rwstream);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_string_reuse_buff(rw_string,
+            rw_size, false);
+    purc_rwstream_destroy(rwstream);
+    return retv;
+}
+
 /*
 $STR.translate(
     <string $string: `The string being translated.`>,
@@ -1457,13 +1499,10 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_kvs > 0) {
-        retv = replace_one_subject(subject,
-                (const char **)searches, nr_searches,
-                (const char **)replaces, nr_searches, do_replace_case);
+        retv = translate_strings(subject, nr_searches, searches,  replaces);
     }
     else {
-        retv = translate_characters(subject, nr_searches,
-                searches, replaces);
+        retv = translate_characters(subject, nr_searches, searches, replaces);
     }
 
     if (retv == PURC_VARIANT_INVALID) {
