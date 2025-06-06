@@ -5,16 +5,16 @@
 <!DOCTYPE hvml>
 <hvml target="void">
 
-    <init as array>
+    <init as set uniquely>
         [ 1, 2, 3 ]
     </init>
 
-    <observe on $array for 'change:inflated'>
+    <observe on $set for 'change:inflated'>
         <exit with $? />
     </observe>
 
     
     <iterate on 4 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
-        <update on $array to append with $? />
+        <update on $set to add with $? />
     </iterate>
 </hvml>

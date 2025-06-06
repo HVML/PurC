@@ -1,17 +1,19 @@
 #!/usr/bin/purc
 
-# RESULT: [0, 2, 3]
+# RESULT: [0L, 0L, 0L, 0L, 0L]
 
 <!DOCTYPE hvml>
 <hvml target="void">
 
     <init as array>
-        [ 1, 2, 3 ]
+        [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
     </init>
 
     <observe on $array for 'change:modified'>
-        <exit with $_observedOn />
+        <exit with $? />
     </observe>
 
-    <update on $array at 0 to displace with 0 />
+    <iterate on 0 onlyif $L.lt($0<, 5) with $DATA.arith('+', $0<, 1) nosetotail >
+      <update on $array at 0 to displace with $? />
+    </iterate>
 </hvml>

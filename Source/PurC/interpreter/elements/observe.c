@@ -120,7 +120,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
 
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     pcintr_coroutine_post_event(stack->co->cid,
-            PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+            PCRDR_MSG_EVENT_REDUCE_OPT_MERGE,
             source, MSG_TYPE_CHANGE, smsg, data,
             PURC_VARIANT_INVALID);
     PURC_VARIANT_SAFE_CLEAR(data);
