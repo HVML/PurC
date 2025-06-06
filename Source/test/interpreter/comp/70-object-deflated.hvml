@@ -1,17 +1,23 @@
 #!/usr/bin/purc
 
-# RESULT: { b: 2, c: 3 }
+# RESULT: [ 'd', 'e', 'f', 'g', 'h' ]
 
 <!DOCTYPE hvml>
 <hvml target="void">
 
     <init as object>
-        { a: 1, b: 2, c: 3 }
+        { a: 1, b: 2, c: 3, d:4, e:5, f:6, g:7, h:8 }
     </init>
 
     <observe on $object for 'change:deflated'>
-        <exit with $_observedOn />
+        <exit with $? />
     </observe>
 
-    <update on $object at '.a' to remove />
+    <init as keys>
+      ['d', 'e', 'f', 'g', 'h']
+    </init>
+
+    <iterate on $keys>
+        <update on $object at ".$?" to remove />
+    </iterate>
 </hvml>

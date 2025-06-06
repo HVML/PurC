@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-variant.h"
 #include "purc.h"
 #include "config.h"
 
@@ -143,21 +144,73 @@ reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         pcrdr_msg *orig = (pcrdr_msg*) hdr;
         if (is_event_match(orig, msg)) {
-            if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE) {
+            switch (msg->reduceOpt) {
+            case PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY:
+                if (orig->data) {
+                    purc_variant_unref(orig->data);
+                    orig->data = PURC_VARIANT_INVALID;
+                }
+                if (msg->data) {
+                    orig->data = msg->data;
+                    purc_variant_ref(orig->data);
+                }
+                pcrdr_release_message(msg);
+                return 0;
+
+            case PCRDR_MSG_EVENT_REDUCE_OPT_MERGE:
+            {
+                if (!msg->data) {
+                    pcrdr_release_message(msg);
+                    return 0;
+                }
+
+                if (!orig->data) {
+                    orig->data = msg->data;
+                    purc_variant_ref(orig->data);
+                    pcrdr_release_message(msg);
+                    return 0;
+                }
+
+                enum purc_variant_type otype = purc_variant_get_type(orig->data);
+                enum purc_variant_type ntype = purc_variant_get_type(orig->data);
+                assert(otype == ntype);
+
+                switch (otype) {
+                case PURC_VARIANT_TYPE_OBJECT:
+                    purc_variant_object_unite(orig->data, msg->data,
+                         PCVRNT_CR_METHOD_OVERWRITE);
+                    break;
+                case PURC_VARIANT_TYPE_SET:
+                    purc_variant_set_unite(orig->data, msg->data,
+                         PCVRNT_CR_METHOD_OVERWRITE);
+                    break;
+
+                case PURC_VARIANT_TYPE_ARRAY:
+                {
+                    size_t size = purc_variant_array_get_size(msg->data);
+                    for (size_t i = 0; i < size; ++i) {
+                        purc_variant_t val = purc_variant_array_get(msg->data, i);
+                        if (val) {
+                            purc_variant_array_append(orig->data, val);
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    assert(0);
+                    break;
+                }
+
                 pcrdr_release_message(msg);
                 return 0;
             }
-            // OVERLAY : data
-            if (orig->data) {
-                purc_variant_unref(orig->data);
-                orig->data = PURC_VARIANT_INVALID;
+
+            case PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE:
+            default:
+                pcrdr_release_message(msg);
+                return 0;
             }
-            if (msg->data) {
-                orig->data = msg->data;
-                purc_variant_ref(orig->data);
-            }
-            pcrdr_release_message(msg);
-            return 0;
         }
     }
 

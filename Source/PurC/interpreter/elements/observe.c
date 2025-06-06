@@ -23,6 +23,7 @@
  *
  */
 
+#include "private/variant.h"
 #include "purc.h"
 
 #include "../internal.h"
@@ -96,6 +97,12 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
+    assert(nr_args);
+    purc_variant_t data = purc_variant_make_array(1, argv[0]);
+    if (!data) {
+        return false;
+    }
+
     const char *smsg = NULL;
     switch (msg_type) {
         case PCVAR_OPERATION_INFLATED:
@@ -113,9 +120,10 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
 
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     pcintr_coroutine_post_event(stack->co->cid,
-            PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
-            source, MSG_TYPE_CHANGE, smsg, PURC_VARIANT_INVALID,
+            PCRDR_MSG_EVENT_REDUCE_OPT_MERGE,
+            source, MSG_TYPE_CHANGE, smsg, data,
             PURC_VARIANT_INVALID);
+    PURC_VARIANT_SAFE_CLEAR(data);
 
     return true;
 }
