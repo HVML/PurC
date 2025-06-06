@@ -676,12 +676,20 @@ positive:
     'PurC'
 
 positive:
-    $STR.translate('HVML', 'HTML', 'PurC')
-    'HVML'
+    $STR.translate('abcd', 'abc', 'xyz')
+    'xyzd'
 
 positive:
+    $STR.translate('hello world', 'aeiou', '12345')
+    'h2ll4 w4rld'
+
+positive:
+    $STR.translate('HVML', 'HTML', 'PurC')
+    'PVrC'
+
+negative:
     $STR.translate('HVML呼噜猫', '呼噜猫', '')
-    'HVML'
+    InvalidValue
 
 negative:
     $STR.translate('', {})
@@ -710,6 +718,10 @@ positive:
 positive:
     $STR.translate('HVML呼噜猫', {'HVML': 'PurC', '呼噜猫': ''})
     'PurC'
+
+#positive:
+#    $STR.translate('hi all, I said hello', { "h": "-", "hello": "hi", "hi": "hello"} )
+#    'hello all, I said hi'
 
 negative:
     $STR.tokenize()

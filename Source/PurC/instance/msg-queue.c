@@ -172,8 +172,7 @@ reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
                 }
 
                 enum purc_variant_type otype = purc_variant_get_type(orig->data);
-                enum purc_variant_type ntype = purc_variant_get_type(orig->data);
-                assert(otype == ntype);
+                assert(otype == purc_variant_get_type(orig->data));
 
                 switch (otype) {
                 case PURC_VARIANT_TYPE_OBJECT:

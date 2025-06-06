@@ -1239,16 +1239,84 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+union string_or_utf8char {
+    const char *string;
+    char        utf8ch[8];
+};
+
+static int cmp_strlen_desc(const void *v1, const void *v2)
+{
+    const union string_or_utf8char *str1 = v1;
+    const union string_or_utf8char *str2 = v2;
+
+    size_t len1 = strlen(str1->string);
+    size_t len2 = strlen(str2->string);
+
+    if (len2 > len1)
+        return 1;
+    else if (len2 < len1)
+        return -1;
+
+    return strcmp(str2->string, str1->string);
+}
+
+static purc_variant_t
+translate_characters(const char *subject, size_t nr_searches,
+        union string_or_utf8char *searches, union string_or_utf8char *replaces)
+{
+    purc_rwstream_t rwstream;
+    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
+
+    while (*subject) {
+        const char *found = NULL;
+        for (size_t i = 0; i < nr_searches; i++) {
+            const char *search, *replace;
+            search = searches[i].utf8ch;
+            replace = replaces[i].utf8ch;
+
+            found = strstr(subject, search);
+            if (found) {
+                if (found > subject)
+                    purc_rwstream_write(rwstream, subject, found - subject);
+                purc_rwstream_write(rwstream, replace, strlen(replace));
+                subject = found + strlen(search);
+                break;
+            }
+        }
+
+        // write left characters
+        if (found == NULL) {
+            purc_rwstream_write(rwstream, subject, strlen(subject));
+            break;
+        }
+    }
+
+    purc_rwstream_write(rwstream, "", 1);
+    size_t rw_size = 0;
+    char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
+            NULL, &rw_size, true);
+    if (rw_string == NULL) {
+        purc_rwstream_destroy(rwstream);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_string_reuse_buff(rw_string,
+            rw_size, false);
+    purc_rwstream_destroy(rwstream);
+    return retv;
+}
+
 /*
 $STR.translate(
-    <string $string>,
-    <string $from>,
-    <string $to>
+    <string $string: `The string being translated.`>,
+    <string $from: `The characters being translated to.`>,
+    <string $to: `The characters replacing from.`>
 ) string
 
 $STR.translate(
-    <string $string>,
-    <object $from_to_pairs>,
+    <string $string: `The string being translated.`>,
+    <object $from_to_pairs: `All the occurrences of the keys in $string will
+            been replaced by the corresponding values.`>,
 ) string
  */
 static purc_variant_t
@@ -1257,8 +1325,10 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *searches_stack[SZ_IN_STACK], *replaces_stack[SZ_IN_STACK];
-    const char **searches = NULL, **replaces = NULL;
+    union string_or_utf8char searches_stack[SZ_IN_STACK];
+    union string_or_utf8char replaces_stack[SZ_IN_STACK];
+    union string_or_utf8char *searches = NULL;
+    union string_or_utf8char *replaces = NULL;
     size_t nr_searches = 0;
 
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -1275,7 +1345,7 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    size_t nr_kvs;
+    size_t nr_kvs = 0;
     if (purc_variant_object_size(argv[1], &nr_kvs)) {
 
         if (nr_kvs == 0) {
@@ -1314,22 +1384,26 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 }
             }
             else {
-                searches[n] = from;
-                replaces[n] = to;
+                searches[n].string = from;
                 n++;
             }
         } end_foreach;
 
         nr_searches = n;
+        qsort(searches, nr_searches, sizeof(searches[0]), cmp_strlen_desc);
+
+        for (n = 0; n < nr_searches; n++) {
+            vv = purc_variant_object_get_by_ckey_ex(argv[1],
+                    searches[n].string, false);
+            replaces[n].string = purc_variant_get_string_const(vv);
+            printf("from %s to %s\n", searches[n].string, replaces[n].string);
+        }
     }
     else {
         if (nr_args < 3) {
             ec = PURC_ERROR_ARGUMENT_MISSED;
             goto error;
         }
-
-        searches = searches_stack;
-        replaces = replaces_stack;
 
         const char *from, *to;
         from = purc_variant_get_string_const(argv[1]);
@@ -1339,9 +1413,42 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto error;
         }
 
-        searches[0] = from;
-        replaces[0] = to;
-        nr_searches = 1;
+        size_t n1, n2;
+        purc_variant_string_chars(argv[1], &n1);
+        purc_variant_string_chars(argv[2], &n2);
+        nr_searches = MIN(n1, n2);
+        if (nr_searches <= SZ_IN_STACK) {
+            searches = searches_stack;
+            replaces = replaces_stack;
+        }
+        else {
+            searches = calloc(nr_searches, sizeof(searches[0]));
+            if (searches == NULL) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto error;
+            }
+
+            replaces = calloc(nr_searches, sizeof(replaces[0]));
+            if (replaces == NULL) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto error;
+            }
+        }
+
+        for (size_t i = 0; i < nr_searches; i++) {
+            const char *n1 = pcutils_utf8_next_char(from);
+            size_t chlen1 = n1 - from;
+            memcpy(searches[i].utf8ch, from, chlen1);
+            searches[i].utf8ch[chlen1] = 0;
+
+            const char *n2 = pcutils_utf8_next_char(to);
+            size_t chlen2 = n2 - to;
+            memcpy(replaces[i].utf8ch, to, chlen2);
+            replaces[i].utf8ch[chlen2] = 0;
+
+            from = n1;
+            to = n2;
+        }
     }
 
     if (nr_searches == 0) {
@@ -1349,8 +1456,16 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    retv = replace_one_subject(subject, searches, nr_searches,
-            replaces, nr_searches, do_replace_case);
+    if (nr_kvs > 0) {
+        retv = replace_one_subject(subject,
+                (const char **)searches, nr_searches,
+                (const char **)replaces, nr_searches, do_replace_case);
+    }
+    else {
+        retv = translate_characters(subject, nr_searches,
+                searches, replaces);
+    }
+
     if (retv == PURC_VARIANT_INVALID) {
         ec = PURC_ERROR_OUT_OF_MEMORY;
         goto error;
@@ -3312,7 +3427,7 @@ error:
 }
 
 /*
-$STR.htmlentities_encode(
+$STR.htmlentities(
   <string $string: `The input string.`>
   [,
    <'[single-quotes || double-quotes || convert-all || double-encode'
@@ -3505,7 +3620,7 @@ error:
 }
 
 /*
-$STR.htmlentities_decode(
+$STR.htmlentities(!
     <string $string: `The input string.`>
     [,
         <'keep-double-quotes || keep-single-quotes || substitute-invalid ]'
