@@ -1306,45 +1306,62 @@ translate_characters(const char *subject, size_t nr_searches,
     return retv;
 }
 
-/* TODO: same manner as PHP's strtr() function. */
 static purc_variant_t
-translate_strings(const char *orig_subject, size_t nr_searches,
+translate_strings(const char *subject, size_t nr_searches,
         union string_or_utf8char *searches, union string_or_utf8char *replaces)
 {
-    purc_rwstream_t rwstream;
-    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    union string_or_utf8char *medians_heap = NULL;
+    const char *medians_stack[SZ_IN_STACK];
+    const char **medians = NULL;
 
-    const char *subject = orig_subject;
+    if (nr_searches > (0x7FFFFFFF - 0x100000))
+        goto done;
+
+    medians_heap = calloc(nr_searches, sizeof(medians_heap[0]));
+    if (medians_heap == NULL) {
+        goto done;
+    }
+
+    if (nr_searches <= SZ_IN_STACK) {
+        medians = medians_stack;
+    }
+    else {
+        medians = calloc(nr_searches, sizeof(medians[0]));
+        if (medians == NULL) {
+            goto done;
+        }
+    }
+
+    /* We use the not-used Unicode code points (>= 0x100000)
+       as the median strings. */
+    uint32_t nuc = 0x100000;
     for (size_t i = 0; i < nr_searches; i++) {
-        const char *search = searches[i].string;
-        const char *replace = replaces[i].string;
-
-        do_replace_case(rwstream, subject, search, strlen(search),
-                replace, strlen(replace));
-        purc_rwstream_write(rwstream, "", 1);
-
-        char *replaced = purc_rwstream_get_mem_buffer(rwstream, NULL);
-        if (subject != orig_subject)
-            free((char *)subject);
-
-        subject = strdup(replaced);
-        purc_rwstream_seek(rwstream, SEEK_SET, 0);
+        unsigned n = pcutils_unichar_to_utf8(nuc,
+                (unsigned char*)medians_heap[i].utf8ch);
+        medians_heap[i].utf8ch[n] = 0;
+        medians[i] = medians_heap[i].utf8ch;
+        nuc++;
     }
 
-    if (subject != orig_subject)
-        free((char *)subject);
+    retv = replace_one_subject(subject, (const char **)searches, nr_searches,
+            medians, nr_searches, do_replace_case);
+    if (!retv)
+        goto done;
 
-    size_t rw_size = 0;
-    char *rw_string = purc_rwstream_get_mem_buffer_ex(rwstream,
-            NULL, &rw_size, true);
-    if (rw_string == NULL) {
-        purc_rwstream_destroy(rwstream);
-        return PURC_VARIANT_INVALID;
-    }
+    purc_variant_t tmp = retv;
+    subject = purc_variant_get_string_const(tmp);
+    retv = replace_one_subject(subject, medians, nr_searches,
+            (const char **)replaces, nr_searches, do_replace_case);
+    purc_variant_unref(tmp);
 
-    purc_variant_t retv = purc_variant_make_string_reuse_buff(rw_string,
-            rw_size, false);
-    purc_rwstream_destroy(rwstream);
+done:
+    if (medians_heap != NULL)
+        free((void *)medians_heap);
+
+    if (medians != NULL && medians != medians_stack)
+        free((void *)medians);
+
     return retv;
 }
 
@@ -1438,7 +1455,6 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             vv = purc_variant_object_get_by_ckey_ex(argv[1],
                     searches[n].string, false);
             replaces[n].string = purc_variant_get_string_const(vv);
-            printf("from %s to %s\n", searches[n].string, replaces[n].string);
         }
     }
     else {
@@ -1499,7 +1515,7 @@ translate_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_kvs > 0) {
-        retv = translate_strings(subject, nr_searches, searches,  replaces);
+        retv = translate_strings(subject, nr_searches, searches, replaces);
     }
     else {
         retv = translate_characters(subject, nr_searches, searches, replaces);
