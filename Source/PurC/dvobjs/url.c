@@ -486,6 +486,9 @@ purc_variant_t purc_dvobj_url_new(void)
         { "encode",     encode_getter,      NULL },
         { "decode",     decode_getter,      NULL },
         { "build_query", build_query_getter, NULL },
+        // { "parse_query", parse_query_getter, NULL },
+        // { "parse",       parse_getter,      NULL },
+        // { "assembly",    assembly_getter,   NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
