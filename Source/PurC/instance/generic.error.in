@@ -313,3 +313,8 @@ TLSFailure
     flags: None
     msg: "TLS (Transport Layer Security) failure"
 
+AssertionFailed
+    except: AssertionFailed
+    flags: None
+    msg: "Assertion failed"
+

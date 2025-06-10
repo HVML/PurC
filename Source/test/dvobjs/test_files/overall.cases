@@ -1,4 +1,24 @@
-# test cases for $STR, $DATA, and $URL
+# test cases for $L, $STR, $DATA, and $URL
+negative:
+    $L.assert
+    AssertionFailed
+
+negative:
+    $L.assert(0)
+    AssertionFailed
+
+negative:
+    $L.assert(null)
+    AssertionFailed
+
+negative:
+    $L.assert('')
+    AssertionFailed
+
+positive:
+    $L.assert(true)
+    true
+
 # TODO: more cases for case-insensitive.
 negative:
     $STR.contains

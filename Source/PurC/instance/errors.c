@@ -188,6 +188,8 @@ static const char *except_messages[] = {
     "ProtocolViolation",
     /* PURC_EXCEPT_TLS_FAILURE */
     "TLSFailure",
+    /* PURC_EXCEPT_ASSERTION_FAILED */
+    "AssertionFailed",
 };
 
 

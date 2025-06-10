@@ -30,6 +30,32 @@
 #include "helper.h"
 
 #include <math.h>
+
+static purc_variant_t
+assert_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    bool result;
+
+    if (nr_args < 1) {
+        // treat as undefined
+        result = false;
+    }
+    else {
+        result = purc_variant_booleanize(argv[0]);
+    }
+
+    if (!result) {
+        pcinst_set_error(PURC_ERROR_ASSERTION_FAILED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return purc_variant_make_boolean(true);
+}
+
 static purc_variant_t
 not_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -787,6 +813,7 @@ failed:
 purc_variant_t purc_dvobj_logical_new(void)
 {
     static struct purc_dvobj_method method [] = {
+        {"assert",assert_getter,NULL},
         {"not",   not_getter,   NULL},
         {"and",   and_getter,   NULL},
         {"or",    or_getter,    NULL},
