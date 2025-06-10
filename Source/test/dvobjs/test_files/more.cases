@@ -1210,3 +1210,58 @@ positive:
 positive:
     $STR.substr_count('The quick brown fox jumps over the lazy dog', 'the', 0, 0)
     1UL
+negative:
+    $STR.chunk_split()
+    ArgumentMissed
+
+negative:
+    $STR.chunk_split(null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('', null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('', 76, null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('test', -1)
+    InvalidValue
+
+negative:
+    $STR.chunk_split('test', 0)
+    InvalidValue
+
+positive:
+    $STR.chunk_split('')
+    ''
+
+positive:
+    $STR.chunk_split('test')
+    'test'
+
+positive:
+    $STR.chunk_split('test', 2)
+    'te\r\nst'
+
+positive:
+    $STR.chunk_split('test', 2, '*')
+    'te*st'
+
+positive:
+    $STR.chunk_split('中国人民', 3)
+    '中国人\r\n民'
+
+positive:
+    $STR.chunk_split('中国人民共和国', 4, '||')
+    '中国人民||共和国'
+
+positive:
+    $STR.chunk_split('HVML is a great programming language!', 5, ' ')
+    'HVML  is a  great  prog rammi ng la nguag e!'
+
+positive:
+    $STR.chunk_split('abcdefghijklmnopqrstuvwxyz', 5, '-')
+    'abcde-fghij-klmno-pqrst-uvwxy-z'

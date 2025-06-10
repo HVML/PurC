@@ -2735,6 +2735,143 @@ error:
 }
 
 /*
+$STR.chunk_split(
+        <string $string: `The original string to split.`>
+        [, <real $length = 76: `The length of a chunk.`>
+            [, <string $separator = '\r\n': `The seperator between two chunks.`>
+            ]
+        ]
+) string
+*/
+static purc_variant_t
+chunk_split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_rwstream_t rwstream = NULL;
+    int ec = PURC_ERROR_OK;
+
+    // Check number of arguments
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    // Get original string
+    const char* str;
+    size_t str_len;
+    if ((str = purc_variant_get_string_const_ex(argv[0], &str_len)) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    // Get chunk length, default is 76
+    int64_t chunk_len = 76;
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_longint(argv[1], &chunk_len, false)) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+        if (chunk_len <= 0) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+
+    // Get separator, default is \r\n
+    const char* separator = "\r\n";
+    size_t sep_len = 2;
+    if (nr_args > 2) {
+        if ((separator = purc_variant_get_string_const_ex(argv[2], &sep_len)) == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto error;
+        }
+        if (sep_len == 0) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error; 
+        }
+    }
+
+    /* If string is empty, return empty string directly
+    if (str_len == 0) {
+        return purc_variant_make_string_static("", false);
+    } */
+
+    // Create output stream
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Traverse characters and write in chunks
+    const char* p = str;
+    size_t curr_chars = 0;  // Number of characters in current chunk
+    
+    while (*p) {
+        const char* next = pcutils_utf8_next_char(p);
+        size_t char_len = next - p;
+
+        // Write current character
+        if (purc_rwstream_write(rwstream, p, char_len) < (ssize_t)char_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+
+        curr_chars++;
+        
+        // If chunk length reached, add separator
+        if (curr_chars == (size_t)chunk_len && *next) {
+            if (purc_rwstream_write(rwstream, separator, sep_len) < (ssize_t)sep_len) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto error;
+            }
+            curr_chars = 0;
+        }
+
+        p = next;
+    }
+
+    /* If last chunk is not empty and has no separator, add separator
+    if (curr_chars > 0) {
+        if (purc_rwstream_write(rwstream, separator, sep_len) < (ssize_t)sep_len) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+    } */
+
+    // Write terminator
+    if (purc_rwstream_write(rwstream, "", 1) < 1) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    // Get result
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char* content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+error:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+
+/*
 $STR.trim(
     <string $string: `The orignal string to trim.`>
     [, <string $characters = " \n\r\t\v\f": `The characters to trim from
@@ -4077,7 +4214,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "strpos",     strpos_getter,      NULL },
         { "strpbrk",    strpbrk_getter,     NULL },
         { "split",      split_getter,       NULL },
-        // { "chunk_split",    chunk_split_getter,     NULL },
+        { "chunk_split",    chunk_split_getter,     NULL },
         { "trim",       trim_getter,        NULL },
         { "pad",        pad_getter,         NULL },
         { "repeat",     repeat_getter,      NULL },
