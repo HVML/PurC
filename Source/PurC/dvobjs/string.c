@@ -2075,6 +2075,144 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 /*
+$STR.substr_compare(
+    <string $haystack>,
+    <string $needle>,
+    <real $offset>,
+    [, <real $length = null>
+        [, <boolean $case_insensitivity = false:
+            false -  `Perform a case-sensitive comparison;`
+            true -  `Perform a case-insensitive comparison.`>
+        ]
+    ]
+) number | false
+*/
+
+// This function is implemented with aid from AI.
+static purc_variant_t
+substr_compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 3) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    // Get the haystack string
+    const char *haystack;
+    size_t haystack_len;
+    haystack = purc_variant_get_string_const_ex(argv[0], &haystack_len);
+    if (!haystack) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // Get the needle string to compare
+    const char *needle;
+    size_t needle_len;
+    needle = purc_variant_get_string_const_ex(argv[1], &needle_len);
+    if (!needle) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // Get the offset
+    int64_t offset;
+    if (!purc_variant_cast_to_longint(argv[2], &offset, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // Get comparison length (optional)
+    int64_t length = -1;
+    if (nr_args > 3 && !purc_variant_is_null(argv[3])) {
+        if (!purc_variant_cast_to_longint(argv[3], &length, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+        if (length < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    // Get case sensitivity flag (optional)
+    bool case_insensitive = false;
+    if (nr_args > 4) {
+        case_insensitive = purc_variant_booleanize(argv[4]);
+    }
+
+    // Calculate character count of haystack string
+    size_t haystack_chars;
+    if (!pcutils_string_check_utf8(haystack, haystack_len, &haystack_chars, NULL)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    // Calculate character count of needle string
+    size_t needle_chars;
+    if (!pcutils_string_check_utf8(needle, needle_len, &needle_chars, NULL)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    // Handle negative offset
+    if (offset < 0) {
+        offset = haystack_chars + offset;
+    }
+
+    // Check if offset is valid
+    if (offset < 0 || (size_t)offset > haystack_chars) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    // Position to offset
+    const char *start = haystack;
+    for (int64_t i = 0; i < offset; i++) {
+        start = pcutils_utf8_next_char(start);
+    }
+
+    // Limit comparison length if specified
+    size_t compare_len;
+    if (length >= 0) {
+        // Calculate byte length for specified character count
+        const char *p = needle;
+        size_t bytes = 0;
+        size_t chars = 0;
+        while (*p && chars < (size_t)length) {
+            const char *next = pcutils_utf8_next_char(p);
+            bytes += (next - p);
+            chars++;
+            p = next;
+        }
+        compare_len = bytes;
+    }
+    else {
+        // Use entire needle string byte length
+        compare_len = strlen(needle);
+    }
+
+    // Perform string comparison
+    int result;
+    if (case_insensitive) {
+        result = pcutils_strncasecmp(start, needle, compare_len);
+    }
+    else {
+        result = strncmp(start, needle, compare_len);
+    }
+
+    return purc_variant_make_number((double)result);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.strstr(
         <string $haystack>,
         <string $needle>
@@ -3809,7 +3947,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "tolower",    tolower_getter,     NULL },
         { "toupper",    toupper_getter,     NULL },
         { "substr",     substr_getter,      NULL },
-        // { "substr_compare", substr_compare_getter,  NULL },
+        { "substr_compare", substr_compare_getter,  NULL },
         // { "substr_count",   substr_count_getter,    NULL },
         // { "substr_replace", substr_replace_getter,  NULL },
         { "strstr",     strstr_getter,      NULL },

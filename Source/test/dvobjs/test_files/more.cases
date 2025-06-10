@@ -1075,3 +1075,74 @@ positive:
 positive:
     $STR.pad('test', 3)
     'test'
+negative:
+    $STR.substr_compare()
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare('', null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare('', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_compare('abc', 'b', 4)
+    InvalidValue
+
+negative:
+    $STR.substr_compare('abc', 'b', 0, -1)
+    InvalidValue
+
+positive:
+    $STR.substr_compare('abc', 'b', 1)
+    0
+
+positive:
+    $STR.substr_compare('abc', 'B', 1)
+    32
+
+positive:
+    $STR.substr_compare('abc', 'b', -1)
+    1
+
+positive:
+    $STR.substr_compare('abc', 'B', 1, null, true)
+    0
+
+positive:
+    $STR.substr_compare('abcdef', 'cd', 2, 2)
+    0
+
+positive:
+    $STR.substr_compare('abcdef', 'cde', 2, 2)
+    0
+
+positive:
+    $STR.substr_compare('中国人民', '国人', 1, 2)
+    0
+
+positive:
+    $STR.substr_compare('中国人民', '国民', 1, 2)
+    -2
+
+positive:
+    $STR.substr_compare('HVML呼噜猫', 'hvml', 0, 4, true)
+    0
+
+positive:
+    $STR.substr_compare('HVML呼噜猫', 'hvml呼', 0, 5, true)
+    0
+
+positive:
+    $STR.substr_compare('abc', 'def', 0)
+    -3
+
+positive:
+    $STR.substr_compare('def', 'abc', 0)
+    3
