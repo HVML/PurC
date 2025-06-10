@@ -148,13 +148,13 @@ static purc_variant_t eval_tpl_vcm(pcintr_stack_t stack,
                                    struct ctxt_for_adapt* ctxt)
 {
     if (ctxt->tpl_native) {
-        return pcintr_template_expansion(ctxt->tpl_native);
+        return pcintr_template_expansion(ctxt->tpl_native, frame->silently);
     }
     purc_variant_t val = pcintr_eval_vcm(stack, ctxt->tpl_vcm, frame->silently);
     if (val && purc_variant_is_native(val)) {
         ctxt->tpl_native = purc_variant_ref(val);
         purc_variant_unref(val);
-        return pcintr_template_expansion(ctxt->tpl_native);
+        return pcintr_template_expansion(ctxt->tpl_native, frame->silently);
     }
     return val;
 }
