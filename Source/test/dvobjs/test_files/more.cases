@@ -1105,7 +1105,7 @@ positive:
 
 positive:
     $STR.substr_compare('abc', 'B', 1)
-    32
+    1
 
 positive:
     $STR.substr_compare('abc', 'b', -1)
@@ -1129,7 +1129,7 @@ positive:
 
 positive:
     $STR.substr_compare('中国人民', '国民', 1, 2)
-    -2
+    -1
 
 positive:
     $STR.substr_compare('HVML呼噜猫', 'hvml', 0, 4, true)
@@ -1141,12 +1141,12 @@ positive:
 
 positive:
     $STR.substr_compare('abc', 'def', 0)
-    -3
+    -1
 
 positive:
     $STR.substr_compare('def', 'abc', 0)
-    3
-    
+    1
+
 negative:
     $STR.substr_count()
     ArgumentMissed

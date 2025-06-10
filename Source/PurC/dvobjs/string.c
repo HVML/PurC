@@ -2201,8 +2201,14 @@ substr_compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = pcutils_strncasecmp(start, needle, compare_len);
     }
     else {
+        /* XXX: strncmp("abc", "def", 3) returns -96 (not -3) on Linux */
         result = strncmp(start, needle, compare_len);
     }
+
+    /* Normalize the result to avoid different result values among 
+       various platforms.*/
+    if (result > 0) result = 1;
+    else if (result < 0) result = -1;
 
     return purc_variant_make_number((double)result);
 
@@ -2793,10 +2799,10 @@ chunk_split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    /* If string is empty, return empty string directly
+    // If string is empty, return empty string directly
     if (str_len == 0) {
         return purc_variant_make_string_static("", false);
-    } */
+    }
 
     // Create output stream
     rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
@@ -2808,7 +2814,7 @@ chunk_split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // Traverse characters and write in chunks
     const char* p = str;
     size_t curr_chars = 0;  // Number of characters in current chunk
-    
+
     while (*p) {
         const char* next = pcutils_utf8_next_char(p);
         size_t char_len = next - p;
@@ -2820,7 +2826,7 @@ chunk_split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         curr_chars++;
-        
+
         // If chunk length reached, add separator
         if (curr_chars == (size_t)chunk_len && *next) {
             if (purc_rwstream_write(rwstream, separator, sep_len) < (ssize_t)sep_len) {
@@ -2832,14 +2838,6 @@ chunk_split_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         p = next;
     }
-
-    /* If last chunk is not empty and has no separator, add separator
-    if (curr_chars > 0) {
-        if (purc_rwstream_write(rwstream, separator, sep_len) < (ssize_t)sep_len) {
-            ec = PURC_ERROR_OUT_OF_MEMORY;
-            goto error;
-        }
-    } */
 
     // Write terminator
     if (purc_rwstream_write(rwstream, "", 1) < 1) {
