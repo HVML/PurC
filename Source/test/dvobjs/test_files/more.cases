@@ -1146,3 +1146,67 @@ positive:
 positive:
     $STR.substr_compare('def', 'abc', 0)
     3
+    
+negative:
+    $STR.substr_count()
+    ArgumentMissed
+
+negative:
+    $STR.substr_count(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_count('', null)
+    WrongDataType
+
+negative:
+    $STR.substr_count('abc', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_count('abc', 'b', -1)
+    InvalidValue
+
+negative:
+    $STR.substr_count('abc', 'b', 0, -1)
+    InvalidValue
+
+positive:
+    $STR.substr_count('', '')
+    0UL
+
+positive:
+    $STR.substr_count('abc', '')
+    0UL
+
+positive:
+    $STR.substr_count('abc', 'b')
+    1UL
+
+positive:
+    $STR.substr_count('abcabc', 'bc')
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国')
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 2)
+    1UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 0, 4)
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 2, 2)
+    1UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '日本')
+    0UL
+
+positive:
+    $STR.substr_count('The quick brown fox jumps over the lazy dog', 'the', 0, 0)
+    1UL

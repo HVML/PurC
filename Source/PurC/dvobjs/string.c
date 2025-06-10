@@ -2211,6 +2211,129 @@ failed:
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
+/*
+$STR.substr_count(
+    <string $haystack: `The input string.`>,
+    <string $needle: `The substring to search.`>
+    [, <real $offset = 0: `The offset to starting search.`>
+        [, <real $length = 0: `The length of searching.` >
+        ]
+    ]
+) ulongint | false
+*/
+static purc_variant_t
+substr_count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    // Get input string
+    const char *haystack;
+    size_t haystack_len;
+    haystack = purc_variant_get_string_const_ex(argv[0], &haystack_len);
+    if (!haystack) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // Get substring to search for
+    const char *needle;
+    size_t needle_len;
+    needle = purc_variant_get_string_const_ex(argv[1], &needle_len);
+    if (!needle) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // Get offset
+    int64_t offset = 0;
+    if (nr_args > 2) {
+        if (!purc_variant_cast_to_longint(argv[2], &offset, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+        if (offset < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    // Get search length
+    int64_t length = 0;
+    if (nr_args > 3) {
+        if (!purc_variant_cast_to_longint(argv[3], &length, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+        if (length < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    // Return 0 for empty substring
+    if (needle_len == 0) {
+        return purc_variant_make_ulongint(0);
+    }
+
+    // Calculate number of characters in string
+    size_t haystack_chars;
+    if (!pcutils_string_check_utf8(haystack, haystack_len, &haystack_chars, NULL)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    // Return 0 if offset exceeds string length
+    if ((size_t)offset >= haystack_chars) {
+        return purc_variant_make_ulongint(0);
+    }
+
+    // Position to offset
+    const char *p = haystack;
+    for (size_t i = 0; i < (size_t)offset; i++) {
+        p = pcutils_utf8_next_char(p);
+    }
+
+    // Calculate actual search length
+    size_t remaining_chars = haystack_chars - (size_t)offset;
+    size_t search_chars;
+    if (length > 0) {
+        search_chars = (size_t)length < remaining_chars ? (size_t)length : remaining_chars;
+    }
+    else {
+        search_chars = remaining_chars;
+    }
+
+    // Calculate end position of search range
+    const char *end = p;
+    for (size_t i = 0; i < search_chars; i++) {
+        end = pcutils_utf8_next_char(end);
+    }
+
+    // Count substring occurrences
+    size_t count = 0;
+    while (p < end) {
+        if (strncmp(p, needle, needle_len) == 0) {
+            count++;
+            p += needle_len;
+        }
+        else {
+            p = pcutils_utf8_next_char(p);
+        }
+    }
+
+    return purc_variant_make_ulongint(count);
+    
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
 
 /*
 $STR.strstr(
@@ -3948,7 +4071,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "toupper",    toupper_getter,     NULL },
         { "substr",     substr_getter,      NULL },
         { "substr_compare", substr_compare_getter,  NULL },
-        // { "substr_count",   substr_count_getter,    NULL },
+        { "substr_count",   substr_count_getter,    NULL },
         // { "substr_replace", substr_replace_getter,  NULL },
         { "strstr",     strstr_getter,      NULL },
         { "strpos",     strpos_getter,      NULL },
