@@ -538,6 +538,10 @@ struct pcintr_stack_frame *
 pcintr_find_prev_include_frame(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, pcvdom_element_t elem);
 
+int
+pcintr_bind_object_members_as_temp_vars(struct pcintr_stack_frame *frame,
+         purc_variant_t obj);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
