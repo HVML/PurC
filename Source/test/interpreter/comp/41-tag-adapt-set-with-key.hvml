@@ -6,7 +6,7 @@
 <hvml target="html" lang="en">
     <body>
       <archedata name="myMap">
-          { href: $?.avatar, title: $?.name }
+          { href: $?.avatar, title: $name }
       </archedata>
 
       <init as 'users' uniquely against 'id'>

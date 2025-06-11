@@ -1915,17 +1915,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     size_t nr_array = 0;
     int ret = -1;
 
-    if (template_data_type) {
-        struct pcintr_stack_frame* parent =
-            pcintr_stack_frame_get_parent(frame);
-        if (parent) {
-            purc_variant_t val = pcintr_get_question_var(parent);
-            if (purc_variant_is_object(val)) {
-                pcintr_bind_object_members_as_temp_vars(frame, val);
-            }
-        }
-    }
-
     at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (!at_array) {
         goto out;
@@ -2352,6 +2341,18 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (content && !purc_variant_is_undefined(content)) {
         ctxt->literal = purc_variant_ref(content);
     }
+
+    if (ctxt->with && purc_variant_is_native(ctxt->with)) {
+        struct pcintr_stack_frame* parent =
+            pcintr_stack_frame_get_parent(frame);
+        if (parent) {
+            purc_variant_t val = pcintr_get_question_var(parent);
+            if (purc_variant_is_object(val)) {
+                pcintr_bind_object_members_as_temp_vars(frame, val);
+            }
+        }
+    }
+
 
     // FIXME
     // load from network
