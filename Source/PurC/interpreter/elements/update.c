@@ -153,7 +153,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             ctxt = (struct ctxt_for_update*)frame->ctxt;
             ctxt->template_data_type = purc_variant_ref(type);
         }
-        return pcintr_template_expansion(with);
+        return pcintr_template_expansion(with, frame->silently);
     }
     else {
         purc_variant_ref(with);

@@ -311,7 +311,7 @@ pcintr_bind_template(purc_variant_t templates,
         purc_variant_t type, purc_variant_t contents);
 
 purc_variant_t
-pcintr_template_expansion(purc_variant_t val);
+pcintr_template_expansion(purc_variant_t val, bool silently);
 
 purc_variant_t
 pcintr_template_get_type(purc_variant_t val);
