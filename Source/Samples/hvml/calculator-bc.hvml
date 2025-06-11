@@ -185,6 +185,18 @@
             <exit with 'Ok' />
         </observe>
 
+        <observe on $CRTN for "rdrState:pageActivated">
+            <inherit>
+                $STREAM.stdout.writelines('##### hvml receive page activated')
+            </inherit>
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageDeactivated">
+            <inherit>
+                $STREAM.stdout.writelines('##### hvml receive page deactivated')
+            </inherit>
+        </observe>
+
     </body>
 
 </hvml>
