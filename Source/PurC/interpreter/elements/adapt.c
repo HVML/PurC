@@ -170,6 +170,9 @@ static int process_ds_as_single(pcintr_stack_t stack,
     purc_variant_ref(origin_val);
 
     pcintr_set_question_var(parent, ctxt->on);
+    if (purc_variant_is_object(ctxt->on)) {
+        pcintr_bind_object_members_as_temp_vars(frame, ctxt->on);
+    }
     purc_variant_t val = eval_tpl_vcm(stack, frame, ctxt);
     if (val == PURC_VARIANT_INVALID) {
         ret = -1;
@@ -205,6 +208,9 @@ process_ds_array(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_array_get(ctxt->on, i);
         pcintr_set_question_var(parent, v);
+        if (purc_variant_is_object(v)) {
+            pcintr_bind_object_members_as_temp_vars(frame, v);
+        }
         purc_variant_t val = eval_tpl_vcm(stack, frame, ctxt);
         if (val == PURC_VARIANT_INVALID) {
             goto out;
@@ -242,6 +248,9 @@ process_ds_set(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_set_get_by_index(ctxt->on, i);
         pcintr_set_question_var(parent, v);
+        if (purc_variant_is_object(v)) {
+            pcintr_bind_object_members_as_temp_vars(frame, v);
+        }
         purc_variant_t val = eval_tpl_vcm(stack, frame, ctxt);
         if (val == PURC_VARIANT_INVALID) {
             goto out;
@@ -311,6 +320,9 @@ process_ds_tuple(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_tuple_get(ctxt->on, i);
         pcintr_set_question_var(parent, v);
+        if (purc_variant_is_object(v)) {
+            pcintr_bind_object_members_as_temp_vars(frame, v);
+        }
         purc_variant_t val = eval_tpl_vcm(stack, frame, ctxt);
         if (val == PURC_VARIANT_INVALID) {
             goto out;
@@ -346,9 +358,14 @@ process_ds_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         goto out;
     }
 
+    pcintr_bind_object_members_as_temp_vars(frame, ctxt->on);
+
     purc_variant_t k, v;
     foreach_in_variant_object_safe_x(ctxt->on, k, v)
         pcintr_set_question_var(parent, v);
+        if (purc_variant_is_object(v)) {
+            pcintr_bind_object_members_as_temp_vars(frame, v);
+        }
         purc_variant_t val = eval_tpl_vcm(stack, frame, ctxt);
         if (val == PURC_VARIANT_INVALID) {
             goto out;

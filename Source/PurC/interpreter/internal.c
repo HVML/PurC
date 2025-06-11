@@ -1944,3 +1944,28 @@ out:
     return result;
 }
 
+int
+pcintr_bind_object_members_as_temp_vars(struct pcintr_stack_frame *frame,
+    purc_variant_t obj)
+{
+    int ret = -1;
+    if (!purc_variant_is_object(obj)) {
+        goto out;
+    }
+
+    purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(obj, k, v)
+        const char *key = purc_variant_get_string_const(k);
+        if (pcintr_is_variable_token(key)) {
+            bool ok = purc_variant_object_set(exclamation, k, v);
+            if (!ok) {
+                goto out;
+            }
+        }
+    end_foreach;
+    ret = 0;
+
+out:
+    return ret;
+}

@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -1360,7 +1360,7 @@ out:
 static int
 update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t pos, enum update_action action,
-        purc_variant_t src, pcintr_attribute_op attr_op_eval, bool individually, 
+        purc_variant_t src, pcintr_attribute_op attr_op_eval, bool individually,
         bool wholly)
 {
     UNUSED_PARAM(attr_op_eval);
@@ -1914,6 +1914,17 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t at_array = PURC_VARIANT_INVALID;
     size_t nr_array = 0;
     int ret = -1;
+
+    if (template_data_type) {
+        struct pcintr_stack_frame* parent =
+            pcintr_stack_frame_get_parent(frame);
+        if (parent) {
+            purc_variant_t val = pcintr_get_question_var(parent);
+            if (purc_variant_is_object(val)) {
+                pcintr_bind_object_members_as_temp_vars(frame, val);
+            }
+        }
+    }
 
     at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (!at_array) {
