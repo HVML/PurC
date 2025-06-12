@@ -989,47 +989,47 @@ positive:
     bx48564d4c
 
 positive:
-    $URL.build_query(true, null, '&', 'rfc1738')
-    0=true
+    $URL.build_query(true, null, 'rfc1738', '&')
+    '0=true'
 
 positive:
-    $URL.build_query(true, "pre_", '&', 'rfc1738')
-    pre_0=true
+    $URL.build_query(true, "pre_", 'rfc1738', '&')
+    'pre_0=true'
 
 positive:
-    $URL.build_query(2, "pre_", '&', 'rfc1738')
-    pre_0=2
+    $URL.build_query(2, "pre_", 'rfc1738', '&')
+    'pre_0=2'
 
 positive:
-    $URL.build_query(2UL, "pre_", '&', 'real-ejson rfc1738')
-    pre_0=2UL
+    $URL.build_query(2UL, "pre_", 'real-ejson rfc1738', '&')
+    'pre_0=2UL'
 
 positive:
-    $URL.build_query(2UL, "pre_", '&', 'real-json rfc1738')
-    pre_0=2
+    $URL.build_query(2UL, "pre_", 'real-json rfc1738', '&')
+    'pre_0=2'
 
 positive:
-    $URL.build_query({'obj':['value_1', 'value_2']}, "pre_", '&', 'real-json rfc1738')
+    $URL.build_query({'obj':['value_1', 'value_2']}, "pre_", 'real-json rfc1738', '&')
     "obj%5B0%5D=value_1&obj%5B1%5D=value_2"
 
 positive:
-    $URL.build_query({'obj':['value_1', 'value_2', {'ka':'b'}]}, "pre_", '&', 'real-json rfc1738')
+    $URL.build_query({'obj':['value_1', 'value_2', {'ka':'b'}]}, "pre_", 'real-json rfc1738')
     "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b"
 
 positive:
-    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], null, '&', 'real-json rfc1738')
+    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], null, 'real-json rfc1738', '&')
     "0=value_1&1=value_2&&2%5Bka%5D=b"
 
 positive:
-    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], "pre", '&', 'real-json rfc1738')
+    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], "pre", 'real-json rfc1738')
     "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b"
 
 positive:
-    $URL.build_query({}, "pre", '&', 'real-json rfc1738')
+    $URL.build_query({}, "pre", 'real-json rfc1738', '&')
     ""
 
 positive:
-    $URL.build_query([], "pre", '&', 'real-json rfc1738')
+    $URL.build_query([], "pre", 'real-json rfc1738', '&')
     ""
 
 # test cases for $DATA.isdivisible
