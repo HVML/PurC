@@ -30,6 +30,7 @@
 #include "private/url.h"
 #include "private/dvobjs.h"
 #include "private/atom-buckets.h"
+#include <stdbool.h>
 
 enum {
 #define _KW_real_json       "real-json"
@@ -494,6 +495,238 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+ $URL.parse_query(
+    < string $query_string >
+    [, <'[array | object] || [string | binary | auto] || [rfc1738 | rfc3986]' $opts = 'object auto rfc1738':
+        - 'array':    `construct an array with the query string; this will ignore the argument names in the query string.`
+        - 'object':   `construct an object with the query string.`
+        - 'auto':     `The argument values will be decoded as strings first; if failed, decoded into binary sequences.`
+        - 'binary':   `The argument values will be decoded as binary sequences.`
+        - 'string':   `The argument values will be decoded as strings.` >
+        - 'rfc1738':  `The query string is encoded per RFC 1738 and the 'application/x-www-form-urlencoded' media type, which implies that spaces are encoded as plus (+) signs.`
+        - 'rfc3986':  `The query string is encoded according to RFC 3986, and spaces will be percent encoded (%20).`
+        [, <string $arg_separator = '&': `The character used to separate the arguments. >]
+    ]
+) object | array | false
+ */
+static purc_variant_t
+parse_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_variant_t result = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    const char *query_str;
+    size_t query_len;
+    query_str = purc_variant_get_string_const_ex(argv[0], &query_len);
+    if (query_str == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    // Default options
+    bool as_array = false;
+    int decode_type = PURC_K_KW_auto;
+    int rfc = PURC_K_KW_rfc1738;
+    char arg_separator = '&';
+
+    // Process option parameters
+    if (nr_args > 1) {
+        const char *options;
+        size_t options_len;
+        
+        options = purc_variant_get_string_const_ex(argv[1], &options_len);
+        if (options) {
+            options = pcutils_trim_spaces(options, &options_len);
+            if (options_len > 0) {
+                size_t length = 0;
+                const char *option = pcutils_get_next_token_len(options, options_len,
+                        PURC_KW_DELIMITERS, &length);
+
+                do {
+                    if (length > 0 && length <= MAX_LEN_KEYWORD) {
+                        char tmp[length + 1];
+                        strncpy(tmp, option, length);
+                        tmp[length] = '\0';
+
+                        if (strcmp(tmp, "array") == 0)
+                            as_array = true;
+                        else if (strcmp(tmp, "object") == 0)
+                            as_array = false;
+                        else if (strcmp(tmp, "auto") == 0)
+                            decode_type = PURC_K_KW_auto;
+                        else if (strcmp(tmp, "binary") == 0)
+                            decode_type = PURC_K_KW_binary;
+                        else if (strcmp(tmp, "string") == 0)
+                            decode_type = PURC_K_KW_string;
+                        else if (strcmp(tmp, "rfc1738") == 0)
+                            rfc = PURC_K_KW_rfc1738;
+                        else if (strcmp(tmp, "rfc3986") == 0)
+                            rfc = PURC_K_KW_rfc3986;
+                        else {
+                            ec = PURC_ERROR_INVALID_VALUE;
+                            goto failed;
+                        }
+                    }
+
+                    if (options_len <= length)
+                        break;
+
+                    options_len -= length;
+                    option = pcutils_get_next_token_len(option + length, options_len,
+                            PURC_KW_DELIMITERS, &length);
+                } while (option);
+            }
+        }
+
+        // Process separator parameter
+        if (nr_args > 2) {
+            const char *separator;
+            size_t len;
+            separator = purc_variant_get_string_const_ex(argv[2], &len);
+            if (separator && len == 1) {
+                arg_separator = separator[0];
+            }
+        }
+    }
+
+    // Create return value container
+    if (as_array) {
+        result = purc_variant_make_array_0();
+    }
+    else {
+        result = purc_variant_make_object_0();
+    }
+
+    if (!result) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    // Return empty container for empty query string
+    if (query_len == 0) {
+        return result;
+    }
+
+    // Parse query string
+    const char *p = query_str;
+    const char *end = p + query_len;
+    
+    while (p < end) {
+        // Find key-value pair separator
+        const char *eq = memchr(p, '=', end - p);
+        if (!eq) break;
+
+        // Find argument separator
+        const char *next = memchr(eq + 1, arg_separator, end - (eq + 1));
+        if (!next) next = end;
+
+        // Decode key
+        DECL_MYSTRING(key);
+        int ret = pcdvobj_url_decode(&key, p, eq - p, rfc, false);
+        if (ret) {
+            pcutils_mystring_free(&key);
+            ec = (ret < 0) ? PURC_ERROR_OUT_OF_MEMORY : PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        // Decode value
+        DECL_MYSTRING(value);
+        ret = pcdvobj_url_decode(&value, eq + 1, next - (eq + 1), rfc, false);
+        if (ret) {
+            pcutils_mystring_free(&key);
+            pcutils_mystring_free(&value);
+            ec = (ret < 0) ? PURC_ERROR_OUT_OF_MEMORY : PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        // Create value variant based on decode type
+        purc_variant_t val = PURC_VARIANT_INVALID;
+        if (decode_type == PURC_K_KW_binary) {
+            val = purc_variant_make_byte_sequence_reuse_buff(value.buff,
+                    value.nr_bytes, value.sz_space);
+        }
+        else if (decode_type == PURC_K_KW_string) {
+            if (pcutils_mystring_done(&value) == 0) {
+                val = purc_variant_make_string_reuse_buff(value.buff,
+                        value.sz_space, true);
+            }
+        }
+        else { // auto
+            if (pcutils_mystring_done(&value) == 0) {
+                val = purc_variant_make_string_reuse_buff(value.buff,
+                        value.sz_space, true);
+                if (val == PURC_VARIANT_INVALID) {
+                    if (purc_get_last_error() == PURC_ERROR_BAD_ENCODING) {
+                        val = purc_variant_make_byte_sequence_reuse_buff(value.buff,
+                                value.nr_bytes - 1, value.sz_space);
+                    }
+                    else {
+                        ec = PURC_ERROR_OUT_OF_MEMORY;
+                        goto failed;
+                    }
+                }
+            }
+        }
+
+        if (!val) {
+            pcutils_mystring_free(&key);
+            pcutils_mystring_free(&value);
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+       }
+
+        // Add key-value pair to result container
+        if (as_array) {
+            if (!purc_variant_array_append(result, val)) {
+                pcutils_mystring_free(&key);
+                purc_variant_unref(val);
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto failed;
+            }
+        }
+        else {
+            if (pcutils_mystring_done(&key) == 0) {
+                if (!purc_variant_object_set_by_ckey(result, key.buff, val)) {
+                    pcutils_mystring_free(&key);
+                    purc_variant_unref(val);
+                    ec = PURC_ERROR_OUT_OF_MEMORY;
+                    goto failed;
+                }
+            }
+        }
+
+        pcutils_mystring_free(&key);
+        purc_variant_unref(val);
+
+        p = next + 1;
+        if (p >= end) break;
+    }
+
+    return result;
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (result)
+        purc_variant_unref(result);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_url_new(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -502,7 +735,7 @@ purc_variant_t purc_dvobj_url_new(void)
         { "encode",     encode_getter,      NULL },
         { "decode",     decode_getter,      NULL },
         { "build_query", build_query_getter, NULL },
-        // { "parse_query", parse_query_getter, NULL },
+        { "parse_query", parse_query_getter, NULL },
         // { "parse",       parse_getter,      NULL },
         // { "assembly",    assembly_getter,   NULL },
     };
