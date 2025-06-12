@@ -1668,7 +1668,12 @@ update_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
         pcintr_attribute_op attr_op_eval)
 {
     UNUSED_PARAM(stack);
-    if (purc_variant_is_string(src) || pcvariant_is_of_number(src)) {
+    if (action == UPDATE_ACTION_REMOVE) {
+        return pcintr_util_set_attribute(stack->doc, target,
+                PCDOC_OP_ERASE, pos, NULL, 0, true, is_no_return());
+    }
+    else if (src && (purc_variant_is_string(src) ||
+                pcvariant_is_of_number(src))) {
         if (action == UPDATE_ACTION_DISPLACE) {
             // +=, -=, *=, /=, %=, ~=, ^=, $=
             return displace_elem_attr(stack, target, pos, src, attr_op_eval);
