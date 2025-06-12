@@ -365,6 +365,21 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+$URL.build_query(
+    < object | array $query_data >
+    [, < string $numeric_prefix = '': `The numeric prefix for the argument names if $query_data is an array.` >
+        [, <'[real-json | real-ejson] || [rfc1738 | rfc3986]' $opts = 'real-json rfc1738':
+        - 'real-json':    `Use JSON notation for real numbers, i.e., treat all real numbers (number, longint, ulongint, and longdouble) as JSON numbers.`
+        - 'real-ejson':   `Use eJSON notation for longint, ulongint, and longdouble, e.g., 100L, 999UL, and 100FL.`
+        - 'rfc1738':      `Encoding is performed per RFC 1738 and the 'application/x-www-form-urlencoded' media type, which implies that spaces are encoded as plus (+) signs.`
+        - 'rfc3986':      `Encoding is performed according to RFC 3986, and spaces will be percent encoded (%20).`
+            [, <string $arg_separator = '&': `The character used to separate the arguments. `>
+            ]
+        ]
+    ]
+) string | false
+ */
 static purc_variant_t
 build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -401,20 +416,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         if (nr_args > 2) {
-            const char *separator;
-            size_t len = 0;
-
-            separator = purc_variant_get_string_const_ex(argv[2], &len);
-            if (separator == NULL || len > 1) {
-                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                goto failed;
-            }
-
-            arg_separator = separator[0];
-        }
-
-        if (nr_args > 3) {
-            options = purc_variant_get_string_const_ex(argv[3], &options_len);
+            options = purc_variant_get_string_const_ex(argv[2], &options_len);
             if (!options) {
                 purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
                 goto failed;
@@ -425,6 +427,20 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 options = NULL;
             }
         }
+
+        if (nr_args > 3) {
+            const char *separator;
+            size_t len = 0;
+
+            separator = purc_variant_get_string_const_ex(argv[3], &len);
+            if (separator == NULL || len > 1) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+
+            arg_separator = separator[0];
+        }
+
     }
 
     if (options) {
