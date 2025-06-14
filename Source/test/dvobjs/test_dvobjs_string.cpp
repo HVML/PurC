@@ -881,6 +881,7 @@ TEST(dvobjs, dvobjs_string_format_c)
     purc_cleanup ();
 }
 
+#if 0 // deprecated (VW 250614)
 TEST(dvobjs, dvobjs_string_format_p)
 {
     const char *function[] = {"format_p"};
@@ -1045,6 +1046,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     purc_variant_unref(string);
     purc_cleanup ();
 }
+#endif
 
 TEST(dvobjs, dvobjs_string_join)
 {

@@ -1557,14 +1557,14 @@ positive:
     '中华人民伟大的国'
 
 positive:
+    $STR.format_p('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
+    'There are two boys: "Tom" and "Jerry"'
+
+positive:
     $STR.format_p('There are two boys: {name0} and {name1}', { name0: 'Tom', name1: 'Jerry' })
-    'There are two boys: Tom and Jerry'
+    'There are two boys: "Tom" and "Jerry"'
 
-#positive:
-#    $STR.format_p('There are two boys: #0 and #1', 'Tom', 'Jerry')
-#    'There are two boys: Tom and Jerry'
-
-#positive:
-#    $STR.format_p('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
-#    'There are two boys: Tom and Jerry'
+positive:
+    $STR.format_p('There are two boys: #0 and #1', 'Tom', 'Jerry')
+    'There are two boys: "Tom" and "Jerry"'
 

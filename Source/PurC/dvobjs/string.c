@@ -1839,156 +1839,249 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+
 static purc_variant_t
 format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    const char *format = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t tmp_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
-    int type = 0;
-    char buffer[32];
-    int index = 0;
-    char *buf = NULL;
-    size_t sz_stream = 0;
-    size_t format_size = 0;
-    purc_rwstream_t serialize = NULL;     // used for serialize
-
-    if ((argv == NULL) || (nr_args == 0)) {
-        purc_rwstream_destroy(rwstream);
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    purc_rwstream_t rwstream = NULL;
+    int ec = PURC_ERROR_OK;
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
     }
 
-    if ( (!purc_variant_is_string (argv[0]))) {
-        purc_rwstream_destroy(rwstream);
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    else {
-        format = purc_variant_get_string_const (argv[0]);
-        format_size = purc_variant_string_size (argv[0]);
+    const char *fmt_str = NULL;
+    size_t fmt_len;
+    fmt_str = purc_variant_get_string_const_ex(argv[0], &fmt_len);
+    if (fmt_str == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        purc_rwstream_destroy(rwstream);
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    enum {
+        TYPE_UNKNOWN = -1,
+        TYPE_LICNTR = 0,
+        TYPE_OBJECT,
+    };
+
+    int type = TYPE_UNKNOWN;
+    size_t data0_len = 0;
+    if (purc_variant_linear_container_size(argv[1], &data0_len)) {
+        type = TYPE_LICNTR;
+    }
+    else if (purc_variant_is_object(argv[1])) {
+        type = TYPE_OBJECT;
+        data0_len = -1;
     }
 
-    enum purc_variant_type vt = purc_variant_get_type(argv[1]);
-    if (vt == PURC_VARIANT_TYPE_ARRAY || vt == PURC_VARIANT_TYPE_SET
-            || vt == PURC_VARIANT_TYPE_TUPLE) {
-        type = 0;
-    }
-    else if (vt == PURC_VARIANT_TYPE_OBJECT) {
-        type = 1;
-    }
-    else {
-        purc_rwstream_destroy(rwstream);
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
+    rwstream = purc_rwstream_new_buffer(32, MAX_SIZE_BUFSTM);
 
-    if (type == 0) {
-        const char *start = NULL;
-        const char *end = NULL;
-        size_t length = 0;
-        const char *head = pcutils_get_next_token (format, "{", &length);
-        while (head) {
-            purc_rwstream_write (rwstream, head, length);
+    enum {
+        STATE_CHAR = 0,
+        STATE_ESCAPED,
+        STATE_INDEX,
+        STATE_KEY,
+        STATE_ARG,
+    };
 
-            start = head + length + 1;
-            head = pcutils_get_next_token (head + length + 1, "}", &length);
-            end = head + length;
-            strncpy(buffer, start, end - start);
-            *(buffer + (end - start)) = 0x00;
-            pcdvobjs_remove_space (buffer);
-            index = atoi (buffer);
-
-            tmp_var = purc_variant_linear_container_get (argv[1], index);
-            if (tmp_var == PURC_VARIANT_INVALID) {
-                purc_rwstream_destroy (rwstream);
-                return PURC_VARIANT_INVALID;
+    const char *p = fmt_str;
+    int state = STATE_CHAR;
+    const char *name_str;
+    size_t name_len = 0;
+    while (true) {
+        if (*p == '\\') {
+            state = STATE_ESCAPED;
+        }
+        else if (*p == '[') {
+            if (state == STATE_ESCAPED) {
+                purc_rwstream_write(rwstream, p, 1);
+                state = STATE_CHAR;
             }
-
-            serialize = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
-            purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
-            buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
-            purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
-            purc_rwstream_destroy (serialize);
-
-            head = pcutils_get_next_token (head + length + 1, "{", &length);
-            end++;
-
-            if (length == format_size - (head - format) - 1)
-                break;
-        }
-
-        if (end != NULL)
-            purc_rwstream_write (rwstream, end, strlen (end));
-    }
-    else {
-        const char *start = NULL;
-        const char *end = NULL;
-        size_t length = 0;
-        const char *head = pcutils_get_next_token (format, "{", &length);
-        while (head) {
-            purc_rwstream_write (rwstream, head, length);
-
-            start = head + length + 1;
-            head = pcutils_get_next_token (head + length + 1, "}", &length);
-            end = head + length;
-            strncpy(buffer, start, end - start);
-            *(buffer + (end - start)) = 0x00;
-            pcdvobjs_remove_space (buffer);
-
-            tmp_var = purc_variant_object_get_by_ckey_ex (argv[1], buffer, false);
-            if (tmp_var == PURC_VARIANT_INVALID) {
-                purc_rwstream_destroy (rwstream);
-                return PURC_VARIANT_INVALID;
+            else if (type != TYPE_LICNTR) {
+                ec = PURC_ERROR_WRONG_DATA_TYPE;
+                goto failed;
             }
+            else {
+                state = STATE_INDEX;
+                name_str = p + 1;
+                name_len = 0;
+            }
+        }
+        else if (*p == '{') {
+            if (state == STATE_ESCAPED) {
+                purc_rwstream_write(rwstream, p, 1);
+                state = STATE_CHAR;
+            }
+            else if (type != TYPE_OBJECT) {
+                ec = PURC_ERROR_WRONG_DATA_TYPE;
+                goto failed;
+            }
+            else {
+                state = STATE_KEY;
+                name_str = p + 1;
+                name_len = 0;
+            }
+        }
+        else if (*p == '#') {
+            if (state == STATE_ESCAPED) {
+                purc_rwstream_write(rwstream, p, 1);
+                state = STATE_CHAR;
+            }
+            else {
+                state = STATE_ARG;
+                name_str = p + 1;
+                name_len = 0;
+            }
+        }
+        else {
+            purc_variant_t tmp;
+            long index;
 
-            serialize = purc_rwstream_new_buffer (32, MAX_SIZE_BUFSTM);
-            purc_variant_serialize (tmp_var, serialize, 3, 0, &sz_stream);
-            buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
-            purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
-            purc_rwstream_destroy (serialize);
+            switch (state) {
+            case STATE_INDEX:
+                if (*p == ']') {
+                    if (name_len > 0) {
+                        index = strtol(name_str, NULL, 10);
+                    }
+                    else {
+                        ec = PURC_ERROR_INVALID_VALUE;
+                        goto failed;
+                    }
 
-            head = pcutils_get_next_token (head + length + 1, "{", &length);
-            end++;
+                    if (index < 0 || (size_t)index >= data0_len) {
+                        ec = PURC_ERROR_INVALID_VALUE;
+                        goto failed;
+                    }
 
-            if (length == format_size - (head - format) - 1)
+                    tmp = purc_variant_linear_container_get(argv[1], index);
+                    purc_variant_serialize(tmp, rwstream, 0,
+                            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+                            PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
+                            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
+                            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+
+                    state = STATE_CHAR;
+                }
+                else if (!purc_isdigit(*p)) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+                else if (*p) {
+                    name_len++;
+                }
                 break;
+
+            case STATE_ARG:
+                if (purc_isdigit(*p)) {
+                    name_len++;
+                }
+                else {
+                    if (name_len > 0) {
+                        index = strtol(name_str, NULL, 10);
+                    }
+                    else {
+                        ec = PURC_ERROR_INVALID_VALUE;
+                        goto failed;
+                    }
+
+                    if (index < 0 || (size_t)index >= (nr_args - 1)) {
+                        ec = PURC_ERROR_INVALID_VALUE;
+                        goto failed;
+                    }
+
+                    tmp = argv[index + 1];
+                    purc_variant_serialize(tmp, rwstream, 0,
+                            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+                            PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
+                            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
+                            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+
+                    if (*p)
+                        purc_rwstream_write(rwstream, p, 1);
+                    state = STATE_CHAR;
+                }
+                break;
+
+            case STATE_KEY:
+                if (*p == '}') {
+                    char *key = strndup(name_str, name_len);
+                    if (key == NULL) {
+                        ec = PURC_ERROR_OUT_OF_MEMORY;
+                        goto failed;
+                    }
+
+                    tmp = purc_variant_object_get_by_ckey_ex(argv[1], key,
+                            false);
+                    free(key);
+
+                    if (tmp == PURC_VARIANT_INVALID) {
+                        goto failed;
+                    }
+
+                    purc_variant_serialize(tmp, rwstream, 0,
+                            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+                            PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
+                            PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
+                            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+
+                    state = STATE_CHAR;
+                }
+                else if (*p) {
+                    name_len++;
+                }
+                break;
+
+            case STATE_CHAR:
+                if (*p)
+                    purc_rwstream_write(rwstream, p, 1);
+                break;
+
+            default:
+                PC_ERROR("Never here\n");
+                assert(0);
+                break;
+            }
         }
 
-        if (end != NULL)
-            purc_rwstream_write (rwstream, end, strlen (end));
-    }
-
-    size_t rw_size = 0;
-    size_t content_size = 0;
-    char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
-            &content_size, &rw_size, true);
-
-    if ((rw_size == 0) || (rw_string == NULL))
-        ret_var = PURC_VARIANT_INVALID;
-    else {
-        ret_var = purc_variant_make_string_reuse_buff (rw_string,
-                rw_size, false);
-        if(ret_var == PURC_VARIANT_INVALID) {
-            purc_set_error (PURC_ERROR_INVALID_VALUE);
-            ret_var = PURC_VARIANT_INVALID;
+        if (*p == 0) {
+            break;
         }
+
+        p++;
     }
 
-    purc_rwstream_destroy (rwstream);
+    if (purc_rwstream_write(rwstream, "", 1) < 1) {
+        goto failed;
+    }
 
-    return ret_var;
+    size_t content_len = 0;
+    size_t sz_buff = 0;
+    char *buff = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &content_len, &sz_buff, true);
+    if (sz_buff == 0 || buff == NULL) {
+        goto failed;
+    }
+
+    purc_rwstream_destroy(rwstream);
+    return purc_variant_make_string_reuse_buff(buff, sz_buff, false);
+
+failed:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 /*
