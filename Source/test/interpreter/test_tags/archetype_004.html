@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+
+<body>
+    <header>
+        <h1>
+            Sample - Bootstrap<small class="text-muted">Modal</small></h1>
+    </header>
+    <section id="main">
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <!--  Modal  -->
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">The Zhang family's rooster has laid eggs!</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Yesterday, the second son of the Zhang family came to me and said, "My rooster has laid eggs!"
+                    </div>
+                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button id="btnReadDetails" hvml:events="click" type="button" class="btn btn-primary">Read Details…</button></div>
+                </div>
+            </div>
+        </div><button id="btnShowModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            Show the Breaking News!</button>
+    </section>
+    <footer>
+        <p>Copyright &amp;copy; FMSoft</p>
+    </footer>
+</body>
+
+</html>

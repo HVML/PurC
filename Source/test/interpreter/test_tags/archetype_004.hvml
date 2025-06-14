@@ -1,0 +1,68 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+    <head>
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+
+    <body>
+        <header>
+            <h1>
+                $T.get('Sample - Bootstrap')
+                <small class="text-muted">$T.get('Modal')</small>
+            </h1>
+        </header>
+
+        <archetype name="newsModal">
+            <!-- Modal -->
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">$?.shortDesc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="$T.get('Close')"></button>
+                  </div>
+                  <div class="modal-body">
+                    $?.longDesc
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">$T.get('Close')</button>
+                    <button id="btnReadDetails" hvml:events="click" type="button" class="btn btn-primary">$T.get('Read Details…')</button>
+                  </div>
+                </div>
+            </div>
+        </archetype>
+
+        <section id="main">
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            </div>
+
+            <!-- Button trigger modal -->
+            <button id="btnShowModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" disabled>
+                $T.get('Show the Breaking News!')
+            </button>
+        </section>
+
+        <init as="breakingNews">
+            {
+                "title": "This is an absolute breaking news!",
+                "shortDesc": "The Zhang family's rooster has laid eggs!",
+                "longDesc": 'Yesterday, the second son of the Zhang family came to me and said, "My rooster has laid eggs!"',
+                "detailedUrl": "#",
+                "time": $DATETIME.time_prt
+            }
+        </init>
+
+        <choose on $breakingNews>
+            <update on="#exampleModal" to="displace" with="$newsModal" />
+        </choose>
+        <update on="#btnShowModal" at="attr.disabled" to="remove" />
+
+        <footer>
+            <p>$T.get('Copyright &copy; FMSoft')</p>
+        </footer>
+
+
+    </body>
+</hvml>
+
