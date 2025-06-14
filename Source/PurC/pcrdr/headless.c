@@ -1877,7 +1877,7 @@ static int my_disconnect(pcrdr_conn* conn)
     return 0;
 }
 
-#define SCHEMA_LOCAL_FILE  "file://"
+#define SCHEME_LOCAL_FILE  "file://"
 
 pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
@@ -1909,8 +1909,8 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         goto failed;
     }
 
-    if (renderer_uri && strlen(renderer_uri) > sizeof(SCHEMA_LOCAL_FILE)) {
-        logfile = renderer_uri + sizeof(SCHEMA_LOCAL_FILE) - 1;
+    if (renderer_uri && strlen(renderer_uri) > sizeof(SCHEME_LOCAL_FILE)) {
+        logfile = renderer_uri + sizeof(SCHEME_LOCAL_FILE) - 1;
     }
     else {
         int n = snprintf(buff, sizeof(buff),

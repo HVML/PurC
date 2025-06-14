@@ -104,7 +104,7 @@ TEST(socket, inet_stream_multiple_clients)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "scheme=inet");
 }
 
 /* using call within */
@@ -114,7 +114,7 @@ TEST(socket, inet4_stream_multiple_clients)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet4");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "scheme=inet4");
 }
 
 /* using call within */
@@ -124,7 +124,7 @@ TEST(socket, inet6_stream_multiple_clients)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "schema=inet6");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients.hvml", "scheme=inet6");
 }
 
 /* using call within */
@@ -134,7 +134,7 @@ TEST(socket, inet_stream_multiple_clients_blocked)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "scheme=inet");
 }
 
 /* using call within */
@@ -144,7 +144,7 @@ TEST(socket, inet4_stream_multiple_clients_blocked)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet4");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "scheme=inet4");
 }
 
 /* using call within */
@@ -154,6 +154,6 @@ TEST(socket, inet6_stream_multiple_clients_blocked)
 
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
 
-    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "schema=inet6");
+    run_one_comp_test("dvobjs/socket/inet-stream-multiple-clients-blocked.hvml", "scheme=inet6");
 }
 

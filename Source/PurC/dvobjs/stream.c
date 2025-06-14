@@ -2686,7 +2686,7 @@ done:
 
 static
 struct pcdvobjs_stream *
-create_inet_socket_stream(purc_atom_t schema,
+create_inet_socket_stream(purc_atom_t scheme,
         struct purc_broken_down_url *url, purc_variant_t option,
         const struct timeval *timeout)
 {
@@ -2699,18 +2699,18 @@ create_inet_socket_stream(purc_atom_t schema,
     char *peer_addr = NULL;
     char *peer_port = NULL;
 
-    if (schema == keywords2atoms[K_KW_inet4].atom) {
+    if (scheme == keywords2atoms[K_KW_inet4].atom) {
         isf = ISF_INET4;
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         isf = ISF_INET6;
     }
-    else if (schema != keywords2atoms[K_KW_inet].atom) {
+    else if (scheme != keywords2atoms[K_KW_inet].atom) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 
-    int fd = inet_socket_connect(isf, url->host, url->port,
+    int fd = inet_socket_connect(isf, url->hostname, url->port,
             &peer_addr, &peer_port, timeout);
     if (fd < 0) {
         purc_set_error(purc_error_from_errno(errno));
@@ -2923,7 +2923,7 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
     }
 
     purc_atom_t atom;
-    atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, bdurl->schema);
+    atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, bdurl->scheme);
     if (atom == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
@@ -3229,7 +3229,7 @@ purc_variant_t purc_dvobj_stream_new(void)
 
 purc_variant_t
 dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
-        purc_atom_t schema, char *peer_addr, char *peer_port, int fd,
+        purc_atom_t scheme, char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot_v, purc_variant_t prot_opts)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -3245,8 +3245,8 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
 
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
 
         const char *prot = "raw";
         if (prot_v) {
@@ -3283,9 +3283,9 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
             }
         }
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom ||
-            schema == keywords2atoms[K_KW_inet4].atom ||
-            schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom ||
+            scheme == keywords2atoms[K_KW_inet4].atom ||
+            scheme == keywords2atoms[K_KW_inet6].atom) {
 
         const char *prot = "raw";
         if (prot_v) {

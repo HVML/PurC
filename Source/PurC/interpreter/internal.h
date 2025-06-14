@@ -38,8 +38,8 @@
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */
 
-#define PCINTR_HVML_RUN_SCHEMA                "hvml+run://"
-#define PCINTR_LEN_HVML_RUN_SCHEMA            11
+#define PCINTR_HVML_RUN_SCHEME                "hvml+run://"
+#define PCINTR_LEN_HVML_RUN_SCHEME            11
 
 #define PCINTR_HVML_RUN_RES_CRTN              "/CRTN/"
 #define PCINTR_HVML_RUN_RES_CHAN              "/CHAN/"
@@ -94,8 +94,8 @@ enum VIA {
 enum HVML_RUN_URI_TYPE {
     HVML_RUN_URI_INVALID,
     HVML_RUN_URI_FULL,
-    HVML_RUN_URI_OMIT_SCHEMA,
-    HVML_RUN_URI_OMIT_SCHEMA_AND_HOST,
+    HVML_RUN_URI_OMIT_SCHEME,
+    HVML_RUN_URI_OMIT_SCHEME_AND_HOST,
 };
 
 enum HVML_RUN_RES_TYPE {

@@ -140,7 +140,7 @@ static void print_usage(FILE *fp)
         "        The data fetcher; use `local` or `remote`.\n"
         "            - `local`: use the built-in data fetcher, and only `file://` URLs\n"
         "               supported.\n"
-        "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
+        "            - `remote`: use the remote data fetcher to support more URL schemes,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
         "  -c --rdr-comm=< headless | thread | socket >\n"
@@ -857,7 +857,7 @@ static purc_vdom_t load_hvml(const char *url)
     pcutils_url_break_down(&broken_down, url);
 
     purc_vdom_t vdom;
-    if (strcasecmp(broken_down.schema, "file") == 0) {
+    if (strcasecmp(broken_down.scheme, "file") == 0) {
         vdom = purc_load_hvml_from_file(broken_down.path);
     }
     else {
@@ -1654,8 +1654,8 @@ int start_thread_renderer(const char *uri)
     }
     else {
         for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
-            if (strncasecmp(uri, PURC_EDPT_SCHEMA,
-                        sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+            if (strncasecmp(uri, PURC_EDPT_SCHEME,
+                        sizeof(PURC_EDPT_SCHEME) - 1) == 0) {
                 if (strcasecmp(thrdrs[i].uri, uri) == 0) {
                     thrdr_idx = i;
                     break;
@@ -1987,8 +1987,8 @@ int main(int argc, char** argv)
         }
         else {
             for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
-                if (strncasecmp(opts->rdr_uri, PURC_EDPT_SCHEMA,
-                            sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+                if (strncasecmp(opts->rdr_uri, PURC_EDPT_SCHEME,
+                            sizeof(PURC_EDPT_SCHEME) - 1) == 0) {
                     if (strcasecmp(thrdrs[i].uri, opts->rdr_uri) == 0) {
                         thrdr_idx = i;
                         break;

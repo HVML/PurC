@@ -1193,14 +1193,14 @@ pcutils_basename(const char* fname);
 
 /** The structure representing a broken-down URL. */
 struct purc_broken_down_url {
-    /** the schema component */
-    char *schema;
+    /** the scheme component */
+    char *scheme;
     /** the user component */
-    char *user;
+    char *username;
     /** the password component */
-    char *passwd;
+    char *password;
     /** the host component */
-    char *host;
+    char *hostname;
     /** the path component */
     char *path;
     /** the query component */
@@ -1248,7 +1248,7 @@ pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down);
  *  free() to release the memory when done.
  */
 PCA_EXPORT char *
-pcutils_url_assemble(const struct purc_broken_down_url *broken_down,
+pcutils_url_assembly(const struct purc_broken_down_url *broken_down,
         bool keep_percent_escaped);
 
 /**

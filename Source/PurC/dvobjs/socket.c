@@ -807,9 +807,9 @@ accept_getter(void *native_entity, const char *property_name,
         goto error;
     }
 
-    purc_atom_t schema = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET,
-            socket->url->schema);
-    if (schema == 0) {
+    purc_atom_t scheme = purc_atom_try_string_ex(SOCKET_ATOM_BUCKET,
+            socket->url->scheme);
+    if (scheme == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
@@ -817,19 +817,19 @@ accept_getter(void *native_entity, const char *property_name,
     char *peer_addr = NULL;
     char *peer_port = NULL;
 
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
         fd = local_socket_accept_client(socket, &peer_addr);
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom) {
         fd = inet_socket_accept_client(socket, ISF_UNSPEC,
                 &peer_addr, &peer_port);
     }
-    else if (schema == keywords2atoms[K_KW_inet4].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet4].atom) {
         fd = inet_socket_accept_client(socket, ISF_INET4,
                 &peer_addr, &peer_port);
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         fd = inet_socket_accept_client(socket, ISF_INET6,
                 &peer_addr, &peer_port);
     }
@@ -871,7 +871,7 @@ accept_getter(void *native_entity, const char *property_name,
 
     purc_variant_t stream =
         dvobjs_create_stream_by_accepted(socket,
-                schema, peer_addr, peer_port, fd,
+                scheme, peer_addr, peer_port, fd,
                 nr_args > 1 ? argv[1] : NULL,
                 nr_args > 2 ? argv[2] : NULL);
     if (!stream) {
@@ -917,9 +917,9 @@ struct addrinfo *get_network_address(enum stream_inet_socket_family isf,
     snprintf(port, sizeof(port), "%d", url->port);
 
     hints.ai_socktype = SOCK_DGRAM;
-    if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
+    if (getaddrinfo(url->hostname, port, &hints, &ai) != 0) {
         PC_ERROR("Error while getting address info (%s:%d)\n",
-                url->host, url->port);
+                url->hostname, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -1009,17 +1009,17 @@ sendto_getter(void *native_entity, const char *property_name,
         length = bsize - offset;
     }
 
-    purc_atom_t schema =
-        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, dst->schema);
-    if (schema == 0) {
+    purc_atom_t scheme =
+        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, dst->scheme);
+    if (scheme == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
 
     struct addrinfo *ai = NULL;
     struct sockaddr_un *unix_addr = NULL;
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
 
         if (strlen(dst->path) + 1 > sizeof(unix_addr->sun_path)) {
             purc_set_error(PURC_ERROR_TOO_LONG);
@@ -1035,13 +1035,13 @@ sendto_getter(void *native_entity, const char *property_name,
         ai->ai_addrlen += strlen(unix_addr->sun_path) + 1;
         ai->ai_addr = (struct sockaddr *)unix_addr;
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom) {
         ai = get_network_address(ISF_UNSPEC, dst);
     }
-    else if (schema == keywords2atoms[K_KW_inet4].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet4].atom) {
         ai = get_network_address(ISF_INET4, dst);
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         ai = get_network_address(ISF_INET6, dst);
     }
     else {
@@ -1553,15 +1553,15 @@ create_inet_stream_socket(enum stream_inet_socket_family isf,
 
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
+    if (getaddrinfo(url->hostname, port, &hints, &ai) != 0) {
         PC_ERROR("Error while getting address info (%s:%d)\n",
-                url->host, url->port);
+                url->hostname, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if ((fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1) {
-        PC_ERROR("Failed socket(%s:%d)\n", url->host, url->port);
+        PC_ERROR("Failed socket(%s:%d)\n", url->hostname, url->port);
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1675,9 +1675,9 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error_free_url;
     }
 
-    purc_atom_t schema =
-        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
-    if (schema == 0) {
+    purc_atom_t scheme =
+        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->scheme);
+    if (scheme == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
@@ -1690,17 +1690,17 @@ socket_stream_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     };
 
     struct pcdvobjs_socket *socket = NULL;
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
         socket = create_local_stream_socket(url, option, backlog);
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom) {
         socket = create_inet_stream_socket(ISF_UNSPEC, url, option, backlog);
     }
-    else if (schema == keywords2atoms[K_KW_inet4].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet4].atom) {
         socket = create_inet_stream_socket(ISF_INET4, url, option, backlog);
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         socket = create_inet_stream_socket(ISF_INET6, url, option, backlog);
     }
     else {
@@ -1850,15 +1850,15 @@ create_inet_dgram_socket(enum stream_inet_socket_family isf,
 
     /* get a socket and bind it */
     hints.ai_socktype = SOCK_DGRAM;
-    if (getaddrinfo(url->host, port, &hints, &ai) != 0) {
+    if (getaddrinfo(url->hostname, port, &hints, &ai) != 0) {
         PC_ERROR("Error while getting address info (%s:%d)\n",
-                url->host, url->port);
+                url->hostname, url->port);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if ((fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1) {
-        PC_ERROR("Failed to create socket for %s:%d\n", url->host, url->port);
+        PC_ERROR("Failed to create socket for %s:%d\n", url->hostname, url->port);
         purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
@@ -1949,25 +1949,25 @@ socket_dgram_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error_free_url;
     }
 
-    purc_atom_t schema =
-        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->schema);
-    if (schema == 0) {
+    purc_atom_t scheme =
+        purc_atom_try_string_ex(SOCKET_ATOM_BUCKET, url->scheme);
+    if (scheme == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error_free_url;
     }
 
     struct pcdvobjs_socket *socket = NULL;
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
         socket = create_local_dgram_socket(url, flags);
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom) {
         socket = create_inet_dgram_socket(ISF_UNSPEC, url, flags);
     }
-    else if (schema == keywords2atoms[K_KW_inet4].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet4].atom) {
         socket = create_inet_dgram_socket(ISF_INET4, url, flags);
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         socket = create_inet_dgram_socket(ISF_INET6, url, flags);
     }
     else {

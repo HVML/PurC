@@ -422,33 +422,7 @@ coroutine_release(pcintr_coroutine_t co)
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
-        if (url->schema) {
-            free(url->schema);
-        }
-
-        if (url->user) {
-            free(url->user);
-        }
-
-        if (url->passwd) {
-            free(url->passwd);
-        }
-
-        if (url->host) {
-            free(url->host);
-        }
-
-        if (url->path) {
-            free(url->path);
-        }
-
-        if (url->query) {
-            free(url->query);
-        }
-
-        if (url->fragment) {
-            free(url->fragment);
-        }
+        pcutils_broken_down_url_clear(url);
 
         if (co->target) {
             free(co->target);

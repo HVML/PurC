@@ -1991,6 +1991,193 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
+/*
+$STR.scan_p(
+        <string $string: `The input string being parsed.`>,
+        <string $format: `The string contains placeholders.`>,
+) array | object | any
+*/
+static purc_variant_t
+scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    // Get input string
+    const char* input;
+    size_t input_len;
+    input = purc_variant_get_string_const_ex(argv[0], &input_len);
+    if (!input) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    // Get format string
+    const char* format;
+    size_t format_len;
+    format = purc_variant_get_string_const_ex(argv[1], &format_len);
+    if (!format) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    // Check format string type
+    bool is_array = false;
+    bool is_object = false;
+    bool is_single = false;
+    
+    const char* p = format;
+    while (*p) {
+        if (*p == '[') {
+            is_array = true;
+            break;
+        }
+        else if (*p == '{') {
+            is_object = true; 
+            break;
+        }
+        else if (*p == '#') {
+            is_single = true;
+            break;
+        }
+        p++;
+    }
+
+    // If not array, object or single value, return invalid value error
+    if (!is_array && !is_object && !is_single) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Create return value
+    if (is_array) {
+        result = purc_variant_make_array_0();
+    }
+    else if (is_object) {
+        result = purc_variant_make_object_0();
+    }
+
+    // Parse format string
+    const char* fmt_p = format;
+    const char* input_p = input;
+
+    while (*fmt_p && *input_p) {
+        if (*fmt_p == '\\') {
+            // Handle escape character
+            fmt_p++;
+            if (*fmt_p == *input_p) {
+                fmt_p++;
+                input_p++;
+                continue;
+            }
+            else {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+        }
+        else if (is_array && *fmt_p == '[') {
+            // Handle array placeholder
+            fmt_p++;
+            while (*fmt_p && *fmt_p != ']') {
+                fmt_p++;
+            }
+
+            if (*fmt_p != ']') {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+
+            fmt_p++; // Skip ]
+
+            // Extract value until next format character
+            const char* value_start = input_p;
+            while (*input_p && *input_p != *fmt_p) {
+                input_p++;
+            }
+
+            // Add to array
+            purc_variant_t value = purc_variant_make_string_ex(value_start, 
+                    input_p - value_start, false);
+            purc_variant_array_append(result, value);
+            purc_variant_unref(value);
+        }
+        else if (is_object && *fmt_p == '{') {
+            // Handle object placeholder
+            const char *key_start = fmt_p + 1;
+            fmt_p++;
+            while (*fmt_p && *fmt_p != '}') {
+                fmt_p++;
+            }
+
+            if (*fmt_p != '}') {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+
+            const char *key_end = fmt_p;
+            size_t key_len = key_end - key_start;
+            char name_buf[key_len + 1];
+            memcpy(name_buf, key_start, key_len);
+            name_buf[key_len] = '\0';
+            fmt_p++; // Skip }
+
+            // Extract value until next format character
+            const char* value_start = input_p;
+            while (*input_p && *input_p != *fmt_p) {
+                input_p++;
+            }
+
+            // Add to object
+            purc_variant_t value = purc_variant_make_string_ex(value_start,
+                    input_p - value_start, false);
+            purc_variant_object_set_by_ckey(result, name_buf, value);
+            purc_variant_unref(value);
+        }
+        else if (is_single && *fmt_p == '#') {
+            // Handle single value placeholder
+            fmt_p++;
+            if (*fmt_p == '?') {
+                fmt_p++;
+                const char* value_start = input_p;
+                while (*input_p && *input_p != *fmt_p) {
+                    input_p++;
+                }
+                
+                // Return single value directly
+                return purc_variant_make_string_ex(value_start,
+                        input_p - value_start, false);
+            }
+        }
+        else if (*fmt_p == *input_p) {
+            // Match normal character
+            fmt_p++;
+            input_p++;
+        }
+        else {
+            goto failed;
+        }
+    }
+
+    return result;
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+    if (result != PURC_VARIANT_INVALID)
+        purc_variant_unref(result);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
 substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -2217,6 +2404,7 @@ failed:
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
+
 /*
 $STR.substr_count(
     <string $haystack: `The input string.`>,
@@ -4198,7 +4386,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "format_c",   format_c_getter,    NULL },
         // { "scan_c",     scan_c_getter,      NULL },
         { "format_p",   format_p_getter,    NULL },
-        // { "scan_p",     scan_p_getter,      NULL },
+        { "scan_p",     scan_p_getter,      NULL },
         { "join",       join_getter,        NULL },
         { "nr_bytes",   nr_bytes_getter,    NULL },
         { "nr_chars",   nr_chars_getter,    NULL },

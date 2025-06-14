@@ -39,11 +39,11 @@
 #include <poll.h>
 #include <errno.h>
 
-#define SCHEMA_WEBSOCKET            "ws"
-#define SCHEMA_SECURE_WEBSOCKET     "wss"
-#define SCHEMA_LOCAL_SOCKET         "local"
-#define SCHEMA_UNIX_SOCKET          "unix"
-#define SCHEMA_INET_SOCKET          "inet"
+#define SCHEME_WEBSOCKET            "ws"
+#define SCHEME_SECURE_WEBSOCKET     "wss"
+#define SCHEME_LOCAL_SOCKET         "local"
+#define SCHEME_UNIX_SOCKET          "unix"
+#define SCHEME_INET_SOCKET          "inet"
 #define USERNAME_INHERITED          "_inherited"
 
 #define STREAM_PROTOCOL_MESSAGE     "message"
@@ -403,12 +403,12 @@ pcrdr_socket_connect(const char* renderer_uri,
     }
 
     int fd = -1;
-    if (bdurl->user && strcmp(bdurl->user, USERNAME_INHERITED) == 0) {
+    if (bdurl->username && strcmp(bdurl->username, USERNAME_INHERITED) == 0) {
         /* The password filed of renderer URL is used as
            the inherited file descriptor. */
-        if (bdurl->passwd) {
+        if (bdurl->password) {
             char *endptr;
-            long tmp = strtol(bdurl->passwd, &endptr, 10);
+            long tmp = strtol(bdurl->password, &endptr, 10);
             if (*endptr != '\0') {
                 PC_DEBUG("Bad file descriptor: %ld\n", tmp);
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -437,25 +437,25 @@ pcrdr_socket_connect(const char* renderer_uri,
         goto failed;
     }
 
-    const char *schema = NULL;
+    const char *scheme = NULL;
     const char *prot = STREAM_PROTOCOL_MESSAGE;
-    if (strcasecmp(SCHEMA_SECURE_WEBSOCKET, bdurl->schema) == 0) {
-        schema = SCHEMA_INET_SOCKET;
+    if (strcasecmp(SCHEME_SECURE_WEBSOCKET, bdurl->scheme) == 0) {
+        scheme = SCHEME_INET_SOCKET;
         prot = STREAM_PROTOCOL_WEBSOCKET;
 
         purc_variant_t tmp = purc_variant_make_boolean(true);
         purc_variant_object_set_by_static_ckey(extra_opts, "secure", tmp);
         purc_variant_unref(tmp);
     }
-    else if (strcasecmp(SCHEMA_WEBSOCKET, bdurl->schema) == 0) {
-        schema = SCHEMA_INET_SOCKET;
+    else if (strcasecmp(SCHEME_WEBSOCKET, bdurl->scheme) == 0) {
+        scheme = SCHEME_INET_SOCKET;
         prot = STREAM_PROTOCOL_WEBSOCKET;
     }
-    else if (strcasecmp(SCHEMA_INET_SOCKET, bdurl->schema) == 0) {
+    else if (strcasecmp(SCHEME_INET_SOCKET, bdurl->scheme) == 0) {
         prot = STREAM_PROTOCOL_WEBSOCKET;
     }
-    else if (strcasecmp(SCHEMA_LOCAL_SOCKET, bdurl->schema) == 0 ||
-            strcasecmp(SCHEMA_UNIX_SOCKET, bdurl->schema) == 0) {
+    else if (strcasecmp(SCHEME_LOCAL_SOCKET, bdurl->scheme) == 0 ||
+            strcasecmp(SCHEME_UNIX_SOCKET, bdurl->scheme) == 0) {
         prot = STREAM_PROTOCOL_MESSAGE;
     }
 
@@ -464,11 +464,11 @@ pcrdr_socket_connect(const char* renderer_uri,
         goto error;
     }
 
-    if (schema) {
+    if (scheme) {
         // rebuild the URL for websocket
-        free(bdurl->schema);
-        bdurl->schema = strdup(SCHEMA_INET_SOCKET);
-        url = (const char *)pcutils_url_assemble(bdurl, true);
+        free(bdurl->scheme);
+        bdurl->scheme = strdup(SCHEME_INET_SOCKET);
+        url = (const char *)pcutils_url_assembly(bdurl, true);
     }
 
     pcutils_broken_down_url_delete(bdurl); bdurl = NULL;

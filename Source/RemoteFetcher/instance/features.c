@@ -47,19 +47,19 @@ purc_fetcher_is_feature_enabled(enum purc_fetcher_feature feature)
                 return true;
             break;
         case PURCFETCHER_FEATURE_LCMD:
-            if (PURCFETCHER_ENABLE_SCHEMA_LCMD)
+            if (PURCFETCHER_ENABLE_SCHEME_LCMD)
                 return true;
             break;
         case PURCFETCHER_FEATURE_LSQL:
-            if (PURCFETCHER_ENABLE_SCHEMA_LSQL)
+            if (PURCFETCHER_ENABLE_SCHEME_LSQL)
                 return true;
             break;
         case PURCFETCHER_FEATURE_RSQL:
-            if (PURCFETCHER_ENABLE_SCHEMA_RSQL)
+            if (PURCFETCHER_ENABLE_SCHEME_RSQL)
                 return true;
             break;
         case PURCFETCHER_FEATURE_HTTP:
-            if (PURCFETCHER_ENABLE_SCHEMA_HTTP)
+            if (PURCFETCHER_ENABLE_SCHEME_HTTP)
                 return true;
             break;
     }

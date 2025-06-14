@@ -1582,21 +1582,21 @@ int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
     return retv;
 }
 
-#define SCHEMA_UNIX_SOCKET  "unix://"
+#define SCHEME_UNIX_SOCKET  "unix://"
 
 pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
 
-    if (strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
-            sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
+    if (strncasecmp (SCHEME_UNIX_SOCKET, renderer_uri,
+            sizeof(SCHEME_UNIX_SOCKET) - 1)) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
     if (purcmc_connect_via_unix_socket(
-            renderer_uri + sizeof(SCHEMA_UNIX_SOCKET) - 1,
+            renderer_uri + sizeof(SCHEME_UNIX_SOCKET) - 1,
             app_name, runner_name, conn) < 0) {
         return NULL;
     }
@@ -1636,7 +1636,7 @@ pcrdr_msg *pcrdr_local_socket_connect(const char* renderer_uri,
 
 #endif
 
-#define SCHEMA_WEBSOCKET  "ws://"
+#define SCHEME_WEBSOCKET  "ws://"
 
 pcrdr_msg *
 pcrdr_websocket_connect(const char* renderer_uri,
@@ -1646,14 +1646,14 @@ pcrdr_websocket_connect(const char* renderer_uri,
     char *host_name = NULL;
     int port;
 
-    if (strncasecmp (SCHEMA_WEBSOCKET, renderer_uri,
-            sizeof(SCHEMA_WEBSOCKET) - 1)) {
+    if (strncasecmp (SCHEME_WEBSOCKET, renderer_uri,
+            sizeof(SCHEME_WEBSOCKET) - 1)) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
     const char *s_port;
-    const char *p = renderer_uri + sizeof(SCHEMA_WEBSOCKET) - 1;
+    const char *p = renderer_uri + sizeof(SCHEME_WEBSOCKET) - 1;
     char *q = strstr(p, ":");
     if (q == NULL) {
         s_port = PCRDR_PURCMC_WS_PORT;

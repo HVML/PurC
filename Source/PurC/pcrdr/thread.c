@@ -155,7 +155,7 @@ failed:
     return err_code;
 }
 
-#define SCHEMA_LOCAL_FILE  "file://"
+#define SCHEME_LOCAL_FILE  "file://"
 
 pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)

@@ -22,14 +22,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-macros.h"
 #include "purc-variant.h"
 #include "purc-errors.h"
+#include "purc-utils.h"
 #include "purc-helpers.h"
 
 #include "private/utils.h"
 #include "private/url.h"
 #include "private/dvobjs.h"
 #include "private/atom-buckets.h"
+#include "private/variant.h"
+#include "private/debug.h"
 #include <stdbool.h>
 
 enum {
@@ -727,6 +731,302 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+/*
+ # Parse URL into components according to specified options
+ $URL.parse(
+    < string $url: `The URL to parse.` >,
+    [,
+       < 'all | [scheme || hostname || port || username || password || path || query || fragment]' $components = 'all': `The components want to parse.` >
+    ]
+) object | string | null | false
+ */
+static purc_variant_t
+parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    int ec = PURC_ERROR_OK;
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    struct purc_broken_down_url bdurl;
+    memset(&bdurl, 0, sizeof(bdurl));
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    const char *url;
+    size_t url_len;
+    url = purc_variant_get_string_const_ex(argv[0], &url_len);
+    if (url == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    if (url_len == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Parse URL using pcutils_parse_url
+    if (!pcutils_url_break_down(&bdurl, url)) {
+        PC_WARN("pcutils_url_break_down failed\n");
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    struct url_part_info {
+        bool parse_flag; 
+        const char *key;
+        char **value;
+    } url_parts_info[] = {
+        { true,     "scheme",       &bdurl.scheme },
+        { true,     "hostname",     &bdurl.hostname },
+        { true,     "port",         NULL },
+        { true,     "username",     &bdurl.username },
+        { true,     "password",     &bdurl.password },
+        { true,     "path",         &bdurl.path },
+        { true,     "query",        &bdurl.query },
+        { true,     "fragment",     &bdurl.fragment },
+    };
+
+    // Process components parameter
+    if (nr_args > 1) {
+        const char *components;
+        size_t comp_len;
+        components = purc_variant_get_string_const_ex(argv[1], &comp_len);
+        if (components) {
+            components = pcutils_trim_spaces(components, &comp_len);
+            if (comp_len > 0) {
+                // Reset all flags if specific components requested
+                for (size_t i = 0; i < PCA_TABLESIZE(url_parts_info); i++)
+                    url_parts_info[i].parse_flag = false;
+
+                size_t length = 0;
+                const char *comp = pcutils_get_next_token_len(components, comp_len,
+                        PURC_KW_DELIMITERS, &length);
+
+                do {
+                    if (length > 0 && length <= MAX_LEN_KEYWORD) {
+                        char tmp[length + 1];
+                        strncpy(tmp, comp, length);
+                        tmp[length] = '\0';
+
+                        if (strcmp(tmp, "all") == 0) {
+                            for (size_t i = 0; i < PCA_TABLESIZE(url_parts_info); i++)
+                                url_parts_info[i].parse_flag = true;
+                            break;
+                        }
+                        else if (strcmp(tmp, "scheme") == 0)
+                            url_parts_info[0].parse_flag = true;
+                        else if (strcmp(tmp, "hostname") == 0)
+                            url_parts_info[1].parse_flag = true;
+                        else if (strcmp(tmp, "port") == 0)
+                            url_parts_info[2].parse_flag = true;
+                        else if (strcmp(tmp, "username") == 0)
+                            url_parts_info[3].parse_flag = true;
+                        else if (strcmp(tmp, "password") == 0)
+                            url_parts_info[4].parse_flag = true;
+                        else if (strcmp(tmp, "path") == 0)
+                            url_parts_info[5].parse_flag = true;
+                        else if (strcmp(tmp, "query") == 0)
+                            url_parts_info[6].parse_flag = true;
+                        else if (strcmp(tmp, "fragment") == 0)
+                            url_parts_info[7].parse_flag = true;
+                        else {
+                            ec = PURC_ERROR_INVALID_VALUE;
+                            goto failed;
+                        }
+                    }
+
+                    if (comp_len <= length)
+                        break;
+
+                    comp_len -= length;
+                    comp = pcutils_get_next_token_len(comp + length, comp_len,
+                            PURC_KW_DELIMITERS, &length);
+                } while (comp);
+            }
+        }
+    }
+
+    // Create result object
+    result = purc_variant_make_object_0();
+    if (!result) {
+        goto failed;
+    }
+
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    int nr_comps = 0;
+    for (size_t i = 0; i < PCA_TABLESIZE(url_parts_info); i++) {
+        if (url_parts_info[i].parse_flag) {
+            nr_comps++;
+            if (url_parts_info[i].value == NULL) {
+                /* port */
+                assert (i == 2);
+                if (bdurl.port != 0)
+                    val = purc_variant_make_number(bdurl.port);
+                else
+                    val = purc_variant_make_null();
+            }
+            else if (*url_parts_info[i].value) {
+                val = purc_variant_make_string_reuse_buff(*url_parts_info[i].value,
+                        strlen(*url_parts_info[i].value) + 1, true);
+            }
+            else {
+                val = purc_variant_make_null();
+            }
+
+            if (val) {
+                if (url_parts_info[i].value) {
+                    /* owner moved */
+                    *url_parts_info[i].value = NULL;
+                }
+
+                bool set_ok = purc_variant_object_set_by_ckey(result,
+                    url_parts_info[i].key, val);
+                purc_variant_unref(val);
+
+                if (!set_ok)
+                    goto failed;
+            }
+            else
+                goto failed;
+        }
+    }
+
+    pcutils_broken_down_url_clear(&bdurl);
+
+    // if there is only one component requested
+    if (nr_comps == 1 && purc_variant_object_get_size(result) == 1) {
+        if (val) {
+            val = purc_variant_ref(val);
+            purc_variant_unref(result);
+            result = val;
+        }
+        else {
+            purc_variant_unref(result);
+            result = purc_variant_make_null();
+        }
+    }
+
+    return result;
+
+failed:
+    pcutils_broken_down_url_clear(&bdurl);
+
+    if (result)
+        purc_variant_unref(result);
+
+    if (ec != PURC_ERROR_OK) {
+        purc_set_error(ec);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$URL.assembly(
+    < object $broken_down_url: `The broken-down URL object.` >
+) string | false
+ */
+static purc_variant_t
+assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if (!purc_variant_is_object(argv[0])) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    struct purc_broken_down_url bdurl;
+    memset(&bdurl, 0, sizeof(bdurl));
+
+    size_t n = 0;
+    purc_variant_t kk, vv;
+    foreach_key_value_in_variant_object(argv[0], kk, vv) {
+        const char *key = purc_variant_get_string_const(kk);
+        const char *val = purc_variant_get_string_const(vv);
+
+        if (key == NULL) {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+
+        n++;
+        if (strcmp(key, "scheme") == 0 && val) {
+            bdurl.scheme = (char *)val;
+        }
+        else if (strcmp(key, "hostname") == 0 && val) {
+            bdurl.hostname = (char *)val;
+        }
+        else if (strcmp(key, "port") == 0) {
+            if (!purc_variant_cast_to_uint32(vv, &bdurl.port, true)) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+        }
+        else if (strcmp(key, "username") == 0 && val) {
+            bdurl.username = (char *)val;
+        }
+        else if (strcmp(key, "password") == 0 && val) {
+            bdurl.password = (char *)val;
+        }
+        else if (strcmp(key, "path") == 0 && val) {
+            bdurl.path = (char *)val;
+        }
+        else if (strcmp(key, "query") == 0 && val) {
+            bdurl.query = (char *)val;
+        }
+        else if (strcmp(key, "fragment") == 0 && val) {
+            bdurl.fragment = (char *)val;
+        }
+        else {
+            n--;
+        }
+    } end_foreach;
+
+    if (n == 0) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto error;
+    }
+
+    char *url = pcutils_url_assembly(&bdurl, true);
+    if (url) {
+        if (*url)
+            return purc_variant_make_string_reuse_buff(url, strlen(url) + 1, false);
+        else {
+            free(url);
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+        }
+    }
+
+    ec = PURC_ERROR_OUT_OF_MEMORY;
+
+error:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_url_new(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -736,8 +1036,8 @@ purc_variant_t purc_dvobj_url_new(void)
         { "decode",     decode_getter,      NULL },
         { "build_query", build_query_getter, NULL },
         { "parse_query", parse_query_getter, NULL },
-        // { "parse",       parse_getter,      NULL },
-        // { "assembly",    assembly_getter,   NULL },
+        { "parse",       parse_getter,      NULL },
+        { "assembly",    assembly_getter,   NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
