@@ -1979,7 +1979,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = PURC_VARIANT_INVALID;
     else {
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
-                content_size, false);
+                rw_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
             purc_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
