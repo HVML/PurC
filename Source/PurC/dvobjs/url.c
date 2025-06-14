@@ -546,14 +546,13 @@ parse_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 1) {
         const char *options;
         size_t options_len;
-        
         options = purc_variant_get_string_const_ex(argv[1], &options_len);
         if (options) {
             options = pcutils_trim_spaces(options, &options_len);
             if (options_len > 0) {
                 size_t length = 0;
-                const char *option = pcutils_get_next_token_len(options, options_len,
-                        PURC_KW_DELIMITERS, &length);
+                const char *option = pcutils_get_next_token_len(options,
+                        options_len, PURC_KW_DELIMITERS, &length);
 
                 do {
                     if (length > 0 && length <= MAX_LEN_KEYWORD) {
@@ -585,8 +584,8 @@ parse_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                         break;
 
                     options_len -= length;
-                    option = pcutils_get_next_token_len(option + length, options_len,
-                            PURC_KW_DELIMITERS, &length);
+                    option = pcutils_get_next_token_len(option + length,
+                            options_len, PURC_KW_DELIMITERS, &length);
                 } while (option);
             }
         }
@@ -623,7 +622,6 @@ parse_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // Parse query string
     const char *p = query_str;
     const char *end = p + query_len;
-    
     while (p < end) {
         // Find key-value pair separator
         const char *eq = memchr(p, '=', end - p);
@@ -670,7 +668,8 @@ parse_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                         value.sz_space, true);
                 if (val == PURC_VARIANT_INVALID) {
                     if (purc_get_last_error() == PURC_ERROR_BAD_ENCODING) {
-                        val = purc_variant_make_byte_sequence_reuse_buff(value.buff,
+                        val = purc_variant_make_byte_sequence_reuse_buff(
+                                value.buff,
                                 value.nr_bytes - 1, value.sz_space);
                     }
                     else {
@@ -804,8 +803,8 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     url_parts_info[i].parse_flag = false;
 
                 size_t length = 0;
-                const char *comp = pcutils_get_next_token_len(components, comp_len,
-                        PURC_KW_DELIMITERS, &length);
+                const char *comp = pcutils_get_next_token_len(components,
+                        comp_len, PURC_KW_DELIMITERS, &length);
 
                 do {
                     if (length > 0 && length <= MAX_LEN_KEYWORD) {
@@ -814,7 +813,8 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                         tmp[length] = '\0';
 
                         if (strcmp(tmp, "all") == 0) {
-                            for (size_t i = 0; i < PCA_TABLESIZE(url_parts_info); i++)
+                            for (size_t i = 0;
+                                    i < PCA_TABLESIZE(url_parts_info); i++)
                                 url_parts_info[i].parse_flag = true;
                             break;
                         }
@@ -864,14 +864,15 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             nr_comps++;
             if (url_parts_info[i].value == NULL) {
                 /* port */
-                assert (i == 2);
+                assert(i == 2);
                 if (bdurl.port != 0)
                     val = purc_variant_make_number(bdurl.port);
                 else
                     val = purc_variant_make_null();
             }
             else if (*url_parts_info[i].value) {
-                val = purc_variant_make_string_reuse_buff(*url_parts_info[i].value,
+                val = purc_variant_make_string_reuse_buff(
+                        *url_parts_info[i].value,
                         strlen(*url_parts_info[i].value) + 1, true);
             }
             else {
@@ -1006,8 +1007,10 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     char *url = pcutils_url_assembly(&bdurl, true);
     if (url) {
-        if (*url)
-            return purc_variant_make_string_reuse_buff(url, strlen(url) + 1, false);
+        if (*url) {
+            return purc_variant_make_string_reuse_buff(url, strlen(url) + 1,
+                    false);
+        }
         else {
             free(url);
             ec = PURC_ERROR_INVALID_VALUE;

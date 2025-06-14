@@ -1467,3 +1467,91 @@ positive:
 # positive:
 #    $URL.assembly({ "scheme": "http", "hostname": "测试.网站.中国", "path": "/%E8%B7%AF%E5%BE%84", "query": "%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95", "fragment": "%E7%89%87%E6%AE%B5" })
 #    'http://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5'
+
+negative:
+    $STR.substr_replace()
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace('', null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace('', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_replace('', '', 0, null)
+    WrongDataType
+
+positive:
+    $STR.substr_replace('', '', 0)
+    ''
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 0)
+    'PurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1)
+    'HPurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', -1)
+    'HVMPurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 0, 2)
+    'PurCML'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1, 2)
+    'HPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', -2, 1)
+    'HVPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 2, -1)
+    'HVPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1, 0)
+    'HPurCVML'
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], 'PurC', 0)
+    ['PurC', 'PurC']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], 0)
+    ['PurC', 'Pro']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], [0, 1])
+    ['PurC', 'xPro']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], 0, [2, 3])
+    ['PurCML', 'ProI']
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', 2)
+    '中华伟大的'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', -2)
+    '中华人民共伟大的'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', 2, 3)
+    '中华伟大的和国'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', -3, 2)
+    '中华人民伟大的国'
