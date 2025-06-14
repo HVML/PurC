@@ -114,117 +114,19 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
+static int mgr_post_event(pcintr_stack_t stack,
+        pcvarmgr_t mgr, const char *name, const char *type,
+        const char *sub_type, purc_variant_t data)
 {
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
+    int ret = -1;
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
+        ret = pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_ATTACHED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                dest, type, sub_type, data, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
-
-    return true;
-}
-
-static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
-    purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
-    if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DETACHED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_unref(dest);
-    }
-
-    return true;
-}
-
-static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
-    purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
-    if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DISPLACED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_unref(dest);
-    }
-
-    return true;
-}
-
-static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    switch (msg_type) {
-    case PCVAR_OPERATION_INFLATED:
-        return mgr_grow_handler(source, msg_type, ctxt, nr_args, argv);
-
-    case PCVAR_OPERATION_DEFLATED:
-        return mgr_shrink_handler(source, msg_type, ctxt, nr_args, argv);
-
-    case PCVAR_OPERATION_MODIFIED:
-        return mgr_change_handler(source, msg_type, ctxt, nr_args, argv);
-
-    default:
-        return true;
-    }
-    return true;
-}
-
-static int
-add_listener_for_co_variables(pcvarmgr_t mgr)
-{
-    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
-        PCVAR_OPERATION_MODIFIED;
-    mgr->listener = purc_variant_register_post_listener(mgr->object,
-        (pcvar_op_t)op, mgr_handler, mgr);
-    if (mgr->listener) {
-        return 0;
-    }
-    return -1;
+    return ret;
 }
 
 #define DEF_ARRAY_SIZE 10
@@ -243,16 +145,7 @@ pcvarmgr_t pcvarmgr_create(void)
         goto err_free_mgr;
     }
 
-    int ret = add_listener_for_co_variables(mgr);
-    if (ret != 0) {
-        goto err_clear_object;
-    }
-
-
     return mgr;
-
-err_clear_object:
-    purc_variant_unref(mgr->object);
 
 err_free_mgr:
     free(mgr);
@@ -295,6 +188,11 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
     purc_variant_t v = purc_variant_object_get_ex(mgr->object, k, true);
     if (v == PURC_VARIANT_INVALID) {
         ret = purc_variant_object_set(mgr->object, k, variant);
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_ATTACHED, PURC_VARIANT_INVALID);
+        }
     }
     else {
         enum purc_variant_type type = purc_variant_get_type(v);
@@ -310,6 +208,11 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
             // XXX: observe on=$name
             ret = purc_variant_object_set(mgr->object, k, variant);
             break;
+        }
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_DISPLACED, PURC_VARIANT_INVALID);
         }
     }
 
@@ -337,8 +240,14 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
 bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 {
     if (name) {
-        return purc_variant_object_remove_by_ckey(mgr->object,
+        bool b =  purc_variant_object_remove_by_ckey(mgr->object,
                 name, silently);
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_DETACHED, PURC_VARIANT_INVALID);
+        }
+        return b;
     }
     return false;
 }
