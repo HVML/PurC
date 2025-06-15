@@ -391,7 +391,7 @@ pcrdr_socket_connect(const char* renderer_uri,
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
-        purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 

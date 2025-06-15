@@ -1890,7 +1890,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     *conn = NULL;
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
-        err_code = PURC_EXCEPT_INVALID_VALUE;
+        err_code = PURC_ERROR_INVALID_VALUE;
         goto failed;
     }
 

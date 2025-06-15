@@ -593,7 +593,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
-        purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 
@@ -950,7 +950,7 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
-        purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 

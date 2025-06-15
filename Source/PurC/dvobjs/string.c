@@ -1839,9 +1839,17 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
-
+/*
+$STR.format_p(
+        < string $format: `The format string contains placeholders.` >,
+        < array | object | any $data0: `The data to serialize.` >
+        [,
+            <any $data1: `The data to serialize.` >, ...
+        ]
+) string
+ */
 static purc_variant_t
-format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+format_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -1952,7 +1960,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     if (index < 0 || (size_t)index >= data0_len) {
-                        ec = PURC_ERROR_INVALID_VALUE;
+                        ec = PURC_ERROR_BAD_INDEX;
                         goto failed;
                     }
 
@@ -1989,7 +1997,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     if (index < 0 || (size_t)index >= (nr_args - 1)) {
-                        ec = PURC_ERROR_INVALID_VALUE;
+                        ec = PURC_ERROR_ARGUMENT_MISSED;
                         goto failed;
                     }
 

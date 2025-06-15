@@ -63,6 +63,11 @@ BadEncoding
     flags: None
     msg: "Bad encoding"
 
+BadIndex
+    except: BadIndex
+    flags: None
+    msg: "Bad index"
+
 NotSupported
     except: Unsupported
     flags: None

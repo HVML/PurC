@@ -332,7 +332,7 @@ positive:
     'Tom is 9 years old, while Jerry is 7 years old.'
 
 positive:
-$STR.format_c('Tom is %d years old, while Jerry is %d years old.', [9, 7])
+    $STR.format_c('Tom is %d years old, while Jerry is %d years old.', [9, 7])
     'Tom is 9 years old, while Jerry is 7 years old.'
 
 positive:
@@ -1556,6 +1556,42 @@ positive:
     $STR.substr_replace('中华人民共和国', '伟大的', -3, 2)
     '中华人民伟大的国'
 
+negative:
+    $STR.format_p()
+    ArgumentMissed
+
+negative:
+    $STR.format_p(null)
+    ArgumentMissed
+
+negative:
+    $STR.format_p('[0]', null)
+    WrongDataType
+
+negative:
+    $STR.format_p('{foo}', null)
+    WrongDataType
+
+negative:
+    $STR.format_p('[1]', [null])
+    BadIndex
+
+negative:
+    $STR.format_p('{foo}', {'bar': 'baz'})
+    NoSuchKey
+
+negative:
+    $STR.format_p('#1', null)
+    ArgumentMissed
+
+positive:
+    $STR.format_p('', '')
+    ''
+
+positive:
+    $STR.format_p('#0', '')
+    '""'
+
 positive:
     $STR.format_p('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
     'There are two boys: "Tom" and "Jerry"'
@@ -1567,4 +1603,8 @@ positive:
 positive:
     $STR.format_p('There are two boys: #0 and #1', 'Tom', 'Jerry')
     'There are two boys: "Tom" and "Jerry"'
+
+positive:
+    $STR.format_p('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
+    'There are two boys: "Tom" and "Jerry"; the object serialized: {"name0":"Tom","name1":"Jerry"}'
 
