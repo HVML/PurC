@@ -103,7 +103,12 @@ int pcutils_mystring_done(struct pcutils_mystring *mystr)
 
 void pcutils_mystring_free(struct pcutils_mystring *mystr)
 {
-    if (mystr->buff)
+    if (mystr->buff) {
         free(mystr->buff);
+        mystr->buff = NULL;
+    }
+
+    mystr->nr_bytes = 0;
+    mystr->sz_space = 0;
 }
 
