@@ -134,6 +134,10 @@ typedef struct pcdvobjs_stream {
 
 PCA_EXTERN_C_BEGIN
 
+pcdvobjs_stream *dvobjs_stream_check_entity(purc_variant_t v,
+        struct purc_native_ops **ops)
+    WTF_INTERNAL;
+
 purc_variant_t
 dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
         const char *ext_prot, purc_variant_t extra_opts)
