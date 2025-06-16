@@ -4,7 +4,7 @@
  * @date 2023/10/12
  * @brief The implementation of `websocket` protocol for stream object.
  *
- * Copyright (C) 2023 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2023 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *

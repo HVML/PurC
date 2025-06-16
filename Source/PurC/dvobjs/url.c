@@ -4,7 +4,7 @@
  * @date 2022/03/31
  * @brief The implementation of URL dynamic variant object.
  *
- * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2022 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
