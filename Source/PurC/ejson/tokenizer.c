@@ -1427,7 +1427,7 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
     if (is_parse_finished(parser, character)) {
-        RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (is_whitespace(character)) {
         update_tkz_stack(parser);
@@ -1600,6 +1600,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
     }
     if (character == '[' || character == '.') {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (is_parse_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     update_tkz_stack(parser);
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);

@@ -30,22 +30,47 @@
 
 using namespace std;
 
+#if OS(LINUX) || OS(UNIX)
+// get path from env or __FILE__/../<rel> otherwise
+#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
+    const char *p = getenv(_env);                                      \
+    if (p) {                                                           \
+        snprintf(_path, _len, "%s", p);                                \
+    } else {                                                           \
+        char tmp[PATH_MAX+1];                                          \
+        snprintf(tmp, sizeof(tmp), __FILE__);                          \
+        const char *folder = dirname(tmp);                             \
+        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
+    }                                                                  \
+} while (0)
+
+#endif // OS(LINUX) || OS(UNIX)
+
 struct ejson_test_data {
     char *name;
     char *json;
     char *comp;
+    char *comp_path;
     int error;
 };
 
 static inline void
 push_back(std::vector<ejson_test_data> &vec,
-        const char *name, const char *json, const char *comp, int error)
+        const char *name, const char *json, const char *comp,
+        const char *comp_path, int error)
 {
     ejson_test_data data;
     memset(&data, 0, sizeof(data));
     data.name = MemCollector::strdup(name);
     data.json = MemCollector::strdup(json);
-    data.comp = MemCollector::strdup(comp);
+    if (comp) {
+        data.comp = MemCollector::strdup(comp);
+        data.comp_path = NULL;
+    }
+    else {
+        data.comp = NULL;
+        data.comp_path = MemCollector::strdup(comp_path);
+    }
     data.error = error;
 
     vec.push_back(data);
@@ -59,7 +84,6 @@ protected:
                 NULL);
         name = GetParam().name;
         json = GetParam().json;
-        comp = GetParam().comp;
         error = GetParam().error;
     }
     void TearDown() {
@@ -72,7 +96,10 @@ protected:
         return json.c_str();
     }
     const char* get_comp() {
-        return comp.c_str();
+        return GetParam().comp;
+    }
+    const char* get_comp_path() {
+        return GetParam().comp_path;
     }
     int get_error() {
         return error;
@@ -80,7 +107,6 @@ protected:
 private:
     string name;
     string json;
-    string comp;
     int error;
 };
 
@@ -156,7 +182,16 @@ TEST_P(variant_load_from_json, load_and_serialize)
     ASSERT_GT(n, 0) << "Test Case : "<< get_name();
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    if (comp) {
+        fprintf(stderr, "com=%s\n", comp);
+        ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    }
+    else {
+        const char* comp_path = get_comp_path();
+        FILE* fp = fopen(comp_path, "w");
+        fprintf(fp, "%s", buf);
+        fclose(fp);
+    }
 
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
@@ -208,9 +243,11 @@ std::vector<ejson_test_data> read_ejson_test_data()
 {
     std::vector<ejson_test_data> vec;
 
-    char* data_path = getenv("EJSON_DATA_PATH");
+    const char* env = "LOAD_FROM_JSON_DATA_PATH";
+    char data_path[PATH_MAX+1] =  {0};
+    getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data/ejson");
 
-    if (data_path) {
+    if (strlen(data_path)) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
         strcat (file_path, "/test_list");
@@ -257,15 +294,18 @@ std::vector<ejson_test_data> read_ejson_test_data()
                     strcat(file, ".serial");
 #endif
                     char* comp_buf = read_file (file);
-                    if (!comp_buf) {
-                        free (json_buf);
-                        continue;
+                    if (comp_buf) {
+                        push_back(vec, name, json_buf, trim(comp_buf), file, error);
+                    }
+                    else {
+                        push_back(vec, name, json_buf, NULL, file, error);
                     }
 
-                    push_back(vec, name, json_buf, trim(comp_buf), error);
 
                     free (json_buf);
-                    free (comp_buf);
+                    if (comp_buf) {
+                        free (comp_buf);
+                    }
                 }
             }
             free (line);
@@ -274,10 +314,10 @@ std::vector<ejson_test_data> read_ejson_test_data()
     }
 
     if (vec.empty()) {
-        push_back(vec, "array", "[123]", "[123]", 0);
-        push_back(vec, "unquoted_key", "{key:1}", "{\"key\":1}", 0);
+        push_back(vec, "array", "[123]", "[123]", NULL, 0);
+        push_back(vec, "unquoted_key", "{key:1}", "{\"key\":1}", NULL, 0);
         push_back(vec,
-                "single_quoted_key", "{'key':'2'}", "{\"key\":\"2\"}", 0);
+                "single_quoted_key", "{'key':'2'}", "{\"key\":\"2\"}", NULL, 0);
     }
     return vec;
 }
