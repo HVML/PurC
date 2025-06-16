@@ -1362,7 +1362,7 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
             &sz_content, &sz_buff, res_buff);
     purc_rwstream_destroy(ext_rws);
     purc_variant_t ext_info = purc_variant_make_string_reuse_buff(p,
-            sz_content, false);
+            sz_buff, false);
 
     purc_set_error_exinfo(error, ext_info);
 

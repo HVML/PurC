@@ -3118,7 +3118,8 @@ purc_variant_ejson_parse_stream(purc_rwstream_t rws)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
 
-    int ret = pcejson_parse(&root, &parser, rws, PCEJSON_DEFAULT_DEPTH);
+    int ret = pcejson_parse_ex(&root, &parser, rws, PCEJSON_DEFAULT_DEPTH,
+            pcejson_is_finished_stream);
     if (ret == PCEJSON_SUCCESS) {
         pcejson_destroy(parser);
         return (struct purc_ejson_parsing_tree *)root;
