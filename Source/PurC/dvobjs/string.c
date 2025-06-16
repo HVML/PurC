@@ -1977,7 +1977,8 @@ static purc_variant_t convert_one_directive(FILE *fp,
     case 's':
     case 'c':
     case ']':
-        if (!strchr(directive, 'm')) {
+        if (strchr(directive, '*') == NULL &&
+                strchr(directive, 'm') == NULL) {
             // we have appended an extra null-terminating character.
             memmove(directive + 2, directive + 1, dir_len - 1);
             directive[1] = 'm';
@@ -2261,6 +2262,11 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     pcutils_mystring_free(&scanner.directive);
+
+    if (scanner.state == STATE_DIRECTIVE) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
 
     if (input_fp != NULL)
         fclose(input_fp);

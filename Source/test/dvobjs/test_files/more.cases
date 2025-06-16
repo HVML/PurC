@@ -1688,12 +1688,24 @@ negative:
     $STR.scanf(null, 5)
     WrongDataType
 
+negative:
+    $STR.scanf('Tom is 9', 'tom is %d')
+    InvalidValue
+
+negative:
+    $STR.scanf('16', '%Z')
+    InvalidValue
+
+positive:
+    $STR.scanf('%', '%%')
+    []
+
 positive:
     $STR.scanf('16', '%x')
     [22UL]
 
 positive:
-    $STR.scanf('125', '%d')
+    $STR.scanf('125', '%lld')
     [125L]
 
 positive:
@@ -1705,8 +1717,12 @@ positive:
     [9L, 7L]
 
 positive:
-    $STR.scanf('Tom 16', '%s %d')
-    ['Tom', 16L]
+    $STR.scanf('Tom 16', '%*s %d')
+    [16L]
+
+positive:
+    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
+    ['Tom', 16L, 33UL, 22UL]
 
 positive:
     $STR.scanf('Tom/16', '%s %d')
