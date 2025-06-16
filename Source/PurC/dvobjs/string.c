@@ -22,12 +22,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "purc-errors.h"
 #define _GNU_SOURCE
 #include "config.h"
 
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/stream.h"
 #include "private/utils.h"
 #include "private/variant.h"
 #include "private/atom-buckets.h"
@@ -1901,7 +1904,13 @@ format_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t name_len = 0;
     while (true) {
         if (*p == '\\') {
-            state = STATE_ESCAPED;
+            if (state == STATE_ESCAPED) {
+                purc_rwstream_write(rwstream, p, 1);
+                state = STATE_CHAR;
+            }
+            else {
+                state = STATE_ESCAPED;
+            }
         }
         else if (*p == '[') {
             if (state == STATE_ESCAPED) {
@@ -1945,6 +1954,11 @@ format_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
         }
         else {
+            if (state == STATE_ESCAPED) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+
             purc_variant_t tmp;
             long index;
 
@@ -2072,6 +2086,7 @@ format_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t sz_buff = 0;
     char *buff = purc_rwstream_get_mem_buffer_ex(rwstream,
             &content_len, &sz_buff, true);
+
     if (sz_buff == 0 || buff == NULL) {
         goto failed;
     }
@@ -2092,17 +2107,48 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static bool
+set_array_element_with_padding_null(purc_variant_t array,
+        size_t idx, purc_variant_t val)
+{
+    size_t sz;
+
+    if (!purc_variant_array_size(array, &sz))
+        goto failed;
+
+    if (idx >= sz) {
+        // expand the array first.
+        purc_variant_t tmp = purc_variant_make_null();
+        for (size_t i = sz; i <= idx; i++) {
+            if (!purc_variant_array_append(array, tmp)) {
+                purc_variant_unref(tmp);
+                goto failed;
+            }
+
+            purc_variant_unref(tmp);
+        }
+    }
+
+    return purc_variant_array_set(array, idx, val);
+
+failed:
+    return false;
+}
+
 /*
 $STR.scan_p(
-        <string $string: `The input string being parsed.`>,
-        <string $format: `The string contains placeholders.`>,
-) array | object | any
+        < string | bsequence | native/stream $input: `The input data: a string, a byte sequence, or a readable stream.` >,
+        < string $format: `The string contains placeholders.` >,
+) array | object | any | false
 */
 static purc_variant_t
 scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
+
+    pcdvobjs_stream *entity;
+    purc_rwstream_t input_stm = NULL;
 
     purc_variant_t result = PURC_VARIANT_INVALID;
     int ec = PURC_ERROR_OK;
@@ -2112,167 +2158,304 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    // Get input string
-    const char* input;
-    size_t input_len;
-    input = purc_variant_get_string_const_ex(argv[0], &input_len);
-    if (!input) {
-        ec = PURC_ERROR_WRONG_DATA_TYPE;
+    entity = dvobjs_stream_check_entity(argv[0], NULL);
+    if (entity == NULL) {
+        const unsigned char *bytes;
+        size_t nr_bytes;
+        bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+        if (!bytes) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+
+        input_stm = purc_rwstream_new_from_mem((void *)bytes, nr_bytes);
+        if (input_stm == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+    }
+    else if ((input_stm = entity->stm4r) == NULL) {
+        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
         goto failed;
     }
 
     // Get format string
-    const char* format;
+    const char* format_str;
     size_t format_len;
-    format = purc_variant_get_string_const_ex(argv[1], &format_len);
-    if (!format) {
+    format_str = purc_variant_get_string_const_ex(argv[1], &format_len);
+    if (!format_str) {
         ec = PURC_ERROR_WRONG_DATA_TYPE;
         goto failed;
     }
 
-    // Check format string type
-    bool is_array = false;
-    bool is_object = false;
-    bool is_single = false;
-    const char* p = format;
+    enum {
+        STATE_UNKNOWN = 0,
+        STATE_NORMAL,
+        STATE_SPACE,
+        STATE_ESCAPED,
+        STATE_INDEX,
+        STATE_KEY,
+        STATE_ARG,
+        STATE_SKIP,
+    };
+
+    enum {
+        RETT_UNKNOWN = 0,
+        RETT_ARRAY,
+        RETT_OBJECT,
+        RETT_ONEANY
+    };
+
+    struct _scanner {
+        int state, last;
+        int ret_type;
+        struct pcutils_mystring idx_buf;
+    } scanner = { STATE_UNKNOWN, STATE_UNKNOWN, RETT_UNKNOWN, { NULL } };
+
+    pcutils_mystring_init(&scanner.idx_buf);
+
+    const char *p = format_str;
     while (*p) {
-        if (*p == '[') {
-            is_array = true;
+        const char *next = pcutils_utf8_next_char(p);
+
+        switch (scanner.state) {
+        case STATE_UNKNOWN:
+            if (*p == '\\') {
+                scanner.state = STATE_ESCAPED;
+            }
+            else if (*p == '[') {
+                if (scanner.ret_type != RETT_UNKNOWN &&
+                        scanner.ret_type != RETT_ARRAY) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+                else if (scanner.ret_type == RETT_UNKNOWN) {
+                    result = purc_variant_make_array_0();
+                    if (result == PURC_VARIANT_INVALID) {
+                        goto failed;
+                    }
+                    scanner.ret_type = RETT_ARRAY;
+                }
+
+                scanner.state = STATE_INDEX;
+            }
+            else if (*p == '{') {
+                if (scanner.ret_type != RETT_UNKNOWN &&
+                        scanner.ret_type != RETT_OBJECT) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+                else if (scanner.ret_type == RETT_UNKNOWN) {
+                    result = purc_variant_make_object_0();
+                    if (result == PURC_VARIANT_INVALID) {
+                        goto failed;
+                    }
+                    scanner.ret_type = RETT_OBJECT;
+                }
+
+                scanner.state = STATE_KEY;
+                pcutils_mystring_free(&scanner.idx_buf);
+            }
+            else if (*p == '#') {
+                if (scanner.ret_type != RETT_UNKNOWN) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+
+                scanner.ret_type = RETT_ONEANY;
+                scanner.state = STATE_ARG;
+            }
+            else if (purc_isspace(*p)) {
+                // Consume all continuous spaces.
+                while (purc_isspace(*next)) {
+                    next = pcutils_utf8_next_char(next);
+                }
+
+                scanner.state = STATE_SPACE;
+            }
+            else {  // Non-ASCII character
+                scanner.state = STATE_NORMAL;
+            }
             break;
-        }
-        else if (*p == '{') {
-            is_object = true; 
-            break;
-        }
-        else if (*p == '#') {
-            is_single = true;
-            break;
-        }
-        p++;
-    }
 
-    // If not array, object or single value, return invalid value error
-    if (!is_array && !is_object && !is_single) {
-        ec = PURC_ERROR_INVALID_VALUE;
-        goto failed;
-    }
-
-    // Create return value
-    if (is_array) {
-        result = purc_variant_make_array_0();
-    }
-    else if (is_object) {
-        result = purc_variant_make_object_0();
-    }
-
-    // Parse format string
-    const char* fmt_p = format;
-    const char* input_p = input;
-
-    while (*fmt_p && *input_p) {
-        if (*fmt_p == '\\') {
-            // Handle escape character
-            fmt_p++;
-            if (*fmt_p == *input_p) {
-                fmt_p++;
-                input_p++;
-                continue;
+        case STATE_ESCAPED:
+            if (strchr("[{#\\", *p)) {
+                scanner.state = STATE_NORMAL;
             }
             else {
                 ec = PURC_ERROR_INVALID_VALUE;
                 goto failed;
             }
-        }
-        else if (is_array && *fmt_p == '[') {
-            // Handle array placeholder
-            fmt_p++;
-            while (*fmt_p && *fmt_p != ']') {
-                fmt_p++;
-            }
+            break;
 
-            if (*fmt_p != ']') {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto failed;
-            }
+        case STATE_INDEX:
+            if (*p == ']') {
+                // It's time to generate a new array element.
 
-            fmt_p++; // Skip ]
-
-            // Extract value until next format character
-            const char* value_start = input_p;
-            while (*input_p && *input_p != *fmt_p) {
-                input_p++;
-            }
-
-            // Add to array
-            purc_variant_t value = purc_variant_make_string_ex(value_start, 
-                    input_p - value_start, false);
-            purc_variant_array_append(result, value);
-            purc_variant_unref(value);
-        }
-        else if (is_object && *fmt_p == '{') {
-            // Handle object placeholder
-            const char *key_start = fmt_p + 1;
-            fmt_p++;
-            while (*fmt_p && *fmt_p != '}') {
-                fmt_p++;
-            }
-
-            if (*fmt_p != '}') {
-                ec = PURC_ERROR_INVALID_VALUE;
-                goto failed;
-            }
-
-            const char *key_end = fmt_p;
-            size_t key_len = key_end - key_start;
-            char name_buf[key_len + 1];
-            memcpy(name_buf, key_start, key_len);
-            name_buf[key_len] = '\0';
-            fmt_p++; // Skip }
-
-            // Extract value until next format character
-            const char* value_start = input_p;
-            while (*input_p && *input_p != *fmt_p) {
-                input_p++;
-            }
-
-            // Add to object
-            purc_variant_t value = purc_variant_make_string_ex(value_start,
-                    input_p - value_start, false);
-            purc_variant_object_set_by_ckey(result, name_buf, value);
-            purc_variant_unref(value);
-        }
-        else if (is_single && *fmt_p == '#') {
-            // Handle single value placeholder
-            fmt_p++;
-            if (*fmt_p == '?') {
-                fmt_p++;
-                const char* value_start = input_p;
-                while (*input_p && *input_p != *fmt_p) {
-                    input_p++;
+                purc_variant_t tmp;
+                tmp = purc_variant_load_from_json_stream(input_stm);
+                if (tmp == PURC_VARIANT_INVALID) {
+                    PC_DEBUG("Failed purc_variant_load_from_json_stream()\n");
+                    goto failed;
                 }
 
-                // Return single value directly
-                return purc_variant_make_string_ex(value_start,
-                        input_p - value_start, false);
+                if (scanner.idx_buf.nr_bytes == 0) {
+                    if (!purc_variant_array_append(result, tmp)) {
+                        purc_variant_unref(tmp);
+                        goto failed;
+                    }
+                }
+                else {
+                    pcutils_mystring_done(&scanner.idx_buf);
+                    long idx = strtol(scanner.idx_buf.buff, NULL, 10);
+
+                    if (idx < 0) {
+                        ec = PURC_ERROR_INVALID_VALUE;
+                        goto failed;
+                    }
+
+                    set_array_element_with_padding_null(result, idx, tmp);
+                }
+
+                pcutils_mystring_free(&scanner.idx_buf);
+                purc_variant_unref(tmp);
+                scanner.state = STATE_SKIP;
             }
+            else if (purc_isdigit(*p)) {
+                pcutils_mystring_append_mchar(&scanner.idx_buf,
+                        (const unsigned char*)p, 1);
+            }
+            else {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+            break;
+
+        case STATE_KEY:
+            if (*p == '}') {
+                // It's time to generate a new object property.
+
+                if (scanner.idx_buf.nr_bytes == 0) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+
+                purc_variant_t key;
+                key = purc_variant_make_string_ex(scanner.idx_buf.buff,
+                        scanner.idx_buf.nr_bytes, false);
+                pcutils_mystring_free(&scanner.idx_buf);
+
+                if (key == PURC_VARIANT_INVALID) {
+                    goto failed;
+                }
+
+                purc_variant_t val;
+                val = purc_variant_load_from_json_stream(input_stm);
+                if (val == PURC_VARIANT_INVALID) {
+                    goto failed;
+                }
+
+                if (!purc_variant_object_set(result, key, val)) {
+                    purc_variant_unref(key);
+                    purc_variant_unref(val);
+                    goto failed;
+                }
+
+                purc_variant_unref(key);
+                purc_variant_unref(val);
+                scanner.state = STATE_SKIP;
+            }
+            else {
+                pcutils_mystring_append_mchar(&scanner.idx_buf,
+                        (const unsigned char*)p, next - p);
+            }
+            break;
+
+        case STATE_ARG:
+            if (*p == '?') {
+                PC_DEBUG("It's time to generate the one value.\n");
+                result = purc_variant_load_from_json_stream(input_stm);
+                if (result == PURC_VARIANT_INVALID) {
+                    PC_DEBUG("Failed purc_variant_load_from_json_stream()\n");
+                    goto failed;
+                }
+
+                goto done;
+            }
+            else {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+            break;
+
+        default:
+            assert(0); // never be here.
+            break;
         }
-        else if (*fmt_p == *input_p) {
-            // Match normal character
-            fmt_p++;
-            input_p++;
+
+        if (scanner.state == STATE_NORMAL) {
+            char utf8ch[10];
+            int len = 0;
+            if (scanner.last == STATE_SPACE) {
+                // Ignore all continuous spaces in input stream.
+                do {
+                    len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
+                    if (len <= 0) {
+                        goto failed;
+                    }
+                } while (purc_isspace(utf8ch[0]));
+            }
+            else {
+                len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
+                if (len <= 0) {
+                    goto failed;
+                }
+            }
+
+            if (memcmp(p, utf8ch, len) != 0) {
+                utf8ch[len] = 0;
+                PC_DEBUG("Format string does not matche input data: "
+                        "'%s' vs '%s'\n", p, utf8ch);
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+
+            scanner.last = STATE_UNKNOWN;
+            scanner.state = STATE_UNKNOWN;
+        }
+        else if (scanner.state == STATE_SPACE) {
+            scanner.last = scanner.state;
+            scanner.state = STATE_UNKNOWN;
         }
         else {
-            goto failed;
+            scanner.last = STATE_UNKNOWN;
+            // do nothing
         }
+
+        p = next;
     }
+
+done:
+    pcutils_mystring_free(&scanner.idx_buf);
+
+    if (entity == NULL && input_stm != NULL)
+        purc_rwstream_destroy(input_stm);
+
+    if (result == PURC_VARIANT_INVALID)
+        result = purc_variant_make_null();
 
     return result;
 
 failed:
     if (ec != PURC_ERROR_OK)
         purc_set_error(ec);
+
     if (result != PURC_VARIANT_INVALID)
         purc_variant_unref(result);
+
+    if (entity == NULL && input_stm != NULL)
+        purc_rwstream_destroy(input_stm);
+
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;

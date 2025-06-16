@@ -1589,6 +1589,22 @@ positive:
     ''
 
 positive:
+    $STR.format_p('\\[]', null)
+    '[]'
+
+positive:
+    $STR.format_p('\\{]', null)
+   '{]'
+
+positive:
+     $STR.format_p('\\#0', null)
+    '#0'
+
+positive:
+     $STR.format_p('\\\\', null)
+    '\\'
+
+positive:
     $STR.format_p('#0', '')
     '""'
 
@@ -1607,4 +1623,57 @@ positive:
 positive:
     $STR.format_p('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
     'There are two boys: "Tom" and "Jerry"; the object serialized: {"name0":"Tom","name1":"Jerry"}'
+
+negative:
+    $STR.scan_p()
+    ArgumentMissed
+
+negative:
+    $STR.scan_p(null)
+    ArgumentMissed
+
+negative:
+    $STR.scan_p(null, null)
+    WrongDataType
+
+negative:
+    $STR.scan_p(null, '{foo}')
+    WrongDataType
+
+positive:
+    $STR.scan_p('"bar"', '{foo}')
+    {foo:'bar'}
+
+positive:
+    $STR.scan_p('"foo"', '[]')
+    ['foo']
+
+positive:
+    $STR.scan_p('My name is "Tom"', 'My name is #?')
+    'Tom'
+
+positive:
+    $STR.scan_p('My name is "Tom"', 'My\tname\r\nis   #?')
+    'Tom'
+
+#positive:
+#    $STR.scan_p('"foo" "bar"', '[] []')
+#    ['foo', 'bar']
+
+#positive:
+#    $STR.scan_p('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
+#    ['Tom Bean', 'Jerry Right']
+
+#positive:
+#    $STR.scan_p('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
+#    { name0: 'Tom Bean', name1: 'Jerry Right' }
+
+#positive:
+#    $STR.scan_p('The object is { foo: 'bar', bar: 'baz'}', 'The object is #?')
+#    { foo: 'bar', bar: 'baz'}
+
+#positive:
+#    $STR.scan_p($STREAM.stdin, 'My name is #?')
+#     'Tom'
+
 
