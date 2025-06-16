@@ -1925,7 +1925,8 @@ purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
 
-    int ret = pcejson_parse (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH);
+    int ret = pcejson_parse_ex (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH,
+            pcejson_is_finished_stream);
     if (ret != PCEJSON_SUCCESS) {
         goto ret;
     }
