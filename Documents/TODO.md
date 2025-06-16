@@ -19,6 +19,7 @@
 
 ### 2.1) Variants
 
+1. [0.9.30] Optimize variant module to reduce memory usage.
 1. [0.9.6; Resolved] Optimize variant module.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2; Resolved] Implement some new APIs:
@@ -28,6 +29,7 @@
 
 ### 2.2) HEE and HVML Parsing and Evaluating
 
+1. [0.9.26] Support for expressions with operators.
 1. [0.9.10; Resolved] Optimize the HVML and HEE parsing error messages.
 1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
@@ -45,7 +47,7 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.24] Complete the implementation of the following predefined variables:
+1. [0.9.24; Resolved] Complete the implementation of the following predefined variables:
    - `$URL`
    - `$STR`
    - `$DATA`
@@ -66,6 +68,7 @@
 
 ### 2.4) eDOM
 
+1. [0.9.24] Support for serialization of HTML fragement.
 1. [0.9.6; Resolved] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
 1. [0.9.6; Resolved] Optimize the implementation of the map from `id` and `class` to element(s).
 1. [Pending] Enhance `purc_document` to fast validate an HVML handle.
@@ -77,7 +80,7 @@
    - Support for the element `error`.
 1. [0.9.30] Review all uses of exception names.
 1. [0.9.30] Review the implementation of all elements.
-1. [0.9.24] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
+1. [0.9.24; Resolved] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
 1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to RCd of HVML Spec V1.0:
    - The default result data of a foreign element: inheriting from the proceeding operation.
    - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
