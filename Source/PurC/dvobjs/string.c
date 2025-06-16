@@ -2134,7 +2134,6 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         STATE_ORDINARY,
         STATE_SPACE,
         STATE_DIRECTIVE,
-        STATE_SKIP,
     };
 
     struct _scanner {
@@ -2646,7 +2645,6 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         STATE_INDEX,
         STATE_KEY,
         STATE_ARG,
-        STATE_SKIP,
     };
 
     enum {
@@ -2769,7 +2767,17 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
                 pcutils_mystring_free(&scanner.idx_buf);
                 purc_variant_unref(tmp);
-                scanner.state = STATE_SKIP;
+                scanner.state = STATE_UNKNOWN;
+
+#if 1           // XXX: remove this if purc_variant_load_from_json_stream()
+                // works correctly.
+                char utf8ch[10];
+                int len = 0;
+                len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
+                utf8ch[len] = 0;
+                PC_DEBUG("Next char in stream: '%s'\n", utf8ch);
+#endif
+
             }
             else if (purc_isdigit(*p)) {
                 pcutils_mystring_append_mchar(&scanner.idx_buf,
@@ -2813,7 +2821,7 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
                 purc_variant_unref(key);
                 purc_variant_unref(val);
-                scanner.state = STATE_SKIP;
+                scanner.state = STATE_UNKNOWN;
             }
             else {
                 pcutils_mystring_append_mchar(&scanner.idx_buf,
@@ -2839,10 +2847,11 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
 
         default:
-            assert(0); // never be here.
+            assert(0); // Never be here.
             break;
         }
 
+        // PC_DEBUG("State: %d; format string: %s\n", scanner.state, p);
         if (scanner.state == STATE_ORDINARY) {
             char utf8ch[10];
             int len = 0;
@@ -2862,6 +2871,7 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 }
             }
 
+            utf8ch[len] = 0;
             if (memcmp(p, utf8ch, len) != 0) {
                 utf8ch[len] = 0;
                 PC_DEBUG("Format string does not matche input data: "

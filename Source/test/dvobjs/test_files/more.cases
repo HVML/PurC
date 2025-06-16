@@ -1521,6 +1521,98 @@ positive:
     '中华人民伟大的国'
 
 negative:
+    $STR.printf()
+    ArgumentMissed
+
+negative:
+    $STR.printf('')
+    ArgumentMissed
+
+negative:
+    $STR.printf(null, 5)
+    WrongDataType
+
+negative:
+    $STR.printf('%s/%s', 16)
+    WrongDataType
+
+positive:
+    $STR.printf('%x', 16)
+    '10'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', 9, 7)
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', [9, 7])
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('no format characters', 16)
+    'no format characters'
+
+positive:
+    $STR.printf('%s/%d', 'Tom', 16)
+    'Tom/16'
+
+negative:
+    $STR.scanf()
+    ArgumentMissed
+
+negative:
+    $STR.scanf('')
+    ArgumentMissed
+
+negative:
+    $STR.scanf(null, 5)
+    WrongDataType
+
+negative:
+    $STR.scanf('Tom is 9', 'tom is %d')
+    InvalidValue
+
+negative:
+    $STR.scanf('16', '%Z')
+    InvalidValue
+
+positive:
+    $STR.scanf('%', '%%')
+    []
+
+positive:
+    $STR.scanf('16', '%x')
+    [22UL]
+
+positive:
+    $STR.scanf('125', '%lld')
+    [125L]
+
+positive:
+    $STR.scanf('125', '%u')
+    [125UL]
+
+positive:
+    $STR.scanf('Tom is 9 years old, while Jerry is 7 years old.', 'Tom is %d years old, while Jerry is %d years old.')
+    [9L, 7L]
+
+positive:
+    $STR.scanf('Tom 16', '%*s %d')
+    [16L]
+
+positive:
+    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
+    ['Tom', 16L, 33UL, 22UL]
+
+positive:
+    $STR.scanf('Tom/16', '%s %d')
+    ['Tom/16']
+
+positive:
+    $STR.scanf('no format characters', 'no format characters')
+    []
+
+negative:
     $STR.printp()
     ArgumentMissed
 
@@ -1613,6 +1705,10 @@ positive:
     ['foo']
 
 positive:
+    $STR.scanp('"foo"', '[2]')
+    [null, null, 'foo']
+
+positive:
     $STR.scanp('My name is "Tom"', 'My name is #?')
     'Tom'
 
@@ -1620,115 +1716,23 @@ positive:
     $STR.scanp('My name is "Tom"', 'My\tname\r\nis   #?')
     'Tom'
 
-#positive:
-#    $STR.scanp('"foo" "bar"', '[] []')
-#    ['foo', 'bar']
+positive:
+    $STR.scanp('"foo" "bar"', '[] []')
+    ['foo', 'bar']
 
-#positive:
-#    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
-#    ['Tom Bean', 'Jerry Right']
+positive:
+    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
+    ['Tom Bean', 'Jerry Right']
 
-#positive:
-#    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
-#    { name0: 'Tom Bean', name1: 'Jerry Right' }
+positive:
+    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
+    { name0: 'Tom Bean', name1: 'Jerry Right' }
 
-#positive:
-#    $STR.scanp('The object is { foo: 'bar', bar: 'baz'}', 'The object is #?')
-#    { foo: 'bar', bar: 'baz'}
+positive:
+    $STR.scanp('The object is { foo: "bar", bar: "baz"}', 'The object is #?')
+    { foo: 'bar', bar: 'baz'}
 
 #positive:
 #    $STR.scanp($STREAM.stdin, 'My name is #?')
 #     'Tom'
-
-negative:
-    $STR.printf()
-    ArgumentMissed
-
-negative:
-    $STR.printf('')
-    ArgumentMissed
-
-negative:
-    $STR.printf(null, 5)
-    WrongDataType
-
-negative:
-    $STR.printf('%s/%s', 16)
-    WrongDataType
-
-positive:
-    $STR.printf('%x', 16)
-    '10'
-
-positive:
-    $STR.printf('Tom is %d years old, while Jerry is %d years old.', 9, 7)
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-    $STR.printf('Tom is %d years old, while Jerry is %d years old.', [9, 7])
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-    $STR.printf('no format characters', 16)
-    'no format characters'
-
-positive:
-    $STR.printf('%s/%d', 'Tom', 16)
-    'Tom/16'
-
-negative:
-    $STR.scanf()
-    ArgumentMissed
-
-negative:
-    $STR.scanf('')
-    ArgumentMissed
-
-negative:
-    $STR.scanf(null, 5)
-    WrongDataType
-
-negative:
-    $STR.scanf('Tom is 9', 'tom is %d')
-    InvalidValue
-
-negative:
-    $STR.scanf('16', '%Z')
-    InvalidValue
-
-positive:
-    $STR.scanf('%', '%%')
-    []
-
-positive:
-    $STR.scanf('16', '%x')
-    [22UL]
-
-positive:
-    $STR.scanf('125', '%lld')
-    [125L]
-
-positive:
-    $STR.scanf('125', '%u')
-    [125UL]
-
-positive:
-    $STR.scanf('Tom is 9 years old, while Jerry is 7 years old.', 'Tom is %d years old, while Jerry is %d years old.')
-    [9L, 7L]
-
-positive:
-    $STR.scanf('Tom 16', '%*s %d')
-    [16L]
-
-positive:
-    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
-    ['Tom', 16L, 33UL, 22UL]
-
-positive:
-    $STR.scanf('Tom/16', '%s %d')
-    ['Tom/16']
-
-positive:
-    $STR.scanf('no format characters', 'no format characters')
-    []
 
