@@ -308,42 +308,6 @@ positive:
     '汉字'
 
 negative:
-    $STR.format_c()
-    ArgumentMissed
-
-negative:
-    $STR.format_c('')
-    ArgumentMissed
-
-negative:
-    $STR.format_c(null, 5)
-    WrongDataType
-
-negative:
-    $STR.format_c('%s/%s', 16)
-    WrongDataType
-
-positive:
-    $STR.format_c('%x', 16)
-    '10'
-
-positive:
-    $STR.format_c('Tom is %d years old, while Jerry is %d years old.', 9, 7)
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-    $STR.format_c('Tom is %d years old, while Jerry is %d years old.', [9, 7])
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-    $STR.format_c('no format characters', 16)
-    'no format characters'
-
-positive:
-    $STR.format_c('%s/%d', 'Tom', 16)
-    'Tom/16'
-
-negative:
     $STR.trim()
     ArgumentMissed
 
@@ -404,7 +368,7 @@ positive:
     '"<undefined>"'
 
 positive:
-    $STR.format_c('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
+    $STR.printf('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
     'Tom is 009 years old, while Jerry is 007 years old.'
 
 negative:
@@ -1557,123 +1521,198 @@ positive:
     '中华人民伟大的国'
 
 negative:
-    $STR.format_p()
+    $STR.printp()
     ArgumentMissed
 
 negative:
-    $STR.format_p(null)
+    $STR.printp(null)
     ArgumentMissed
 
 negative:
-    $STR.format_p('[0]', null)
+    $STR.printp('[0]', null)
     WrongDataType
 
 negative:
-    $STR.format_p('{foo}', null)
+    $STR.printp('{foo}', null)
     WrongDataType
 
 negative:
-    $STR.format_p('[1]', [null])
+    $STR.printp('[1]', [null])
     BadIndex
 
 negative:
-    $STR.format_p('{foo}', {'bar': 'baz'})
+    $STR.printp('{foo}', {'bar': 'baz'})
     NoSuchKey
 
 negative:
-    $STR.format_p('#1', null)
+    $STR.printp('#1', null)
     ArgumentMissed
 
 positive:
-    $STR.format_p('', '')
+    $STR.printp('', '')
     ''
 
 positive:
-    $STR.format_p('\\[]', null)
+    $STR.printp('\\[]', null)
     '[]'
 
 positive:
-    $STR.format_p('\\{]', null)
+    $STR.printp('\\{]', null)
    '{]'
 
 positive:
-     $STR.format_p('\\#0', null)
+     $STR.printp('\\#0', null)
     '#0'
 
 positive:
-     $STR.format_p('\\\\', null)
+     $STR.printp('\\\\', null)
     '\\'
 
 positive:
-    $STR.format_p('#0', '')
+    $STR.printp('#0', '')
     '""'
 
 positive:
-    $STR.format_p('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
+    $STR.printp('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
     'There are two boys: "Tom" and "Jerry"'
 
 positive:
-    $STR.format_p('There are two boys: {name0} and {name1}', { name0: 'Tom', name1: 'Jerry' })
+    $STR.printp('There are two boys: {name0} and {name1}', { name0: 'Tom', name1: 'Jerry' })
     'There are two boys: "Tom" and "Jerry"'
 
 positive:
-    $STR.format_p('There are two boys: #0 and #1', 'Tom', 'Jerry')
+    $STR.printp('There are two boys: #0 and #1', 'Tom', 'Jerry')
     'There are two boys: "Tom" and "Jerry"'
 
 positive:
-    $STR.format_p('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
+    $STR.printp('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
     'There are two boys: "Tom" and "Jerry"; the object serialized: {"name0":"Tom","name1":"Jerry"}'
 
 negative:
-    $STR.scan_p()
+    $STR.scanp()
     ArgumentMissed
 
 negative:
-    $STR.scan_p(null)
+    $STR.scanp(null)
     ArgumentMissed
 
 negative:
-    $STR.scan_p(null, null)
+    $STR.scanp(null, null)
     WrongDataType
 
 negative:
-    $STR.scan_p(null, '{foo}')
+    $STR.scanp(null, '{foo}')
     WrongDataType
 
 positive:
-    $STR.scan_p('"bar"', '{foo}')
+    $STR.scanp('"bar"', '{foo}')
     {foo:'bar'}
 
 positive:
-    $STR.scan_p('"foo"', '[]')
+    $STR.scanp('"foo"', '[]')
     ['foo']
 
 positive:
-    $STR.scan_p('My name is "Tom"', 'My name is #?')
+    $STR.scanp('My name is "Tom"', 'My name is #?')
     'Tom'
 
 positive:
-    $STR.scan_p('My name is "Tom"', 'My\tname\r\nis   #?')
+    $STR.scanp('My name is "Tom"', 'My\tname\r\nis   #?')
     'Tom'
 
 #positive:
-#    $STR.scan_p('"foo" "bar"', '[] []')
+#    $STR.scanp('"foo" "bar"', '[] []')
 #    ['foo', 'bar']
 
 #positive:
-#    $STR.scan_p('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
+#    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
 #    ['Tom Bean', 'Jerry Right']
 
 #positive:
-#    $STR.scan_p('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
+#    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
 #    { name0: 'Tom Bean', name1: 'Jerry Right' }
 
 #positive:
-#    $STR.scan_p('The object is { foo: 'bar', bar: 'baz'}', 'The object is #?')
+#    $STR.scanp('The object is { foo: 'bar', bar: 'baz'}', 'The object is #?')
 #    { foo: 'bar', bar: 'baz'}
 
 #positive:
-#    $STR.scan_p($STREAM.stdin, 'My name is #?')
+#    $STR.scanp($STREAM.stdin, 'My name is #?')
 #     'Tom'
 
+negative:
+    $STR.printf()
+    ArgumentMissed
+
+negative:
+    $STR.printf('')
+    ArgumentMissed
+
+negative:
+    $STR.printf(null, 5)
+    WrongDataType
+
+negative:
+    $STR.printf('%s/%s', 16)
+    WrongDataType
+
+positive:
+    $STR.printf('%x', 16)
+    '10'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', 9, 7)
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', [9, 7])
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('no format characters', 16)
+    'no format characters'
+
+positive:
+    $STR.printf('%s/%d', 'Tom', 16)
+    'Tom/16'
+
+negative:
+    $STR.scanf()
+    ArgumentMissed
+
+negative:
+    $STR.scanf('')
+    ArgumentMissed
+
+negative:
+    $STR.scanf(null, 5)
+    WrongDataType
+
+positive:
+    $STR.scanf('16', '%x')
+    [22UL]
+
+positive:
+    $STR.scanf('125', '%d')
+    [125L]
+
+positive:
+    $STR.scanf('125', '%u')
+    [125UL]
+
+positive:
+    $STR.scanf('Tom is 9 years old, while Jerry is 7 years old.', 'Tom is %d years old, while Jerry is %d years old.')
+    [9L, 7L]
+
+positive:
+    $STR.scanf('Tom 16', '%s %d')
+    ['Tom', 16L]
+
+positive:
+    $STR.scanf('Tom/16', '%s %d')
+    ['Tom/16']
+
+positive:
+    $STR.scanf('no format characters', 'no format characters')
+    []
 

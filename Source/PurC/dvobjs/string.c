@@ -28,6 +28,8 @@
 #define _GNU_SOURCE
 #include "config.h"
 
+#include "helper.h"
+
 #include "private/errors.h"
 #include "private/dvobjs.h"
 #include "private/stream.h"
@@ -35,10 +37,11 @@
 #include "private/variant.h"
 #include "private/atom-buckets.h"
 #include "private/ports.h"
-#include "purc-variant.h"
-#include "helper.h"
 
+#include "purc-variant.h"
 #include "purc-dvobjs.h"
+
+#include <errno.h>
 
 static bool is_all_ascii(const char *str)
 {
@@ -1553,7 +1556,7 @@ error:
 
 #define SZ_CONVERSION_SPECIFICATION     64
 #define SZ_PRINT_BUFF                   128
-#define C_PRINTF_CONVERSION_SPECIFIERS "dioupxXeEfFgGaAcsnm%"
+#define C_PRINTF_CONVERSION_SPECIFIERS  "dioupxXeEfFgGaAcsnm%"
 
 /* The overall syntax of a conversion specification is:
    %[$][flags][width][.precision][length modifier]conversion */
@@ -1581,7 +1584,7 @@ done:
 }
 
 static purc_variant_t
-format_c_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -1842,8 +1845,449 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+#define C_SCANF_CONVERSION_SPECIFIERS   "dioupxXeEfFgGaAcs]"
+
+static purc_variant_t convert_one_directive(FILE *fp,
+        char *directive, int *ec)
+{
+    purc_variant_t ans = PURC_VARIANT_INVALID;
+
+    size_t dir_len = strlen(directive);
+    assert(directive[0] == '%');
+
+    int ret;
+    switch (directive[dir_len - 1]) {
+    case 'i':
+    case 'd':
+        if (strstr(directive, "ll")) {
+            int64_t i64;
+            if ((ret = fscanf(fp, directive, &i64)) == 1) {
+                ans = purc_variant_make_longint(i64);
+            }
+        }
+        else if (strstr(directive, "hh")) {
+            int8_t  i8;
+            if ((ret = fscanf(fp, directive, &i8)) == 1) {
+                ans = purc_variant_make_longint(i8);
+            }
+        }
+        else if (strchr(directive, 'j')) {
+            intmax_t imax;
+            if ((ret = fscanf(fp, directive, &imax)) == 1) {
+                ans = purc_variant_make_longint(imax);
+            }
+        }
+        else if (strchr(directive, 'z')) {
+            ssize_t ssz;
+            if ((ret = fscanf(fp, directive, &ssz)) == 1) {
+                ans = purc_variant_make_longint(ssz);
+            }
+        }
+        else if (strchr(directive, 'l')) {
+            long i32;
+            if ((ret = fscanf(fp, directive, &i32)) == 1) {
+                ans = purc_variant_make_longint(i32);
+            }
+        }
+        else if (strchr(directive, 'h')) {
+            short i16;
+            if ((ret = fscanf(fp, directive, &i16)) == 1) {
+                ans = purc_variant_make_longint(i16);
+            }
+        }
+        else {
+            int i32;
+            if ((ret = fscanf(fp, directive, &i32)) == 1) {
+                ans = purc_variant_make_longint(i32);
+            }
+        }
+        break;
+
+    case 'o':
+    case 'u':
+    case 'p':
+    case 'x':
+    case 'X':
+        if (strstr(directive, "ll")) {
+            uint64_t u64;
+            if ((ret = fscanf(fp, directive, &u64)) == 1) {
+                ans = purc_variant_make_ulongint(u64);
+            }
+        }
+        else if (strstr(directive, "hh")) {
+            uint8_t u8;
+            if ((ret = fscanf(fp, directive, &u8)) == 1) {
+                ans = purc_variant_make_ulongint(u8);
+            }
+        }
+        else if (strchr(directive, 'j')) {
+            uintmax_t umax;
+            if ((ret = fscanf(fp, directive, &umax)) == 1) {
+                ans = purc_variant_make_ulongint(umax);
+            }
+        }
+        else if (strchr(directive, 'z')) {
+            size_t sz;
+            if ((ret = fscanf(fp, directive, &sz)) == 1) {
+                ans = purc_variant_make_ulongint(sz);
+            }
+        }
+        else if (strchr(directive, 'l')) {
+            unsigned long u32;
+            if ((ret = fscanf(fp, directive, &u32)) == 1) {
+                ans = purc_variant_make_ulongint(u32);
+            }
+        }
+        else if (strchr(directive, 'h')) {
+            unsigned short u16;
+            if ((ret = fscanf(fp, directive, &u16)) == 1) {
+                ans = purc_variant_make_ulongint(u16);
+            }
+        }
+        else {
+            unsigned int u32;
+            if ((ret = fscanf(fp, directive, &u32)) == 1) {
+                ans = purc_variant_make_ulongint(u32);
+            }
+        }
+        break;
+
+    case 'e':
+    case 'E':
+    case 'f':
+    case 'F':
+    case 'g':
+    case 'G':
+    case 'a':
+    case 'A':
+        if (strchr(directive, 'L')) {
+            long double ld;
+            if ((ret = fscanf(fp, directive, &ld)) == 1) {
+                ans = purc_variant_make_longdouble(ld);
+            }
+        }
+        else {
+            double d;
+            if ((ret = fscanf(fp, directive, &d)) == 1) {
+                ans = purc_variant_make_number(d);
+            }
+        }
+        break;
+
+    case 's':
+    case 'c':
+    case ']':
+        if (!strchr(directive, 'm')) {
+            // we have appended an extra null-terminating character.
+            memmove(directive + 2, directive + 1, dir_len - 1);
+            directive[1] = 'm';
+        }
+
+        char *buff;
+        if ((ret = fscanf(fp, directive, &buff)) == 1) {
+            assert(buff);
+            size_t sz_buff = strlen(buff) + 1;
+            if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
+                ans = purc_variant_make_byte_sequence_reuse_buff(
+                        buff, sz_buff, sz_buff);
+            }
+            else {
+                ans = purc_variant_make_string_reuse_buff(
+                        buff, sz_buff, true);
+            }
+        }
+        break;
+
+    default:
+        *ec = PURC_ERROR_INVALID_VALUE;
+        return ans;
+    }
+
+    if (ret < 0) {
+        *ec = purc_error_from_errno(errno);
+    }
+    else if (ret == 1 && ans == PURC_VARIANT_INVALID) {
+        *ec = purc_get_last_error();
+    }
+    else {
+        *ec = PURC_ERROR_OK;
+    }
+
+    return ans;
+}
+
+static int fread_utf8_char(FILE *fp, uint8_t *buf_utf8, int *len_utf8)
+{
+    int c = fgetc(fp);
+
+    if (c == EOF)
+        return PURC_ERROR_NO_DATA;
+
+    buf_utf8[0] = (uint8_t)c;
+    if (buf_utf8[0] > 0xFD) {
+        return PURC_ERROR_BAD_ENCODING;
+    }
+
+    int ch_len;
+    if (c & 0x80) {
+        int n = 1;
+        while (c & (0x80 >> n))
+            n++;
+
+        if (n < 2 || n > 4) {
+            return PURC_ERROR_BAD_ENCODING;
+        }
+
+        ch_len = n;
+    }
+    else {
+        ch_len = 1;
+    }
+
+    /* read left bytes */
+    int left = ch_len - 1;
+    uint8_t* p = buf_utf8 + 1;
+    while (left > 0) {
+        c = fgetc(fp);
+        if (c == EOF) {
+            return PURC_ERROR_NO_DATA;
+        }
+
+        *p = (uint8_t)c;
+        if ((*p & 0xC0) != 0x80) {
+            return PURC_ERROR_BAD_ENCODING;
+        }
+
+        p++;
+        left--;
+    }
+
+    if (len_utf8)
+        *len_utf8 = ch_len;
+
+    return PURC_ERROR_OK;
+}
+
 /*
-$STR.format_p(
+$STR.scanf(
+        < string | bsequence | stream $input: `The input data: a string, a byte sequence, or a readable stream.` >,
+        < string $format: `The format string.` >
+) array | false
+ */
+static purc_variant_t
+scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    pcdvobjs_stream *stream_ett = NULL;
+    FILE *input_fp = NULL;
+
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    stream_ett = dvobjs_stream_check_entity(argv[0], NULL);
+    if (stream_ett == NULL) {
+        const unsigned char *bytes;
+        size_t nr_bytes;
+        bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+        if (!bytes) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+
+        input_fp = fmemopen((void *)bytes, nr_bytes, "r");
+        if (input_fp == NULL) {
+            ec = purc_error_from_errno(errno);
+            goto failed;
+        }
+    }
+    else if (stream_ett->fd4r < 0) {
+        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+        goto failed;
+    }
+    else {
+        input_fp = fdopen(stream_ett->fd4r, "r");
+        if (input_fp == NULL) {
+            ec = purc_error_from_errno(errno);
+            goto failed;
+        }
+    }
+
+    // Get format string
+    const char* format_str;
+    size_t format_len;
+    format_str = purc_variant_get_string_const_ex(argv[1], &format_len);
+    if (!format_str) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    enum {
+        STATE_UNKNOWN = 0,
+        STATE_ORDINARY,
+        STATE_SPACE,
+        STATE_DIRECTIVE,
+        STATE_SKIP,
+    };
+
+    struct _scanner {
+        int state, last;
+        struct pcutils_mystring directive;
+    } scanner = { STATE_UNKNOWN, STATE_UNKNOWN, { NULL } };
+
+    result = purc_variant_make_array_0();
+    if (result == PURC_VARIANT_INVALID)
+        goto failed;
+
+    pcutils_mystring_init(&scanner.directive);
+
+    const char *p = format_str;
+    while (*p) {
+        const char *next = pcutils_utf8_next_char(p);
+
+        switch (scanner.state) {
+        case STATE_UNKNOWN:
+            if (*p == '%') {
+                scanner.state = STATE_DIRECTIVE;
+                pcutils_mystring_append_mchar(&scanner.directive,
+                        (const unsigned char *)p, 1);
+            }
+            else if (purc_isspace(*p)) {
+                // Consume all continuous spaces.
+                while (purc_isspace(*next)) {
+                    next = pcutils_utf8_next_char(next);
+                }
+
+                scanner.state = STATE_SPACE;
+            }
+            else {  // other character
+                scanner.state = STATE_ORDINARY;
+            }
+            break;
+
+        case STATE_DIRECTIVE:
+            if (scanner.directive.nr_bytes == 1 && *p == '%') {
+                scanner.state = STATE_ORDINARY;
+            }
+            else if (strchr(C_SCANF_CONVERSION_SPECIFIERS, *p)) {
+                pcutils_mystring_append_mchar(&scanner.directive,
+                        (const unsigned char *)p, 1);
+
+                // append an extra null-terminating byte for possible 'm'.
+                pcutils_mystring_append_mchar(&scanner.directive,
+                        (const unsigned char *)"", 1);
+
+                // Do convert here.
+                pcutils_mystring_done(&scanner.directive);
+                purc_variant_t tmp = convert_one_directive(input_fp,
+                        (char *)scanner.directive.buff, &ec);
+                if (ec != PURC_ERROR_OK) {
+                    goto failed;
+                }
+
+                if (tmp != PURC_VARIANT_INVALID) {
+                    if (!purc_variant_array_append(result, tmp)) {
+                        purc_variant_unref(tmp);
+                        goto failed;
+                    }
+                    purc_variant_unref(tmp);
+                }
+
+                pcutils_mystring_free(&scanner.directive);
+                scanner.state = STATE_UNKNOWN;
+            }
+            else if (next > p + 1) {
+                // Non-ASCII character.
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+            else {
+                pcutils_mystring_append_mchar(&scanner.directive,
+                        (const unsigned char*)p, 1);
+            }
+            break;
+
+        default:
+            assert(0); // never be here.
+            break;
+        }
+
+        if (scanner.state == STATE_ORDINARY) {
+            char utf8ch[10];
+            int len = 0;
+            if (scanner.last == STATE_SPACE) {
+                // Ignore all continuous spaces in input stream.
+                do {
+                    ec = fread_utf8_char(input_fp, (uint8_t *)utf8ch, &len);
+                    if (ec != PURC_ERROR_OK) {
+                        goto failed;
+                    }
+                } while (len == 1 && purc_isspace(utf8ch[0]));
+            }
+            else {
+                ec = fread_utf8_char(input_fp, (uint8_t *)utf8ch, &len);
+                if (ec != PURC_ERROR_OK) {
+                    goto failed;
+                }
+            }
+
+            if (memcmp(p, utf8ch, len) != 0) {
+                utf8ch[len] = 0;
+                PC_DEBUG("Format string does not matche input data: "
+                        "'%s' vs '%s'\n", p, utf8ch);
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
+            }
+
+            scanner.last = STATE_UNKNOWN;
+            scanner.state = STATE_UNKNOWN;
+        }
+        else if (scanner.state == STATE_SPACE) {
+            scanner.last = scanner.state;
+            scanner.state = STATE_UNKNOWN;
+        }
+        else {
+            scanner.last = STATE_UNKNOWN;
+            // do nothing
+        }
+
+        p = next;
+    }
+
+    pcutils_mystring_free(&scanner.directive);
+
+    if (input_fp != NULL)
+        fclose(input_fp);
+
+    if (result == PURC_VARIANT_INVALID)
+        result = purc_variant_make_null();
+
+    return result;
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (result != PURC_VARIANT_INVALID)
+        purc_variant_unref(result);
+
+    if (input_fp != NULL) {
+        fclose(input_fp);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$STR.printp(
         < string $format: `The format string contains placeholders.` >,
         < array | object | any $data0: `The data to serialize.` >
         [,
@@ -1852,7 +2296,7 @@ $STR.format_p(
 ) string
  */
 static purc_variant_t
-format_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -2136,18 +2580,18 @@ failed:
 }
 
 /*
-$STR.scan_p(
+$STR.scanp(
         < string | bsequence | native/stream $input: `The input data: a string, a byte sequence, or a readable stream.` >,
         < string $format: `The string contains placeholders.` >,
 ) array | object | any | false
 */
 static purc_variant_t
-scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
-    pcdvobjs_stream *entity;
+    pcdvobjs_stream *stream_ett = NULL;
     purc_rwstream_t input_stm = NULL;
 
     purc_variant_t result = PURC_VARIANT_INVALID;
@@ -2158,8 +2602,8 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    entity = dvobjs_stream_check_entity(argv[0], NULL);
-    if (entity == NULL) {
+    stream_ett = dvobjs_stream_check_entity(argv[0], NULL);
+    if (stream_ett == NULL) {
         const unsigned char *bytes;
         size_t nr_bytes;
         bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
@@ -2174,7 +2618,7 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
     }
-    else if ((input_stm = entity->stm4r) == NULL) {
+    else if ((input_stm = stream_ett->stm4r) == NULL) {
         ec = PURC_ERROR_NOT_DESIRED_ENTITY;
         goto failed;
     }
@@ -2190,7 +2634,7 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     enum {
         STATE_UNKNOWN = 0,
-        STATE_NORMAL,
+        STATE_ORDINARY,
         STATE_SPACE,
         STATE_ESCAPED,
         STATE_INDEX,
@@ -2274,13 +2718,13 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 scanner.state = STATE_SPACE;
             }
             else {  // Non-ASCII character
-                scanner.state = STATE_NORMAL;
+                scanner.state = STATE_ORDINARY;
             }
             break;
 
         case STATE_ESCAPED:
             if (strchr("[{#\\", *p)) {
-                scanner.state = STATE_NORMAL;
+                scanner.state = STATE_ORDINARY;
             }
             else {
                 ec = PURC_ERROR_INVALID_VALUE;
@@ -2393,7 +2837,7 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
         }
 
-        if (scanner.state == STATE_NORMAL) {
+        if (scanner.state == STATE_ORDINARY) {
             char utf8ch[10];
             int len = 0;
             if (scanner.last == STATE_SPACE) {
@@ -2438,7 +2882,7 @@ scan_p_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 done:
     pcutils_mystring_free(&scanner.idx_buf);
 
-    if (entity == NULL && input_stm != NULL)
+    if (stream_ett == NULL && input_stm != NULL)
         purc_rwstream_destroy(input_stm);
 
     if (result == PURC_VARIANT_INVALID)
@@ -2453,7 +2897,7 @@ failed:
     if (result != PURC_VARIANT_INVALID)
         purc_variant_unref(result);
 
-    if (entity == NULL && input_stm != NULL)
+    if (stream_ett == NULL && input_stm != NULL)
         purc_rwstream_destroy(input_stm);
 
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -4959,10 +5403,12 @@ purc_variant_t purc_dvobj_string_new(void)
         { "implode",    implode_getter,     NULL },
         { "shuffle",    shuffle_getter,     NULL },
         { "replace",    replace_getter,     NULL },
-        { "format_c",   format_c_getter,    NULL },
-        // { "scan_c",     scan_c_getter,      NULL },
-        { "format_p",   format_p_getter,    NULL },
-        { "scan_p",     scan_p_getter,      NULL },
+        // for backward compability
+        { "format_c",   printf_getter,      NULL },
+        { "printf",     printf_getter,      NULL },
+        { "scanf",      scanf_getter,       NULL },
+        { "printp",     printp_getter,      NULL },
+        { "scanp",      scanp_getter,       NULL },
         { "join",       join_getter,        NULL },
         { "nr_bytes",   nr_bytes_getter,    NULL },
         { "nr_chars",   nr_chars_getter,    NULL },
