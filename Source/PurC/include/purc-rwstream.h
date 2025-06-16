@@ -265,7 +265,7 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  *
  * @param rws: purc_rwstream_t
  * @param buf_utf8: the buffer to read character into
- * @param buf_wc: the buffer to convert character into
+ * @param buf_wc (nullable): the buffer to convert character into
  *
  * @return the length of character and the error code is set to indicate the
  *         error. The error code:
@@ -283,7 +283,6 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 PCA_EXPORT int
 purc_rwstream_read_utf8_char (purc_rwstream_t rws,
         char* buf_utf8, uint32_t* buf_wc);
-
 
 /**
  * Write data to purc_rwstream_t

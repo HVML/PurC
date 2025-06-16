@@ -543,17 +543,22 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         return -1;
     }
 
+    uint32_t uc = -1;
     size_t nr_chars;
     if (buf_utf8[0] == 0) {
-        *buf_wc = 0;
+        uc = 0;
     }
     else if(pcutils_string_check_utf8_len(buf_utf8, ch_len, &nr_chars, NULL)) {
-        *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
+        uc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
     }
     else {
         ch_len = -1;
         pcinst_set_error(PURC_ERROR_BAD_ENCODING);
     }
+
+    if (buf_wc)
+        *buf_wc = uc;
+
     return ch_len;
 }
 
