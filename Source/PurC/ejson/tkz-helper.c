@@ -56,6 +56,7 @@ struct tkz_reader_ds {
     struct tkz_uc (*read)(struct tkz_reader_ds *ds);
     int (*set_lc)(struct tkz_reader_ds *ds, struct tkz_lc *lc);
     void (*destroy)(struct tkz_reader_ds *ds);
+    void (*unread)(struct tkz_reader_ds *ds, size_t sz);
 };
 
 struct tkz_reader {
@@ -203,10 +204,31 @@ tkz_reader_ds_rws_destroy(struct tkz_reader_ds *ds)
     struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
 
     if (ds_rws->preload_ucs) {
+        while (!tkz_ucs_is_empty(ds_rws->preload_ucs)) {
+            struct tkz_uc uc = tkz_ucs_read_head(ds_rws->preload_ucs);
+            size_t sz = strlen((char*)uc.utf8_buf);
+            if (ds->unread) {
+                ds->unread(ds, sz);
+            }
+        }
         tkz_ucs_destroy(ds_rws->preload_ucs);
     }
 
     free(ds_rws);
+}
+
+static void
+tkz_reader_ds_rws_unread(struct tkz_reader_ds *ds, size_t sz)
+{
+    if (!ds) {
+        return;
+    }
+
+    struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
+
+    if (ds_rws->rws) {
+        purc_rwstream_seek(ds_rws->rws, -sz, SEEK_CUR);
+    }
 }
 
 static struct tkz_reader_ds *
@@ -234,6 +256,7 @@ tkz_reader_ds_rws_new(purc_rwstream_t rws)
     ds->read = tkz_reader_ds_rws_read;
     ds->set_lc = tkz_reader_ds_rws_set_lc;
     ds->destroy = tkz_reader_ds_rws_destroy;
+    ds->unread = tkz_reader_ds_rws_unread;
 
     return ds;
 
@@ -441,6 +464,13 @@ void tkz_reader_destroy(struct tkz_reader *reader)
 {
     if (reader) {
         if (reader->ds) {
+            while (!tkz_ucs_is_empty(reader->reconsume_ucs)) {
+                struct tkz_uc uc = tkz_ucs_read_head(reader->reconsume_ucs);
+                size_t sz = strlen((char*)uc.utf8_buf);
+                if (reader->ds->unread) {
+                    reader->ds->unread(reader->ds, sz);
+                }
+            }
             reader->ds->destroy(reader->ds);
         }
 

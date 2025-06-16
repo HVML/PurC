@@ -2769,7 +2769,7 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 purc_variant_unref(tmp);
                 scanner.state = STATE_UNKNOWN;
 
-#if 1           // XXX: remove this if purc_variant_load_from_json_stream()
+#if 0           // XXX: remove this if purc_variant_load_from_json_stream()
                 // works correctly.
                 char utf8ch[10];
                 int len = 0;

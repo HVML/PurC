@@ -978,7 +978,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     int err;
     int32_t nr_nodes = 0;
 
-    if (enable_log) {
+    if (true) {
         size_t len;
         char *s = pcvcm_node_to_string(tree, &len);
         PC_DEBUG("begin vcm : %s\n", s);

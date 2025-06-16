@@ -491,9 +491,9 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     pchvml_token_destroy(token);
     purc_variant_unref(nobj);
     purc_variant_unref(sys);
+    pchvml_destroy(parser);
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
-    pchvml_destroy(parser);
 }
 
 char* read_file (const char* file)
