@@ -116,10 +116,15 @@ static void tkz_uc_destroy(struct tkz_uc *uc)
 /* tkz_reader_ds begin */
 
 /* tkz_reader_ds_rws begin */
+
+#define  ENABLE_PRELOAD_UC      0
+
 struct tkz_reader_ds_rws {
     struct tkz_reader_ds ds;
     purc_rwstream_t      rws;
+#if ENABLE(PRELOAD_UC)
     struct tkz_ucs      *preload_ucs;
+#endif
     struct tkz_lc       *lc;
     int                  line;
     int                  column;
@@ -133,6 +138,7 @@ tkz_reader_ds_rws_type(struct tkz_reader_ds *ds)
     return "purc_rwstream";
 }
 
+#if ENABLE(PRELOAD_UC)
 static void
 tkz_reader_ds_rws_read_line(struct tkz_reader_ds_rws *ds_rws)
 {
@@ -174,16 +180,53 @@ again:
         goto again;
     }
 }
+#endif
 
 static struct tkz_uc
 tkz_reader_ds_rws_read(struct tkz_reader_ds *ds)
 {
     struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
+#if ENABLE(PRELOAD_UC)
     if (tkz_ucs_is_empty(ds_rws->preload_ucs)) {
         tkz_reader_ds_rws_read_line(ds_rws);
     }
 
     return tkz_ucs_read_head(ds_rws->preload_ucs);
+#else
+    char c[8] = {0};
+    uint32_t char_val = 0;
+    int nr_c = 0;
+    struct tkz_uc curr_uc_val = {0};
+
+    nr_c = purc_rwstream_read_utf8_char(ds_rws->rws, c, &char_val);
+    if (nr_c < 0) {
+        char_val = TKZ_INVALID_CHARACTER;
+    }
+    else {
+        c[nr_c] = 0;
+    }
+
+    curr_uc_val.character = char_val;
+    curr_uc_val.line = ds_rws->line;
+    curr_uc_val.column = ds_rws->column++;
+    curr_uc_val.position = ds_rws->position++;
+    strcpy((char *)curr_uc_val.utf8_buf, c);
+
+    if (char_val == '\n' || char_val == 0) {
+        if (ds_rws->lc) {
+            tkz_lc_commit(ds_rws->lc, ds_rws->line);
+        }
+
+        ds_rws->line++;
+        ds_rws->column = 0;
+    }
+    else {
+        if (ds_rws->lc) {
+            tkz_lc_append_bytes(ds_rws->lc, c, strlen(c));
+        }
+    }
+    return curr_uc_val;
+#endif
 }
 
 static int
@@ -203,6 +246,7 @@ tkz_reader_ds_rws_destroy(struct tkz_reader_ds *ds)
 
     struct tkz_reader_ds_rws *ds_rws = (struct tkz_reader_ds_rws *)ds;
 
+#if ENABLE(PRELOAD_UC)
     if (ds_rws->preload_ucs) {
         while (!tkz_ucs_is_empty(ds_rws->preload_ucs)) {
             struct tkz_uc uc = tkz_ucs_read_head(ds_rws->preload_ucs);
@@ -213,6 +257,7 @@ tkz_reader_ds_rws_destroy(struct tkz_reader_ds *ds)
         }
         tkz_ucs_destroy(ds_rws->preload_ucs);
     }
+#endif
 
     free(ds_rws);
 }
@@ -245,10 +290,12 @@ tkz_reader_ds_rws_new(purc_rwstream_t rws)
     }
 
     ds_rws->rws = rws;
+#if ENABLE(PRELOAD_UC)
     ds_rws->preload_ucs = tkz_ucs_new();
     if (!ds_rws->preload_ucs) {
         goto out_clear_ds;
     }
+#endif
 
 
     ds = (struct tkz_reader_ds *) ds_rws;
@@ -260,8 +307,10 @@ tkz_reader_ds_rws_new(purc_rwstream_t rws)
 
     return ds;
 
+#if ENABLE(PRELOAD_UC)
 out_clear_ds:
     tkz_reader_ds_rws_destroy((struct tkz_reader_ds*)ds_rws);
+#endif
 
 out:
     return NULL;
