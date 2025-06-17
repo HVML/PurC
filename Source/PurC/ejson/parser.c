@@ -357,6 +357,7 @@ int pcejson_set_state_param_string(struct pcejson *parser)
 bool
 pcejson_is_finished_stream(struct pcejson *parser, uint32_t character)
 {
+    (void) character;
     if (1 == pcejson_token_stack_size(parser->tkz_stack)) {
         struct pcejson_token *top = pcejson_token_stack_top(parser->tkz_stack);
         bool is_closed = pcejson_token_is_closed(top);
