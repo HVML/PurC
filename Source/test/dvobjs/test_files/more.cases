@@ -363,14 +363,6 @@ positive:
     $STR.trim(' 张三李四 ', 'both', ' 张四')
     '三李'
 
-positive:
-    $DATA.serialize($DATA.parse(']'))
-    '"<undefined>"'
-
-positive:
-    $STR.printf('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
-    'Tom is 009 years old, while Jerry is 007 years old.'
-
 negative:
     $STR.replace(null)
     ArgumentMissed
@@ -1541,6 +1533,10 @@ positive:
     '10'
 
 positive:
+    $STR.printf('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
+    'Tom is 009 years old, while Jerry is 007 years old.'
+
+positive:
     $STR.printf('Tom is %d years old, while Jerry is %d years old.', 9, 7)
     'Tom is 9 years old, while Jerry is 7 years old.'
 
@@ -1555,6 +1551,10 @@ positive:
 positive:
     $STR.printf('%s/%d', 'Tom', 16)
     'Tom/16'
+
+positive:
+    $STR.printf($STREAM.stdout, '%03d', 16)
+    true
 
 negative:
     $STR.scanf()
@@ -1735,4 +1735,16 @@ positive:
 #positive:
 #    $STR.scanp($STREAM.stdin, 'My name is #?')
 #     'Tom'
+
+positive:
+    $DATA.serialize($DATA.parse(']'))
+    '"<undefined>"'
+
+positive:
+    $DATA.serialize(300, 'default', $STREAM.stdout)
+    3UL
+
+positive:
+    $DATA.serialize($DATA.sort([], 'asc'))
+    "[]"
 

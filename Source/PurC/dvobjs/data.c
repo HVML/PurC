@@ -33,6 +33,7 @@
 #include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/utf8.h"
+#include "private/stream.h"
 #include "helper.h"
 
 #include <assert.h>
@@ -628,6 +629,33 @@ static struct keyword_to_atom {
     { _KW_no_slash_escape,  PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
 };
 
+/*
+$DATA.serialize(
+    < any $data >
+    [, < '[ [real-json | real-ejson] || [ runtime-null | runtime-string ] || plain || spaced || pretty || pretty_tab || [bseq-hex-string | bseq-hex | bseq-bin | bseq-bin-dots | bseq-base64] || no-trailing-zero || no-slash-escape] | default' $options = `'default'`:
+        - 'real-json':          `Use JSON notation for real numbers, i.e., treat all real numbers (number, longint, ulongint, and longdouble) as JSON numbers.`
+        - 'real-ejson':         `Use eJSON notation for longint, ulongint, and longdouble, e.g., 100L, 999UL, and 100FL.`
+        - 'runtime-null':       `Treat all HVML-specific runtime types as null, i.e., undefined, dynamic, and native values will be serialized as null.`
+        - 'runtime-string':     `Use string placehodlers for HVML-specific runtime types: "<undefined>", "<dynamic>", and "<native>".`
+        - 'plain':              `Do not use any extra formatting characters (whitespace, newline, or tab).`
+        - 'spaced':             `Use minimal space characters to format the output.`
+        - 'pretty':             `Use two-space to beautify the output.`
+        - 'pretty-tab':         `Use tab instead of two-space to beautify the output.`
+        - 'bseq-hex-string':    `Serialize binary sequence as hexadecimal string, e.g. "A0B0C0567890".`
+        - 'bseq-hex':           `Use hexadecimal form to serialize binary sequence.`
+        - 'bseq-bin':           `Use binary form to serialize binary sequence.`
+        - 'bseq-bin-dots':      `Use binary form to serialize binary sequence and use dots to seperate the binary digits per four digits. e.g., b1100.1010.`
+        - 'bseq-base64':        `Use Base64 to serialize binary sequence.`
+        - 'no-trailing-zero':   `Drop trailing zero for float values.`
+        - 'no-slash-escape':    `Do not escape the forward slashes ('/').`
+        - 'default':            `Equivalent to 'real-json runtime-string plain bseq-hex-string no-slash-escape'`
+       >
+        [,
+            < native/stream $output: `The optional output stream` >
+        ]
+    ]
+) string | ulongint | false
+ */
 static purc_variant_t
 serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -635,111 +663,142 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(call_flags);
 
-    const char *options = NULL;
-    size_t options_len;
-    unsigned int flags = PCVRNT_SERIALIZE_OPT_PLAIN;
+    int ec = PURC_ERROR_OK;
+    pcdvobjs_stream *stream_ett = NULL;
+    purc_rwstream_t output_stm = NULL;
+
+    if (nr_args > 0) {
+    }
 
     purc_variant_t vrt;
 
-    if (nr_args == 0) {
-        vrt = purc_variant_make_undefined();
-        if (vrt == PURC_VARIANT_INVALID) {
-            goto fatal;
-        }
-    }
-    else if (nr_args == 1) {
-        vrt = argv[0];
-        /* default is JSON compliant */
-        flags = PCVRNT_SERIALIZE_OPT_REAL_JSON |
+    /* default is JSON compliant */
+    unsigned int flags = PCVRNT_SERIALIZE_OPT_REAL_JSON |
             PCVRNT_SERIALIZE_OPT_RUNTIME_STRING |
             PCVRNT_SERIALIZE_OPT_PLAIN |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE;
+
+    if (nr_args == 0) {
+        vrt = purc_variant_make_undefined();
+        if (vrt == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
     }
-    else {
+    else if (nr_args == 1) {
+        vrt = argv[0];
+    }
+
+    if (nr_args > 1) {
         vrt = argv[0];
 
+        const char *options = NULL;
+        size_t options_len;
         options = purc_variant_get_string_const_ex(argv[1], &options_len);
         if (options) {
             options = pcutils_trim_spaces(options, &options_len);
             if (options_len == 0) {
                 options = NULL;
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto failed;
             }
         }
-    }
 
-    if (options) {
-        size_t length = 0;
-        const char *option = pcutils_get_next_token_len(options, options_len,
-                PURC_KW_DELIMITERS, &length);
+        if (strncmp(options, "default", options_len) == 0) {
+            size_t length = 0;
+            const char *option = pcutils_get_next_token_len(options,
+                    options_len, PURC_KW_DELIMITERS, &length);
 
-        do {
+            flags = PCVRNT_SERIALIZE_OPT_PLAIN;
+            do {
+                if (length > 0 && length <= MAX_LEN_KEYWORD) {
+                    purc_atom_t atom;
+                    char tmp[length + 1];
+                    strncpy(tmp, option, length);
+                    tmp[length]= '\0';
+                    atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
 
-            if (length > 0 && length <= MAX_LEN_KEYWORD) {
-                purc_atom_t atom;
+                    if (atom > 0) {
+                        size_t i;
+                        for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+                            if (atom == keywords2atoms[i].atom) {
+                                if (keywords2atoms[i].flag &
+                                        PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+                                    // clear the byte sequence mask
+                                    flags &=
+                                        ~PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK;
+                                }
 
-#if 0
-                /* TODO: use strndupa if it is available */
-                char *tmp = strndup(option, length);
-                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
-                free(tmp);
-#else
-                char tmp[length + 1];
-                strncpy(tmp, option, length);
-                tmp[length]= '\0';
-                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
-#endif
-
-                if (atom > 0) {
-                    size_t i;
-                    for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
-                        if (atom == keywords2atoms[i].atom) {
-                            if (keywords2atoms[i].flag &
-                                    PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK) {
-                                // clear the byte sequence mask
-                                flags &= ~PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK;
+                                flags |= keywords2atoms[i].flag;
                             }
-
-                            flags |= keywords2atoms[i].flag;
                         }
                     }
                 }
-            }
 
-            if (options_len <= length)
-                break;
+                if (options_len <= length)
+                    break;
 
-            options_len -= length;
-            option = pcutils_get_next_token_len(option + length, options_len,
-                    PURC_KW_DELIMITERS, &length);
-        } while (option);
+                options_len -= length;
+                option = pcutils_get_next_token_len(option + length,
+                        options_len, PURC_KW_DELIMITERS, &length);
+            } while (option);
+        }
     }
 
-    purc_rwstream_t my_stream;
-    ssize_t n;
+    if (nr_args > 2) {
+        stream_ett = dvobjs_stream_check_entity(argv[2], NULL);
+        if (stream_ett == NULL) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+        else if (stream_ett->stm4w == NULL) {
+            ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+            goto failed;
+        }
+        else {
+            output_stm = stream_ett->stm4w;
+        }
+    }
+    else  {
+        output_stm = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+                LEN_MAX_SERIALIZE_BUF);
+        if (output_stm == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+    }
 
-    my_stream = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
-            LEN_MAX_SERIALIZE_BUF);
-    n = purc_variant_serialize(vrt, my_stream, 0, flags, NULL);
+    ssize_t n;
+    n = purc_variant_serialize(vrt, output_stm, 0, flags, NULL);
     if (nr_args == 0)
         purc_variant_unref(vrt);
 
     if (n == -1) {
-        goto fatal;
+        goto failed;
     }
 
-    purc_rwstream_write(my_stream, "\0", 1);
+    if (stream_ett == NULL) {
+        purc_rwstream_write(output_stm, "\0", 1);
 
-    char *buf = NULL;
-    size_t sz_content, sz_buffer;
-    buf = purc_rwstream_get_mem_buffer_ex(my_stream,
-            &sz_content, &sz_buffer, true);
-    purc_rwstream_destroy(my_stream);
+        char *buf = NULL;
+        size_t sz_content, sz_buffer;
+        buf = purc_rwstream_get_mem_buffer_ex(output_stm,
+                &sz_content, &sz_buffer, true);
+        purc_rwstream_destroy(output_stm);
 
-    return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+        return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+    }
 
-fatal:
+    return purc_variant_make_ulongint(n);
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 

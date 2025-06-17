@@ -3165,7 +3165,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stdin");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
@@ -3180,7 +3181,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stdout");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
@@ -3195,7 +3197,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stderr");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
