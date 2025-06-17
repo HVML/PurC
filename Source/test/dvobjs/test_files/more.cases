@@ -1741,7 +1741,7 @@ positive:
     { foo: 'bar', bar: 'baz'}
 
 #positive:
-#    $STR.scanp($STREAM.stdin, 'My name is #?')
+#    {{ $STREAM.stdout.writelines('Please input `My name is "Tom"` without backticks strictly!'); $STR.scanp($STREAM.stdin, 'My name is #?') }}
 #     'Tom'
 
 positive:
@@ -1755,4 +1755,8 @@ positive:
 positive:
     $DATA.serialize($DATA.sort([], 'asc'))
     "[]"
+
+positive:
+    {{ $STREAM.open('file:///tmp/test_str_scanp', 'write create truncate').writelines('My name is "Tom"'); $STR.scanp($STREAM.open('file:///tmp/test_str_scanp', 'read'), 'My name is #?') }}
+    'Tom'
 
