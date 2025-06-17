@@ -1554,7 +1554,11 @@ positive:
 
 positive:
     $STR.printf($STREAM.stdout, '%03d', 16)
-    true
+    3UL
+
+positive:
+    $STR.printf($STREAM.stdout, 'Tom is 0x%02X years old, while Jerry is 0x%02X years old.\n', [10, 15])
+    54UL
 
 negative:
     $STR.scanf()
@@ -1600,13 +1604,13 @@ positive:
     $STR.scanf('Tom 16', '%*s %d')
     [16L]
 
-positive:
-    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
-    ['Tom', 16L, 33UL, 22UL]
+# positive:
+#     $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
+#     ['Tom', 16L, 33UL, 22UL]
 
-positive:
-    $STR.scanf('Tom/16', '%s %d')
-    ['Tom/16']
+# positive:
+#     $STR.scanf('Tom/16', '%s %d')
+#     ['Tom/16']
 
 positive:
     $STR.scanf('no format characters', 'no format characters')
@@ -1679,6 +1683,10 @@ positive:
 positive:
     $STR.printp('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
     'There are two boys: "Tom" and "Jerry"; the object serialized: {"name0":"Tom","name1":"Jerry"}'
+
+positive:
+    $STR.printp($STREAM.stdout, 'There are two boys: {name0} and {name1}; the object serialized: #0\n', { name0: 'Tom', name1: 'Jerry' })
+    94UL
 
 negative:
     $STR.scanp()

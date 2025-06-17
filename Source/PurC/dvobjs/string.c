@@ -1592,6 +1592,8 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     int ec = PURC_ERROR_OK;
     pcdvobjs_stream *stream_ett = NULL;
     purc_rwstream_t output_stm = NULL;
+    ssize_t sz_written;
+    size_t sz_total = 0;
 
     if (nr_args > 0) {
         stream_ett = dvobjs_stream_check_entity(argv[0], NULL);
@@ -1664,7 +1666,11 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 goto error;
             }
 
-            purc_rwstream_write(output_stm, format + start, i - start);
+            if ((sz_written = purc_rwstream_write(output_stm,
+                    format + start, i - start)) < 0) {
+                goto error;
+            }
+            sz_total += sz_written;
 
             char buff[SZ_PRINT_BUFF], *buff_alloc;
             int64_t i64 = 0;
@@ -1710,7 +1716,11 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     ec = PURC_ERROR_INVALID_VALUE;
                     goto error;
                 }
-                purc_rwstream_write(output_stm, buff, len);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        buff, len)) < 0) {
+                    goto error;
+                }
+                sz_total += sz_written;
                 break;
 
             case 'o':
@@ -1755,7 +1765,11 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     ec = PURC_ERROR_INVALID_VALUE;
                     goto error;
                 }
-                purc_rwstream_write(output_stm, buff, len);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        buff, len)) < 0) {
+                    goto error;
+                }
+                sz_total += sz_written;
                 break;
 
             case 'e':
@@ -1786,7 +1800,11 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     ec = PURC_ERROR_INVALID_VALUE;
                     goto error;
                 }
-                purc_rwstream_write(output_stm, buff, len);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        buff, len)) < 0) {
+                    goto error;
+                }
+                sz_total += sz_written;
                 break;
 
             case 's':
@@ -1807,7 +1825,10 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     goto error;
                 }
 
-                purc_rwstream_write(output_stm, buff_alloc, len);
+                if ((sz_written = purc_rwstream_write(output_stm, buff_alloc, len)) < 0) {
+                    goto error;
+                }
+                sz_total += sz_written;
                 free(buff_alloc);
                 break;
 
@@ -1819,7 +1840,11 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     ec = PURC_ERROR_INVALID_VALUE;
                     goto error;
                 }
-                purc_rwstream_write(output_stm, buff, len);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        buff, len)) < 0) {
+                    goto error;
+                }
+                sz_total += sz_written;
                 arg_used = 0;
                 break;
 
@@ -1837,8 +1862,13 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             i++;
     }
 
-    if (i != start)
-        purc_rwstream_write(output_stm, format + start, strlen(format + start));
+    if (i != start) {
+        if ((sz_written = purc_rwstream_write(output_stm,
+                format + start, strlen(format + start))) < 0) {
+            goto error;
+        }
+        sz_total += sz_written;
+    }
 
     if (stream_ett == NULL) {
         purc_rwstream_write(output_stm, "\0", 1);
@@ -1860,7 +1890,7 @@ printf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return retv;
     }
 
-    return purc_variant_make_boolean(true);
+    return purc_variant_make_ulongint(sz_total);
 
 error:
     if (stream_ett == NULL && output_stm != NULL)
@@ -2338,6 +2368,8 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     pcdvobjs_stream *stream_ett = NULL;
     purc_rwstream_t output_stm = NULL;
     int ec = PURC_ERROR_OK;
+    ssize_t sz_written;
+    size_t sz_total = 0;
 
     if (nr_args > 0) {
         stream_ett = dvobjs_stream_check_entity(argv[0], NULL);
@@ -2404,7 +2436,11 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     while (true) {
         if (*p == '\\') {
             if (state == STATE_ESCAPED) {
-                purc_rwstream_write(output_stm, p, 1);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        p, 1)) < 0) {
+                    goto failed;
+                }
+                sz_total += sz_written;
                 state = STATE_CHAR;
             }
             else {
@@ -2413,7 +2449,11 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else if (*p == '[') {
             if (state == STATE_ESCAPED) {
-                purc_rwstream_write(output_stm, p, 1);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        p, 1)) < 0) {
+                    goto failed;
+                }
+                sz_total += sz_written;
                 state = STATE_CHAR;
             }
             else if (type != TYPE_LICNTR) {
@@ -2428,7 +2468,11 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else if (*p == '{') {
             if (state == STATE_ESCAPED) {
-                purc_rwstream_write(output_stm, p, 1);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        p, 1)) < 0) {
+                    goto failed;
+                }
+                sz_total += sz_written;
                 state = STATE_CHAR;
             }
             else if (type != TYPE_OBJECT) {
@@ -2443,7 +2487,11 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else if (*p == '#') {
             if (state == STATE_ESCAPED) {
-                purc_rwstream_write(output_stm, p, 1);
+                if ((sz_written = purc_rwstream_write(output_stm,
+                        p, 1)) < 0) {
+                    goto failed;
+                }
+                sz_total += sz_written;
                 state = STATE_CHAR;
             }
             else {
@@ -2478,12 +2526,15 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     tmp = purc_variant_linear_container_get(argv[1], index);
-                    purc_variant_serialize(tmp, output_stm, 0,
+                    if ((sz_written = purc_variant_serialize(tmp, output_stm, 0,
                             PCVRNT_SERIALIZE_OPT_REAL_EJSON |
                             PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
                             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
                             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
-                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL)) < 0) {
+                        goto failed;
+                    }
+                    sz_total += sz_written;
 
                     state = STATE_CHAR;
                 }
@@ -2515,15 +2566,24 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     tmp = argv[index + 1];
-                    purc_variant_serialize(tmp, output_stm, 0,
+                    if ((sz_written = purc_variant_serialize(tmp, output_stm,
+                            0,
                             PCVRNT_SERIALIZE_OPT_REAL_EJSON |
                             PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
                             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
                             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
-                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL)) < 0) {
+                        goto failed;
+                    }
+                    sz_total += sz_written;
 
-                    if (*p)
-                        purc_rwstream_write(output_stm, p, 1);
+                    if (*p) {
+                        if ((sz_written = purc_rwstream_write(output_stm,
+                                p, 1)) < 0) {
+                            goto failed;
+                        }
+                        sz_total += sz_written;
+                    }
                     state = STATE_CHAR;
                 }
                 break;
@@ -2544,12 +2604,15 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                         goto failed;
                     }
 
-                    purc_variant_serialize(tmp, output_stm, 0,
+                    if ((sz_written = purc_variant_serialize(tmp, output_stm, 0,
                             PCVRNT_SERIALIZE_OPT_REAL_EJSON |
                             PCVRNT_SERIALIZE_OPT_RUNTIME_NULL |
                             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE |
                             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX |
-                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+                            PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL)) < 0) {
+                        goto failed;
+                    }
+                    sz_total += sz_written;
 
                     state = STATE_CHAR;
                 }
@@ -2559,8 +2622,13 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 break;
 
             case STATE_CHAR:
-                if (*p)
-                    purc_rwstream_write(output_stm, p, 1);
+                if (*p) {
+                    if ((sz_written = purc_rwstream_write(output_stm,
+                            p, 1)) < 0) {
+                        goto failed;
+                    }
+                    sz_total += sz_written;
+                }
                 break;
 
             default:
@@ -2595,7 +2663,7 @@ printp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_string_reuse_buff(buff, sz_buff, false);
     }
 
-    return purc_variant_make_boolean(true);
+    return purc_variant_make_ulongint(sz_total);
 
 failed:
     if (stream_ett == NULL && output_stm)
