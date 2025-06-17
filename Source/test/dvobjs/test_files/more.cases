@@ -1604,13 +1604,13 @@ positive:
     $STR.scanf('Tom 16', '%*s %d')
     [16L]
 
-# positive:
-#     $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
-#     ['Tom', 16L, 33UL, 22UL]
+positive:
+    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
+    ['Tom', 16L, 33UL, 22UL]
 
-# positive:
-#     $STR.scanf('Tom/16', '%s %d')
-#     ['Tom/16']
+positive:
+    $STR.scanf('Tom/16', '%s %d')
+    ['Tom/16']
 
 positive:
     $STR.scanf('no format characters', 'no format characters')
