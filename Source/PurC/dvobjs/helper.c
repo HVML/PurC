@@ -588,7 +588,7 @@ failed:
 int pcutils_punycode_encode(struct pcutils_mystring *output, const char* orig)
 {
     if (orig == NULL)
-        goto done;
+        goto failed;
 
     const char *p = orig;
     const char *comp_start = NULL;
@@ -630,7 +630,6 @@ int pcutils_punycode_encode(struct pcutils_mystring *output, const char* orig)
         p = next;
     }
 
-done:
     return 0;
 
 failed:
@@ -638,7 +637,7 @@ failed:
 }
 
 // Decode a Punycode string back to UTF-8
-int punycode_decode(struct pcutils_mystring *output,
+static int punycode_decode(struct pcutils_mystring *output,
         const char *punycode, size_t input_len)
 {
     if (input_len == 0)
@@ -717,11 +716,29 @@ int punycode_decode(struct pcutils_mystring *output,
 
         i %= (nr_output + 1);
         if (nr_output > (size_t)i) {
-            if (pcutils_mystring_append_uchar(output, n, 1))
+            size_t total_len = output->nr_bytes;
+            unsigned char utf8ch[10];
+
+            unsigned uclen = pcutils_unichar_to_utf8(n, utf8ch);
+            utf8ch[uclen] = 0;
+
+            // expand the buffer
+            if (pcutils_mystring_append_mchar(output, utf8ch, uclen))
                 goto failed;
 
-            printf("call memmove() here\n");
-            // memmove(dst + i + 1, dst + i, (di - i) * sizeof(uint32_t));
+            // find the position to insert
+            char *move_start = output->buff;
+            int j = 0;
+            while (j < i) {
+                move_start = pcutils_utf8_next_char(move_start);
+                j++;
+            }
+
+            // move memory and insert the new character.
+            size_t offset = move_start - output->buff;
+            memmove(move_start + uclen, move_start,
+                    total_len - offset);
+            memcpy(move_start, utf8ch, uclen);
         }
         else {
             if (pcutils_mystring_append_uchar(output, n, 1))
@@ -743,7 +760,7 @@ int
 pcutils_punycode_decode(struct pcutils_mystring *output, const char* punycode)
 {
     if (punycode == NULL)
-        goto done;
+        goto failed;
 
     const char *p = punycode;
     const char *comp_start = NULL;
@@ -779,7 +796,6 @@ pcutils_punycode_decode(struct pcutils_mystring *output, const char* punycode)
         p = next;
     }
 
-done:
     return 0;
 
 failed:

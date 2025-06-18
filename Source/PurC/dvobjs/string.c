@@ -2106,8 +2106,6 @@ static purc_variant_t convert_one_directive(FILE *fp,
             break;
         }
 
-        PC_DEBUG("Directive: %s, converted: `%s`\n", directive, buff);
-
         assert(buff);
         if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
             ans = purc_variant_make_byte_sequence_reuse_buff(
