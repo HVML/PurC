@@ -2072,60 +2072,41 @@ static purc_variant_t convert_one_directive(FILE *fp,
         }
         break;
 
-    case 's':
-    case 'c':
-    case ']':
+    case 'c': {
         if (strchr(directive, 'l') != NULL) {
             *ec = PURC_ERROR_INVALID_VALUE;
             break;
         }
 
         char *buff = NULL;
-
-#if OS(DARWIN)
-#define MAX_SIZE_SCANF_STR  1023
+        size_t sz_buff = 0;
         if (strchr(directive, '*') == NULL) {
-            // rebuild the directive to include the field width.
-            char *new_dir = rebuild_directive(directive, MAX_SIZE_SCANF_STR);
-            if (new_dir == NULL) {
+            char *end;
+            long width = strtol(directive + 1, &end, 10);
+            if (width < 0) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                break;
+            }
+
+            if (width == 0 || end == directive + 1) {
+                width = 1;
+            }
+
+            sz_buff = width + 1;
+            buff = malloc(sz_buff);
+            if (buff == NULL) {
                 *ec = PURC_ERROR_OUT_OF_MEMORY;
                 break;
             }
-
-            buff = malloc(MAX_SIZE_SCANF_STR + 1);
-            if (new_dir == NULL || buff == NULL) {
-                *ec = PURC_ERROR_OUT_OF_MEMORY;
-                break;
-            }
-
-            ret = fscanf(fp, new_dir, buff);
-            free(new_dir);
-
-            if (ret != 1) {
-                free(buff);
-                break;
-            }
         }
-        else {
-            ret = fscanf(fp, directive, buff);
+
+        ret = fscanf(fp, directive, buff);
+        if (ret != 1) {
+            free(buff);
             break;
         }
 
-        size_t sz_buff = MAX_SIZE_SCANF_STR + 1;
-#else
-        if (strchr(directive, '*') == NULL &&
-                strchr(directive, 'm') == NULL) {
-            // we have appended an extra null-terminating character.
-            memmove(directive + 2, directive + 1, dir_len - 1);
-            directive[1] = 'm';
-        }
-
-        ret = fscanf(fp, directive, &buff);
-        if (ret != 1)
-            break;
-
-        size_t sz_buff = strlen(buff) + 1;
-#endif
+        PC_DEBUG("Directive: %s, converted: `%s`\n", directive, buff);
 
         assert(buff);
         if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
@@ -2137,6 +2118,99 @@ static purc_variant_t convert_one_directive(FILE *fp,
                     buff, sz_buff, true);
         }
         break;
+    }
+
+    case 's':
+    case ']': {
+        if (strchr(directive, 'l') != NULL) {
+            *ec = PURC_ERROR_INVALID_VALUE;
+            break;
+        }
+
+        char *buff = NULL;
+        size_t sz_buff = 0;
+        if (strchr(directive, '*') == NULL) {
+            char *end;
+            long width = strtol(directive + 1, &end, 10);
+            if (width < 0) {
+                *ec = PURC_ERROR_INVALID_VALUE;
+                break;
+            }
+
+            if (width > 0) {
+                sz_buff = width + 1;
+                buff = malloc(sz_buff);
+                if (buff == NULL) {
+                    *ec = PURC_ERROR_OUT_OF_MEMORY;
+                    break;
+                }
+            }
+        }
+
+#if OS(DARWIN)
+#define MAX_SIZE_SCANF_STR  1023
+        if (strchr(directive, '*') == NULL && buff == NULL) {
+            // rebuild the directive to include the field width.
+            char *new_dir = rebuild_directive(directive, MAX_SIZE_SCANF_STR);
+            if (new_dir == NULL) {
+                *ec = PURC_ERROR_OUT_OF_MEMORY;
+                break;
+            }
+
+            sz_buff = MAX_SIZE_SCANF_STR + 1;
+            buff = malloc(sz_buff);
+            if (new_dir == NULL || buff == NULL) {
+                *ec = PURC_ERROR_OUT_OF_MEMORY;
+                break;
+            }
+
+            ret = fscanf(fp, new_dir, buff);
+            PC_DEBUG("Directive: %s, converted: `%s`; ret: %d\n",
+                    new_dir, buff, ret);
+            free(new_dir);
+
+            if (ret != 1) {
+                free(buff);
+                break;
+            }
+        }
+        else {
+            ret = fscanf(fp, directive, buff);
+            if (ret != 1) {
+                free(buff);
+                break;
+            }
+        }
+
+#else
+        if (strchr(directive, '*') == NULL &&
+                strchr(directive, 'm') == NULL && buff == NULL) {
+            // we have appended an extra null-terminating character.
+            memmove(directive + 2, directive + 1, dir_len - 1);
+            directive[1] = 'm';
+        }
+
+        ret = fscanf(fp, directive, &buff);
+        if (ret != 1)
+            break;
+
+        sz_buff = strlen(buff) + 1;
+#endif
+
+        PC_DEBUG("Directive: %s, converted: `%s`; ret: %d\n",
+                directive, buff, ret);
+
+        assert(buff);
+        if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
+            ans = purc_variant_make_byte_sequence_reuse_buff(
+                    buff, sz_buff, sz_buff);
+        }
+        else {
+            ans = purc_variant_make_string_reuse_buff(
+                    buff, sz_buff, true);
+        }
+        break;
+    }
 
     default:
         *ec = PURC_ERROR_INVALID_VALUE;

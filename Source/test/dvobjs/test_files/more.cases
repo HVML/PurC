@@ -1616,6 +1616,94 @@ positive:
     $STR.scanf('no format characters', 'no format characters')
     []
 
+positive:
+    $STR.scanf('', '')
+    []
+
+positive:
+    $STR.scanf('123', '%d')
+    [123L]
+
+positive:
+    $STR.scanf('-123', '%d')
+    [-123L]
+
+positive:
+    $STR.scanf('123', '%u')
+    [123UL]
+
+positive:
+    $STR.scanf('0xFF', '%x')
+    [255UL]
+
+positive:
+    $STR.scanf('0777', '%o')
+    [511UL]
+
+positive:
+    $STR.scanf('3.14', '%f')
+    [3.1400001049041748]
+
+positive:
+    $STR.scanf('-3.14e2', '%f')
+    [-314.0]
+
+positive:
+    $STR.scanf('hello world', '%s %s')
+    ['hello', 'world']
+
+positive:
+    $STR.scanf('中国 人民', '%s %s')
+    ['中国', '人民']
+
+positive:
+    $STR.scanf('AB', '%c%c')
+    ['A', 'B']
+
+positive:
+    $STR.scanf('中国', '%3c%3c')
+    ['中', '国']
+
+positive:
+    $STR.scanf('age: 18 height: 175.5', 'age: %d height: %f')
+    [18L, 175.5]
+
+positive:
+    $STR.scanf('12345', '%2d%3d')
+    [12L, 345L]
+
+positive:
+    $STR.scanf('中国人民', '%6s%6s')
+    ['中国', '人民']
+
+positive:
+    $STR.scanf('a:b:c', '%c%*c%c%*c%c')
+    ['a', 'b', 'c']
+
+positive:
+    $STR.scanf(bx313233, '%d')
+    [123L]
+
+positive:
+    $STR.scanf('abc', '%d')
+    []
+
+positive:
+    $STR.scanf('123abc', '%d%d')
+    [123L]
+
+positive:
+    $STR.scanf('A B', '%c %c')
+    ['A', 'B']
+
+positive:
+    $STR.scanf('中 国', '%3c %3c')
+    ['中', '国']
+
+positive:
+    $STR.scanf('姓名:张三 年龄:25', '姓名:%s 年龄:%d')
+    ['张三', 25L]
+
 negative:
     $STR.printp()
     ArgumentMissed
