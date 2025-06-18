@@ -2107,6 +2107,8 @@ static purc_variant_t convert_one_directive(FILE *fp,
         }
 
         assert(buff);
+        buff[sz_buff - 1] = '\0';   // null-terminated.
+        PC_DEBUG("Directive: `%s`, converted: `%s`\n", directive, buff);
         if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
             ans = purc_variant_make_byte_sequence_reuse_buff(
                     buff, sz_buff, sz_buff);
@@ -2188,11 +2190,21 @@ static purc_variant_t convert_one_directive(FILE *fp,
             directive[1] = 'm';
         }
 
-        ret = fscanf(fp, directive, &buff);
+        if (buff == NULL) {
+            ret = fscanf(fp, directive, &buff);
+        }
+        else {
+            ret = fscanf(fp, directive, buff);
+        }
+
         if (ret != 1)
             break;
 
-        sz_buff = strlen(buff) + 1;
+        if (sz_buff != 0) {
+            buff[sz_buff - 1] = '\0';   // null-terminated
+        }
+        else
+            sz_buff = strlen(buff) + 1;
 #endif
 
         PC_DEBUG("Directive: %s, converted: `%s`; ret: %d\n",
@@ -2349,9 +2361,9 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     };
 
     struct _scanner {
-        int state, last;
+        int state;
         struct pcutils_mystring directive;
-    } scanner = { STATE_UNKNOWN, STATE_UNKNOWN, { NULL, 0, 0 } };
+    } scanner = { STATE_UNKNOWN, { NULL, 0, 0 } };
 
     result = purc_variant_make_array_0();
     if (result == PURC_VARIANT_INVALID)
@@ -2376,7 +2388,16 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     next = pcutils_utf8_next_char(next);
                 }
 
-                scanner.state = STATE_SPACE;
+                int c;
+                // Ignore all continuous spaces in input stream.
+                do {
+                    if ((c = fgetc(input_fp)) == EOF) {
+                        goto failed;
+                    }
+                } while (purc_isspace(c));
+                ungetc(c, input_fp);
+                scanner.state = STATE_UNKNOWN;
+
             }
             else {  // other character
                 scanner.state = STATE_ORDINARY;
@@ -2432,41 +2453,21 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         if (scanner.state == STATE_ORDINARY) {
             char utf8ch[10];
-            int len = 0;
-            if (scanner.last == STATE_SPACE) {
-                // Ignore all continuous spaces in input stream.
-                do {
-                    ec = fread_utf8_char(input_fp, (uint8_t *)utf8ch, &len);
-                    if (ec != PURC_ERROR_OK) {
-                        goto failed;
-                    }
-                } while (len == 1 && purc_isspace(utf8ch[0]));
-            }
-            else {
-                ec = fread_utf8_char(input_fp, (uint8_t *)utf8ch, &len);
-                if (ec != PURC_ERROR_OK) {
-                    goto failed;
-                }
+            int uclen = 0;
+            ec = fread_utf8_char(input_fp, (uint8_t *)utf8ch, &uclen);
+            if (ec != PURC_ERROR_OK) {
+                goto failed;
             }
 
-            if (memcmp(p, utf8ch, len) != 0) {
-                utf8ch[len] = 0;
+            if (memcmp(p, utf8ch, uclen) != 0) {
+                utf8ch[uclen] = 0;
                 PC_DEBUG("Format string does not matche input data: "
                         "'%s' vs '%s'\n", p, utf8ch);
                 ec = PURC_ERROR_INVALID_VALUE;
                 goto failed;
             }
 
-            scanner.last = STATE_UNKNOWN;
             scanner.state = STATE_UNKNOWN;
-        }
-        else if (scanner.state == STATE_SPACE) {
-            scanner.last = scanner.state;
-            scanner.state = STATE_UNKNOWN;
-        }
-        else {
-            scanner.last = STATE_UNKNOWN;
-            // do nothing
         }
 
         p = next;
@@ -3043,16 +3044,6 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 pcutils_mystring_free(&scanner.idx_buf);
                 purc_variant_unref(tmp);
                 scanner.state = STATE_UNKNOWN;
-
-#if 0           // XXX: remove this if purc_variant_load_from_json_stream()
-                // works correctly.
-                char utf8ch[10];
-                int len = 0;
-                len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
-                utf8ch[len] = 0;
-                PC_DEBUG("Next char in stream: '%s'\n", utf8ch);
-#endif
-
             }
             else if (purc_isdigit(*p)) {
                 pcutils_mystring_append_mchar(&scanner.idx_buf,
