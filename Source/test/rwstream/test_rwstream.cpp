@@ -1353,3 +1353,448 @@ TEST(dump_rwstream, mem_buffer)
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 }
+
+/* Test ungetc and related operations (tell, seek) */
+TEST(UngetcAndRelatedOps, UngetcSingleByteChar)
+{
+    const char* initial_data = "Hello世界123";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read 'H', tell should be 1
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "H");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // ungetc 'H'. tell should be 0
+    int ret = purc_rwstream_ungetc(rws, "H", 1);
+    ASSERT_EQ(ret, 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // Read 'H' again. tell should be 1
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "H");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // Read 'e'. tell should be 2
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "e");
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcMultiByteChar)
+{
+    const char* initial_data = "Hello世界123";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read "Hello" (5 bytes)
+    for (int i = 0; i < 5; ++i)
+        purc_rwstream_read_utf8_char(rws, char_buf, &wc);
+    ASSERT_EQ(purc_rwstream_tell(rws), 5);
+
+    // Read "世" (3 bytes). tell should be 8
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
+    ASSERT_STREQ(char_buf, "世");
+    ASSERT_EQ(purc_rwstream_tell(rws), 8);
+
+    // ungetc "世". tell should be 5
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "世", 3), 3);
+    ASSERT_EQ(purc_rwstream_tell(rws), 5);
+
+    // Read "世" again. tell should be 8
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
+    ASSERT_STREQ(char_buf, "世");
+    ASSERT_EQ(purc_rwstream_tell(rws), 8);
+
+    // Read "界". tell should be 11
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
+    ASSERT_STREQ(char_buf, "界");
+    ASSERT_EQ(purc_rwstream_tell(rws), 11);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcMultipleCharsConsecutively)
+{
+    const char* initial_data = "Hello世界123";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read "He". tell should be 2
+    purc_rwstream_read_utf8_char(rws, char_buf, &wc); // H
+    purc_rwstream_read_utf8_char(rws, char_buf, &wc); // e
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    // ungetc 'e'. tell should be 1
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "e", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // ungetc 'H'. tell should be 0
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "H", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // Read 'H'. tell should be 1
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "H");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // Read 'e'. tell should be 2
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "e");
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    // Read 'l'. tell should be 3
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "l");
+    ASSERT_EQ(purc_rwstream_tell(rws), 3);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcThenSeekSet)
+{
+    const char* initial_data = "Hello世界123"; // Length 14
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read "Hello" (5 bytes). tell should be 5
+    for (int i = 0; i < 5; ++i)
+        purc_rwstream_read_utf8_char(rws, char_buf, &wc);
+    ASSERT_EQ(purc_rwstream_tell(rws), 5);
+
+    // ungetc 'o'. tell should be 4
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "o", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 4);
+
+    // seek(2, SEEK_SET). tell should be 2
+    ASSERT_EQ(purc_rwstream_seek(rws, 2, SEEK_SET), 2);
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    // Read 'l'. tell should be 3
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "l");
+    ASSERT_EQ(purc_rwstream_tell(rws), 3);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcThenSeekCur)
+{
+    const char* initial_data = "Hello世界123"; // Length 14
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read "Hello" (5 bytes). tell should be 5
+    for (int i = 0; i < 5; ++i)
+        purc_rwstream_read_utf8_char(rws, char_buf, &wc);
+    ASSERT_EQ(purc_rwstream_tell(rws), 5);
+
+    // ungetc 'o'. tell should be 4
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "o", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 4);
+
+    // seek(1, SEEK_CUR) from 4.
+    // However, seek will clear the ungetc buffer and reset logical_pos,
+    // tell should be 6
+    off_t ret = purc_rwstream_seek(rws, 1, SEEK_CUR);
+    ASSERT_EQ(ret, 6);
+    ASSERT_EQ(purc_rwstream_tell(rws), 6);
+
+    // Read "世". tell should be 8
+    purc_rwstream_seek(rws, -1, SEEK_CUR);
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
+    ASSERT_STREQ(char_buf, "世");
+    ASSERT_EQ(purc_rwstream_tell(rws), 8);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcThenSeekEnd)
+{
+    const char* initial_data = "Hello世界123"; // Length 14
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read "Hello" (5 bytes). tell should be 5
+    for (int i = 0; i < 5; ++i)
+        purc_rwstream_read_utf8_char(rws, char_buf, &wc);
+    ASSERT_EQ(purc_rwstream_tell(rws), 5);
+
+    // ungetc 'o'. tell should be 4
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "o", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 4);
+
+    // seek(-3, SEEK_END). Data length 14. End is 14. -3 from end is 11. tell
+    // should be 11. Note: SEEK_END refers to the end of the original written
+    // data if ungetc does not change stream size. logical_pos is 14 after
+    // write. seek from end of buffer content.
+    ASSERT_EQ(purc_rwstream_seek(rws, -3, SEEK_END),
+              (off_t)initial_data_len - 3);
+    ASSERT_EQ(purc_rwstream_tell(rws),
+              (off_t)initial_data_len - 3); // 14 - 3 = 11
+
+    // Read '1'. tell should be 12
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "1");
+    ASSERT_EQ(purc_rwstream_tell(rws), (off_t)initial_data_len - 2); // 12
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcCharNotFromStream)
+{
+    const char* initial_data = "Hello";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read 'H'. tell is 1.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "H");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // ungetc 'X'. tell should be 0.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "X", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // Read 'X'. tell should be 1.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "X");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // Read 'e' (from original stream). tell should be 2.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "e");
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcAtBeginning)
+{
+    const char* initial_data = "ABC";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // ungetc "世" (3 bytes). tell should be -3.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "世", 3), 3);
+    ASSERT_EQ(purc_rwstream_tell(rws), -3);
+
+    // Read "世". tell should be 0.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
+    ASSERT_STREQ(char_buf, "世");
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // Read 'A'. tell should be 1.
+    memset(char_buf, 0, 8);
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "A");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, TellAfterMultipleUngetcAndReads)
+{
+    const char* initial_data = "ABC";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read 'A'. tell = 1.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+    // Read 'B'. tell = 2.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    // ungetc 'B'. tell = 1.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "B", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+    // ungetc 'A'. tell = 0.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "A", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+    // ungetc 'X'. tell = -1.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "X", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), -1);
+
+    // Read 'X'. tell = 0.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "X");
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+    // Read 'A'. tell = 1.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "A");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+    // Read 'B'. tell = 2.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "B");
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+    // Read 'C'. tell = 3.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "C");
+    ASSERT_EQ(purc_rwstream_tell(rws), 3);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, SeekAfterMultipleUngetc)
+{
+    const char* initial_data = "ABCDE";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Read 'A'. tell = 1.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+    // Read 'B'. tell = 2.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 2);
+
+    // ungetc 'B'. tell = 1.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "B", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+    // ungetc 'A'. tell = 0.
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "A", 1), 1);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // After ungetting A and B, stream effectively is <A><B>CDE, current pos is
+    // before A. seek(3, SEEK_SET) from original start. This should point to
+    // 'D'. Original stream: A B C D E Pos:            0 1 2 3 4 After unget:
+    // ungotten_A ungotten_B | C D E (logical_pos is 0, pointing before
+    // ungotten_A) seek(3, SEEK_SET) means logical_pos becomes 3.
+    ASSERT_EQ(purc_rwstream_seek(rws, 3, SEEK_SET), 3);
+    ASSERT_EQ(purc_rwstream_tell(rws), 3);
+
+    // Read 'D'. tell = 4.
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "D");
+    ASSERT_EQ(purc_rwstream_tell(rws), 4);
+
+    purc_rwstream_destroy(rws);
+}
+
+TEST(UngetcAndRelatedOps, UngetcBeyondInitialContentStart)
+{
+    const char* initial_data = "A";
+    size_t initial_data_len = strlen(initial_data);
+    purc_rwstream_t rws =
+        purc_rwstream_new_buffer(initial_data_len, initial_data_len * 2);
+    ASSERT_NE(rws, nullptr);
+    ASSERT_EQ(purc_rwstream_write(rws, initial_data, initial_data_len),
+              (int)initial_data_len);
+    purc_rwstream_seek(rws, 0, SEEK_SET);
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    char char_buf[8];
+    uint32_t wc;
+
+    // Unget 'X', then 'Y'
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "X", 1), 1); // Stream: X|A, pos -1
+    ASSERT_EQ(purc_rwstream_tell(rws), -1);
+    ASSERT_EQ(purc_rwstream_ungetc(rws, "Y", 1), 1); // Stream: YX|A, pos -2
+    ASSERT_EQ(purc_rwstream_tell(rws), -2);
+
+    // Read 'Y'
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "Y");
+    ASSERT_EQ(purc_rwstream_tell(rws), -1);
+
+    // Read 'X'
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "X");
+    ASSERT_EQ(purc_rwstream_tell(rws), 0);
+
+    // Read 'A'
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
+    ASSERT_STREQ(char_buf, "A");
+    ASSERT_EQ(purc_rwstream_tell(rws), 1);
+
+    // Try to read past end
+    ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 0); // EOF
+    ASSERT_EQ(purc_rwstream_tell(rws), 1); // Tell stays at end on EOF
+
+    purc_rwstream_destroy(rws);
+}

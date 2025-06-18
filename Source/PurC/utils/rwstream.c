@@ -617,15 +617,15 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
         return -1;
     }
 
-#if 0
-    if (rws->funcs->tell)
+    if (rws->rcnt) {
+        return rws->logical_pos;
+    }
+    else if (rws->funcs->tell) {
         return rws->funcs->tell(rws);
+    }
 
     pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
     return -1;
-#else
-    return rws->logical_pos;
-#endif
 }
 
 ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
