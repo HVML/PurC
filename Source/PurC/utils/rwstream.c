@@ -45,7 +45,7 @@
 #define BUFFER_SIZE 4096
 #define MIN_BUFFER_SIZE 32
 #define READ_BUFFER_MIN_SIZE    32
-#define READ_BUFFER_MAX_SIZE    65535
+#define READ_BUFFER_MAX_SIZE    1024*1024
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
