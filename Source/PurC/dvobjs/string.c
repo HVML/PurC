@@ -1906,6 +1906,39 @@ error:
 
 #define C_SCANF_CONVERSION_SPECIFIERS   "dioupxXeEfFgGaAcs]"
 
+#if OS(DARWIN)
+static char *rebuild_directive(const char *directive, size_t width)
+{
+    // Scan directive to find the conversion specifier.
+    // If the conversion specifier is 's', 'c', or '[', 
+    // convert width to a decimal string and insert before the conversion specifier.
+    // Or, just return a copy of direction.
+
+    char *new_directive = malloc(strlen(directive) + 32 + 1);
+    if (new_directive == NULL) {
+        return NULL;
+    }
+
+    const char *src = directive;
+    char *dst = new_directive;
+    while (*src) {
+        if (strchr("sc[", *src)) {
+            // Insert width before the conversion specifier.
+            int n = sprintf(dst, "%zu", width);
+            assert(n <= 32);
+            dst += n;
+        }
+
+        *dst = *src;
+        src++;
+        dst++;
+    }
+
+    *dst = '\0';
+    return new_directive;
+}
+#endif
+
 static purc_variant_t convert_one_directive(FILE *fp,
         char *directive, int *ec)
 {
@@ -1914,7 +1947,7 @@ static purc_variant_t convert_one_directive(FILE *fp,
     size_t dir_len = strlen(directive);
     assert(directive[0] == '%');
 
-    int ret;
+    int ret = -1;
     switch (directive[dir_len - 1]) {
     case 'i':
     case 'd':
@@ -2025,10 +2058,16 @@ static purc_variant_t convert_one_directive(FILE *fp,
                 ans = purc_variant_make_longdouble(ld);
             }
         }
-        else {
+        else if (strchr(directive, 'l')) {
             double d;
             if ((ret = fscanf(fp, directive, &d)) == 1) {
                 ans = purc_variant_make_number(d);
+            }
+        }
+        else {
+            float f;
+            if ((ret = fscanf(fp, directive, &f)) == 1) {
+                ans = purc_variant_make_number(f);
             }
         }
         break;
@@ -2036,6 +2075,44 @@ static purc_variant_t convert_one_directive(FILE *fp,
     case 's':
     case 'c':
     case ']':
+        if (strchr(directive, 'l') != NULL) {
+            *ec = PURC_ERROR_INVALID_VALUE;
+            break;
+        }
+
+        char *buff = NULL;
+
+#if OS(DARWIN)
+#define MAX_SIZE_SCANF_STR  1023
+        if (strchr(directive, '*') == NULL) {
+            // rebuild the directive to include the field width.
+            char *new_dir = rebuild_directive(directive, MAX_SIZE_SCANF_STR);
+            if (new_dir == NULL) {
+                *ec = PURC_ERROR_OUT_OF_MEMORY;
+                break;
+            }
+
+            buff = malloc(MAX_SIZE_SCANF_STR + 1);
+            if (new_dir == NULL || buff == NULL) {
+                *ec = PURC_ERROR_OUT_OF_MEMORY;
+                break;
+            }
+
+            ret = fscanf(fp, new_dir, buff);
+            free(new_dir);
+
+            if (ret != 1) {
+                free(buff);
+                break;
+            }
+        }
+        else {
+            ret = fscanf(fp, directive, buff);
+            break;
+        }
+
+        size_t sz_buff = MAX_SIZE_SCANF_STR + 1;
+#else
         if (strchr(directive, '*') == NULL &&
                 strchr(directive, 'm') == NULL) {
             // we have appended an extra null-terminating character.
@@ -2043,18 +2120,21 @@ static purc_variant_t convert_one_directive(FILE *fp,
             directive[1] = 'm';
         }
 
-        char *buff;
-        if ((ret = fscanf(fp, directive, &buff)) == 1) {
-            assert(buff);
-            size_t sz_buff = strlen(buff) + 1;
-            if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
-                ans = purc_variant_make_byte_sequence_reuse_buff(
-                        buff, sz_buff, sz_buff);
-            }
-            else {
-                ans = purc_variant_make_string_reuse_buff(
-                        buff, sz_buff, true);
-            }
+        ret = fscanf(fp, directive, &buff);
+        if (ret != 1)
+            break;
+
+        size_t sz_buff = strlen(buff) + 1;
+#endif
+
+        assert(buff);
+        if (!pcutils_string_check_utf8(buff, -1, NULL, NULL)) {
+            ans = purc_variant_make_byte_sequence_reuse_buff(
+                    buff, sz_buff, sz_buff);
+        }
+        else {
+            ans = purc_variant_make_string_reuse_buff(
+                    buff, sz_buff, true);
         }
         break;
 
@@ -2064,6 +2144,7 @@ static purc_variant_t convert_one_directive(FILE *fp,
     }
 
     if (ret < 0) {
+        perror("Failed fscanf(): ");
         *ec = purc_error_from_errno(errno);
     }
     else if (ret == 1 && ans == PURC_VARIANT_INVALID) {

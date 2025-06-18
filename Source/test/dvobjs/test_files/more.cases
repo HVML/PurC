@@ -1609,8 +1609,8 @@ positive:
     ['Tom', 16L, 33UL, 22UL]
 
 positive:
-    $STR.scanf('Tom/16', '%s %d')
-    ['Tom/16']
+    $STR.scanf('Tom/16 165', '%s %f')
+    ['Tom/16', 165]
 
 positive:
     $STR.scanf('no format characters', 'no format characters')
