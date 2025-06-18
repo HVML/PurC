@@ -1837,12 +1837,20 @@ positive:
     '"<undefined>"'
 
 positive:
+    $DATA.serialize(undefined, 'plain')
+    "null"
+
+positive:
     $DATA.serialize(300, 'default', $STREAM.stdout)
     3UL
 
 positive:
     $DATA.serialize($DATA.sort([], 'asc'))
     "[]"
+
+positive:
+    $DATA.serialize([1, 2], 'default', $STREAM.stdout)
+    5UL
 
 positive:
     {{ $STREAM.open('file:///tmp/test_str_scanp', 'write create truncate').writelines('My name is "Tom"'); $STR.scanp($STREAM.open('file:///tmp/test_str_scanp', 'read'), 'My name is #?') }}

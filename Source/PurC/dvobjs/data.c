@@ -667,9 +667,6 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     pcdvobjs_stream *stream_ett = NULL;
     purc_rwstream_t output_stm = NULL;
 
-    if (nr_args > 0) {
-    }
-
     purc_variant_t vrt;
 
     /* default is JSON compliant */
@@ -699,13 +696,16 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (options) {
             options = pcutils_trim_spaces(options, &options_len);
             if (options_len == 0) {
-                options = NULL;
                 ec = PURC_ERROR_INVALID_VALUE;
                 goto failed;
             }
         }
+        else {
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto failed;
+        }
 
-        if (strncmp(options, "default", options_len) == 0) {
+        if (strncmp(options, "default", options_len) != 0) {
             size_t length = 0;
             const char *option = pcutils_get_next_token_len(options,
                     options_len, PURC_KW_DELIMITERS, &length);

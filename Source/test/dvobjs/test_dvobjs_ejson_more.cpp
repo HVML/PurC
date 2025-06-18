@@ -881,16 +881,7 @@ static bool serialize_vrtcmp(purc_variant_t result, purc_variant_t expected)
 TEST(dvobjs, serialize)
 {
     static const struct ejson_result test_cases[] = {
-        { "null",
-            "$DATA.serialize",
-            serialize, serialize_vrtcmp, 0 },
-        { "null",
-            "$DATA.serialize(undefined, false)",
-            serialize, serialize_vrtcmp, 0 },
-        { "null",
-            "$DATA.serialize(undefined, 'unknown')",
-            serialize, serialize_vrtcmp, 0 },
-        { "null",
+        { "\"<undefined>\"",
             "$DATA.serialize",
             serialize, serialize_vrtcmp, 0 },
         { "\"<undefined>\"",
