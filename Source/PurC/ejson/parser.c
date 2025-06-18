@@ -362,6 +362,9 @@ pcejson_is_finished_stream(struct pcejson *parser, uint32_t character)
         struct pcejson_token *top = pcejson_token_stack_top(parser->tkz_stack);
         bool is_closed = pcejson_token_is_closed(top);
         bool finished = is_closed;
+        if (finished && is_whitespace(character)) {
+            tkz_reader_reconsume_last_char(parser->tkz_reader);
+        }
         return finished;
     }
     return false;
