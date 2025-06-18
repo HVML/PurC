@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/_types/_int64_t.h>
 
 #if OS(UNIX)
 #include <sys/types.h>
