@@ -872,11 +872,9 @@ pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
         return NULL;
 
     const char *p = str_utf8;
-    n = 0;
-    while (*p) {
-        ucs[n] = pcutils_utf8_to_unichar((const unsigned char *)p);
+    for (size_t i = 0; i < n; i++) {
+        ucs[i] = pcutils_utf8_to_unichar((const unsigned char *)p);
         p = pcutils_utf8_next_char(p);
-        n++;
     }
 
     if (nr_chars)
