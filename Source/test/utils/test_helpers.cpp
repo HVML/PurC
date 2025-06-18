@@ -18,14 +18,13 @@
 */
 
 #include "purc/purc-helpers.h"
-#include "../helpers.h"
+#include "purc/purc-utils.h"
 
 #include <glib.h>
-
-#include <openssl/core_dispatch.h>
-#include <stdio.h>
-#include <errno.h>
 #include <gtest/gtest.h>
+#include <openssl/core_dispatch.h>
+
+#include <stdio.h>
 
 TEST(test_split_page_identifier, split_page_identifier)
 {
@@ -279,3 +278,97 @@ TEST(test_url_encode_decode, url_encode_decode)
         free(decoded);
     }
 }
+
+TEST(test_punycode, punycode_encode_decode) {
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    // 测试用例结构
+    struct test_case {
+        const char* original;     // 原始字符串
+        const char* punycode;     // 预期的Punycode编码结果
+    };
+
+    // Punycode编解码测试用例
+    static struct test_case test_cases[] = {
+        // 基本ASCII测试
+        {"example", "example"},
+        {"hello-world", "hello-world"},
+
+        // 中文域名测试
+        {"中文", "xn--fiq228c"},
+        {"中文.com", "xn--fiq228c.com"},
+        {"中文.中国", "xn--fiq228c.xn--fiqs8s"},
+        {"测试", "xn--0zwm56d"},
+
+        // 混合字符测试
+        {"hello中文", "xn--hello-9n1h080l"},
+        {"test测试", "xn--test-3x7if72m"},
+
+        // 特殊字符测试
+        {"bücher", "xn--bcher-kva"},
+        {"münchen", "xn--mnchen-3ya"},
+        {"αβγ", "xn--mxacd"},
+
+        // 长字符串测试
+        {"长字符串测试案例", "xn--kiqs6a22xx4mj2f99wjw0amfq"},
+        {"中文域名测试.com", "xn--fiq06l2rdsvscfji99b.com"},
+    };
+
+    // 测试Punycode编码
+    for (size_t i = 0; i < sizeof(test_cases)/sizeof(test_cases[0]); i++) {
+        std::cout << "Testing encode: " << test_cases[i].original << std::endl;
+
+        struct pcutils_mystring encoded;
+        pcutils_mystring_init(&encoded);
+
+        pcutils_punycode_encode(&encoded, test_cases[i].original);
+        ASSERT_NE(encoded.buff, nullptr);
+        ASSERT_STREQ(encoded.buff, test_cases[i].punycode);
+        pcutils_mystring_free(&encoded);
+    }
+
+    // 测试Punycode解码
+    for (size_t i = 0; i < sizeof(test_cases)/sizeof(test_cases[0]); i++) {
+        std::cout << "Testing decode: " << test_cases[i].punycode << std::endl;
+
+        struct pcutils_mystring decoded;
+        pcutils_mystring_init(&decoded);
+
+        pcutils_punycode_decode(&decoded, test_cases[i].punycode);
+        ASSERT_NE(decoded.buff, nullptr);
+
+        // 对于纯ASCII字符串，解码结果应该与输入相同
+        if (strncmp(test_cases[i].punycode, "xn--", 4) != 0) {
+            ASSERT_STREQ(decoded.buff, test_cases[i].punycode);
+        }
+        else {
+            ASSERT_STREQ(decoded.buff, test_cases[i].original);
+        }
+        pcutils_mystring_free(&decoded);
+    }
+
+    // 错误处理测试
+    static const char* error_cases[] = {
+        "xn--",             // 空的Punycode字符串
+        "xn--invalid",      // 无效的Punycode编码
+        "xn--测试",         // 非法Punycode格式
+        nullptr,            // 空指针测试
+        ""                  // 空字符串
+    };
+
+    for (size_t i = 0; i < sizeof(error_cases)/sizeof(error_cases[0]); i++) {
+        struct pcutils_mystring decoded;
+        pcutils_mystring_init(&decoded);
+
+        pcutils_punycode_decode(&decoded, error_cases[i]);
+        if (error_cases[i] == nullptr || strlen(error_cases[i]) == 0) {
+            ASSERT_EQ(decoded.buff, nullptr);
+        }
+        else {
+            // 对于错误的输入，应该返回原始字符串
+            ASSERT_STREQ(decoded.buff, error_cases[i]);
+        }
+        pcutils_mystring_free(&decoded);
+    }
+}
+

@@ -1355,15 +1355,24 @@ struct pcutils_mystring {
     size_t sz_space;
 };
 
+/** Initialize the structure. */
 static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
     mystr->buff = NULL;
     mystr->nr_bytes = 0;
     mystr->sz_space = 0;
 }
 
+/** Append a UTF-8 encoded character sequence with length specified. */
 int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
         const unsigned char *mchar, size_t mchar_len);
 
+/** Append a ASCII character */
+static inline int pcutils_mystring_append_char(
+        struct pcutils_mystring *mystr, char c) {
+    return pcutils_mystring_append_mchar(mystr, (const unsigned char *)&c, 1);
+}
+
+/** Append a UTF-8 encoded string */
 static inline int
 pcutils_mystring_append_string(struct pcutils_mystring *mystr,
         const char *str) {
@@ -1371,10 +1380,20 @@ pcutils_mystring_append_string(struct pcutils_mystring *mystr,
         (const unsigned char *)str, 0);
 }
 
+/** Append a Unicode character (codepoint) n times. */
 int pcutils_mystring_append_uchar(struct pcutils_mystring *mystr,
         uint32_t uchar, size_t n);
+
+/** Append a terminating null byte. */
 int pcutils_mystring_done(struct pcutils_mystring *mystr);
+
+/** Free the buffer and reset the fileds in the structure. */
 void pcutils_mystring_free(struct pcutils_mystring *mystr);
+
+int pcutils_punycode_encode(struct pcutils_mystring *output,
+        const char* origin);
+int pcutils_punycode_decode(struct pcutils_mystring *output,
+        const char* punycode);
 
 PCA_EXTERN_C_END
 
