@@ -307,6 +307,23 @@ purc_rwstream_read_utf8_char (purc_rwstream_t rws,
 PCA_EXPORT ssize_t
 purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
 
+/**
+ * Pushes a character back to the stream.
+ *
+ * @param rws purc_rwstream_t
+ * @param utf8ch The characters to push back.
+ * @param len The 'utf8ch' buffer len.
+ * @return The character pushed back on success, or -1 on failure.
+ *         The error codes can be:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory if buffer needs to expand and fails
+ *  - @PCRWSTREAM_ERROR_IO: IO error (though less common for ungetc unless it triggers underlying flush with error)
+ *
+ * Since: 0.9.24
+ */
+PCA_EXPORT int
+purc_rwstream_ungetc (purc_rwstream_t rws,  const char* utf8ch, int len);
+
 
 /**
  * Flushes the write buffer for the purc_rwstream_t.
