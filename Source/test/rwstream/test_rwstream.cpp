@@ -1370,6 +1370,7 @@ TEST(UngetcAndRelatedOps, UngetcSingleByteChar)
     uint32_t wc;
 
     // Read 'H', tell should be 1
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "H");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
@@ -1380,11 +1381,13 @@ TEST(UngetcAndRelatedOps, UngetcSingleByteChar)
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
 
     // Read 'H' again. tell should be 1
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "H");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
 
     // Read 'e'. tell should be 2
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "e");
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
@@ -1407,11 +1410,13 @@ TEST(UngetcAndRelatedOps, UngetcMultiByteChar)
     uint32_t wc;
 
     // Read "Hello" (5 bytes)
+    memset(char_buf, 0, sizeof(char_buf));
     for (int i = 0; i < 5; ++i)
         purc_rwstream_read_utf8_char(rws, char_buf, &wc);
     ASSERT_EQ(purc_rwstream_tell(rws), 5);
 
     // Read "世" (3 bytes). tell should be 8
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
     ASSERT_STREQ(char_buf, "世");
     ASSERT_EQ(purc_rwstream_tell(rws), 8);
@@ -1421,11 +1426,13 @@ TEST(UngetcAndRelatedOps, UngetcMultiByteChar)
     ASSERT_EQ(purc_rwstream_tell(rws), 5);
 
     // Read "世" again. tell should be 8
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
     ASSERT_STREQ(char_buf, "世");
     ASSERT_EQ(purc_rwstream_tell(rws), 8);
 
     // Read "界". tell should be 11
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
     ASSERT_STREQ(char_buf, "界");
     ASSERT_EQ(purc_rwstream_tell(rws), 11);
@@ -1448,6 +1455,7 @@ TEST(UngetcAndRelatedOps, UngetcMultipleCharsConsecutively)
     uint32_t wc;
 
     // Read "He". tell should be 2
+    memset(char_buf, 0, sizeof(char_buf));
     purc_rwstream_read_utf8_char(rws, char_buf, &wc); // H
     purc_rwstream_read_utf8_char(rws, char_buf, &wc); // e
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
@@ -1461,16 +1469,19 @@ TEST(UngetcAndRelatedOps, UngetcMultipleCharsConsecutively)
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
 
     // Read 'H'. tell should be 1
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "H");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
 
     // Read 'e'. tell should be 2
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "e");
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
 
     // Read 'l'. tell should be 3
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "l");
     ASSERT_EQ(purc_rwstream_tell(rws), 3);
@@ -1493,6 +1504,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekSet)
     uint32_t wc;
 
     // Read "Hello" (5 bytes). tell should be 5
+    memset(char_buf, 0, sizeof(char_buf));
     for (int i = 0; i < 5; ++i)
         purc_rwstream_read_utf8_char(rws, char_buf, &wc);
     ASSERT_EQ(purc_rwstream_tell(rws), 5);
@@ -1506,6 +1518,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekSet)
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
 
     // Read 'l'. tell should be 3
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "l");
     ASSERT_EQ(purc_rwstream_tell(rws), 3);
@@ -1528,6 +1541,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekCur)
     uint32_t wc;
 
     // Read "Hello" (5 bytes). tell should be 5
+    memset(char_buf, 0, sizeof(char_buf));
     for (int i = 0; i < 5; ++i)
         purc_rwstream_read_utf8_char(rws, char_buf, &wc);
     ASSERT_EQ(purc_rwstream_tell(rws), 5);
@@ -1544,6 +1558,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekCur)
     ASSERT_EQ(purc_rwstream_tell(rws), 6);
 
     // Read "世". tell should be 8
+    memset(char_buf, 0, sizeof(char_buf));
     purc_rwstream_seek(rws, -1, SEEK_CUR);
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
     ASSERT_STREQ(char_buf, "世");
@@ -1567,6 +1582,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekEnd)
     uint32_t wc;
 
     // Read "Hello" (5 bytes). tell should be 5
+    memset(char_buf, 0, sizeof(char_buf));
     for (int i = 0; i < 5; ++i)
         purc_rwstream_read_utf8_char(rws, char_buf, &wc);
     ASSERT_EQ(purc_rwstream_tell(rws), 5);
@@ -1585,6 +1601,7 @@ TEST(UngetcAndRelatedOps, UngetcThenSeekEnd)
               (off_t)initial_data_len - 3); // 14 - 3 = 11
 
     // Read '1'. tell should be 12
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "1");
     ASSERT_EQ(purc_rwstream_tell(rws), (off_t)initial_data_len - 2); // 12
@@ -1607,6 +1624,7 @@ TEST(UngetcAndRelatedOps, UngetcCharNotFromStream)
     uint32_t wc;
 
     // Read 'H'. tell is 1.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "H");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
@@ -1616,11 +1634,13 @@ TEST(UngetcAndRelatedOps, UngetcCharNotFromStream)
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
 
     // Read 'X'. tell should be 1.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "X");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
 
     // Read 'e' (from original stream). tell should be 2.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "e");
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
@@ -1648,12 +1668,13 @@ TEST(UngetcAndRelatedOps, UngetcAtBeginning)
     ASSERT_EQ(purc_rwstream_tell(rws), -3);
 
     // Read "世". tell should be 0.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 3);
     ASSERT_STREQ(char_buf, "世");
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
 
     // Read 'A'. tell should be 1.
-    memset(char_buf, 0, 8);
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "A");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
@@ -1676,9 +1697,11 @@ TEST(UngetcAndRelatedOps, TellAfterMultipleUngetcAndReads)
     uint32_t wc;
 
     // Read 'A'. tell = 1.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
     // Read 'B'. tell = 2.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
 
@@ -1693,18 +1716,22 @@ TEST(UngetcAndRelatedOps, TellAfterMultipleUngetcAndReads)
     ASSERT_EQ(purc_rwstream_tell(rws), -1);
 
     // Read 'X'. tell = 0.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "X");
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
     // Read 'A'. tell = 1.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "A");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
     // Read 'B'. tell = 2.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "B");
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
     // Read 'C'. tell = 3.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "C");
     ASSERT_EQ(purc_rwstream_tell(rws), 3);
@@ -1727,9 +1754,11 @@ TEST(UngetcAndRelatedOps, SeekAfterMultipleUngetc)
     uint32_t wc;
 
     // Read 'A'. tell = 1.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
     // Read 'B'. tell = 2.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_EQ(purc_rwstream_tell(rws), 2);
 
@@ -1749,6 +1778,7 @@ TEST(UngetcAndRelatedOps, SeekAfterMultipleUngetc)
     ASSERT_EQ(purc_rwstream_tell(rws), 3);
 
     // Read 'D'. tell = 4.
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "D");
     ASSERT_EQ(purc_rwstream_tell(rws), 4);
@@ -1778,21 +1808,25 @@ TEST(UngetcAndRelatedOps, UngetcBeyondInitialContentStart)
     ASSERT_EQ(purc_rwstream_tell(rws), -2);
 
     // Read 'Y'
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "Y");
     ASSERT_EQ(purc_rwstream_tell(rws), -1);
 
     // Read 'X'
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "X");
     ASSERT_EQ(purc_rwstream_tell(rws), 0);
 
     // Read 'A'
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 1);
     ASSERT_STREQ(char_buf, "A");
     ASSERT_EQ(purc_rwstream_tell(rws), 1);
 
     // Try to read past end
+    memset(char_buf, 0, sizeof(char_buf));
     ASSERT_EQ(purc_rwstream_read_utf8_char(rws, char_buf, &wc), 0); // EOF
     ASSERT_EQ(purc_rwstream_tell(rws), 1); // Tell stays at end on EOF
 
