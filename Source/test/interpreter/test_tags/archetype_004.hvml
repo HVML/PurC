@@ -1,5 +1,5 @@
 <!DOCTYPE hvml>
-<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+<hvml target="html" lang="zh">
     <head>
 
         <meta charset="utf-8" />
