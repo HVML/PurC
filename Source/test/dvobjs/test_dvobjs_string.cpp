@@ -882,9 +882,9 @@ TEST(dvobjs, dvobjs_string_printf)
 }
 
 #if 0 // deprecated (VW 250614)
-TEST(dvobjs, dvobjs_string_format_p)
+TEST(dvobjs, dvobjs_string_printp)
 {
-    const char *function[] = {"format_p"};
+    const char *function[] = {"printp"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
