@@ -28,6 +28,7 @@ gantt
 
 # Release Notes
 
+- [Version 0.9.24](#version-0924)
 - [Version 0.9.22](#version-0922)
 - [Version 0.9.20](#version-0920)
 - [Version 0.9.19](#version-0919)
@@ -47,6 +48,40 @@ gantt
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.24
+
+On Jun. 30, 2025, HVML Community announces the availability of PurC 0.9.24,
+   which is also the 18th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.24
+
+In this version, we made a lot of major enhancements and fixed some bugs:
+
+* CHANGES:
+   - Upgrade PURCMC to version 170.
+   - Rename `$STR.format_c()` to `$STR.printf()`.
+   - Rename `$STR.format_p()` to `$STR.printp()`.
+* ENHANCEMENTS:
+   - Add new option for purc: `-p (--print-docs)`
+   - Add new option for purc: `-t (--print-result)`
+   - Add two new exceptions: `AssertionFailed`.
+   - New verb. element `adapt`.
+   - Complete implementation methods of `$STR`, `$URL`, and `$DATA`.
+   - Refactor some methods of `$STR.translate()`, `$DATA.serialize()`, and so on.
+   - Support for `rdrState:pageActivated` and `rdrState:pageDeactivated` events.
+   - Enhance `change:inflated`, `change:deflated`, and `change:modified` events have the payloads.
+   - Implement `purc_rwstream_ungetc()`.
+* OPTIMIZATIONS:
+   - Optimize the coroutine scheduler.
+* ADJUSTMENTS:
+   - Change some helper APIs about URL to conform to common usage.
+* BUGFIXES:
+   - Fix some some dead loop bugs and crashes.
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.22
 
