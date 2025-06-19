@@ -36,7 +36,7 @@
 
     <update on $plainwindows to 'merge' >
         {
-            $STR.format_c("%x", $DATA.key($parsedMsg.elementValue)): $parsedMsg.data,
+            $STR.printf("%x", $DATA.key($parsedMsg.elementValue)): $parsedMsg.data,
         }
     </update>
 

@@ -716,9 +716,9 @@ TEST(dvobjs, dvobjs_string_replace)
 }
 
 
-TEST(dvobjs, dvobjs_string_format_c)
+TEST(dvobjs, dvobjs_string_printf)
 {
-    const char *function[] = {"format_c"};
+    const char *function[] = {"printf"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;

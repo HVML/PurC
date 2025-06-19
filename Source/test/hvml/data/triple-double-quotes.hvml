@@ -72,7 +72,7 @@ DOMElementSelectors:id,css,handle,handles
     <init as 'message' temp >
 """type: response
 requestId: $requestId
-result: $retCode/$STR.format_c('%x', $resultValue)
+result: $retCode/$STR.printf('%x', $resultValue)
 dataType: $dataType
 dataLen: $dataLen
  

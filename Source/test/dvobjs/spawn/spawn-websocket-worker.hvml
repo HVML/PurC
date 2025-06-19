@@ -59,7 +59,7 @@
                 'purc',
                 '-a', 'cn.fmsoft.hvml.test',
                 '-r', 'worker',
-                '-q', $STR.format_c("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $fd),
+                '-q', $STR.printf("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $fd),
                 "$REQ.base/spawn/worker.hvml"
             ]
             </init>

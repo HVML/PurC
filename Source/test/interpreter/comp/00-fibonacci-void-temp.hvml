@@ -56,7 +56,7 @@
         <inherit>
             {{
                 $STREAM.stdout.writelines('');
-                $STREAM.stdout.writelines($STR.format_c("Totally %d numbers", $count))
+                $STREAM.stdout.writelines($STR.printf("Totally %d numbers", $count))
             }}
         </inherit>
 

@@ -150,7 +150,7 @@ PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_VCM_TREE|concatString("type: response
 requestId: ", getVariable("requestId"), "
-result: ", getVariable("retCode"), "/", callGetter(getMember(getVariable("STR"), "format_c"), "%x", getVariable("resultValue")), "
+result: ", getVariable("retCode"), "/", callGetter(getMember(getVariable("STR"), "printf"), "%x", getVariable("resultValue")), "
 dataType: ", getVariable("dataType"), "
 dataLen: ", getVariable("dataLen"), "
  

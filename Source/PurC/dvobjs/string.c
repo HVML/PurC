@@ -2930,10 +2930,10 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     };
 
     struct _scanner {
-        int state, last;
+        int state;
         int ret_type;
         struct pcutils_mystring idx_buf;
-    } scanner = { STATE_UNKNOWN, STATE_UNKNOWN, RETT_UNKNOWN, { NULL, 0, 0 } };
+    } scanner = { STATE_UNKNOWN, RETT_UNKNOWN, { NULL, 0, 0 } };
 
     pcutils_mystring_init(&scanner.idx_buf);
 
@@ -2994,7 +2994,19 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     next = pcutils_utf8_next_char(next);
                 }
 
-                scanner.state = STATE_SPACE;
+                char utf8ch[10];
+                int uclen = 0;
+                // Ignore all continuous spaces in input stream.
+                do {
+                    uclen = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
+                    if (uclen <= 0) {
+                        goto failed;
+                    }
+                } while (purc_isspace(utf8ch[0]));
+
+                purc_rwstream_ungetc(input_stm, utf8ch, uclen);
+
+                scanner.state = STATE_UNKNOWN;
             }
             else {  // Non-ASCII character
                 scanner.state = STATE_ORDINARY;
@@ -3119,42 +3131,21 @@ scanp_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         // PC_DEBUG("State: %d; format string: %s\n", scanner.state, p);
         if (scanner.state == STATE_ORDINARY) {
             char utf8ch[10];
-            int len = 0;
-            if (scanner.last == STATE_SPACE) {
-                // Ignore all continuous spaces in input stream.
-                do {
-                    len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
-                    if (len <= 0) {
-                        goto failed;
-                    }
-                } while (purc_isspace(utf8ch[0]));
-            }
-            else {
-                len = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
-                if (len <= 0) {
-                    goto failed;
-                }
+            int uclen = 0;
+            uclen = purc_rwstream_read_utf8_char(input_stm, utf8ch, NULL);
+            if (uclen <= 0) {
+                goto failed;
             }
 
-            utf8ch[len] = 0;
-            if (memcmp(p, utf8ch, len) != 0) {
-                utf8ch[len] = 0;
+            utf8ch[uclen] = 0;
+            if (memcmp(p, utf8ch, uclen) != 0) {
                 PC_DEBUG("Format string does not matche input data: "
                         "'%s' vs '%s'\n", p, utf8ch);
                 ec = PURC_ERROR_INVALID_VALUE;
                 goto failed;
             }
 
-            scanner.last = STATE_UNKNOWN;
             scanner.state = STATE_UNKNOWN;
-        }
-        else if (scanner.state == STATE_SPACE) {
-            scanner.last = scanner.state;
-            scanner.state = STATE_UNKNOWN;
-        }
-        else {
-            scanner.last = STATE_UNKNOWN;
-            // do nothing
         }
 
         p = next;
