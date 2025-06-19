@@ -1701,8 +1701,8 @@ positive:
     ['中', '国']
 
 positive:
-    $STR.scanf('姓名:张三 年龄:25', '姓名:%s 年龄:%d')
-    ['张三', 25L]
+    $STR.scanf('姓名:Linux 年龄:25', '姓名:%s 年龄:%d')
+    ['Linux', 25L]
 
 negative:
     $STR.printp()
