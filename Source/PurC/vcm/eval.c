@@ -467,7 +467,6 @@ pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
 {
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
     pcvcm_dump_stack(ctxt, rws, 0, false, true);
-
     char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
     PC_DEBUG("\n%s\n", buf);
     purc_rwstream_destroy(rws);
@@ -978,7 +977,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     int err;
     int32_t nr_nodes = 0;
 
-    if (true) {
+    if (enable_log) {
         size_t len;
         char *s = pcvcm_node_to_string(tree, &len);
         PC_DEBUG("begin vcm : %s\n", s);
