@@ -1,4 +1,4 @@
-# RESULT: { "a": "1", "b": "2", "method": "GET" }
+# RESULT: [ "init value", { "a": "1", "b": "2", "method": "GET", "name": null } ]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -7,14 +7,21 @@
     </head>
 
     <body>
-        <init as="btns" from="/tools/echo.php" with={a:1, b:2} via="GET" async />
+        <init as 'result' with [] />
+        <init as="btns" from="/tools/echo.php" with={a:1, b:2} via="GET" async>
+            {
+                "key":"init value"
+            }
+            <update on $result to 'append' with $?.key />
+        </init>
         <observe against="btns" for="change:progress">
             <inherit>
                 $STREAM.stdout.writelines($DATA.stringify($?.progress))
             </inherit>
         </observe>
         <observe against="btns" for="change:displaced">
-            <exit with $btns/>
+            <update on $result to 'append' with $btns />
+            <exit with $result />
         </observe>
     </body>
 </hvml>
