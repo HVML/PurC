@@ -494,3 +494,139 @@ int pcutils_url_path_decode(struct pcutils_mystring *output, const char* encoded
 
     return 0;
 }
+
+/** Encode URL query key=value pairs according to RFC 3986 and append to output. */
+int pcutils_url_query_encode(struct pcutils_mystring *output, const char* query)
+{
+    if (query == NULL)
+        return -1;
+
+    const char *p = query;
+    const char *pair_start = NULL;
+
+    // Iterate through the query string
+    while (true) {
+        char ch = *p;
+
+        // Handle pair separator (&) or end of string
+        if (ch == '&' || ch == '\0') {
+            if (pair_start) {
+                const char *curr = pair_start;
+
+                // Process each character in the key=value pair
+                while (curr < p) {
+                    unsigned char c = (unsigned char)*curr;
+
+                    // According to RFC 3986, the following characters don't need encoding:
+                    // alphanumeric, '-', '.', '_', '~'
+                    if ((c >= 'a' && c <= 'z') ||
+                        (c >= 'A' && c <= 'Z') ||
+                        (c >= '0' && c <= '9') ||
+                        c == '-' || c == '.' || 
+                        c == '_' || c == '~') {
+                        if (pcutils_mystring_append_char(output, c))
+                            return -1;
+                    }
+                    // Keep '=' as is
+                    else if (c == '=') {
+                        if (pcutils_mystring_append_char(output, c))
+                            return -1;
+                    }
+                    // Other characters need percent-encoding
+                    else {
+                        char hex[4];
+                        snprintf(hex, sizeof(hex), "%%%02X", c);
+                        if (pcutils_mystring_append_mchar(output,
+                                (const unsigned char*)hex, 3))
+                            return -1;
+                    }
+                    curr++;
+                }
+                pair_start = NULL;
+            }
+
+            if (ch == '\0')
+                break;
+
+            // Preserve pair separator
+            if (pcutils_mystring_append_char(output, '&'))
+                return -1;
+        }
+        else if (pair_start == NULL) {
+            pair_start = p;
+        }
+
+        p++;
+    }
+
+    return 0;
+}
+
+/** Decode URL query key=value pairs according to RFC 3986 and append to output. */
+int pcutils_url_query_decode(struct pcutils_mystring *output, const char* encoded)
+{
+    if (encoded == NULL)
+        return -1;
+
+    const char *p = encoded;
+    const char *pair_start = NULL;
+
+    // Iterate through the encoded query string
+    while (true) {
+        char ch = *p;
+
+        // Handle pair separator (&) or end of string
+        if (ch == '&' || ch == '\0') {
+            if (pair_start) {
+                const char *curr = pair_start;
+
+                // Process each character in the key=value pair
+                while (curr < p) {
+                    // Handle percent-encoded characters
+                    if (*curr == '%') {
+                        // Need at least 2 more characters for hex value
+                        if (curr + 2 >= p) {
+                            return -1;
+                        }
+
+                        // Convert hex to decimal
+                        char hex[3] = {curr[1], curr[2], '\0'};
+                        char *end;
+                        long value = strtol(hex, &end, 16);
+                        
+                        // Check for valid hex conversion
+                        if (*end != '\0' || value < 0 || value > 255) {
+                            return -1;
+                        }
+
+                        if (pcutils_mystring_append_char(output, (char)value))
+                            return -1;
+
+                        curr += 3;
+                    }
+                    // Copy unencoded character
+                    else {
+                        if (pcutils_mystring_append_char(output, *curr))
+                            return -1;
+                        curr++;
+                    }
+                }
+                pair_start = NULL;
+            }
+
+            if (ch == '\0')
+                break;
+
+            // Preserve pair separator
+            if (pcutils_mystring_append_char(output, '&'))
+                return -1;
+        }
+        else if (pair_start == NULL) {
+            pair_start = p;
+        }
+
+        p++;
+    }
+
+    return 0;
+}

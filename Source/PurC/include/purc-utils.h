@@ -1406,6 +1406,14 @@ int pcutils_url_path_encode(struct pcutils_mystring *output,
 int pcutils_url_path_decode(struct pcutils_mystring *output,
         const char* encoded);
 
+/** Encode URL query key=value pairs according to RFC 3986 and append to output. */
+int pcutils_url_query_encode(struct pcutils_mystring *output,
+        const char* query);
+
+/** Decode URL query key=value pairs acorrding to RFC 3986 and append to output. */
+int pcutils_url_query_decode(struct pcutils_mystring *output,
+        const char* encoded);
+
 PCA_EXTERN_C_END
 
 static inline int

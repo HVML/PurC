@@ -477,3 +477,114 @@ TEST(test_url_path_encode_decode, url_path_encode_decode) {
         pcutils_mystring_free(&output);
     }
 }
+
+TEST(test_url_query_encode_decode, url_query_encode_decode) {
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    // Test case structure for positive cases
+    struct positive_test_case {
+        const char* raw;      // Original query string
+        const char* encoded;  // Expected encoded result
+    };
+
+    // Positive test cases
+    static struct positive_test_case positive_cases[] = {
+        // Empty string
+        {"", ""},
+
+        // Basic key-value pairs
+        {"name=value", "name=value"},
+        {"key=hello world", "key=hello%20world"},
+
+        // Multiple parameters
+        {"a=1&b=2", "a=1&b=2"},
+        {"user=john&age=25", "user=john&age=25"},
+
+        // Special characters
+        {"q=!@#$%^*()", "q=%21%40%23%24%25%5E%2A%28%29"},
+        {"search=C++ Programming", "search=C%2B%2B%20Programming"},
+
+        // Unicode characters
+        {"name=张三", "name=%E5%BC%A0%E4%B8%89"},
+        {"query=测试", "query=%E6%B5%8B%E8%AF%95"},
+        {"测试=张三", "%E6%B5%8B%E8%AF%95=%E5%BC%A0%E4%B8%89"},
+
+        // Mixed content
+        {"path=/usr/local&file=config.ini", "path=%2Fusr%2Flocal&file=config.ini"},
+        {"text=Hello世界", "text=Hello%E4%B8%96%E7%95%8C"}
+    };
+
+    // Test URL query encoding and decoding
+    for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        struct pcutils_mystring encoded;
+        pcutils_mystring_init(&encoded);
+
+        printf("Encoding: %s\n", positive_cases[i].raw);
+        int ret = pcutils_url_query_encode(&encoded, positive_cases[i].raw);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&encoded);
+        ASSERT_STREQ(encoded.buff, positive_cases[i].encoded);
+        pcutils_mystring_free(&encoded);
+
+        // Test decoding back
+        struct pcutils_mystring decoded;
+        pcutils_mystring_init(&decoded);
+
+        printf("Decoding: %s\n", positive_cases[i].encoded);
+        ret = pcutils_url_query_decode(&decoded, positive_cases[i].encoded);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&decoded);
+        ASSERT_STREQ(decoded.buff, positive_cases[i].raw);
+        pcutils_mystring_free(&decoded);
+    }
+
+    // Negative test cases for encoding
+    static const char* negative_encoding_cases[] = {
+        nullptr,                    // Null input
+        // {"=", "="},              // TODO: missing key and value
+        // {"&", "&"},              // TODO: missing key=value pair
+        // "=value",                // TODO: Missing key
+        // "key=value&&",           // TODO: Double ampersand
+        // "&&key=value"            // TODO: Leading ampersands
+    };
+
+    // Test invalid inputs for encoding
+    for (size_t i = 0; i < sizeof(negative_encoding_cases)/sizeof(negative_encoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        printf("Try to encode: %s\n", negative_encoding_cases[i]);
+        int ret = pcutils_url_query_encode(&output, negative_encoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+
+    // Negative test cases for decoding
+    static const char* negative_decoding_cases[] = {
+        nullptr,                    // Null input
+        "%",                        // Incomplete percent encoding
+        "%2",                       // Incomplete percent encoding
+        "%XX",                      // Invalid hex characters
+        "key=%2G",                  // Invalid hex character
+        "key=%",                    // Broken percent encoding
+        // {"=", "="},              // TODO: missing key and value
+        // {"&", "&"},              // TODO: missing key=value pair
+        // "=value",                // TODO: Missing key
+        // "key=value&&",           // TODO: Double ampersand
+        // "&&key=value"            // TODO: Leading ampersands
+    };
+
+    // Test invalid inputs for decoding
+    for (size_t i = 0; i < sizeof(negative_decoding_cases)/sizeof(negative_decoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        printf("Try to decode: %s\n", negative_decoding_cases[i]);
+        int ret = pcutils_url_query_decode(&output, negative_decoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+}
+
