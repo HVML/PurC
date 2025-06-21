@@ -282,39 +282,39 @@ TEST(test_url_encode_decode, url_encode_decode)
 TEST(test_punycode, punycode_encode_decode) {
     purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
 
-    // 测试用例结构
+    // Test case structure
     struct test_case {
-        const char* original;     // 原始字符串
-        const char* punycode;     // 预期的Punycode编码结果
+        const char* original;     // Original string
+        const char* punycode;     // Expected Punycode encoded result
     };
 
-    // Punycode编解码测试用例
+    // Punycode encoding/decoding test cases
     static struct test_case test_cases[] = {
-        // 基本ASCII测试
+        // Basic ASCII tests
         {"example", "example"},
         {"hello-world", "hello-world"},
 
-        // 中文域名测试
+        // Chinese domain name tests
         {"中文", "xn--fiq228c"},
         {"中文.com", "xn--fiq228c.com"},
         {"中文.中国", "xn--fiq228c.xn--fiqs8s"},
         {"测试", "xn--0zwm56d"},
 
-        // 混合字符测试
+        // Mixed character tests
         {"hello中文", "xn--hello-9n1h080l"},
         {"test测试", "xn--test-3x7if72m"},
 
-        // 特殊字符测试
+        // Special character tests
         {"bücher", "xn--bcher-kva"},
         {"münchen", "xn--mnchen-3ya"},
         {"αβγ", "xn--mxacd"},
 
-        // 长字符串测试
+        // Long string tests
         {"长字符串测试案例", "xn--kiqs6a22xx4mj2f99wjw0amfq"},
         {"中文域名测试.com", "xn--fiq06l2rdsvscfji99b.com"},
     };
 
-    // 测试Punycode编码
+    // Test Punycode encoding
     for (size_t i = 0; i < sizeof(test_cases)/sizeof(test_cases[0]); i++) {
         std::cout << "Testing encode: " << test_cases[i].original << std::endl;
 
@@ -329,7 +329,7 @@ TEST(test_punycode, punycode_encode_decode) {
         pcutils_mystring_free(&encoded);
     }
 
-    // 测试Punycode解码
+    // Test Punycode decoding
     for (size_t i = 0; i < sizeof(test_cases)/sizeof(test_cases[0]); i++) {
         std::cout << "Testing decode: " << test_cases[i].punycode << std::endl;
 
@@ -341,7 +341,7 @@ TEST(test_punycode, punycode_encode_decode) {
 
         ASSERT_NE(decoded.buff, nullptr);
 
-        // 对于纯ASCII字符串，解码结果应该与输入相同
+        // For pure ASCII strings, decoded result should be same as input
         if (strncmp(test_cases[i].punycode, "xn--", 4) != 0) {
             ASSERT_STREQ(decoded.buff, test_cases[i].punycode);
         }
@@ -351,11 +351,11 @@ TEST(test_punycode, punycode_encode_decode) {
         pcutils_mystring_free(&decoded);
     }
 
-    // 错误处理测试
+    // Error handling tests
     static const char* error_cases[] = {
-        "xn--",             // 空的Punycode字符串
-        "xn--测试",         // 非法Punycode格式
-        nullptr,            // 空指针测试
+        "xn--",             // Empty Punycode string
+        "xn--测试",         // Invalid Punycode format
+        nullptr,            // Null pointer test
     };
 
     for (size_t i = 0; i < sizeof(error_cases)/sizeof(error_cases[0]); i++) {
@@ -378,3 +378,102 @@ TEST(test_punycode, punycode_encode_decode) {
     }
 }
 
+TEST(test_url_path_encode_decode, url_path_encode_decode) {
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    // Test case structure for positive cases
+    struct positive_test_case {
+        const char* raw;      // Original path
+        const char* encoded;  // Expected encoded result
+    };
+
+    // Positive test cases
+    static struct positive_test_case positive_cases[] = {
+        // empty string
+        {"", ""},
+
+        // Test basic path components
+        {"/path/to/file", "/path/to/file"},
+        {"/simple path/file name", "/simple%20path/file%20name"},
+
+        // Test special characters
+        {"/path!@#$%^&*()", "/path%21%40%23%24%25%5E%26%2A%28%29"},
+        {"/path+with+plus", "/path%2Bwith%2Bplus"},
+
+        // Test Unicode characters
+        {"/中文/路径", "/%E4%B8%AD%E6%96%87/%E8%B7%AF%E5%BE%84"},
+        {"/测试/文件名", "/%E6%B5%8B%E8%AF%95/%E6%96%87%E4%BB%B6%E5%90%8D"},
+
+        // Test mixed characters
+        {"/path/to/文件.txt", "/path/to/%E6%96%87%E4%BB%B6.txt"},
+        {"/user data/用户数据", "/user%20data/%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE"},
+
+        // Test reserved characters
+        {"/path:with:colon", "/path%3Awith%3Acolon"},
+        {"/query?param=value", "/query%3Fparam%3Dvalue"}
+    };
+
+    // Test URL path encoding
+    for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        struct pcutils_mystring encoded;
+        pcutils_mystring_init(&encoded);
+
+        printf("Encoding: %s\n", positive_cases[i].raw);
+        int ret = pcutils_url_path_encode(&encoded, positive_cases[i].raw);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&encoded);
+        ASSERT_STREQ(encoded.buff, positive_cases[i].encoded);
+        pcutils_mystring_free(&encoded);
+
+        // Test decoding back
+        struct pcutils_mystring decoded;
+        pcutils_mystring_init(&decoded);
+
+        printf("Decoding: %s\n", positive_cases[i].encoded);
+        ret = pcutils_url_path_decode(&decoded, positive_cases[i].encoded);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&decoded);
+        ASSERT_STREQ(decoded.buff, positive_cases[i].raw);
+        pcutils_mystring_free(&decoded);
+    }
+
+    // Negative test cases for encoding
+    static const char* negative_encoding_cases[] = {
+        nullptr,                    // Null input
+    };
+
+    // Test invalid inputs for encoding
+    for (size_t i = 0; i < sizeof(negative_encoding_cases)/sizeof(negative_encoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        // Test encoding
+        printf("Try to encode: %s\n", negative_encoding_cases[i]);
+        int ret = pcutils_url_path_encode(&output, negative_encoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+
+    // Negative test cases for decoding
+    static const char* negative_decoding_cases[] = {
+        nullptr,                    // Null input
+        "%",                        // Incomplete percent encoding
+        "%2",                       // Incomplete percent encoding
+        "%XX",                      // Invalid hex characters
+        "/path%2G/invalid",         // Invalid hex character
+        "/path%/more",              // Broken percent encoding
+    };
+
+    // Negative test cases for decoding
+    for (size_t i = 0; i < sizeof(negative_decoding_cases)/sizeof(negative_decoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        printf("Try to decode: %s\n", negative_decoding_cases[i]);
+        int ret = pcutils_url_path_decode(&output, negative_decoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+}
