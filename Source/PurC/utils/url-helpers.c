@@ -377,16 +377,16 @@ int pcutils_url_path_encode(struct pcutils_mystring *output, const char* path)
     // Iterate through the path string
     while (true) {
         char ch = *p;
-        
+
         // Handle component separator or end of string
         if (ch == '/' || ch == '\0') {
             if (comp_start) {
                 size_t comp_len = p - comp_start;
-                
+
                 // Encode each character in the path component
                 for (size_t i = 0; i < comp_len; i++) {
                     unsigned char c = (unsigned char)comp_start[i];
-                    
+
                     // According to RFC 3986, the following characters don't need encoding:
                     // alphanumeric, '-', '.', '_', '~'
                     if ((c >= 'a' && c <= 'z') ||
@@ -427,7 +427,8 @@ int pcutils_url_path_encode(struct pcutils_mystring *output, const char* path)
 }
 
 /** Decode URL path components according to RFC 3986 and append to output. */
-int pcutils_url_path_decode(struct pcutils_mystring *output, const char* encoded)
+int
+pcutils_url_path_decode(struct pcutils_mystring *output, const char* encoded)
 {
     if (encoded == NULL)
         return -1;
@@ -457,7 +458,7 @@ int pcutils_url_path_decode(struct pcutils_mystring *output, const char* encoded
                         char hex[3] = {curr[1], curr[2], '\0'};
                         char *end;
                         long value = strtol(hex, &end, 16);
-                        
+
                         // Check for valid hex conversion
                         if (*end != '\0' || value < 0 || value > 255) {
                             return -1;
@@ -593,7 +594,7 @@ int pcutils_url_query_decode(struct pcutils_mystring *output, const char* encode
                         char hex[3] = {curr[1], curr[2], '\0'};
                         char *end;
                         long value = strtol(hex, &end, 16);
-                        
+
                         // Check for valid hex conversion
                         if (*end != '\0' || value < 0 || value > 255) {
                             return -1;
@@ -630,3 +631,86 @@ int pcutils_url_query_decode(struct pcutils_mystring *output, const char* encode
 
     return 0;
 }
+
+/** Encode a URL fragment according to RFC 3986 and append to output. */
+int pcutils_url_fragment_encode(struct pcutils_mystring *output,
+        const char* fragment)
+{
+    if (fragment == NULL)
+        return -1;
+
+    const char *p = fragment;
+
+    // Iterate through the fragment string
+    while (*p) {
+        unsigned char c = (unsigned char)*p;
+
+        // According to RFC 3986, the following characters don't need encoding:
+        // alphanumeric, '-', '.', '_', '~', '/', '?'
+        if ((c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') ||
+            c == '-' || c == '.' || 
+            c == '_' || c == '~' ||
+            c == '/' || c == '?') {
+            if (pcutils_mystring_append_char(output, c))
+                return -1;
+        }
+        // Other characters need percent-encoding
+        else {
+            char hex[4];
+            snprintf(hex, sizeof(hex), "%%%02X", c);
+            if (pcutils_mystring_append_mchar(output,
+                    (const unsigned char*)hex, 3))
+                return -1;
+        }
+        p++;
+    }
+
+    return 0;
+}
+
+/** Decode a URL fragment according to RFC 3986 and append to output. */
+int pcutils_url_fragment_decode(struct pcutils_mystring *output,
+        const char* encoded)
+{
+    if (encoded == NULL)
+        return -1;
+
+    const char *p = encoded;
+
+    // Iterate through the encoded fragment string
+    while (*p) {
+        // Handle percent-encoded characters
+        if (*p == '%') {
+            // Need at least 2 more characters for hex value
+            if (*(p + 1) == '\0' || *(p + 2) == '\0') {
+                return -1;
+            }
+
+            // Convert hex to decimal
+            char hex[3] = {p[1], p[2], '\0'};
+            char *end;
+            long value = strtol(hex, &end, 16);
+
+            // Check for valid hex conversion
+            if (*end != '\0' || value < 0 || value > 255) {
+                return -1;
+            }
+
+            if (pcutils_mystring_append_char(output, (char)value))
+                return -1;
+
+            p += 3;
+        }
+        // Copy unencoded character
+        else {
+            if (pcutils_mystring_append_char(output, *p))
+                return -1;
+            p++;
+        }
+    }
+
+    return 0;
+}
+

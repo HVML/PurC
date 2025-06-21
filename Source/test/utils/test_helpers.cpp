@@ -588,3 +588,98 @@ TEST(test_url_query_encode_decode, url_query_encode_decode) {
     }
 }
 
+TEST(test_url_fragment_encode_decode, url_fragment_encode_decode) {
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    // Test case structure for positive cases
+    struct positive_test_case {
+        const char* raw;      // Original fragment
+        const char* encoded;  // Expected encoded result
+    };
+
+    // Positive test cases
+    static struct positive_test_case positive_cases[] = {
+        // Basic fragments
+        {"section1", "section1"},
+        {"heading 1", "heading%201"},
+
+        // Special characters
+        {"fragment!@#$%^&*/?()", "fragment%21%40%23%24%25%5E%26%2A/?%28%29"},
+        {"section+with+plus", "section%2Bwith%2Bplus"},
+
+        // Unicode characters
+        {"章节", "%E7%AB%A0%E8%8A%82"},
+        {"标题一", "%E6%A0%87%E9%A2%98%E4%B8%80"},
+
+        // Mixed characters
+        {"section1_中文", "section1_%E4%B8%AD%E6%96%87"},
+        {"heading-测试", "heading-%E6%B5%8B%E8%AF%95"},
+
+        // Reserved characters
+        {"section:subsection", "section%3Asubsection"},
+        {"query?param=value", "query?param%3Dvalue"}
+    };
+
+    // Test URL fragment encoding
+    for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        struct pcutils_mystring encoded;
+        pcutils_mystring_init(&encoded);
+
+        printf("Encoding fragment: %s\n", positive_cases[i].raw);
+        int ret = pcutils_url_fragment_encode(&encoded, positive_cases[i].raw);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&encoded);
+        ASSERT_STREQ(encoded.buff, positive_cases[i].encoded);
+        pcutils_mystring_free(&encoded);
+
+        // Test decoding back
+        struct pcutils_mystring decoded;
+        pcutils_mystring_init(&decoded);
+
+        printf("Decoding fragment: %s\n", positive_cases[i].encoded);
+        ret = pcutils_url_fragment_decode(&decoded, positive_cases[i].encoded);
+        ASSERT_EQ(ret, 0);
+        pcutils_mystring_done(&decoded);
+        ASSERT_STREQ(decoded.buff, positive_cases[i].raw);
+        pcutils_mystring_free(&decoded);
+    }
+
+    // Negative test cases for encoding
+    static const char* negative_encoding_cases[] = {
+        nullptr,                    // Null input
+    };
+
+    // Test invalid inputs for encoding
+    for (size_t i = 0; i < sizeof(negative_encoding_cases)/sizeof(negative_encoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        printf("Try to encode invalid fragment: %s\n", negative_encoding_cases[i]);
+        int ret = pcutils_url_fragment_encode(&output, negative_encoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+
+    // Negative test cases for decoding
+    static const char* negative_decoding_cases[] = {
+        nullptr,                    // Null input
+        "%",                        // Incomplete percent encoding
+        "%2",                       // Incomplete percent encoding
+        "%XX",                      // Invalid hex characters
+        "fragment%2G/invalid",      // Invalid hex character
+        "fragment%/more",           // Broken percent encoding
+    };
+
+    // Test invalid inputs for decoding
+    for (size_t i = 0; i < sizeof(negative_decoding_cases)/sizeof(negative_decoding_cases[0]); i++) {
+        struct pcutils_mystring output;
+        pcutils_mystring_init(&output);
+
+        printf("Try to decode invalid fragment: %s\n", negative_decoding_cases[i]);
+        int ret = pcutils_url_fragment_decode(&output, negative_decoding_cases[i]);
+        ASSERT_NE(ret, 0);
+
+        pcutils_mystring_free(&output);
+    }
+}
