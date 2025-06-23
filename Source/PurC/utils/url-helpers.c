@@ -148,7 +148,8 @@ failed:
 }
 
 // Encode a UTF-8 domain name to Punycode
-int pcutils_punycode_encode(struct pcutils_mystring *output, const char* hostname)
+int
+pcutils_punycode_encode(struct pcutils_mystring *output, const char* hostname)
 {
     if (hostname == NULL)
         goto failed;
@@ -387,13 +388,13 @@ int pcutils_url_path_encode(struct pcutils_mystring *output, const char* path)
                 for (size_t i = 0; i < comp_len; i++) {
                     unsigned char c = (unsigned char)comp_start[i];
 
-                    // According to RFC 3986, the following characters don't need encoding:
-                    // alphanumeric, '-', '.', '_', '~'
+                    // According to RFC 3986, the following characters
+                    // don't need encoding: alphanumeric, '-', '.', '_', '~'
                     if ((c >= 'a' && c <= 'z') ||
-                        (c >= 'A' && c <= 'Z') ||
-                        (c >= '0' && c <= '9') ||
-                        c == '-' || c == '.' || 
-                        c == '_' || c == '~') {
+                            (c >= 'A' && c <= 'Z') ||
+                            (c >= '0' && c <= '9') ||
+                            c == '-' || c == '.' ||
+                            c == '_' || c == '~') {
                         if (pcutils_mystring_append_char(output, c))
                             return -1;
                     }
@@ -496,8 +497,10 @@ pcutils_url_path_decode(struct pcutils_mystring *output, const char* encoded)
     return 0;
 }
 
-/** Encode URL query key=value pairs according to RFC 3986 and append to output. */
-int pcutils_url_query_encode(struct pcutils_mystring *output, const char* query)
+/** Encode URL query key=value pairs according to RFC 3986
+    and append to output. */
+int
+pcutils_url_query_encode(struct pcutils_mystring *output, const char* query)
 {
     if (query == NULL)
         return -1;
@@ -518,13 +521,13 @@ int pcutils_url_query_encode(struct pcutils_mystring *output, const char* query)
                 while (curr < p) {
                     unsigned char c = (unsigned char)*curr;
 
-                    // According to RFC 3986, the following characters don't need encoding:
-                    // alphanumeric, '-', '.', '_', '~'
+                    // According to RFC 3986, the following characters
+                    // don't need encoding: alphanumeric, '-', '.', '_', '~'
                     if ((c >= 'a' && c <= 'z') ||
-                        (c >= 'A' && c <= 'Z') ||
-                        (c >= '0' && c <= '9') ||
-                        c == '-' || c == '.' || 
-                        c == '_' || c == '~') {
+                            (c >= 'A' && c <= 'Z') ||
+                            (c >= '0' && c <= '9') ||
+                            c == '-' || c == '.' ||
+                            c == '_' || c == '~') {
                         if (pcutils_mystring_append_char(output, c))
                             return -1;
                     }
@@ -563,8 +566,10 @@ int pcutils_url_query_encode(struct pcutils_mystring *output, const char* query)
     return 0;
 }
 
-/** Decode URL query key=value pairs according to RFC 3986 and append to output. */
-int pcutils_url_query_decode(struct pcutils_mystring *output, const char* encoded)
+/** Decode URL query key=value pairs according to RFC 3986
+    and append to output. */
+int
+pcutils_url_query_decode(struct pcutils_mystring *output, const char* encoded)
 {
     if (encoded == NULL)
         return -1;
@@ -648,11 +653,11 @@ int pcutils_url_fragment_encode(struct pcutils_mystring *output,
         // According to RFC 3986, the following characters don't need encoding:
         // alphanumeric, '-', '.', '_', '~', '/', '?'
         if ((c >= 'a' && c <= 'z') ||
-            (c >= 'A' && c <= 'Z') ||
-            (c >= '0' && c <= '9') ||
-            c == '-' || c == '.' || 
-            c == '_' || c == '~' ||
-            c == '/' || c == '?') {
+                (c >= 'A' && c <= 'Z') ||
+                (c >= '0' && c <= '9') ||
+                c == '-' || c == '.' ||
+                c == '_' || c == '~' ||
+                c == '/' || c == '?') {
             if (pcutils_mystring_append_char(output, c))
                 return -1;
         }
