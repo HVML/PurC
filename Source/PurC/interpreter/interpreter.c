@@ -27,6 +27,7 @@
 
 #include "config.h"
 
+#include "purc-document.h"
 #include "purc-runloop.h"
 
 #include "internal.h"
@@ -166,8 +167,34 @@ doc_init(pcintr_stack_t stack)
     }
 
     const char *target_name = purc_variant_get_string_const(target);
+    const char *target_main = target_name;
+    const char *target_sub = NULL;
+    const char *colon = target_name ? strchr(target_name, ':') : NULL;
+    if (colon) {
+        size_t main_len = colon - target_name;
+        char *main_buf = (char *)malloc(main_len + 1);
+        if (main_buf) {
+            memcpy(main_buf, target_name, main_len);
+            main_buf[main_len] = '\0';
+            target_main = main_buf;
+            target_sub = colon + 1;
+        }
+    }
+
     PC_NONE("Retrieved target name: %s\n", target_name);
-    stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
+    if (colon) {
+        stack->doc = purc_document_new(
+            purc_document_retrieve_type(target_main));
+        free((void*)target_main);
+        if (stack->doc && target_sub && target_sub[0] != '\0') {
+            purc_document_set_global_selector(stack->doc,
+                 target_sub);
+        }
+    } else {
+        stack->doc = purc_document_new(
+            purc_document_retrieve_type(target_main));
+    }
+
     purc_variant_unref(target);
 
     if (stack->doc == NULL) {

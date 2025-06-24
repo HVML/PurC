@@ -772,7 +772,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
-        if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+        if (0 != pcdoc_serialize_fragment_to_stream(doc, NULL, opt, out)) {
             free(path);
             goto failed;
         }
@@ -824,7 +824,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
-        if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+        if (0 != pcdoc_serialize_fragment_to_stream(doc, NULL, opt, out)) {
             goto failed;
         }
 
