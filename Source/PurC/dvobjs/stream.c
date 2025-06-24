@@ -22,6 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-errors.h"
+#include "purc-rwstream.h"
+#include "purc-utils.h"
 #define _GNU_SOURCE
 
 #include "config.h"
@@ -139,6 +142,12 @@ enum {
     K_KW_status,
 #define _KW_seek                    "seek"
     K_KW_seek,
+#define _KW_getuc                   "getuc"
+    K_KW_getuc,
+#define _KW_putuc                   "putuc"
+    K_KW_putuc,
+#define _KW_ungetuc                 "ungetuc"
+    K_KW_ungetuc,
 #define _KW_close                   "close"
     K_KW_close,
 #define _KW_fd                      "fd"
@@ -187,6 +196,9 @@ static struct keyword_to_atom {
     { _KW_writeeof, 0},             // "writeeof"
     { _KW_status, 0},               // "status"
     { _KW_seek, 0},                 // "seek"
+    { _KW_getuc, 0},                // "getuc"
+    { _KW_putuc, 0},                // "putuc"
+    { _KW_ungetuc, 0},              // "ungetuc"
     { _KW_close, 0},                // "close"
     { _KW_fd, 0},                   // "fd"
     { _KW_peer_addr, 0},            // "peerAddr"
@@ -1345,6 +1357,473 @@ out:
 }
 
 static purc_variant_t
+getuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    const char *encoding = "utf8";
+    const char *format = "utf8";
+    uint32_t codepoint = 0;
+    uint8_t utf8_bytes[8];
+    uint32_t utf8_len = 0;
+    ssize_t nr_read = 0;
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4r;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Parse encoding parameter
+    if (nr_args > 0) {
+        if (!purc_variant_is_string(argv[0])) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+        encoding = purc_variant_get_string_const(argv[0]);
+    }
+
+    // Parse format parameter 
+    if (nr_args > 1) {
+        if (!purc_variant_is_string(argv[1])) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+        format = purc_variant_get_string_const(argv[1]);
+    }
+
+    // Read character according to encoding
+    if (strcmp(encoding, "utf8") == 0) {
+        if ((nr_read = purc_rwstream_read_utf8_char(rwstream,
+                        (char *)utf8_bytes, NULL)) <= 0) {
+            goto ioerr;
+        }
+
+        utf8_len = nr_read;
+        utf8_bytes[utf8_len] = '\0';
+        codepoint = pcutils_utf8_to_unichar(utf8_bytes);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        uint8_t bytes[2];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+            goto ioerr;
+        }
+
+#define MAKEWORD16(low, high)   \
+    ((uint16_t)(((uint8_t)(low)) | (((uint16_t)((uint8_t)(high))) << 8)))
+
+        uint16_t w1, w2;
+        w1 = MAKEWORD16(bytes[0], bytes[1]); 
+        if (w1 < 0xD800 || w1 > 0xDFFF) {
+            codepoint = w1;
+        }
+        else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
+            if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+                goto ioerr;
+            }
+
+            w2 = MAKEWORD16(bytes[0], bytes[1]);
+            if (w2 < 0xDC00 || w2 > 0xDFFF) {
+                ec = PURC_ERROR_BAD_ENCODING;
+                goto failed;
+            }
+
+            codepoint = ((w1 - 0xD800) << 10) + (w2 - 0xDC00) + 0x10000;
+        }
+        else {
+            ec = PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        utf8_len = pcutils_unichar_to_utf8(codepoint, (uint8_t*)utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        uint8_t bytes[2];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+            goto ioerr;
+        }
+
+        uint16_t w1, w2;
+        w1 = MAKEWORD16(bytes[1], bytes[0]);
+        if (w1 < 0xD800 || w1 > 0xDFFF) {
+            codepoint = w1;
+        }
+        else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
+            if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+                goto ioerr;
+            }
+
+            w2 = MAKEWORD16(bytes[1], bytes[0]);
+            if (w2 < 0xDC00 || w2 > 0xDFFF) {
+                ec = PURC_ERROR_BAD_ENCODING;
+                goto failed;
+            }
+
+            codepoint = ((w1 - 0xD800) << 10) | (w2 - 0xDC00);
+            codepoint += 0x10000;
+        }
+        else {
+            ec = PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        utf8_len = pcutils_unichar_to_utf8(codepoint, (uint8_t*)utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        uint8_t bytes[4];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 4)) != 4) {
+            goto ioerr;
+        }
+
+#define MAKEDWORD32(first, second, third, fourth)       \
+    ((uint32_t)(                                        \
+        ((uint8_t)(first)) |                            \
+        (((uint32_t)((uint8_t)(second))) << 8) |        \
+        (((uint32_t)((uint8_t)(third))) << 16) |        \
+        (((uint32_t)((uint8_t)(fourth))) << 24)         \
+    ))
+
+        codepoint = MAKEDWORD32(bytes[0], bytes[1], bytes[2], bytes[3]);
+        utf8_len = pcutils_unichar_to_utf8(codepoint, utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        uint8_t bytes[4];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 4)) != 4) {
+            goto ioerr;
+        }
+
+        codepoint = MAKEDWORD32(bytes[3], bytes[2], bytes[1], bytes[0]);
+        utf8_len = pcutils_unichar_to_utf8(codepoint, utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Return result according to format
+    if (strcmp(format, "codepoint") == 0) {
+        return purc_variant_make_ulongint(codepoint);
+    }
+    else if (strcmp(format, "utf8") == 0) {
+        return purc_variant_make_string_ex(
+                (const char *)utf8_bytes, utf8_len, false);
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+ioerr:
+    if (nr_read == 0) {
+        if (stream->type == STREAM_TYPE_FILE)
+            ec = PURC_ERROR_NO_DATA;
+        else
+            ec = PURC_ERROR_IO_FAILURE;
+    }
+    else {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            ec = PURC_ERROR_AGAIN;
+        }
+        else {
+            ec = PURC_ERROR_IO_FAILURE;
+        }
+    }
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$stream.putuc(
+    < string | ulongint $char: `The character to be written.` >
+    [,
+        < 'utf8 | utf16le | utf16be | utf32le | utf32be' $encoding = 'utf8':
+            - 'utf8':     `The character will be encoded in UTF-8 before writing.`
+            - 'utf16le':  `The character will be encoded in UTF-16 little endian before writing.`
+            - 'utf16be':  `The character will be encoded in UTF-16 big endian before writing.`
+            - 'utf32le':  `The character will be encoded in UTF-32 little endian before writing.`
+            - 'utf32be':  `The character will be encoded in UTF-32 big endian before writing.` >
+    ]
+) ulongint | false
+*/
+static purc_variant_t
+putuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    int uc = 0;
+    const char *encoding = "utf8";
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4w;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    // Get character codepoint from first argument
+    const char *str = NULL;
+    if ((str = purc_variant_get_string_const(argv[0]))) {
+        uc = pcutils_utf8_to_unichar((const unsigned char*)str);
+    }
+    else if (purc_variant_cast_to_int32(argv[0], &uc, false)) {
+    }
+    else {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    if (uc < 0 || uc > 0x10FFFF) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Get encoding from second argument if present
+    if (nr_args > 1 &&
+            (encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    unsigned char buff[8];
+    size_t bytes_written = 0;
+
+    // Handle different encodings
+    if (strcmp(encoding, "utf8") == 0) {
+        int len = pcutils_unichar_to_utf8(uc, buff);
+        bytes_written = purc_rwstream_write(rwstream, buff, len);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = uc & 0xFF;
+            buff[1] = (uc >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 2);
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[0] = w1 & 0xFF;
+            buff[1] = (w1 >> 8) & 0xFF;
+            buff[2] = w2 & 0xFF;
+            buff[3] = (w2 >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 4);
+            printf("UTF-16LE: %x%x%x%x\n", buff[0], buff[1], buff[2], buff[3]);
+        }
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = (uc >> 8) & 0xFF;
+            buff[1] = uc & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 2);
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[1] = w1 & 0xFF;
+            buff[0] = (w1 >> 8) & 0xFF;
+            buff[3] = w2 & 0xFF;
+            buff[2] = (w2 >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 4);
+            printf("UTF-16BE: %x%x%x%x\n", buff[0], buff[1], buff[2], buff[3]);
+        }
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        buff[0] = uc & 0xFF;
+        buff[1] = (uc >> 8) & 0xFF;
+        buff[2] = (uc >> 16) & 0xFF;
+        buff[3] = (uc >> 24) & 0xFF;
+        bytes_written = purc_rwstream_write(rwstream, buff, 4);
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        buff[0] = (uc >> 24) & 0xFF;
+        buff[1] = (uc >> 16) & 0xFF;
+        buff[2] = (uc >> 8) & 0xFF;
+        buff[3] = uc & 0xFF;
+        bytes_written = purc_rwstream_write(rwstream, buff, 4);
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (bytes_written == 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            ec = PURC_ERROR_AGAIN;
+        }
+        else {
+            ec = PURC_ERROR_IO_FAILURE;
+        }
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(bytes_written);
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+ungetuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    int uc = 0;
+    const char *encoding = "utf8";
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4w;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    // Get character codepoint from first argument
+    const char *str = NULL;
+    if ((str = purc_variant_get_string_const(argv[0]))) {
+        uc = pcutils_utf8_to_unichar((const unsigned char*)str);
+    }
+    else if (purc_variant_cast_to_int32(argv[0], &uc, false)) {
+    }
+    else {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    if (uc < 0 || uc > 0x10FFFF) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Get encoding from second argument if present
+    if (nr_args > 1 &&
+            (encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    char buff[8];
+    int len = 0;
+
+    // Handle different encodings
+    if (strcmp(encoding, "utf8") == 0) {
+        len = pcutils_unichar_to_utf8(uc, (uint8_t *)buff);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = uc & 0xFF;
+            buff[1] = (uc >> 8) & 0xFF;
+            len = 2;
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t high = 0xD800 + (code >> 10);
+            uint16_t low = 0xDC00 + (code & 0x3FF);
+
+            buff[0] = high & 0xFF;
+            buff[1] = (high >> 8) & 0xFF;
+            buff[2] = low & 0xFF;
+            buff[3] = (low >> 8) & 0xFF;
+            len = 4;
+        }
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = (uc >> 8) & 0xFF;
+            buff[1] = uc & 0xFF;
+            len = 2;
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t high = 0xD800 + (code >> 10);
+            uint16_t low = 0xDC00 + (code & 0x3FF);
+
+            buff[0] = (high >> 8) & 0xFF;
+            buff[1] = high & 0xFF;
+            buff[2] = (low >> 8) & 0xFF;
+            buff[3] = low & 0xFF;
+            len = 4;
+        }
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        buff[0] = uc & 0xFF;
+        buff[1] = (uc >> 8) & 0xFF;
+        buff[2] = (uc >> 16) & 0xFF;
+        buff[3] = (uc >> 24) & 0xFF;
+        len = 4;
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        buff[0] = (uc >> 24) & 0xFF;
+        buff[1] = (uc >> 16) & 0xFF;
+        buff[2] = (uc >> 8) & 0xFF;
+        buff[3] = uc & 0xFF;
+        len = 4;
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (purc_rwstream_ungetc(rwstream, buff, len) != len) {
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(len);
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 close_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
@@ -1726,6 +2205,15 @@ property_getter(void *entity, const char *name)
     }
     else if (atom == keywords2atoms[K_KW_seek].atom) {
         return seek_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_getuc].atom) {
+        return getuc_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_putuc].atom) {
+        return putuc_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_ungetuc].atom) {
+        return ungetuc_getter;
     }
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;

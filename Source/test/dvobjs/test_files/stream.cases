@@ -45,7 +45,6 @@ positive:
     true
 
 # $STREAM.writelines/readlines
-
 positive:
     $STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate').writelines("This is the string to write")
     28L
@@ -70,7 +69,7 @@ positive:
     $SYS.remove('/tmp/test_stream_lines')
     true
 
-# $STREAM.writestruct/readsruct
+# $STREAM.writestruct/readstruct
 positive:
     $STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate').writestruct("i16le i32le", 10, 10)
     6L
@@ -269,3 +268,184 @@ negative:
     $STREAM.open('foo:///var/tmp/a')
     InvalidValue
 
+# test cases for $STREAM.putuc
+negative:
+    $STREAM.stdout.putuc()
+    ArgumentMissed
+
+negative:
+    $STREAM.stdout.putuc(null)
+    WrongDataType
+
+negative:
+    $STREAM.stdout.putuc('', null)
+    WrongDataType
+
+negative:
+    $STREAM.stdout.putuc('', 'foo')
+    InvalidValue
+
+negative:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'invalid')
+    InvalidValue
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('A')
+    1UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中')
+    3UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'utf8')
+    3UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'utf16le')
+    2UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'utf16be')
+    2UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'utf32le')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc('中', 'utf32be')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_putuc', 'read write create truncate').putuc(0x4E2D)
+    3UL
+
+positive:
+    $SYS.remove('/tmp/test_stream_putuc')
+    true
+
+# test cases for $STREAM.getuc
+negative:
+    $STREAM.stdout.getuc(null)
+    WrongDataType
+
+negative:
+    $STREAM.stdout.getuc('', null)
+    WrongDataType
+
+negative:
+    $STREAM.stdout.getuc('', 'foo')
+    InvalidValue
+
+negative:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').getuc('invalid')
+    InvalidValue
+
+# Test reading UTF-8 encoded characters
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('A')
+    1UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc()
+    'A'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf8', 'codepoint')
+    65UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('中')
+    3UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf8')
+    '中'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf8', 'codepoint')
+    20013UL
+
+# Test reading UTF-16LE encoded characters
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('中', 'utf16le')
+    2UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16le')
+    '中'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16le', 'codepoint')
+    20013UL
+
+# Test reading UTF-16BE encoded characters
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('中', 'utf16be')
+    2UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16be')
+    '中'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16be', 'codepoint')
+    20013UL
+
+# Test reading UTF-16LE encoded characters which uses surrogate pair
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc(127775UL, 'utf16le')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16le', 'codepoint')
+    127775UL
+
+# Test reading UTF-16LE encoded characters which uses surrogate pair
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc(127775UL, 'utf16be')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf16be', 'codepoint')
+    127775UL
+
+# Test reading UTF-32LE encoded characters
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('中', 'utf32le')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf32le')
+    '中'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf32le', 'codepoint')
+    20013UL
+
+# Test reading UTF-32BE encoded characters
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate').putuc('中', 'utf32be')
+    4UL
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf32be')
+    '中'
+
+positive:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc('utf32be', 'codepoint')
+    20013UL
+
+# Test reading at end of file
+negative:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate')
+    OK
+
+negative:
+    $STREAM.open('file:///tmp/test_stream_getuc', 'read').getuc()
+    NoData
+
+positive:
+    $SYS.remove('/tmp/test_stream_getuc')
+    true

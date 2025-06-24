@@ -484,6 +484,42 @@ positive:
     [! 72, 86, 77, 76, 30340, 26165, 31216, 26159, 21628, 22108, 29483 ]
 
 negative:
+    $STR.codepoints(!)
+    ArgumentMissed
+
+negative:
+    $STR.codepoints(! null )
+    WrongDataType
+
+positive:
+    $STR.codepoints(! [])
+    ''
+
+positive:
+    $STR.codepoints(! [!])
+    ''
+
+positive:
+    $STR.codepoints(! [72, 86, 77, 76])
+    'HVML'
+
+positive:
+    $STR.codepoints(! [! 20013, 22269 ] )
+    '中国'
+
+positive:
+    $STR.codepoints(! [ 0x4E2D, 0x56FD ])
+    '中国'
+
+positive:
+    $STR.codepoints(! [0x4E2D, 0x200000])
+    '中'
+
+positive:
+    $STR.codepoints(! ['', 0x200000])
+    ''
+
+negative:
     $STR.count_bytes()
     ArgumentMissed
 
