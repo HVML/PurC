@@ -22,9 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "purc-errors.h"
-#include "purc-utils.h"
-#include <stdint.h>
 #define _GNU_SOURCE
 #include "config.h"
 
@@ -38,10 +35,13 @@
 #include "private/atom-buckets.h"
 #include "private/ports.h"
 
+#include "purc-errors.h"
+#include "purc-utils.h"
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
 
 #include <errno.h>
+#include <stdint.h>
 
 static bool is_all_ascii(const char *str)
 {

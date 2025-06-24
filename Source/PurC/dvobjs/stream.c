@@ -22,10 +22,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
+
 #include "purc-errors.h"
 #include "purc-rwstream.h"
 #include "purc-utils.h"
-#define _GNU_SOURCE
 
 #include "config.h"
 #include "stream.h"
