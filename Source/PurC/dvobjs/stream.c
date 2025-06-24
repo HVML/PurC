@@ -1757,13 +1757,13 @@ ungetuc_getter(void *native_entity, const char *property_name,
         else {
             // Handle surrogate pairs for characters above U+FFFF
             uint32_t code = uc - 0x10000;
-            uint16_t high = 0xD800 + (code >> 10);
-            uint16_t low = 0xDC00 + (code & 0x3FF);
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
 
-            buff[0] = high & 0xFF;
-            buff[1] = (high >> 8) & 0xFF;
-            buff[2] = low & 0xFF;
-            buff[3] = (low >> 8) & 0xFF;
+            buff[0] = w1 & 0xFF;
+            buff[1] = (w1 >> 8) & 0xFF;
+            buff[2] = w2 & 0xFF;
+            buff[3] = (w2 >> 8) & 0xFF;
             len = 4;
         }
     }
@@ -1776,13 +1776,13 @@ ungetuc_getter(void *native_entity, const char *property_name,
         else {
             // Handle surrogate pairs for characters above U+FFFF
             uint32_t code = uc - 0x10000;
-            uint16_t high = 0xD800 + (code >> 10);
-            uint16_t low = 0xDC00 + (code & 0x3FF);
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
 
-            buff[0] = (high >> 8) & 0xFF;
-            buff[1] = high & 0xFF;
-            buff[2] = (low >> 8) & 0xFF;
-            buff[3] = low & 0xFF;
+            buff[1] = w1 & 0xFF;
+            buff[0] = (w1 >> 8) & 0xFF;
+            buff[3] = w2 & 0xFF;
+            buff[2] = (w2 >> 8) & 0xFF;
             len = 4;
         }
     }
