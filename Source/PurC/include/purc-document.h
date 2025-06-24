@@ -383,6 +383,38 @@ static inline pcdoc_element_t purc_document_body(purc_document_t doc)
     return purc_document_special_elem(doc, PCDOC_SPECIAL_ELEM_BODY);
 }
 
+/**
+ * purc_document_set_global_selector:
+ *
+ * Sets the global selector of a document.
+ *
+ * @doc: The pointer to a document.
+ * @selector: A string contains the global selector.
+ *
+ * This function sets the global selector of a document.
+ *
+ * Returns: The previous global selector of the document.
+ *
+ *  Since: 0.9.24
+ */
+const char *purc_document_set_global_selector(purc_document_t doc,
+        const char *selector);
+
+/**
+* purc_document_get_global_selector:
+*
+* Gets the global selector of a document.
+*
+* @doc: The pointer to a document.
+*
+* This function gets the global selector of a document.
+*
+* Returns: The global selector of the document, or %NULL if not set.
+*
+* Since: 0.9.24
+*/
+const char *purc_document_get_global_selector(purc_document_t doc);
+
 typedef enum {
     PCDOC_OP_APPEND = 0,
     PCDOC_OP_PREPEND,
@@ -1249,6 +1281,26 @@ purc_document_serialize_text_contents_to_stream(purc_document_t doc,
 PCA_EXPORT int
 pcdoc_serialize_descendants_to_stream(purc_document_t doc,
         pcdoc_element_t ancestor, unsigned opts, purc_rwstream_t out);
+
+/**
+ * purc_document_serialize_descendants_to_stream:
+ *
+ * @doc: The pointer to a document.
+ * @selector: The CSS selector to to match elements.
+ * @opts: The serialization options.
+ * @out: The output stream.
+ *
+ * Serializes all descendant elements (as well as the contents) in a document
+ * to a stream.
+ *
+ * Returns: 0 for succes, -1 for errors.
+ *
+ * Since: 0.9.24
+ *
+ */
+PCA_EXPORT int
+pcdoc_serialize_fragment_to_stream(purc_document_t doc,
+        const char *selector, unsigned opts, purc_rwstream_t out);
 
 /**
  * purc_document_serialize_contents_to_stream:

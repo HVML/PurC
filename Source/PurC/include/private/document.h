@@ -177,6 +177,9 @@ struct purc_document {
     pcdoc_element_t root4select;
     struct purc_document_ops *ops;
 
+    /* global selector */
+    char *selector;
+
     void *impl;
 };
 
