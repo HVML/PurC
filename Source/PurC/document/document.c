@@ -160,6 +160,10 @@ purc_document_unref(purc_document_t doc)
 
     unsigned int refc = doc->refc;
     if (refc == 0) {
+        if (doc->selector) {
+            free((void *)doc->selector);
+            doc->selector = NULL;
+        }
         doc->ops->destroy(doc);
     }
 
@@ -178,6 +182,10 @@ unsigned int
 purc_document_delete(purc_document_t doc)
 {
     unsigned int refc = doc->refc;
+    if (doc->selector) {
+        free((void *)doc->selector);
+        doc->selector = NULL;
+    }
     doc->ops->destroy(doc);
     return refc;
 }
@@ -729,6 +737,10 @@ pcdoc_serialize_fragment_to_stream(purc_document_t doc,
     int ret = 0;
     pcdoc_selector_t sel = NULL;
     pcdoc_elem_coll_t coll = NULL;
+    if (!doc) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
 
     if (!selector) {
         selector = doc ? doc->selector : NULL;

@@ -667,4 +667,110 @@ TEST(document, elem_coll_by_id)
     ASSERT_EQ(refc, 1);
 }
 
+TEST(document, global_selector_set_get)
+{
+    purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
+            html_contents, strlen(html_contents));
+    ASSERT_NE(doc, nullptr);
 
+    /* Initially not set, get should return NULL */
+    const char* sel = purc_document_get_global_selector(doc);
+    ASSERT_EQ(sel, nullptr);
+
+    /* Set selector */
+    const char* ret = purc_document_set_global_selector(doc, ".tocline1");
+    ASSERT_NE(ret, nullptr);
+    ASSERT_STREQ(ret, ".tocline1");
+
+    /* get should return the value just set */
+    sel = purc_document_get_global_selector(doc);
+    ASSERT_NE(sel, nullptr);
+    ASSERT_STREQ(sel, ".tocline1");
+
+    /* Set selector again */
+    ret = purc_document_set_global_selector(doc, "#bar");
+    ASSERT_NE(ret, nullptr);
+    ASSERT_STREQ(ret, "#bar");
+
+    sel = purc_document_get_global_selector(doc);
+    ASSERT_NE(sel, nullptr);
+    ASSERT_STREQ(sel, "#bar");
+
+    /* Set to NULL should free selector */
+    ret = purc_document_set_global_selector(doc, NULL);
+    ASSERT_EQ(ret, nullptr);
+    sel = purc_document_get_global_selector(doc);
+    ASSERT_EQ(sel, nullptr);
+
+    unsigned int refc = purc_document_delete(doc);
+    ASSERT_EQ(refc, 1);
+}
+
+TEST(document, serialize_fragment_to_stream)
+{
+    purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
+         html_contents, strlen(html_contents));
+    ASSERT_NE(doc, nullptr);
+
+    /* Use selector parameter */
+    size_t nr_buf = strlen(html_contents) * 2;
+    char *buf = (char *)calloc(1, nr_buf);
+    purc_rwstream_t stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    int ret = pcdoc_serialize_fragment_to_stream(doc, ".tocline1",
+         0, stm);
+    purc_rwstream_destroy(stm);
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(strlen(buf), 0u);
+
+    /* Use doc->selector */
+    purc_document_set_global_selector(doc, "#bar");
+    memset(buf, 0, nr_buf);
+    stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    ret = pcdoc_serialize_fragment_to_stream(doc, NULL,
+         0, stm);
+    purc_rwstream_destroy(stm);
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(strlen(buf), 0u);
+
+    /* Use doc->selector */
+    purc_document_set_global_selector(doc, "li");
+    memset(buf, 0, nr_buf);
+    stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    ret = pcdoc_serialize_fragment_to_stream(doc, NULL,
+         0, stm);
+    purc_rwstream_destroy(stm);
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(strlen(buf), 0u);
+
+    /* Both selector and doc->selector are NULL, serialize the whole document */
+    purc_document_set_global_selector(doc, NULL);
+    memset(buf, 0, nr_buf);
+    stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    ret = pcdoc_serialize_fragment_to_stream(doc, NULL,
+         0, stm);
+    purc_rwstream_destroy(stm);
+    ASSERT_EQ(ret, 0);
+    ASSERT_NE(strlen(buf), 0u);
+
+    /* Selector specifies non-existent content */
+    memset(buf, 0, nr_buf);
+    stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    ret = pcdoc_serialize_fragment_to_stream(doc, "#notfound",
+         0, stm);
+    purc_rwstream_destroy(stm);
+    ASSERT_EQ(ret, 0); /* Should return 0, content is empty */
+    ASSERT_EQ(strlen(buf), 0u);
+
+    /* doc is NULL */
+    memset(buf, 0, nr_buf);
+    stm = purc_rwstream_new_from_mem(buf, nr_buf);
+    ret = pcdoc_serialize_fragment_to_stream(NULL, ".tocline1",
+         0, stm);
+    ASSERT_NE(ret, -1);
+    purc_rwstream_destroy(stm);
+
+    unsigned int refc = purc_document_delete(doc);
+    ASSERT_EQ(refc, 1);
+
+    free(buf);
+}
