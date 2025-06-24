@@ -1632,7 +1632,6 @@ putuc_getter(void *native_entity, const char *property_name,
             buff[2] = w2 & 0xFF;
             buff[3] = (w2 >> 8) & 0xFF;
             bytes_written = purc_rwstream_write(rwstream, buff, 4);
-            printf("UTF-16LE: %x%x%x%x\n", buff[0], buff[1], buff[2], buff[3]);
         }
     }
     else if (strcmp(encoding, "utf16be") == 0) {
@@ -1652,7 +1651,6 @@ putuc_getter(void *native_entity, const char *property_name,
             buff[3] = w2 & 0xFF;
             buff[2] = (w2 >> 8) & 0xFF;
             bytes_written = purc_rwstream_write(rwstream, buff, 4);
-            printf("UTF-16BE: %x%x%x%x\n", buff[0], buff[1], buff[2], buff[3]);
         }
     }
     else if (strcmp(encoding, "utf32le") == 0) {
