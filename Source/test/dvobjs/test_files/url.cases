@@ -159,6 +159,38 @@ positive:
     $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'all', 'hostname path query fragment')
     { 'scheme': 'https', 'hostname': '测试.网站.中国', 'port': null, 'username': null, 'password': null, 'path': '/路径', 'query': '关键字=测试', 'fragment': '片段' }
 
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'query')
+    '%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'query', 'query')
+    '关键字=测试'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'fragment')
+    '%E7%89%87%E6%AE%B5'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'fragment', 'fragment')
+    '片段'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'path')
+    '/%E8%B7%AF%E5%BE%84'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'path', 'path')
+    '/路径'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'hostname')
+    'xn--0zwm56d.xn--5tzm5g.xn--fiqs8s'
+
+positive:
+    $URL.parse('https://xn--0zwm56d.xn--5tzm5g.xn--fiqs8s/%E8%B7%AF%E5%BE%84?%E5%85%B3%E9%94%AE%E5%AD%97=%E6%B5%8B%E8%AF%95#%E7%89%87%E6%AE%B5', 'hostname', 'hostname')
+    '测试.网站.中国'
+
 negative:
     $URL.assembly()
     ArgumentMissed
