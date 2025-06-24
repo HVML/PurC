@@ -127,8 +127,23 @@ char *pcutils_url_assembly(const struct purc_broken_down_url *url_struct,
     if (url_struct->scheme)
         url.setProtocol(url_struct->scheme);
 
-    if (url_struct->hostname)
-        url.setHost(url_struct->hostname);
+    if (url_struct->hostname) {
+        // PurCWTF might fail to encode the hostname in Punycode.
+        struct pcutils_mystring part;
+        pcutils_mystring_init(&part);
+
+        if (pcutils_punycode_encode(&part, url_struct->hostname)) {
+            pcutils_mystring_free(&part);
+            goto failed;
+        }
+
+        if (pcutils_mystring_done(&part)) {
+            pcutils_mystring_free(&part);
+            goto failed;
+        }
+        url.setHost(part.buff);
+        pcutils_mystring_free(&part);
+    }
 
     if (url_struct->port)
         url.setPort(url_struct->port);
@@ -162,6 +177,10 @@ char *pcutils_url_assembly(const struct purc_broken_down_url *url_struct,
         url_string = strdup("");
     }
 
+    return url_string;
+
+failed:
+    url_string = strdup("");
     return url_string;
 }
 
@@ -242,8 +261,9 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         utf8 = host.toString().utf8();
         tempstring = utf8.data();
         length = strlen(tempstring);
-        if (length)
+        if (length) {
             url_struct->hostname = strdup(tempstring);
+        }
         else
             url_struct->hostname = NULL;
 
