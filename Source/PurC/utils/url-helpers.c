@@ -207,6 +207,8 @@ static int punycode_decode(struct pcutils_mystring *output,
     if (input_len == 0)
         goto failed;
 
+    size_t punycode_offset = output->nr_bytes;
+
     // Find delimiter position
     const char* end = punycode + input_len;
     const char* delimiter = strchr(punycode, '-');
@@ -280,7 +282,7 @@ static int punycode_decode(struct pcutils_mystring *output,
 
         i %= (nr_output + 1);
         if (nr_output > (size_t)i) {
-            size_t total_len = output->nr_bytes;
+            size_t total_len = output->nr_bytes - punycode_offset;
             unsigned char utf8ch[10];
 
             unsigned uclen = pcutils_unichar_to_utf8(n, utf8ch);
@@ -291,7 +293,7 @@ static int punycode_decode(struct pcutils_mystring *output,
                 goto failed;
 
             // find the position to insert
-            char *move_start = output->buff;
+            char *move_start = output->buff + punycode_offset;
             int j = 0;
             while (j < i) {
                 move_start = pcutils_utf8_next_char(move_start);
@@ -299,7 +301,7 @@ static int punycode_decode(struct pcutils_mystring *output,
             }
 
             // move memory and insert the new character.
-            size_t offset = move_start - output->buff;
+            size_t offset = move_start - (output->buff + punycode_offset);
             memmove(move_start + uclen, move_start,
                     total_len - offset);
             memcpy(move_start, utf8ch, uclen);
