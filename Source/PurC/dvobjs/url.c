@@ -1034,16 +1034,6 @@ failed:
 /*
 $URL.assembly(
     < object $broken_down_url: `The broken-down URL object.` >
-    [,
-        < '[hostname || path || query || fragment] | none | all' $encode_components = 'none':
-            - 'hostname': `Use Punycode to encode hostname if it contains non-ASCII characters.`
-            - 'path':     `Encode path according to RFC 3986.`
-            - 'query':    `Encode query according to RFC 3986.`
-            - 'fragment': `Encode fragment according to RFC 3986.`
-            - 'none':     `Encode nothing.`
-            - 'all':      `Encode all components.`
-        >
-    ]
 ) string | false
  */
 static purc_variant_t
@@ -1060,16 +1050,6 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (!purc_variant_is_object(argv[0])) {
         ec = PURC_ERROR_WRONG_DATA_TYPE;
-        goto failed;
-    }
-
-    int parts_to_encode = pcdvobjs_parse_options(
-            nr_args > 2 ? argv[2] : PURC_VARIANT_INVALID,
-            url_part_skws, PCA_TABLESIZE(url_part_skws),
-            url_part_ckws, PCA_TABLESIZE(url_part_ckws),
-            URL_PART_NONE, -1);
-    if (parts_to_encode == -1) {
-        /* failed will be set by pcdvobjs_parse_options() */
         goto failed;
     }
 
@@ -1092,24 +1072,7 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             bdurl.scheme = (char *)val;
         }
         else if (strcmp(key, "hostname") == 0 && val) {
-            if (parts_to_encode & URL_PART_HOSTNAME) {
-                DECL_MYSTRING(part);
-                if (pcutils_punycode_encode(&part, (char *)val)) {
-                    pcutils_mystring_free(&part);
-                    ec = PURC_ERROR_INVALID_VALUE;
-                    goto failed;
-                }
-
-                if (pcutils_mystring_done(&part)) {
-                    ec = PURC_ERROR_OUT_OF_MEMORY;
-                    goto failed;
-                }
-
-                bdurl.hostname = (char *)part.buff; // owner moved
-            }
-            else {
-                bdurl.hostname = (char *)val;
-            }
+            bdurl.hostname = (char *)val;
         }
         else if (strcmp(key, "port") == 0) {
             if (!purc_variant_cast_to_uint32(vv, &bdurl.port, true)) {
@@ -1124,61 +1087,13 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             bdurl.password = (char *)val;
         }
         else if (strcmp(key, "path") == 0 && val) {
-            if (parts_to_encode & URL_PART_PATH) {
-                DECL_MYSTRING(part);
-                if (pcutils_url_path_encode(&part, (char *)val)) {
-                    pcutils_mystring_free(&part);
-                    ec = PURC_ERROR_INVALID_VALUE;
-                    goto failed;
-                }
-
-                if (pcutils_mystring_done(&part)) {
-                    ec = PURC_ERROR_OUT_OF_MEMORY;
-                    goto failed;
-                }
-
-                bdurl.path = (char *)part.buff; // owner moved
-            }
-            else
-                bdurl.path = (char *)val;
+            bdurl.path = (char *)val;
         }
         else if (strcmp(key, "query") == 0 && val) {
-            if (parts_to_encode & URL_PART_QUERY) {
-                DECL_MYSTRING(part);
-                if (pcutils_url_query_encode(&part, (char *)val)) {
-                    pcutils_mystring_free(&part);
-                    ec = PURC_ERROR_INVALID_VALUE;
-                    goto failed;
-                }
-
-                if (pcutils_mystring_done(&part)) {
-                    ec = PURC_ERROR_OUT_OF_MEMORY;
-                    goto failed;
-                }
-
-                bdurl.query = (char *)part.buff; // owner moved
-            }
-            else
-                bdurl.query = (char *)val;
+            bdurl.query = (char *)val;
         }
         else if (strcmp(key, "fragment") == 0 && val) {
-            if (parts_to_encode & URL_PART_FRAGMENT) {
-                DECL_MYSTRING(part);
-                if (pcutils_url_fragment_encode(&part, (char *)val)) {
-                    pcutils_mystring_free(&part);
-                    ec = PURC_ERROR_INVALID_VALUE;
-                    goto failed;
-                }
-
-                if (pcutils_mystring_done(&part)) {
-                    ec = PURC_ERROR_OUT_OF_MEMORY;
-                    goto failed;
-                }
-
-                bdurl.fragment = (char *)part.buff; // owner moved
-            }
-            else
-                bdurl.fragment = (char *)val;
+            bdurl.fragment = (char *)val;
         }
         else {
             n--;
@@ -1191,18 +1106,6 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     char *url = pcutils_url_assembly(&bdurl, true);
-    if (bdurl.hostname != NULL && parts_to_encode & URL_PART_HOSTNAME) {
-        free(bdurl.hostname);
-    }
-    if (bdurl.path != NULL && parts_to_encode & URL_PART_PATH) {
-        free(bdurl.path);
-    }
-    if (bdurl.query != NULL && parts_to_encode & URL_PART_QUERY) {
-        free(bdurl.query);
-    }
-    if (bdurl.fragment != NULL && parts_to_encode & URL_PART_FRAGMENT) {
-        free(bdurl.fragment);
-    }
 
     if (url) {
         if (*url) {
@@ -1219,19 +1122,6 @@ assembly_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ec = PURC_ERROR_OUT_OF_MEMORY;
 
 failed:
-    if (bdurl.hostname != NULL && parts_to_encode & URL_PART_HOSTNAME) {
-        free(bdurl.hostname);
-    }
-    if (bdurl.path != NULL && parts_to_encode & URL_PART_PATH) {
-        free(bdurl.path);
-    }
-    if (bdurl.query != NULL && parts_to_encode & URL_PART_QUERY) {
-        free(bdurl.query);
-    }
-    if (bdurl.fragment != NULL && parts_to_encode & URL_PART_FRAGMENT) {
-        free(bdurl.fragment);
-    }
-
     if (ec != PURC_ERROR_OK)
         purc_set_error(ec);
 
