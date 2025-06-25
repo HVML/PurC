@@ -301,8 +301,6 @@ static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
         return;
     }
 
-    printf("%s: %p\n", __func__, stream);
-
     native_stream_close(stream);
 
     /* we keep url for possible reopen() the stream in the future */

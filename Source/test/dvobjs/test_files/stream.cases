@@ -522,3 +522,19 @@ positive:
     $RUNNER.myObj.myStream.getuc()
     'V'
 
+negative:
+    $STREAM.from_buffer()
+    ArgumentMissed
+
+negative:
+    $STREAM.from_buffer(null)
+    WrongDataType
+
+negative:
+    $STREAM.from_buffer(1, null)
+    WrongDataType
+
+positive:
+    $STREAM.from_buffer(16, 0).putuc('A')
+    1UL
+
