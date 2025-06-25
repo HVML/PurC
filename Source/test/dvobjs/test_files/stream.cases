@@ -499,6 +499,10 @@ positive:
     'H'
 
 positive:
+    $STR.scanf($STREAM.from('HVML 12'), '%s %d')
+    ['HVML', 12L]
+
+positive:
     $RUNNER.user(! "myStream", $STREAM.from('HVML'))
     true
 
