@@ -29,6 +29,7 @@
 #include "private/document.h"
 #include "private/avl.h"
 #include "private/dvobjs.h"
+#include "private/stream.h"
 
 #include "element.h"
 
@@ -225,6 +226,11 @@ serialize_getter(void *entity, const char *property_name,
     UNUSED_PARAM(call_flags);
 
     PC_ASSERT(entity);
+
+    int ec = PURC_ERROR_OK;
+    pcdvobjs_stream *stream_ett = NULL;
+    purc_rwstream_t output_stm = NULL;
+    const char *selector = NULL;
     purc_document_t doc = (purc_document_t)entity;
 
     unsigned opt = 0;
@@ -232,7 +238,29 @@ serialize_getter(void *entity, const char *property_name,
     opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
 
     if (nr_args > 0) {
-        const char *method = purc_variant_get_string_const(argv[0]);
+        stream_ett = dvobjs_stream_check_entity(argv[0], NULL);
+    }
+
+    if (stream_ett) {
+        if ((output_stm = stream_ett->stm4w) == NULL) {
+            ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+            goto failed;
+        }
+
+        nr_args--;
+        argv++;
+    }
+    else {
+        output_stm = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+             LEN_MAX_SERIALIZE_BUF);
+        if (output_stm == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+    }
+
+    if (nr_args > 0) {
+        const char* method = purc_variant_get_string_const(argv[0]);
         if (method == NULL) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
@@ -241,38 +269,51 @@ serialize_getter(void *entity, const char *property_name,
         if (strcmp(method, "compact") == 0) {
             opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
             opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-        }
-        else if (strcmp(method, "loose") == 0) {
+        } else if (strcmp(method, "loose") == 0) {
             opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
-        }
-        else {
+        } else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
-    }
-    else {
+
+        if (nr_args > 1) {
+            selector = purc_variant_get_string_const(argv[1]);
+            if (selector == NULL) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+        }
+    } else {
         opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
         opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     }
 
-    purc_rwstream_t my_stream;
-    my_stream = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
-            LEN_MAX_SERIALIZE_BUF);
-    if (purc_document_serialize_contents_to_stream(doc, opt, my_stream)) {
-        purc_rwstream_destroy(my_stream);
+    if (pcdoc_serialize_fragment_to_stream(doc, selector, opt, output_stm)) {
+        purc_rwstream_destroy(output_stm);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
-    char *buf = NULL;
-    size_t sz_content, sz_buffer;
-    buf = purc_rwstream_get_mem_buffer_ex(my_stream, &sz_content, &sz_buffer,
-            true);
-    purc_rwstream_destroy(my_stream);
+    if (stream_ett == NULL) {
+        char *buf = NULL;
+        size_t sz_content, sz_buffer;
+        buf = purc_rwstream_get_mem_buffer_ex(output_stm, &sz_content, &sz_buffer,
+                true);
+        purc_rwstream_destroy(output_stm);
 
-    return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+        return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+    }
+    return purc_variant_make_boolean(true);
 
 failed:
+    if (stream_ett == NULL && output_stm != NULL) {
+        purc_rwstream_destroy(output_stm);
+    }
+
+    if (ec != PURC_ERROR_OK) {
+        purc_set_error(ec);
+    }
+
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;

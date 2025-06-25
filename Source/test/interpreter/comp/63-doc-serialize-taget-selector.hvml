@@ -1,0 +1,16 @@
+#!/usr/bin/purc
+
+# RESULT: '<div id="id_serial">serialize selector</div>'
+
+<hvml target="html:#id_serial">
+    <body>
+        <p>main</p>
+
+        <div id="id_serial">serialize selector</div>
+
+        <exit with $DOC.serialize('compact', '#id_serial') />
+
+    </body>
+
+</hvml>
+
