@@ -599,10 +599,10 @@ $ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
 
 ### `purc` 的选项
 
-当你使用 `-h` 选项运行 `purc` 时，你可以看到 `purc` 支持的所有选项：
+当你使用 `--help` 选项运行 `purc` 时，你可以看到 `purc` 支持的所有选项：
 
 ```bash
-$ purc -h
+$ purc --help
 purc (0.9.24) - a standalone HVML interpreter/debugger based on PurC.
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -652,25 +652,29 @@ The following options can be supplied to the command:
         Use a URL query string (in RFC 3986) for the request data which will be passed to
         the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
 
-  -P --pageid
+     --query-<key> <value>
+        Use a user-defined option for a key-value pair which will be appended to the query_string;
+        e.g., --query-foo bar.
+
+     --pageid=< page_id >
         The page identifier for the HVML programs which do not run in parallel.
 
-  -L --layout-style
+     --layout-style=< layout_style >
         The layout style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin` or `widget`.
 
-  -T --toolkit-style
+     --toolkit-style=< toolkit_style >
         The toolkit style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin` or `widget`.
 
-  -A --transition-style
+     --transition-style=< transition_style >
         The transition style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin`.
 
-  -s --allow-switching-rdr=< true | false >
+     --allow-switching-rdr
         Allow switching renderer.
 
-  -S --allow-scaling-by-density=< true | false >
+     --allow-scaling-by-density
         Allow scaling by density.
 
   -l --parallel
@@ -685,13 +689,13 @@ The following options can be supplied to the command:
   -v --verbose
         Execute the program(s) with verbose output.
 
-  -C --copying
+     --copying
         Display detailed copying information and exit.
 
-  -V --version
+     --version
         Display version information and exit.
 
-  -h --help
+  -h  --help
         This help.
 
 (root only options)
