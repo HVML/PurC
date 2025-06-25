@@ -538,3 +538,31 @@ positive:
     $STREAM.from_buffer(16, 0).putuc('A')
     1UL
 
+positive:
+    $RUNNER.user(! "myStream", $STREAM.from_buffer(16, 32))
+    true
+
+positive:
+    $RUNNER.myObj.myStream.putuc('H')
+    1UL
+
+positive:
+    $RUNNER.myObj.myStream.putuc('中')
+    3UL
+
+positive:
+    $RUNNER.myObj.myStream.ungetuc('V')
+    1UL
+
+positive:
+    $RUNNER.myObj.myStream.seek(0, 'set')
+    0L
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'H'
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    '中'
+
