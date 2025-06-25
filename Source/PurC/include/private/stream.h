@@ -35,6 +35,7 @@
 #include "private/errors.h"
 
 enum pcdvobjs_stream_type {
+    STREAM_TYPE_MEM,
     STREAM_TYPE_FILE,
     STREAM_TYPE_PIPE,
     STREAM_TYPE_FIFO,

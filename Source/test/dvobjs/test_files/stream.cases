@@ -494,3 +494,31 @@ positive:
     $SYS.remove('/tmp/test_stream_getuc')
     true
 
+positive:
+    $STREAM.from('HVML').getuc()
+    'H'
+
+positive:
+    $RUNNER.user(! "myStream", $STREAM.from('HVML'))
+    true
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'H'
+
+negative:
+    $RUNNER.myObj.myStream.putuc('中')
+    NotDesiredEntity
+
+positive:
+    $RUNNER.myObj.myStream.ungetuc('中')
+    3UL
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    '中'
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'V'
+
