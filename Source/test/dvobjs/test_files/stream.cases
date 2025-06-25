@@ -110,11 +110,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, 'set')
-    10L
+    10UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(3, 'current')
-    3L
+    3UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'current')
@@ -122,11 +122,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'end')
-    25L
+    25UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10)
-    10L
+    10UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-10)
@@ -556,7 +556,7 @@ positive:
 
 positive:
     $RUNNER.myObj.myStream.seek(0, 'set')
-    0L
+    0UL
 
 positive:
     $RUNNER.myObj.myStream.getuc()

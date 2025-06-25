@@ -237,6 +237,12 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     stream->stm4w = NULL;
     stream->stm4r = NULL;
 
+    if (stream->type == STREAM_TYPE_MEM &&
+            stream->kept != PURC_VARIANT_INVALID) {
+        purc_variant_unref(stream->kept);
+        stream->kept = PURC_VARIANT_INVALID;
+    }
+
     for (int i = 0; i < NR_STREAM_MONITORS; i++) {
         if (stream->monitors[i]) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -1303,7 +1309,6 @@ seek_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(property_name);
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
     int64_t byte_num = 0;
@@ -1364,12 +1369,11 @@ seek_getter(void *native_entity, const char *property_name,
     }
 
     off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
-    if (off == -1) {
+    if (off < 0) {
         goto out;
     }
-    ret_var = purc_variant_make_longint(off);
 
-    return ret_var;
+    return purc_variant_make_ulongint((uint64_t)off);
 
 out:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -3536,7 +3540,13 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         struct purc_native_ops *ops = &stream_basic_ops;
         const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
-        return purc_variant_make_native_entity(stream, ops, entity_name);
+        purc_variant_t ret;
+        ret = purc_variant_make_native_entity(stream, ops, entity_name);
+        if (ret) {
+            stream->kept = purc_variant_ref(argv[0]);
+        }
+
+        return ret;
     }
 
 error:
