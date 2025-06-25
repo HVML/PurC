@@ -1432,8 +1432,6 @@ getuc_getter(void *native_entity, const char *property_name,
         utf8_len = nr_read;
         utf8_bytes[utf8_len] = '\0';
         codepoint = pcutils_utf8_to_unichar(utf8_bytes);
-        printf("Got a UTF-8 character: %s (0x%X) from: %p\n",
-                utf8_bytes, codepoint, rwstream);
     }
     else if (strcmp(encoding, "utf16le") == 0) {
         uint8_t bytes[2];
@@ -3526,17 +3524,6 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         stream = create_stream_from_mem((void *)bytes, bytes_len, false);
         if (stream == NULL)
             goto error;
-
-        printf("%s: %p\n", __func__, stream->stm4r);
-#if 0
-        uint8_t utf8_bytes[8];
-        int nr_read;
-        nr_read = purc_rwstream_read_utf8_char(stream->stm4r,
-                        (char *)utf8_bytes, NULL);
-        utf8_bytes[nr_read] = '\0';
-        int codepoint = pcutils_utf8_to_unichar(utf8_bytes);
-        printf("Got a UTF-8 character: %s (%x)\n", utf8_bytes, codepoint);
-#endif
 
         struct purc_native_ops *ops = &stream_basic_ops;
         const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
