@@ -1,0 +1,13 @@
+#!/usr/bin/purc
+
+# RESULT: 1UL
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <div>🦰</div>
+    <div>🖐</div>
+    <div>😀</div>
+    <div>🙂</div>
+    <div>😓</div>
+    <exit with $DATA.count('🦰') />
+</hvml>
