@@ -30,3 +30,12 @@ TEST(dvobjs, more)
     tester.run_testcases_in_file("more");
 }
 
+TEST(dvobjs, url)
+{
+    TestDVObj tester;
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
+    tester.run_testcases_in_file("url");
+}
+

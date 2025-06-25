@@ -22,7 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "purc-errors.h"
 #define _GNU_SOURCE
 #include "config.h"
 
@@ -36,10 +35,13 @@
 #include "private/atom-buckets.h"
 #include "private/ports.h"
 
+#include "purc-errors.h"
+#include "purc-utils.h"
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
 
 #include <errno.h>
+#include <stdint.h>
 
 static bool is_all_ascii(const char *str)
 {
@@ -2330,8 +2332,25 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
     else if (stream_ett->fd4r < 0) {
-        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
-        goto failed;
+        if (stream_ett->type == STREAM_TYPE_MEM) {
+            void *buff;
+            size_t buff_len;
+            buff = purc_rwstream_get_mem_buffer_ex(stream_ett->stm4r,
+                    &buff_len, NULL, false);
+            assert(buff);
+
+            input_fp = fmemopen(buff, buff_len, "r");
+            if (input_fp == NULL) {
+                PC_ERROR("Failed fmemopen(%p, %zu): %s\n", buff, buff_len,
+                        strerror(errno));
+                ec = purc_error_from_errno(errno);
+                goto failed;
+            }
+        }
+        else {
+            ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+            goto failed;
+        }
     }
     else {
         input_fp = fdopen(stream_ett->fd4r, "r");
@@ -5074,6 +5093,77 @@ error:
 }
 
 /*
+$STR.codepoints(!
+    < 'array | tuple' $codepoints: `The linear container consist of codepoints of Unicode characters.` >
+) string | false: `The converted string in UTF-8 encoding.`
+*/
+static purc_variant_t
+codepoints_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    int ec = PURC_ERROR_OK;
+    struct pcutils_mystring mystr;
+    pcutils_mystring_init(&mystr);
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    size_t nr_codepoints;
+    if (!purc_variant_linear_container_size(argv[0], &nr_codepoints)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+
+    if (nr_codepoints == 0) {
+        return purc_variant_make_string_static("", false);
+    }
+
+    // Extract codepoints from container
+    for (size_t i = 0; i < nr_codepoints; i++) {
+        purc_variant_t item = purc_variant_linear_container_get(argv[0], i);
+
+        uint32_t codepoint;
+        if (!purc_variant_cast_to_uint32(item, &codepoint, false) ||
+                codepoint > 0x10FFFF) {
+            if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+                // return the converted string
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto done;
+            }
+            else {
+                ec = PURC_ERROR_INVALID_VALUE;
+                goto error;
+            }
+        }
+
+        if (pcutils_mystring_append_uchar(&mystr, (uint32_t)codepoint, 1)) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto error;
+        }
+    }
+
+done:
+    if (pcutils_mystring_done(&mystr)) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto error;
+    }
+
+    return purc_variant_make_string_reuse_buff(mystr.buff,  mystr.sz_space, false);
+
+error:
+    pcutils_mystring_free(&mystr);
+
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
 $STR.htmlentities(
   <string $string: `The input string.`>
   [,
@@ -5702,7 +5792,7 @@ purc_variant_t purc_dvobj_string_new(void)
         { "rot13",      rot13_getter,       NULL },
         { "count_chars",count_chars_getter, NULL },
         { "count_bytes",count_bytes_getter, NULL },
-        { "codepoints", codepoints_getter,  NULL },
+        { "codepoints", codepoints_getter,  codepoints_setter },
     };
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

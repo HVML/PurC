@@ -1390,10 +1390,39 @@ int pcutils_mystring_done(struct pcutils_mystring *mystr);
 /** Free the buffer and reset the fileds in the structure. */
 void pcutils_mystring_free(struct pcutils_mystring *mystr);
 
+/** Encode a host name into Punycode and append to output. */
 int pcutils_punycode_encode(struct pcutils_mystring *output,
-        const char* origin);
+        const char* hostname);
+
+/** Decode a Punycode host name and append to output. */
 int pcutils_punycode_decode(struct pcutils_mystring *output,
         const char* punycode);
+
+/** Encode URL path components according to RFC 3986 and append to output. */
+int pcutils_url_path_encode(struct pcutils_mystring *output,
+        const char* path);
+
+/** Decode URL path components acorrding to RFC 3986 and append to output. */
+int pcutils_url_path_decode(struct pcutils_mystring *output,
+        const char* encoded);
+
+/** Encode URL query key=value pairs according to RFC 3986 and
+    append to output. */
+int pcutils_url_query_encode(struct pcutils_mystring *output,
+        const char* query);
+
+/** Decode URL query key=value pairs acorrding to RFC 3986 and
+    append to output. */
+int pcutils_url_query_decode(struct pcutils_mystring *output,
+        const char* encoded);
+
+/** Encode a URL fragment according to RFC 3986 and append to output. */
+int pcutils_url_fragment_encode(struct pcutils_mystring *output,
+        const char* fragment);
+
+/** Decode a URL fragment acorrding to RFC 3986 and append to output. */
+int pcutils_url_fragment_decode(struct pcutils_mystring *output,
+        const char* encoded);
 
 PCA_EXTERN_C_END
 
