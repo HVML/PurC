@@ -110,11 +110,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, 'set')
-    10L
+    10UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(3, 'current')
-    3L
+    3UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'current')
@@ -122,11 +122,11 @@ positive:
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'end')
-    25L
+    25UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10)
-    10L
+    10UL
 
 positive:
     $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-10)
@@ -493,4 +493,80 @@ positive:
 positive:
     $SYS.remove('/tmp/test_stream_getuc')
     true
+
+positive:
+    $STREAM.from('HVML').getuc()
+    'H'
+
+positive:
+    $STR.scanf($STREAM.from('HVML 12'), '%s %d')
+    ['HVML', 12L]
+
+positive:
+    $RUNNER.user(! "myStream", $STREAM.from('HVML'))
+    true
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'H'
+
+negative:
+    $RUNNER.myObj.myStream.putuc('中')
+    NotDesiredEntity
+
+positive:
+    $RUNNER.myObj.myStream.ungetuc('中')
+    3UL
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    '中'
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'V'
+
+negative:
+    $STREAM.from_buffer()
+    ArgumentMissed
+
+negative:
+    $STREAM.from_buffer(null)
+    WrongDataType
+
+negative:
+    $STREAM.from_buffer(1, null)
+    WrongDataType
+
+positive:
+    $STREAM.from_buffer(16, 0).putuc('A')
+    1UL
+
+positive:
+    $RUNNER.user(! "myStream", $STREAM.from_buffer(16, 32))
+    true
+
+positive:
+    $RUNNER.myObj.myStream.putuc('H')
+    1UL
+
+positive:
+    $RUNNER.myObj.myStream.putuc('中')
+    3UL
+
+positive:
+    $RUNNER.myObj.myStream.ungetuc('V')
+    1UL
+
+positive:
+    $RUNNER.myObj.myStream.seek(0, 'set')
+    0UL
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    'H'
+
+positive:
+    $RUNNER.myObj.myStream.getuc()
+    '中'
 
