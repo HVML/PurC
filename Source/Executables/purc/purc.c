@@ -171,25 +171,29 @@ static void print_usage(FILE *fp)
         "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
         "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
         "\n"
-        "  -P --pageid\n"
+        "     --query-<key> <value>\n"
+        "        Use a user-defined option for a key-value pair which will be appended to the query_string;\n"
+        "        e.g., --query-foo bar.\n"
+        "\n"
+        "     --pageid=< page_id >\n"
         "        The page identifier for the HVML programs which do not run in parallel.\n"
         "\n"
-        "  -L --layout-style\n"
+        "     --layout-style=< layout_style >\n"
         "        The layout style for the HVML programs which do not run in parallel.\n"
         "        This option is only valid if the page type is `plainwin` or `widget`.\n"
         "\n"
-        "  -T --toolkit-style\n"
+        "     --toolkit-style=< toolkit_style >\n"
         "        The toolkit style for the HVML programs which do not run in parallel.\n"
         "        This option is only valid if the page type is `plainwin` or `widget`.\n"
         "\n"
-        "  -A --transition-style\n"
+        "     --transition-style=< transition_style >\n"
         "        The transition style for the HVML programs which do not run in parallel.\n"
         "        This option is only valid if the page type is `plainwin`.\n"
         "\n"
-        "  -s --allow-switching-rdr=< true | false >\n"
+        "     --allow-switching-rdr\n"
         "        Allow switching renderer.\n"
         "\n"
-        "  -S --allow-scaling-by-density=< true | false >\n"
+        "     --allow-scaling-by-density\n"
         "        Allow scaling by density.\n"
         "\n"
         "  -l --parallel\n"
@@ -204,13 +208,13 @@ static void print_usage(FILE *fp)
         "  -v --verbose\n"
         "        Execute the program(s) with verbose output.\n"
         "\n"
-        "  -C --copying\n"
+        "     --copying\n"
         "        Display detailed copying information and exit.\n"
         "\n"
-        "  -V --version\n"
+        "     --version\n"
         "        Display version information and exit.\n"
         "\n"
-        "  -h --help\n"
+        "  -h  --help\n"
         "        This help.\n"
         "\n"
         "(root only options)\n"
@@ -241,8 +245,6 @@ struct my_opts {
     const char *layout_style;
     const char *toolkit_style;
     const char *transition_style;
-    const char *allow_switching_rdr;
-    const char *allow_scaling_by_density;
     const char *chroot;
     const char *setuser;
     const char *setgroup;
@@ -256,6 +258,8 @@ struct my_opts {
     pcutils_array_t *contents;
     char *app_info;
 
+    bool allow_switching_rdr;
+    bool allow_scaling_by_density;
     bool parallel;
     bool print_docs;
     bool print_rslt;
@@ -447,9 +451,57 @@ static bool validate_url(struct my_opts *opts, const char *url)
     return true;
 }
 
+static int set_query(struct my_opts *opts, const char *query)
+{
+    if (opts->query == NULL) {
+        opts->query = strdup(query);
+    }
+    else {
+        size_t new_sz = strlen(opts->query) + 2 + strlen(query);
+        opts->query = realloc(opts->query, new_sz);
+        if (opts->query) {
+            strcat(opts->query, "&");
+            strcat(opts->query, query);
+        }
+    }
+
+    if (opts->query == NULL)
+        return -1;
+
+    return 0;
+}
+
+static int set_query_key_value(struct my_opts *opts,
+        const char *key, const char* val)
+{
+    char *key_enc = purc_url_encode_alloc(key, false);
+    char *val_enc = purc_url_encode_alloc(val, false);
+    if (key_enc == NULL || val_enc == NULL)
+        return -1;
+
+    size_t old_sz = opts->query ? strlen(opts->query) : 0;
+    size_t new_sz = old_sz;
+    new_sz += strlen(key_enc) + strlen(val_enc) + 4;
+    opts->query = realloc(opts->query, new_sz);
+    if (opts->query) {
+        if (old_sz > 0)
+            strcat(opts->query, "&");
+        strcat(opts->query, key_enc);
+        strcat(opts->query, "=");
+        strcat(opts->query, val_enc);
+    }
+
+    free(key_enc);
+    free(val_enc);
+    if (opts->query == NULL)
+        return -1;
+
+    return 0;
+}
+
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:A:s:S:R:U:G:DlptvCVh";
+    static const char short_options[] = ":a:r:d:c:u:j:q:R:U:G:Dlptvh";
     static const struct option long_opts[] = {
         { "app"                         , required_argument , NULL , 'a' },
         { "runner"                      , required_argument , NULL , 'r' },
@@ -462,8 +514,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "layout-style"                , required_argument , NULL , 'L' },
         { "toolkit-style"               , required_argument , NULL , 'T' },
         { "transition-style"            , required_argument , NULL , 'A' },
-        { "allow-switching-rdr"         , required_argument , NULL , 's' },
-        { "allow-scaling-by-density"    , required_argument , NULL , 'S' },
+        { "allow-switching-rdr"         , no_argument,        NULL , 's' },
+        { "allow-scaling-by-density"    , no_argument,        NULL , 'S' },
         { "chroot"                      , required_argument , NULL , 'R' },
         { "setuser"                     , required_argument , NULL , 'U' },
         { "setgroup"                    , required_argument , NULL , 'G' },
@@ -575,7 +627,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
         case 'q':
-            opts->query = strdup(optarg);
+            set_query(opts, optarg);
             break;
 
         case 'P':
@@ -597,11 +649,11 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
         case 's':
-            opts->allow_switching_rdr = optarg;
+            opts->allow_switching_rdr = true;
             break;
 
         case 'S':
-            opts->allow_scaling_by_density = optarg;
+            opts->allow_scaling_by_density = true;
             break;
 
         case 'R':
@@ -639,8 +691,19 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
         case '?':
-            fprintf(stderr, "Run with `-h` option for usage.\n");
-            return -1;
+#define USER_PERFIX "--query-"
+            if (optind > 0 && strlen(argv[optind - 1]) > strlen(USER_PERFIX) &&
+                    strncmp(argv[optind - 1], USER_PERFIX,
+                        strlen(USER_PERFIX)) == 0 && optind < argc) {
+                set_query_key_value(opts,
+                        argv[optind - 1] + strlen(USER_PERFIX), argv[optind]);
+                optind++;
+            }
+            else {
+                fprintf(stderr, "Run with `--help` option for usage.\n");
+                return -1;
+            }
+            break;
 
         default:
             goto bad_arg;
@@ -1087,14 +1150,9 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
         purc_instance_extra_info inst_info = {};
 
-        inst_info.allow_switching_rdr = 1;
+        inst_info.allow_switching_rdr = false;
         if (opts->allow_switching_rdr) {
-            if (strcmp(opts->allow_switching_rdr, "true") == 0) {
-                inst_info.allow_switching_rdr = 1;
-            }
-            else {
-                inst_info.allow_switching_rdr = 0;
-            }
+            inst_info.allow_switching_rdr = true;
         }
 
         tmp = purc_variant_object_get_by_ckey_ex(runner,
@@ -1103,14 +1161,9 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             inst_info.allow_switching_rdr = purc_variant_booleanize(tmp);
         }
 
-        inst_info.allow_scaling_by_density = 0;
+        inst_info.allow_scaling_by_density = false;
         if (opts->allow_scaling_by_density) {
-            if (strcmp(opts->allow_scaling_by_density, "true") == 0) {
-                inst_info.allow_scaling_by_density = 1;
-            }
-            else {
-                inst_info.allow_scaling_by_density = 0;
-            }
+            inst_info.allow_scaling_by_density = true;
         }
 
         tmp = purc_variant_object_get_by_ckey_ex(runner,
@@ -1992,27 +2045,17 @@ int main(int argc, char** argv)
     purc_instance_extra_info extra_info = {};
 
     if (opts->allow_switching_rdr) {
-        if (strcmp(opts->allow_switching_rdr, "true") == 0) {
-            extra_info.allow_switching_rdr = 1;
-        }
-        else {
-            extra_info.allow_switching_rdr = 0;
-        }
+        extra_info.allow_switching_rdr = true;
     }
     else {
-        extra_info.allow_switching_rdr = 1;
+        extra_info.allow_switching_rdr = false;
     }
 
     if (opts->allow_scaling_by_density) {
-        if (strcmp(opts->allow_scaling_by_density, "true") == 0) {
-            extra_info.allow_scaling_by_density = 1;
-        }
-        else {
-            extra_info.allow_scaling_by_density = 0;
-        }
+        extra_info.allow_scaling_by_density = true;
     }
     else {
-        extra_info.allow_scaling_by_density = 0;
+        extra_info.allow_scaling_by_density = false;
     }
 
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
