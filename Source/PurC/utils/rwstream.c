@@ -760,8 +760,8 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         read_len--;
     }
 
-    // FIXME
-    if (ch_len > 3) {
+    // FIXME: emoji 4bytes
+    if (ch_len > 4) {
         pcinst_set_error(PURC_ERROR_BAD_ENCODING);
         return -1;
     }
