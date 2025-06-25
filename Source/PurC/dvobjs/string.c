@@ -2332,8 +2332,25 @@ scanf_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
     else if (stream_ett->fd4r < 0) {
-        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
-        goto failed;
+        if (stream_ett->type == STREAM_TYPE_MEM) {
+            void *buff;
+            size_t buff_len;
+            buff = purc_rwstream_get_mem_buffer_ex(stream_ett->stm4r,
+                    &buff_len, NULL, false);
+            assert(buff);
+
+            input_fp = fmemopen(buff, buff_len, "r");
+            if (input_fp == NULL) {
+                PC_ERROR("Failed fmemopen(%p, %zu): %s\n", buff, buff_len,
+                        strerror(errno));
+                ec = purc_error_from_errno(errno);
+                goto failed;
+            }
+        }
+        else {
+            ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+            goto failed;
+        }
     }
     else {
         input_fp = fdopen(stream_ett->fd4r, "r");
