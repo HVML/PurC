@@ -58,26 +58,30 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.24
 
-In this version, we made a lot of major enhancements and fixed some bugs:
+In this version, we implemented all APIs defined by [HVML Predefined Variables V1.0].
+We also made a number of major enhancements and fixed some bugs.
 
 * CHANGES:
    - Upgrade PURCMC to version 170.
+   - Change some helper APIs about URL to conform to common usage.
    - Rename `$STR.format_c()` to `$STR.printf()`.
    - Rename `$STR.format_p()` to `$STR.printp()`.
 * ENHANCEMENTS:
-   - Add new option for purc: `-p (--print-docs)`
-   - Add new option for purc: `-t (--print-result)`
-   - Add two new exceptions: `AssertionFailed`.
+   - Add a new exception: `AssertionFailed`.
    - New verb. element `adapt`.
    - Complete implementation methods of `$STR`, `$URL`, and `$DATA`.
    - Refactor some methods of `$STR.translate()`, `$DATA.serialize()`, and so on.
    - Support for `rdrState:pageActivated` and `rdrState:pageDeactivated` events.
-   - Enhance `change:inflated`, `change:deflated`, and `change:modified` events have the payloads.
+   - Enhance `change:inflated`, `change:deflated`, and `change:modified` events to have payloads.
    - Implement `purc_rwstream_ungetc()`.
+   - Implement new methods for native stream entity: `$stream.getuc()`, `$stream.putuc()`, and `$stream.ungetuc()`.
 * OPTIMIZATIONS:
    - Optimize the coroutine scheduler.
 * ADJUSTMENTS:
-   - Change some helper APIs about URL to conform to common usage.
+   - [purc] Add new option: `-p (--print-docs)`
+   - [purc] Add new option: `-t (--print-result)`
+   - [purc] Remove some rarely used short options.
+   - [purc] Provide support for user-defined options for query key-value pairs: `--query-foo bar`
 * BUGFIXES:
    - Fix some some dead loop bugs and crashes.
 * CLEANUP:
