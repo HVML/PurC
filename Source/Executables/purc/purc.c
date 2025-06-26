@@ -1442,7 +1442,7 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
             if (runr_info->opts->verbose)
                 fprintf(stdout, ">> The document generated:\n");
 
-            purc_document_serialize_contents_to_stream(exit_info->doc,
+            pcdoc_serialize_fragment_to_stream(exit_info->doc, NULL,
                     opt, runr_info->run_info->dump_stm);
 
             if (runr_info->opts->verbose)
@@ -1486,7 +1486,7 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
             if (runr_info->opts->verbose)
                 fprintf(stdout, ">> The document generated:\n");
 
-            purc_document_serialize_contents_to_stream(term_info->doc,
+            pcdoc_serialize_fragment_to_stream(term_info->doc, NULL,
                     opt, runr_info->run_info->dump_stm);
 
             if (runr_info->opts->verbose)
