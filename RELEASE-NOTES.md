@@ -1,4 +1,6 @@
-``` mermaid
+# Release Notes
+
+```mermaid
 gantt
     title PurC Release Plan
     dateFormat  YYYY-MM-DD
@@ -22,32 +24,10 @@ gantt
     ver-0.9.19          :a16, 2023-09-01, 2023-12-30
     ver-0.9.22          :a17, 2023-12-31, 2025-04-30
     ver-0.9.24          :a18, 2025-04-30, 2025-06-30
-    ver-0.9.30          :a19, 2025-06-30, 2025-09-30
-    ver-1.0.0           :v1, 2025-09-30, 2025-12-31
+    ver-0.9.26          :a19, 2025-06-30, 2025-08-31
+    ver-0.9.30          :a20, 2025-08-31, 2025-10-31
+    ver-1.0.0           :v1, 2025-10-31, 2025-12-31
 ```
-
-# Release Notes
-
-- [Version 0.9.24](#version-0924)
-- [Version 0.9.22](#version-0922)
-- [Version 0.9.20](#version-0920)
-- [Version 0.9.19](#version-0919)
-- [Version 0.9.18](#version-0918)
-- [Version 0.9.17](#version-0917)
-- [Version 0.9.16](#version-0916)
-- [Version 0.9.15](#version-0915)
-- [Version 0.9.14](#version-0914)
-- [Version 0.9.13](#version-0913)
-- [Version 0.9.12](#version-0912)
-- [Version 0.9.10](#version-0910)
-- [Version 0.9.8](#version-098)
-- [Version 0.9.6](#version-096)
-- [Version 0.9.5](#version-095)
-- [Version 0.9.4](#version-094)
-- [Version 0.9.2](#version-092)
-- [Version 0.9.0](#version-090)
-- [Version 0.8.2](#version-082)
-- [Version 0.8.0](#version-080)
 
 ## Version 0.9.24
 
