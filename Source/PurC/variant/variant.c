@@ -4151,12 +4151,15 @@ purc_variant_get_memory_size(purc_variant_t v)
         case PURC_VARIANT_TYPE_UNDEFINED:
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
-        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
+            memsize = sizeof(purc_variant_ord);
+            break;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
             break;
 
         case PURC_VARIANT_TYPE_STRING:

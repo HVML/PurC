@@ -45,7 +45,7 @@
 #include <sstream>
 #include <gtest/gtest.h>
 
-extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
+extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv_ord, size_t *resv_out);
 #define MAX_PARAM_NR    20
 
 struct dvobjs_math_method_d
@@ -100,10 +100,12 @@ TEST(dvobjs, dvobjs_math_pi_e)
     long double numberl;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -111,7 +113,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -161,10 +163,12 @@ TEST(dvobjs, dvobjs_math_pi_e)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -308,10 +312,12 @@ TEST(dvobjs, dvobjs_math_const)
     long double numberl;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
 
     purc_instance_extra_info info = {};
@@ -320,7 +326,7 @@ TEST(dvobjs, dvobjs_math_const)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -433,10 +439,12 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -649,10 +657,12 @@ TEST(dvobjs, dvobjs_math_func)
     long double numberl;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -660,7 +670,7 @@ TEST(dvobjs, dvobjs_math_func)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -712,10 +722,12 @@ TEST(dvobjs, dvobjs_math_func)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -728,10 +740,12 @@ TEST(dvobjs, dvobjs_math_eval)
     long double numberl;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -739,7 +753,7 @@ TEST(dvobjs, dvobjs_math_eval)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -841,10 +855,12 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -853,10 +869,12 @@ TEST(dvobjs, dvobjs_math_assignment)
 {
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -864,7 +882,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -895,10 +913,12 @@ TEST(dvobjs, dvobjs_math_assignment)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -926,10 +946,12 @@ TEST(dvobjs, dvobjs_math_samples)
     purc_variant_t param[MAX_PARAM_NR];
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -937,7 +959,7 @@ TEST(dvobjs, dvobjs_math_samples)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
@@ -985,10 +1007,12 @@ TEST(dvobjs, dvobjs_math_samples)
     purc_variant_unload_dvobj (math);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
