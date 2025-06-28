@@ -447,7 +447,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     struct purc_variant_stat *stat = &(heap->stat);
 
     if (is_type_ordinary(type)) {
-        if (heap->headpos == heap->tailpos) {
+        if (MAX_RESERVED_VARIANTS == 0 || heap->headpos == heap->tailpos) {
             // no reserved, allocate one
             value = pcvariant_alloc_0(true);
             if (value == NULL)
@@ -513,7 +513,8 @@ void pcvariant_put(purc_variant_t value)
     stat->nr_total_values--;
 
     if (is_variant_ordinary(value)) {
-        if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
+        if (MAX_RESERVED_VARIANTS == 0 ||
+                (heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
             stat->sz_mem[value->type] -= sizeof(purc_variant_ord);
             stat->sz_total_mem -= sizeof(purc_variant_ord);
 
