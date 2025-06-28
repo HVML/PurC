@@ -204,8 +204,9 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 (size_t)v->sz_ptr[0],
                 v->extra_size);
 
-        retv = pcvariant_alloc(is_variant_ordinary(v));
-        memcpy(retv, v, sizeof(*retv));
+        bool ordinary = is_variant_ordinary(v);
+        retv = pcvariant_alloc(ordinary);
+        memcpy(retv, v, ordinary ? sizeof(purc_variant_ord) : sizeof(*v));
         retv->refc = 1;
 
         /* copy the extra space */

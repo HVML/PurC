@@ -165,7 +165,7 @@ static void _cleanup_instance(struct pcinst *inst)
     if (heap == NULL)
         return;
 
-    for (int i = 0; i < MAX_RESERVED_VARIANTS; i++) {
+    for (size_t i = 0; i < heap->stat.nr_max_reserved_ord; i++) {
         if (heap->v_reserved_ord[i]) {
             pcvariant_free(heap->v_reserved_ord[i]);
             heap->v_reserved_ord[i] = NULL;
@@ -448,7 +448,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     struct purc_variant_stat *stat = &(heap->stat);
 
     if (is_type_ordinary(type)) {
-        if (MAX_RESERVED_VARIANTS == 0 || heap->headpos == heap->tailpos) {
+        if (stat->nr_reserved_ord == 0) {
             // no reserved, allocate one
             value = pcvariant_alloc_0(true);
             if (value == NULL)
@@ -461,7 +461,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
             value = heap->v_reserved_ord[heap->tailpos];
             // VWNOTE: set the slot as NULL
             heap->v_reserved_ord[heap->tailpos] = NULL;
-            heap->tailpos = (heap->tailpos + 1) % MAX_RESERVED_VARIANTS;
+            heap->tailpos = (heap->tailpos + 1) % stat->nr_max_reserved_ord;
 
             /* VWNOTE: do not forget to set nr_reserved_ord. */
             stat->nr_reserved_ord--;
@@ -514,8 +514,7 @@ void pcvariant_put(purc_variant_t value)
     stat->nr_total_values--;
 
     if (is_variant_ordinary(value)) {
-        if (MAX_RESERVED_VARIANTS == 0 ||
-                (heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
+        if (stat->nr_reserved_ord == stat->nr_max_reserved_ord) {
             stat->sz_mem[value->type] -= sizeof(purc_variant_ord);
             stat->sz_total_mem -= sizeof(purc_variant_ord);
 
@@ -523,14 +522,14 @@ void pcvariant_put(purc_variant_t value)
         }
         else {
             heap->v_reserved_ord[heap->headpos] = value;
-            heap->headpos = (heap->headpos + 1) % MAX_RESERVED_VARIANTS;
+            heap->headpos = (heap->headpos + 1) % stat->nr_max_reserved_ord;
 
             /* VWNOTE: do not forget to set nr_reserved_ord. */
             stat->nr_reserved_ord++;
         }
     }
     else {
-        if (stat->nr_reserved_out >= stat->nr_max_reserved_out) {
+        if (stat->nr_reserved_out == stat->nr_max_reserved_out) {
             stat->sz_mem[value->type] -= sizeof(purc_variant);
             stat->sz_total_mem -= sizeof(purc_variant);
 
