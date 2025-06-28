@@ -66,7 +66,7 @@ static void mvheap_cleanup_once(void)
     }
 
     PC_ASSERT(stat->nr_total_values == 4);
-    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant));
+    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant_ord));
 }
 
 static int mvheap_init_once(void)

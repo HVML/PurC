@@ -101,8 +101,9 @@ purc_variant *pcvariant_alloc(bool ordinary) {
 }
 
 purc_variant *pcvariant_alloc_0(bool ordinary) {
-    if (ordinary)
+    if (ordinary) {
         return (purc_variant *)g_slice_alloc0(sizeof(purc_variant_ord));
+    }
     return (purc_variant *)g_slice_alloc0(sizeof(purc_variant));
 }
 
