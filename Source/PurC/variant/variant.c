@@ -485,14 +485,14 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
             /* VWNOTE: do not forget to set nr_reserved_out. */
             stat->nr_reserved_out--;
         }
+
+        // init listeners
+        INIT_LIST_HEAD(&value->listeners);
     }
 
     // set stat information
     stat->nr_values[type]++;
     stat->nr_total_values++;
-
-    // init listeners
-    INIT_LIST_HEAD(&value->listeners);
 
     return value;
 }
