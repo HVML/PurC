@@ -140,18 +140,12 @@ struct purc_variant {
         /* for exception and atom string */
         purc_atom_t atom;
 
-        /* for arbitrary precision integer or float */
-        void       *ptr;
-
-        /* for long double */
-        long double ld;
-
         /* for dynamic and native variant (two pointers)
            for native variant,
            ptr_ptr[0] stores the pointer to the native entity, and
            ptr_ptr[1] stores the ops that's bound to the class of
            such entity. */
-        void       *ptr_ptr[2];
+        void       *ptr_ptr[0];
 
         /* for long byte sequence, array, object, and set,
               - `sz_ptr[0]` stores the size in bytes;
@@ -165,11 +159,18 @@ struct purc_variant {
            for exception and atom string,
              - `sz_ptr[0]` should always be 0.
              - `sz_ptr[1]` stores the atom. */
-        uintptr_t   sz_ptr[2];
+        uintptr_t   sz_ptr[0];
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
         uint8_t     bytes[0];
+    };
+
+    /* space reserved for the second pointer-wide bytes */
+    union {
+        /* for long double */
+        long double ld;
+        uintptr_t   padding;
     };
 
     /* This field saves the extra data or extra size for variants.
