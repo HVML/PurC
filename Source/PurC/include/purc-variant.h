@@ -49,16 +49,34 @@ typedef struct purc_variant* purc_variant_t;
 PCA_EXTERN_C_BEGIN
 
 /**
- * purc_variant_wrapper_size:
+ * purc_variant_wrapper_size_ex:
  *
- * Gets the size of a variant wrapper.
+ * @ordinary: Indicate the category of a variant (ordinary or not).
+ *
+ * Gets the size of the wrapper of an ordinary or extraordinary variant.
  *
  * Returns: The size of a variant wrapper.
  *
  * Since: 0.1.1
  */
 PCA_EXPORT size_t
-purc_variant_wrapper_size(void);
+purc_variant_wrapper_size_ex(bool ordinary);
+
+/**
+ * purc_variant_wrapper_size:
+ *
+ * @ordinary: Indicate the category of a variant, ordinary or not.
+ *
+ * Gets the size of the wrapper of an extraordinary variant.
+ *
+ * Returns: The size of a variant wrapper.
+ *
+ * Since: 0.1.1
+ */
+static inline size_t
+purc_variant_wrapper_size(void) {
+    return purc_variant_wrapper_size_ex(false);
+}
 
 /**
  * purc_variant_ref_count:
@@ -3012,18 +3030,27 @@ typedef enum purc_variant_type {
     PURC_VARIANT_TYPE_NULL,
 #define PURC_VARIANT_TYPE_NAME_BOOLEAN      "boolean"
     PURC_VARIANT_TYPE_BOOLEAN,
-#define PURC_VARIANT_TYPE_NAME_EXCEPTION    "exception"
-    PURC_VARIANT_TYPE_EXCEPTION,
 #define PURC_VARIANT_TYPE_NAME_NUMBER       "number"
     PURC_VARIANT_TYPE_NUMBER,
 #define PURC_VARIANT_TYPE_NAME_LONGINT      "longint"
     PURC_VARIANT_TYPE_LONGINT,
 #define PURC_VARIANT_TYPE_NAME_ULONGINT     "ulongint"
     PURC_VARIANT_TYPE_ULONGINT,
-#define PURC_VARIANT_TYPE_NAME_LONGDOUBLE   "longdouble"
-    PURC_VARIANT_TYPE_LONGDOUBLE,
+#define PURC_VARIANT_TYPE_NAME_EXCEPTION    "exception"
+    PURC_VARIANT_TYPE_EXCEPTION,
 #define PURC_VARIANT_TYPE_NAME_ATOMSTRING   "atomstring"
     PURC_VARIANT_TYPE_ATOMSTRING,
+
+    /* the above types are considered as ordinary ones:
+       bit-width is LE 64, no extra size, and without change events. */
+    PURC_VARIANT_TYPE_LAST_ORDINARY = PURC_VARIANT_TYPE_ATOMSTRING,
+
+#define PURC_VARIANT_TYPE_NAME_LONGDOUBLE   "longdouble"
+    PURC_VARIANT_TYPE_LONGDOUBLE,
+#define PURC_VARIANT_TYPE_NAME_BIGINT       "bigint"
+    // PURC_VARIANT_TYPE_BIGINT,
+#define PURC_VARIANT_TYPE_NAME_BIGFLOAT     "bigfloat"
+    // PURC_VARIANT_TYPE_BIGFLOAT,
 #define PURC_VARIANT_TYPE_NAME_STRING       "string"
     PURC_VARIANT_TYPE_STRING,
 #define PURC_VARIANT_TYPE_NAME_BYTESEQUENCE "bsequence"
@@ -3032,6 +3059,7 @@ typedef enum purc_variant_type {
     PURC_VARIANT_TYPE_DYNAMIC,
 #define PURC_VARIANT_TYPE_NAME_NATIVE       "native"
     PURC_VARIANT_TYPE_NATIVE,
+
 #define PURC_VARIANT_TYPE_NAME_OBJECT       "object"
     PURC_VARIANT_TYPE_OBJECT,
 #define PURC_VARIANT_TYPE_NAME_ARRAY        "array"
@@ -3415,8 +3443,8 @@ struct purc_variant_stat {
     size_t sz_mem[PURC_VARIANT_TYPE_NR];
     size_t nr_total_values;
     size_t sz_total_mem;
-    size_t nr_reserved;
-    size_t nr_max_reserved;
+    size_t nr_reserved_ord, nr_reserved_out;            // Since 0.9.26
+    size_t nr_max_reserved_ord, nr_max_reserved_out;    // Since 0.9.26
 };
 
 /**

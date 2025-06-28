@@ -4,7 +4,7 @@
  * @date 2021/07/02
  * @brief The internal interfaces for variant.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -128,9 +128,6 @@ struct purc_variant {
         /* for boolean */
         bool        b;
 
-        /* for exception and atom string */
-        purc_atom_t atom;
-
         /* for number */
         double      d;
 
@@ -139,6 +136,12 @@ struct purc_variant {
 
         /* for unsigned long integer */
         uint64_t    u64;
+
+        /* for exception and atom string */
+        purc_atom_t atom;
+
+        /* for arbitrary precision integer or float */
+        void       *ptr;
 
         /* for long double */
         long double ld;
@@ -174,6 +177,17 @@ struct purc_variant {
     union {
         void               *extra_data; /* for native entity */
         size_t              extra_size; /* for other variants */
+
+        /* other aliases */
+        uintptr_t           extra_uintptr;
+        intptr_t            extra_intptr;
+
+        /* the real length of `extra_bytes` is `sizeof(void*)` */
+        uint8_t             extra_bytes[0];
+        /* the real length of `extra_words` is `sizeof(void*) / 2` */
+        uint16_t            extra_words[0];
+        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
+        uint32_t            extra_dwords[0];
     };
 
     union {
@@ -183,34 +197,14 @@ struct purc_variant {
         /* the list node for reserved variants. */
         struct list_head    reserved;
     };
-
-#if 0                   /* removed since 0.9.24 */
-    /* XXX: Keep the order, so that we can use the variant structure
-       to store a tuple with 3 or less elements without any extra space.  */
-    union {
-        /* union fields for extra information of the variant. */
-        uintptr_t           extra_uintptr;
-        intptr_t            extra_intptr;
-        void               *extra_data;
-
-        /* other aliases */
-        /* the real length of `extra_bytes` is `sizeof(void*)` */
-        uint8_t             extra_bytes[0];
-        /* the real length of `extra_words` is `sizeof(void*) / 2` */
-        uint16_t            extra_words[0];
-        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
-        uint32_t            extra_dwords[0];
-    };
-#endif
 };
 
 #define SZ_SPACE_IN_WRAPPER     \
     (MAX(sizeof(long double), sizeof(void *) * 2) + sizeof(void *))
 
-/* Use this structure for scalar variants, like undefined, null,
-   boolean, number, longint, ulongint, exception, atom, and
-   arbitrary precision integer or float number. */
-struct purc_variant_scalar {
+/* Use this structure for oridinary variants, like undefined, null,
+   boolean, number, longint, ulongint, exception, and atom. */
+struct purc_variant_ord {
     unsigned int type:8;
     unsigned int size:8;
     unsigned int flags:16;
@@ -221,9 +215,6 @@ struct purc_variant_scalar {
         /* for boolean */
         bool        b;
 
-        /* for exception and atom string */
-        purc_atom_t atom;
-
         /* for number */
         double      d;
 
@@ -233,37 +224,30 @@ struct purc_variant_scalar {
         /* for unsigned long integer */
         uint64_t    u64;
 
-        /* for long double */
-        long double ld;
-
-        /* for arbitrary precision integer or float */
-        void       *ptr;
-
-        /* for easy visiting the byets */
-        uint8_t     bytes[0];
+        /* for exception or atom string */
+        purc_atom_t atom;
     };
 };
 
-#define USE_LOOP_BUFFER_FOR_RESERVED    0
+typedef struct purc_variant_ord purc_variant_ord;
 
 struct pcvariant_heap {
     // the constant values.
-    struct purc_variant v_undefined;
-    struct purc_variant v_null;
-    struct purc_variant v_false;
-    struct purc_variant v_true;
+    struct purc_variant_ord v_undefined;
+    struct purc_variant_ord v_null;
+    struct purc_variant_ord v_false;
+    struct purc_variant_ord v_true;
 
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
-#if USE(LOOP_BUFFER_FOR_RESERVED)
-    // the loop buffer for reserved values.
-    purc_variant_t      v_reserved[MAX_RESERVED_VARIANTS];
+    // the loop buffer for reserved ordinary variants.
+    purc_variant_t      v_reserved_ord[MAX_RESERVED_VARIANTS];
     int                 headpos;
     int                 tailpos;
-#else
+
+    // use linked loop list for other reserved variants.
     struct list_head    v_reserved;
-#endif
 };
 
 // internal interfaces for moving variant.
@@ -273,8 +257,16 @@ purc_variant_t pcvariant_move_heap_out(purc_variant_t v) WTF_INTERNAL;
 void pcvariant_use_move_heap(void) WTF_INTERNAL;
 void pcvariant_use_norm_heap(void) WTF_INTERNAL;
 
-purc_variant *pcvariant_alloc(void) WTF_INTERNAL;
-purc_variant *pcvariant_alloc_0(void) WTF_INTERNAL;
+static inline bool is_type_ordinary(enum purc_variant_type type) {
+    return (type <= PURC_VARIANT_TYPE_LAST_ORDINARY) ? true : false;
+}
+
+static inline bool is_variant_ordinary(purc_variant *v) {
+    return (v->type <= PURC_VARIANT_TYPE_LAST_ORDINARY) ? true : false;
+}
+
+purc_variant *pcvariant_alloc(bool ordinary) WTF_INTERNAL;
+purc_variant *pcvariant_alloc_0(bool ordinary) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 struct pcinst;
@@ -426,14 +418,6 @@ purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 
 WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
-
-#if 0       // Since 0.9.22: obsolete
-extern purc_atom_t pcvariant_atom_inflated;
-extern purc_atom_t pcvariant_atom_deflated;
-extern purc_atom_t pcvariant_atom_modified;
-// extern purc_atom_t pcvariant_atom_reference;
-// extern purc_atom_t pcvariant_atom_unreference;
-#endif
 
 bool pcvariant_is_mutable(purc_variant_t val);
 

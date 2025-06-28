@@ -34,7 +34,7 @@ TEST(variant, pcvariant_init_once)
 {
     purc_instance_extra_info info = {};
     int i = 0;
-    size_t size = sizeof(purc_variant);
+    size_t size = sizeof(purc_variant_ord);
     int ret = 0;
     bool cleanup = false;
 
@@ -63,8 +63,10 @@ TEST(variant, pcvariant_init_once)
 
     EXPECT_EQ (stat->nr_total_values, 4);
     EXPECT_EQ (stat->sz_total_mem, 4 * size);
-    EXPECT_EQ (stat->nr_reserved, 0);
-    EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
+    EXPECT_EQ (stat->nr_reserved_ord, 0);
+    EXPECT_EQ (stat->nr_reserved_out, 0);
+    EXPECT_EQ (stat->nr_max_reserved_ord, MAX_RESERVED_VARIANTS);
+    EXPECT_EQ (stat->nr_max_reserved_out, MAX_RESERVED_VARIANTS);
 
 
     cleanup = purc_cleanup ();
@@ -75,7 +77,7 @@ TEST(variant, pcvariant_init_10_times)
 {
     purc_instance_extra_info info = {};
     int i = 0;
-    size_t size = sizeof(purc_variant);
+    size_t size = sizeof(purc_variant_ord);
     int ret = 0;
     bool cleanup = false;
     int times = 0;
@@ -107,8 +109,10 @@ TEST(variant, pcvariant_init_10_times)
 
         EXPECT_EQ (stat->nr_total_values, 4);
         EXPECT_EQ (stat->sz_total_mem, 4 * size);
-        EXPECT_EQ (stat->nr_reserved, 0);
-        EXPECT_EQ (stat->nr_max_reserved, MAX_RESERVED_VARIANTS);
+        EXPECT_EQ (stat->nr_reserved_ord, 0);
+        EXPECT_EQ (stat->nr_reserved_out, 0);
+        EXPECT_EQ (stat->nr_max_reserved_ord, MAX_RESERVED_VARIANTS);
+        EXPECT_EQ (stat->nr_max_reserved_out, MAX_RESERVED_VARIANTS);
 
         cleanup = purc_cleanup ();
         ASSERT_EQ (cleanup, true);
@@ -1460,24 +1464,28 @@ TEST(variant, load_from_so)
 }
 #endif
 
-static void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
+static void get_variant_total_info (size_t *mem, size_t *value,
+        size_t *resv_ord, size_t *resv_out)
 {
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     *mem = stat->sz_total_mem;
     *value = stat->nr_total_values;
-    *resv = stat->nr_reserved;
+    *resv_ord = stat->nr_reserved_ord;
+    *resv_out = stat->nr_reserved_out;
 }
 
 TEST(variant, empty_object)
 {
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
@@ -1486,7 +1494,7 @@ TEST(variant, empty_object)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     value = purc_variant_make_object (0, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID);
@@ -1498,10 +1506,11 @@ TEST(variant, empty_object)
     purc_variant_unref (value);
 
     get_variant_total_info (&sz_total_mem_after, &sz_total_values_after,
-            &nr_reserved_after);
+            &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after
-                - nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
