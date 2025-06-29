@@ -3701,7 +3701,7 @@ closedir_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    argv[0]->ptr_ptr[0] = NULL;
+    argv[0]->ptr = NULL;
     return retv;
 
 failed:

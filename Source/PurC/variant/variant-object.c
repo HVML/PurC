@@ -123,7 +123,7 @@ changed(purc_variant_t obj,
 variant_obj_t
 pcvar_obj_get_data(purc_variant_t obj)
 {
-    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    variant_obj_t data = (variant_obj_t)obj->ptr2;
     return data;
 }
 
@@ -149,7 +149,7 @@ static purc_variant_t v_object_new_with_capacity(void)
 
     data->kvs = RB_ROOT;
 
-    var->sz_ptr[1]     = (uintptr_t)data;
+    var->ptr2     = data;
     var->refc          = 1;
 
     size_t extra = OBJ_EXTRA_SIZE(data);
@@ -767,7 +767,7 @@ void pcvariant_object_release (purc_variant_t value)
 
     free(data);
 
-    value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
+    value->ptr2 = NULL; // say no to double free
 
     pcvariant_stat_set_extra_size(value, 0);
 }
@@ -799,7 +799,7 @@ purc_variant_object_get_by_ckey_ex(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
-        obj->sz_ptr[1] && key),
+        obj->ptr2 && key),
         PURC_VARIANT_INVALID);
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -843,7 +843,7 @@ bool purc_variant_object_set (purc_variant_t obj,
     purc_variant_t key, purc_variant_t value)
 {
     PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
-        obj->sz_ptr[1] && key && value,
+        obj->ptr2 && key && value,
         false);
 
     bool check = true;
@@ -857,7 +857,7 @@ purc_variant_object_remove_by_ckey(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
-        obj->sz_ptr[1] && key,
+        obj->ptr2 && key,
         false);
 
     bool check = true;
@@ -871,7 +871,7 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
 {
     PC_ASSERT(obj && sz);
 
-    PCVRNT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
+    PCVRNT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->ptr2,
         false);
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -888,7 +888,7 @@ struct pcvrnt_object_iterator*
 pcvrnt_object_iterator_create_begin (purc_variant_t object)
 {
     PCVRNT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
-        object->sz_ptr[1]),
+        object->ptr2),
         NULL);
 
     variant_obj_t data = pcvar_obj_get_data(object);
@@ -913,7 +913,7 @@ pcvrnt_object_iterator_create_begin (purc_variant_t object)
 struct pcvrnt_object_iterator*
 pcvrnt_object_iterator_create_end (purc_variant_t object) {
     PCVRNT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
-        object->sz_ptr[1]),
+        object->ptr2),
         NULL);
 
     variant_obj_t data = pcvar_obj_get_data(object);
@@ -1037,7 +1037,7 @@ pcvar_object_break_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
 
-    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    variant_obj_t data = (variant_obj_t)obj->ptr2;
     if (!data)
         return;
 
@@ -1060,7 +1060,7 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(purc_variant_is_object(obj));
-    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    variant_obj_t data = (variant_obj_t)obj->ptr2;
     if (!data)
         return;
 
@@ -1074,7 +1074,7 @@ int
 pcvar_object_build_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
-    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    variant_obj_t data = (variant_obj_t)obj->ptr2;
     if (!data)
         return 0;
 
@@ -1103,7 +1103,7 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(purc_variant_is_object(obj));
-    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    variant_obj_t data = (variant_obj_t)obj->ptr2;
     if (!data)
         return 0;
 

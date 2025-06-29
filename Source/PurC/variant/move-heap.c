@@ -201,7 +201,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
                 purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL,
-                (size_t)v->sz_ptr[0],
+                (size_t)v->len,
                 v->extra_size);
 
         bool ordinary = is_variant_ordinary(v);
@@ -214,8 +214,8 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
                 (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
 
-            retv->sz_ptr[1] = (uintptr_t)malloc(v->extra_size);
-            memcpy((void *)retv->sz_ptr[1], (void *)v->sz_ptr[1], v->extra_size);
+            retv->ptr2 = malloc(v->extra_size);
+            memcpy(retv->ptr2, v->ptr2, v->extra_size);
 
             move_heap.stat.sz_mem[v->type] += v->extra_size;
             move_heap.stat.sz_total_mem += v->extra_size;

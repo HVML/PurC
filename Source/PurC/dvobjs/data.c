@@ -2210,7 +2210,7 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ssize_t sz = purc_variant_set_get_size(argv[0]);
 
         if (sz > 1) {
-            variant_set_t data = (variant_set_t)argv[0]->sz_ptr[1];
+            variant_set_t data = (variant_set_t)argv[0]->ptr2;
             struct pcutils_array_list *al;
             al = &data->al;
             size_t nr = pcutils_array_list_length(al);

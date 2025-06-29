@@ -96,13 +96,13 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 #if HAVE(GLIB)
 purc_variant *pcvariant_alloc(bool ordinary) {
     if (ordinary)
-        return (purc_variant *)g_slice_alloc(sizeof(purc_variant_ord));
+        return (purc_variant *)(void *)g_slice_alloc(sizeof(purc_variant_ord));
     return (purc_variant *)g_slice_alloc(sizeof(purc_variant));
 }
 
 purc_variant *pcvariant_alloc_0(bool ordinary) {
     if (ordinary) {
-        return (purc_variant *)g_slice_alloc0(sizeof(purc_variant_ord));
+        return (purc_variant *)(void *)g_slice_alloc0(sizeof(purc_variant_ord));
     }
     return (purc_variant *)g_slice_alloc0(sizeof(purc_variant));
 }
@@ -118,14 +118,14 @@ void pcvariant_free(purc_variant *v) {
 #else
 purc_variant *pcvariant_alloc(bool ordinary) {
     if (ordinary)
-        return (purc_variant *)malloc(sizeof(purc_variant_ord));
+        return (purc_variant *)(void *)malloc(sizeof(purc_variant_ord));
 
     return (purc_variant *)malloc(sizeof(purc_variant));
 }
 
 purc_variant *pcvariant_alloc_0(void) {
     if (ordinary)
-        return (purc_variant *)calloc(1, sizeof(purc_variant_ord));
+        return (purc_variant *)(void *)calloc(1, sizeof(purc_variant_ord));
 
     return (purc_variant *)calloc(1, sizeof(purc_variant));
 }
@@ -693,12 +693,12 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (v1->flags & PCVRNT_FLAG_STATIC_DATA) {
-                str1 = (const char*)v1->sz_ptr[1];
-                len1 = v1->sz_ptr[0];
+                str1 = (const char*)v1->ptr2;
+                len1 = v1->len;
             }
             else if (v1->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                str1 = (const char*)v1->sz_ptr[1];
-                len1 = v1->sz_ptr[0];
+                str1 = (const char*)v1->ptr2;
+                len1 = v1->len;
             }
             else {
                 str1 = (const char*)v1->bytes;
@@ -706,12 +706,12 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
             }
 
             if (v2->flags & PCVRNT_FLAG_STATIC_DATA) {
-                str2 = (const char*)v2->sz_ptr[1];
-                len2 = v2->sz_ptr[0];
+                str2 = (const char*)v2->ptr2;
+                len2 = v2->len;
             }
             else if (v2->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                str2 = (const char*)v2->sz_ptr[1];
-                len2 = v2->sz_ptr[0];
+                str2 = (const char*)v2->ptr2;
+                len2 = v2->len;
             }
             else {
                 str2 = (const char*)v2->bytes;
@@ -722,7 +722,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-            return memcmp(v1->ptr_ptr, v2->ptr_ptr, sizeof(void *) * 2) == 0;
+            return v1->ptr == v2->ptr && v1->ptr2 == v2->ptr2;
 
         case PURC_VARIANT_TYPE_OBJECT:
             return equal_objects(v1, v2);
@@ -915,12 +915,12 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -937,12 +937,12 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1087,12 +1087,12 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1109,12 +1109,12 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1255,12 +1255,12 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1277,12 +1277,12 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1424,12 +1424,12 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1446,12 +1446,12 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1554,12 +1554,12 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1576,12 +1576,12 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1677,12 +1677,12 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1699,12 +1699,12 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
                 break;
 
             if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                bytes = (void*)v->sz_ptr[1];
+                bytes = (void*)v->ptr2;
                 sz = strlen((const char*)bytes);
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                bytes = (void*)v->sz_ptr[1];
-                sz = v->sz_ptr[0];
+                bytes = (void*)v->ptr2;
+                sz = v->len;
             }
             else {
                 bytes = (void*)v->bytes;
@@ -1765,12 +1765,12 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (v->type == PURC_VARIANT_TYPE_STRING &&
                     v->flags & PCVRNT_FLAG_STATIC_DATA) {
-                *bytes = (void*)v->sz_ptr[1];
-                *sz = v->sz_ptr[0]; // strlen((const char*)*bytes) + 1;
+                *bytes = (void*)v->ptr2;
+                *sz = v->len; // strlen((const char*)*bytes) + 1;
             }
             else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                *bytes = (void*)v->sz_ptr[1];
-                *sz = v->sz_ptr[0];
+                *bytes = (void*)v->ptr2;
+                *sz = v->len;
             }
             else {
                 *bytes = (void*)v->bytes;
@@ -2225,10 +2225,10 @@ numerify_dynamic(purc_variant_t value)
 static double
 numerify_native(purc_variant_t value)
 {
-    void *native = value->ptr_ptr[0];
+    void *native = value->ptr;
 
     struct purc_native_ops *ops;
-    ops = (struct purc_native_ops*)value->ptr_ptr[1];
+    ops = (struct purc_native_ops*)value->ptr2;
 
     if (!ops || !ops->property_getter)
         return 0.0;
@@ -2407,10 +2407,10 @@ booleanize_dynamic(purc_variant_t value)
 static bool
 booleanize_native(purc_variant_t value)
 {
-    void *native = value->ptr_ptr[0];
+    void *native = value->ptr;
 
     struct purc_native_ops *ops;
-    ops = (struct purc_native_ops*)value->ptr_ptr[1];
+    ops = (struct purc_native_ops*)value->ptr2;
 
     if (!ops || !ops->property_getter)
         return false;
@@ -3154,8 +3154,8 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r,
     int diff;
 
     variant_obj_t ld, rd;
-    ld = (variant_obj_t)l->sz_ptr[1];
-    rd = (variant_obj_t)r->sz_ptr[1];
+    ld = (variant_obj_t)l->ptr2;
+    rd = (variant_obj_t)r->ptr2;
     PC_ASSERT(ld);
     PC_ASSERT(rd);
     struct rb_root *lroot = &ld->kvs;
@@ -3206,8 +3206,8 @@ cmp_by_arr(purc_variant_t l, purc_variant_t r,
     int diff;
 
     variant_arr_t ld, rd;
-    ld = (variant_arr_t)l->sz_ptr[1];
-    rd = (variant_arr_t)r->sz_ptr[1];
+    ld = (variant_arr_t)l->ptr2;
+    rd = (variant_arr_t)r->ptr2;
     PC_ASSERT(ld);
     PC_ASSERT(rd);
 
@@ -3251,8 +3251,8 @@ cmp_by_set(purc_variant_t l, purc_variant_t r,
     int diff;
 
     variant_set_t ld, rd;
-    ld = (variant_set_t)l->sz_ptr[1];
-    rd = (variant_set_t)r->sz_ptr[1];
+    ld = (variant_set_t)l->ptr2;
+    rd = (variant_set_t)r->ptr2;
     PC_ASSERT(ld);
     PC_ASSERT(rd);
 
@@ -3441,10 +3441,10 @@ atom_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
 static int
 bs_diff(purc_variant_t l, purc_variant_t r)
 {
-    const unsigned char *lb = (const unsigned char*)l->sz_ptr[1];
-    const unsigned char *rb = (const unsigned char*)r->sz_ptr[1];
-    size_t ln = l->sz_ptr[0];
-    size_t rn = r->sz_ptr[0];
+    const unsigned char *lb = (const unsigned char*)l->ptr2;
+    const unsigned char *rb = (const unsigned char*)r->ptr2;
+    size_t ln = l->len;
+    size_t rn = r->len;
 
     size_t n = ln < rn ? ln : rn;
 
@@ -3462,14 +3462,14 @@ static int
 dynamic_diff(purc_variant_t l, purc_variant_t r)
 {
     // NOTE: compare by addresses
-    return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2);
+    return l->ptr == r->ptr && l->ptr2 == r->ptr2;
 }
 
 static int
 native_diff(purc_variant_t l, purc_variant_t r)
 {
     // NOTE: compare by addresses
-    return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2);
+    return l->ptr == r->ptr && l->ptr2 == r->ptr2;
 }
 
 static int
@@ -3584,11 +3584,11 @@ stringify(char *buf, size_t len, purc_variant_t v)
 
         case PURC_VARIANT_TYPE_DYNAMIC:
             nr = snprintf(buf, len, "<dynamic: %p, %p>",
-                    v->ptr_ptr[0], v->ptr_ptr[1]);
+                    v->ptr, v->ptr2);
             break;
 
         case PURC_VARIANT_TYPE_NATIVE:
-            nr = snprintf(buf, len, "<native: %p>", v->ptr_ptr[0]);
+            nr = snprintf(buf, len, "<native: %p>", v->ptr);
             break;
 
         default:
@@ -3777,19 +3777,19 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
 
         case PURC_VARIANT_TYPE_BSEQUENCE:
             // NOTE: caseless is ignored
-            lb = (const unsigned char*)l->sz_ptr[1];
-            rb = (const unsigned char*)r->sz_ptr[1];
-            if (l->sz_ptr[0] < r->sz_ptr[0]) {
-                diff = memcmp(lb, rb, l->sz_ptr[0]);
+            lb = (const unsigned char*)l->ptr2;
+            rb = (const unsigned char*)r->ptr2;
+            if (l->len < r->len) {
+                diff = memcmp(lb, rb, l->len);
                 if (diff)
                     return diff;
                 return -1;
             }
-            else if (l->sz_ptr[0] == r->sz_ptr[0]) {
-                return memcmp(lb, rb, l->sz_ptr[0]);
+            else if (l->len == r->len) {
+                return memcmp(lb, rb, l->len);
             }
             else {
-                diff = memcmp(lb, rb, l->sz_ptr[0]);
+                diff = memcmp(lb, rb, l->len);
                 if (diff)
                     return diff;
                 return 1;
@@ -3798,7 +3798,7 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
             // NOTE: compare by addresses
-            return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2) == 0;
+            return l->ptr == r->ptr && l->ptr2 == r->ptr2;
 
         case PURC_VARIANT_TYPE_OBJECT:
             return cmp_by_obj(l, r, caseless, unify_number);

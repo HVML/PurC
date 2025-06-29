@@ -956,8 +956,8 @@ TEST(variant, pcvariant_dynamic)
     // expected: get the dynamic variant with valid pointer
     value = purc_variant_make_dynamic (getter, setter);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    ASSERT_EQ(value->ptr_ptr[0], getter);
-    ASSERT_EQ(value->ptr_ptr[1], setter);
+    ASSERT_EQ(value->ptr, getter);
+    ASSERT_EQ(value->ptr2, setter);
     purc_variant_unref(value);
 
     // create dynamic variant with setting getter pointer to null
@@ -1038,7 +1038,10 @@ TEST(variant, pcvariant_loopbuffer_one)
     int times = 0;
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
-    const char long_str[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    const char long_str[] = "一二三四五六七八九十百千万亿兆京垓秭穰沟涧正载";
+                        // Since 0.9.26, the size in the variant wrapper for
+                        // a string or byte sequence is 48 bytes
+
     size_t old_size = 0;
     size_t new_size = 0;
     size_t block = sizeof(purc_variant);

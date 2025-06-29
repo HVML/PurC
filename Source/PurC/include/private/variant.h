@@ -128,6 +128,9 @@ struct purc_variant {
         /* for boolean */
         bool        b;
 
+        /* for exception and atom string (uint32_t) */
+        purc_atom_t atom;
+
         /* for number */
         double      d;
 
@@ -137,71 +140,56 @@ struct purc_variant {
         /* for unsigned long integer */
         uint64_t    u64;
 
-        /* for exception and atom string */
-        purc_atom_t atom;
+        /* for native variant, the pointer to the native entity;
+           for dynamic variant, the pointer to the getter.  */
+        void       *ptr;
 
-        /* for dynamic and native variant (two pointers)
-           for native variant,
-           ptr_ptr[0] stores the pointer to the native entity, and
-           ptr_ptr[1] stores the ops that's bound to the class of
-           such entity. */
-        void       *ptr_ptr[0];
-
-        /* for long byte sequence, array, object, and set,
-              - `sz_ptr[0]` stores the size in bytes;
-              - `sz_ptr[1]` stores the pointer.
-
-           for long string,
-              - `sz_ptr[0]` stores the length in bytes
-                (including the terminating null byte);
-              - `sz_ptr[1]` stores the pointer.
-
-           for exception and atom string,
-             - `sz_ptr[0]` should always be 0.
-             - `sz_ptr[1]` stores the atom. */
-        uintptr_t   sz_ptr[0];
+        /* for array, object, and set: the number of children;
+           for long byte sequence, the length in bytes;
+           for long string, the length in bytes
+           (including the terminating null byte) */
+        size_t      len;
 
         /* for short string and byte sequence; the real space size of `bytes`
-           is `max(sizeof(long double), sizeof(void*) * 2)` */
+           is `SZ_SPACE_IN_WRAPPER` (see below) */
         uint8_t     bytes[0];
     };
 
-    /* space reserved for the second pointer-wide bytes */
     union {
-        /* for long double */
-        long double ld;
-        uintptr_t   padding;
+        long double     ld;         // for long double
+        void           *ptr2;       // for native entity: ops
+                                    // for dynamic variant: setter
     };
 
-    /* This field saves the extra data or extra size for variants.
-       Since 0.9.24. */
     union {
-        void               *extra_data; /* for native entity */
-        size_t              extra_size; /* for other variants */
+        void           *extra_data; // for native entity only.
+        size_t          extra_size; // for other out of ordinary variants
+                                    // which use extra memory space.
 
         /* other aliases */
-        uintptr_t           extra_uintptr;
-        intptr_t            extra_intptr;
+        uintptr_t       extra_uintptr;
+        intptr_t        extra_intptr;
 
-        /* the real length of `extra_bytes` is `sizeof(void*)` */
-        uint8_t             extra_bytes[0];
-        /* the real length of `extra_words` is `sizeof(void*) / 2` */
-        uint16_t            extra_words[0];
-        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
-        uint32_t            extra_dwords[0];
+        uint8_t         extra_bytes[0]; // the real length of `extra_bytes`
+                                        // is `sizeof(long double)`
+
+        uint16_t        extra_words[0]; // the real length of `extra_words`
+                                        // is `sizeof(long double) / 2`.
+
+        uint32_t        extra_dwords[0];// the real length of `extra_dwords`
+                                        // is `sizeof(long double) / 4`.
     };
 
+    /* for observable or out of ordinary variants. */
     union {
-        /* the list head for listeners. */
-        struct list_head    listeners;
-
-        /* the list node for reserved variants. */
-        struct list_head    reserved;
+        struct list_head    listeners;  // the list head for listeners.
+        struct list_head    reserved;   // the list node for reserved variants.
     };
 };
 
-#define SZ_SPACE_IN_WRAPPER     \
-    (MAX(sizeof(long double), sizeof(void *) * 2) + sizeof(void *))
+#define SZ_SPACE_IN_WRAPPER                                         \
+    (sizeof(void *) + sizeof(long double) + sizeof(void *) * 2 +    \
+        sizeof(struct list_head))
 
 /* Use this structure for oridinary variants, like undefined, null,
    boolean, number, longint, ulongint, exception, and atom. */
@@ -216,6 +204,9 @@ struct purc_variant_ord {
         /* for boolean */
         bool        b;
 
+        /* for exception or atom string (uint32_t) */
+        purc_atom_t atom;
+
         /* for number */
         double      d;
 
@@ -225,8 +216,8 @@ struct purc_variant_ord {
         /* for unsigned long integer */
         uint64_t    u64;
 
-        /* for exception or atom string */
-        purc_atom_t atom;
+        /* for pointer */
+        void       *ptr;
     };
 };
 
@@ -456,17 +447,6 @@ pcvariant_array_clear(purc_variant_t array, bool silently);
 bool
 pcvariant_set_clear(purc_variant_t set, bool silently);
 
-static inline
-purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
-{
-    if (UNLIKELY(!(tuple && tuple->type == PVT(_TUPLE))))
-        return NULL;
-
-    variant_tuple_t data = (variant_tuple_t) tuple->sz_ptr[1];
-    *sz = (size_t)tuple->sz_ptr[0];
-    return data->members;
-}
-
 // md5 shall be at least 33 bytes long
 void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
     bool caseless, unsigned int serialize_flags) WTF_INTERNAL;
@@ -519,6 +499,17 @@ pcvariant_array_insert_another_after(purc_variant_t array, int idx,
 
 PCA_EXTERN_C_END
 
+static inline
+purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
+{
+    if (UNLIKELY(!(tuple && tuple->type == PVT(_TUPLE))))
+        return NULL;
+
+    variant_tuple_t data = (variant_tuple_t) tuple->ptr2;
+    *sz = (size_t)tuple->len;
+    return data->members;
+}
+
 #define PURC_VARIANT_SAFE_CLEAR(_v)             \
 do {                                            \
     if (_v != PURC_VARIANT_INVALID) {           \
@@ -538,7 +529,7 @@ do {                                            \
 
 // purc_variant_t _arr;
 #define variant_array_get_data(_arr)        \
-    &(((variant_arr_t)_arr->sz_ptr[1])->al)
+    &(((variant_arr_t)_arr->ptr2)->al)
 
 // purc_variant_t _arr;
 // struct arr_node *_p;
@@ -603,7 +594,7 @@ do {                                            \
 #define foreach_value_in_variant_object(_obj, _val)                 \
     do {                                                            \
         variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        _data = (variant_obj_t)_obj->ptr2;                          \
         struct rb_root *_root = &_data->kvs;                        \
         struct rb_node *_p = pcutils_rbtree_first(_root);           \
         for (; _p; _p = pcutils_rbtree_next(_p))                    \
@@ -617,7 +608,7 @@ do {                                            \
 #define foreach_key_value_in_variant_object(_obj, _key, _val)       \
     do {                                                            \
         variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        _data = (variant_obj_t)_obj->ptr2;                          \
         struct rb_root *_root = &_data->kvs;                        \
         struct rb_node *_p = pcutils_rbtree_first(_root);           \
         for (; _p; _p = pcutils_rbtree_next(_p))                    \
@@ -632,7 +623,7 @@ do {                                            \
 #define foreach_in_variant_object_safe_x(_obj, _key, _val)          \
     do {                                                            \
         variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        _data = (variant_obj_t)_obj->ptr2;                          \
         struct rb_root *_root = &_data->kvs;                        \
         struct rb_node *_p, *_next;                                 \
         for (_p = pcutils_rbtree_first(_root);                      \
@@ -650,7 +641,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct pcutils_array_list *_al;                                 \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _al = &_data->al;                                               \
         struct pcutils_array_list_node *_p;                             \
         for (_p = pcutils_array_list_get_first(_al);                    \
@@ -667,7 +658,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct pcutils_array_list *_al;                                 \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _al = &_data->al;                                               \
         struct pcutils_array_list_node *_p;                             \
         for (_p = pcutils_array_list_get_last(_al);                     \
@@ -684,7 +675,7 @@ do {                                            \
     do {                                                                      \
         variant_set_t _data;                                                  \
         struct pcutils_array_list *_al;                                       \
-        _data = (variant_set_t)_set->sz_ptr[1];                               \
+        _data = (variant_set_t)_set->ptr2;                                    \
         _al = &_data->al;                                                     \
         struct pcutils_array_list_node *_p, *_n;                              \
         for (_p = pcutils_array_list_get_first(_al);                          \
@@ -702,7 +693,7 @@ do {                                            \
     do {                                                                      \
         variant_set_t _data;                                                  \
         struct pcutils_array_list *_al;                                       \
-        _data = (variant_set_t)_set->sz_ptr[1];                               \
+        _data = (variant_set_t)_set->ptr2;                                    \
         _al = &_data->al;                                                     \
         struct pcutils_array_list_node *_p, *_n;                              \
         for (_p = pcutils_array_list_get_last(_al);                           \
@@ -720,7 +711,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct rb_node *_first;                                         \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _first = pcutils_rbtree_first(&_data->elems);                   \
         if (!_first)                                                    \
             break;                                                      \
@@ -737,7 +728,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct rb_node *_first;                                         \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _first = pcutils_rbtree_last(&_data->elems);                    \
         if (!_first)                                                    \
             break;                                                      \
@@ -754,7 +745,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct rb_node *_first;                                         \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _first = pcutils_rbtree_first(&_data->elems);                   \
         if (!_first)                                                    \
             break;                                                      \
@@ -771,7 +762,7 @@ do {                                            \
     do {                                                                \
         variant_set_t _data;                                            \
         struct rb_node *_last;                                          \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _data = (variant_set_t)_set->ptr2;                              \
         _last = pcutils_rbtree_last(&_data->elems);                     \
         if (!_last)                                                     \
             break;                                                      \
@@ -789,5 +780,6 @@ do {                                            \
      /* for (...) { */                                                  \
         }                                                               \
     } while (0)
+
 #endif  /* PURC_PRIVATE_VARIANT_H */
 

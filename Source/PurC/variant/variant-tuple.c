@@ -134,8 +134,8 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    vrt->sz_ptr[0] = (uintptr_t)argc;   /* real size of the tuple */
-    vrt->sz_ptr[1] = (uintptr_t)data;
+    vrt->len = argc;   /* real size of the tuple */
+    vrt->ptr2 = data;
 
     size_t inited = 0;
     if (argv) {
@@ -268,7 +268,7 @@ void pcvariant_tuple_release(purc_variant_t tuple)
         PURC_VARIANT_SAFE_CLEAR(members[n]);
     }
 
-    variant_tuple_t data = (variant_tuple_t) tuple->sz_ptr[1];
+    variant_tuple_t data = (variant_tuple_t) tuple->ptr2;
 
     if (data->rev_update_chain) {
         pcvar_destroy_rev_update_chain(data->rev_update_chain);
@@ -393,7 +393,7 @@ out:
 variant_tuple_t
 pcvar_tuple_get_data(purc_variant_t tuple)
 {
-    return (variant_tuple_t)tuple->sz_ptr[1];
+    return (variant_tuple_t)tuple->ptr2;
 }
 
 void

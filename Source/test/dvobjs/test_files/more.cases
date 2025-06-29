@@ -76,11 +76,11 @@ positive:
     0UL
 
 negative:
-    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁！', 'all', 0, 0)
+    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁，中国人民万岁万万岁！', 'all', 0, 0)
     TooLong
 
 negative:
-    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁！')
+    $DATA.append2bytesbuffer(bx, '中华人民共和国万岁万岁万万岁，中国人民万岁万万岁！')
     TooLong
 
 positive:
@@ -92,11 +92,11 @@ positive:
     21UL
 
 negative:
-    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'all', 0, 0)
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBDE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD, 'all', 0, 0)
     TooLong
 
 negative:
-    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD)
+    $DATA.append2bytesbuffer($RUNNER.myObj.myBuffer, bxE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBDE4B8ADE58D8EE4BABAE6B091E585B1E5928CE59BBD)
     TooLong
 
 positive:
