@@ -60,6 +60,23 @@ bool purc_is_valid_token(const char* token, int max_len)
     return true;
 }
 
+bool purc_is_valid_attribute_name(const char* attrname)
+{
+    int i;
+    int len = strlen(attrname);
+    
+    if (attrname[0] != '_' && !purc_isalpha(attrname [0]))
+        return false;
+
+    i = 1;
+    while (i < len && attrname[i]) {
+        if (!purc_isalnum(attrname[i]) && attrname[i] != '_' && attrname[i] != '-' && attrname[i] != ':')
+            return false;
+        i++;
+    }
+    return true;
+}
+
 bool purc_is_valid_loose_token(const char* token, int max_len)
 {
     int i;
@@ -73,7 +90,7 @@ bool purc_is_valid_loose_token(const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!purc_isalnum(token[i]) && token[i] != '_' && token[i] != '-' && token[i] != ':')
+        if (!purc_isalnum(token[i]) && token[i] != '_' && token[i] != '-')
             return false;
 
         i++;

@@ -260,6 +260,24 @@ purc_is_valid_token(const char *token, int max_len);
 PCA_EXPORT bool
 purc_is_valid_loose_token(const char *token, int max_len);
 
+
+/**
+ * Check whether a string is a valid html attribute.
+ *
+ * @param attrname: the pointer to the attribute's name string.
+ *
+ * Checks whether a html attribute name string is valid. According to PurCMC protocal,
+ * the identifier should be a html attribute name. can contain
+ * one or more `-` ':' ASCII characters.
+ *
+ *
+ * Returns: true for a valid loose token, otherwise false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool 
+purc_is_valid_attribute_name(const char* attrname);
+
 /**
  * Generate a global unique unsigned long long integer.
  *
@@ -1405,7 +1423,6 @@ purc_is_valid_identifier(const char *id)
 {
     return purc_is_valid_loose_token(id, PURC_LEN_IDENTIFIER);
 }
-
 
 /**@}*/
 

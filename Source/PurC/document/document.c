@@ -311,7 +311,7 @@ pcdoc_element_get_attribute(purc_document_t doc, pcdoc_element_t elem,
         const char *name, const char **val, size_t *len)
 {
     // must be a valid attribute name (without space characters)
-    if (!purc_is_valid_identifier(name))
+    if (!purc_is_valid_attribute_name(name))
         return -1;
 
     if (doc->ops->get_attribute) {
