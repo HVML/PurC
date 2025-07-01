@@ -152,10 +152,12 @@ move_variant_in(struct pcinst *inst, purc_variant_t v)
     move_heap.stat.nr_values[v->type]++;
     move_heap.stat.nr_total_values++;
 
-    inst->org_vrt_heap->stat.sz_mem[v->type] -= sizeof(purc_variant);
-    inst->org_vrt_heap->stat.sz_total_mem -= sizeof(purc_variant);
-    move_heap.stat.sz_mem[v->type] += sizeof(purc_variant);
-    move_heap.stat.sz_total_mem += sizeof(purc_variant);
+    size_t sz_wrapper =
+        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+    inst->org_vrt_heap->stat.sz_mem[v->type] -= sz_wrapper;
+    inst->org_vrt_heap->stat.sz_total_mem -= sz_wrapper;
+    move_heap.stat.sz_mem[v->type] += sz_wrapper;
+    move_heap.stat.sz_total_mem += sz_wrapper;
 }
 
 static purc_variant_t
@@ -205,8 +207,11 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 v->extra_size);
 
         bool ordinary = is_variant_ordinary(v);
+        size_t sz_wrapper =
+            ordinary?sizeof(purc_variant_ord):sizeof(purc_variant);
+
         retv = pcvariant_alloc(ordinary);
-        memcpy(retv, v, ordinary ? sizeof(purc_variant_ord) : sizeof(*v));
+        memcpy(retv, v, sz_wrapper);
         retv->refc = 1;
 
         /* copy the extra space */
@@ -223,8 +228,8 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
 
         move_heap.stat.nr_values[v->type]++;
         move_heap.stat.nr_total_values++;
-        move_heap.stat.sz_mem[v->type] += sizeof(purc_variant);
-        move_heap.stat.sz_total_mem += sizeof(purc_variant);
+        move_heap.stat.sz_mem[v->type] += sz_wrapper;
+        move_heap.stat.sz_total_mem += sz_wrapper;
     }
 
     return retv;
@@ -1000,10 +1005,12 @@ static void move_container_self_out(purc_variant_t v)
     move_heap.stat.nr_values[v->type]--;
     move_heap.stat.nr_total_values--;
 
-    inst->org_vrt_heap->stat.sz_mem[v->type] += sizeof(purc_variant);
-    inst->org_vrt_heap->stat.sz_total_mem += sizeof(purc_variant);
-    move_heap.stat.sz_mem[v->type] -= sizeof(purc_variant);
-    move_heap.stat.sz_total_mem -= sizeof(purc_variant);
+    size_t sz_wrapper =
+        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+    inst->org_vrt_heap->stat.sz_mem[v->type] += sz_wrapper;
+    inst->org_vrt_heap->stat.sz_total_mem += sz_wrapper;
+    move_heap.stat.sz_mem[v->type] -= sz_wrapper;
+    move_heap.stat.sz_total_mem -= sz_wrapper;
 }
 
 static purc_variant_t move_variant_out(purc_variant_t v);
@@ -1249,10 +1256,12 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     move_heap.stat.nr_values[v->type]--;
     move_heap.stat.nr_total_values--;
 
-    inst->org_vrt_heap->stat.sz_mem[v->type] += sizeof(purc_variant);
-    inst->org_vrt_heap->stat.sz_total_mem += sizeof(purc_variant);
-    move_heap.stat.sz_mem[v->type] -= sizeof(purc_variant);
-    move_heap.stat.sz_total_mem -= sizeof(purc_variant);
+    size_t sz_wrapper =
+        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+    inst->org_vrt_heap->stat.sz_mem[v->type] += sz_wrapper;
+    inst->org_vrt_heap->stat.sz_total_mem += sz_wrapper;
+    move_heap.stat.sz_mem[v->type] -= sz_wrapper;
+    move_heap.stat.sz_total_mem -= sz_wrapper;
 
     return retv;
 }

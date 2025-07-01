@@ -187,8 +187,8 @@ struct purc_variant {
     };
 };
 
-#define SZ_SPACE_IN_WRAPPER                                         \
-    (sizeof(void *) + sizeof(long double) + sizeof(void *) * 2 +    \
+#define SZ_SPACE_IN_WRAPPER                                     \
+    (sizeof(void *) + sizeof(long double) + sizeof(void *) +    \
         sizeof(struct list_head))
 
 /* Use this structure for oridinary variants, like undefined, null,
