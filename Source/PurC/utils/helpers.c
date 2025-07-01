@@ -73,7 +73,7 @@ bool purc_is_valid_loose_token(const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!purc_isalnum(token[i]) && token[i] != '_' && token[i] != '-')
+        if (!purc_isalnum(token[i]) && token[i] != '_' && token[i] != '-' && token[i] != ':')
             return false;
 
         i++;
