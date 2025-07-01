@@ -48,7 +48,7 @@
 
 #include "config.h"
 
-#if ENABLE(SCHEMA_LSQL)
+#if ENABLE(SCHEME_LSQL)
 
 #include <stdio.h>
 #include "NetworkDataTaskLsql.h"
@@ -710,4 +710,4 @@ void NetworkDataTaskLsql::parseSqlQuery(String sqlQuery)
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(SCHEMA_LSQL)
+#endif // ENABLE(SCHEME_LSQL)

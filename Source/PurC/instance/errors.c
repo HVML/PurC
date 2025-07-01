@@ -188,6 +188,8 @@ static const char *except_messages[] = {
     "ProtocolViolation",
     /* PURC_EXCEPT_TLS_FAILURE */
     "TLSFailure",
+    /* PURC_EXCEPT_ASSERTION_FAILED */
+    "AssertionFailed",
 };
 
 
@@ -285,6 +287,7 @@ backtrace_snapshot(struct pcinst *inst, const char *file, int line,
         bt->line      = line;
         bt->func      = func;
 
+#if 0
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
         bt->nr_stacks = backtrace(bt->c_stacks, PCA_TABLESIZE(bt->c_stacks));
@@ -295,6 +298,7 @@ backtrace_snapshot(struct pcinst *inst, const char *file, int line,
 #undef PRINT_ERRCODE
 #endif                             /* } */
 #endif                             /* } */
+#endif
         bt->refc = 1;
         return;
     } while (0);
@@ -442,6 +446,7 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg)
     }
 }
 
+#if 0
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
 static void
@@ -573,6 +578,7 @@ dump_stacks_ex(char **stacks, int nr_stacks, regex_t *regex)
     if (added)
         dump_stack_by_cmd(&level, cmd);
 }
+#endif
 #endif                             /* } */
 #endif                             /* } */
 
@@ -582,6 +588,7 @@ pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
     if (!bt)
         return;
 
+#if 0
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
     if (bt->nr_stacks == 0)
@@ -610,6 +617,7 @@ pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
     free(stacks);
 #endif                             /* } */
 #endif                             /* } */
+#endif
 }
 
 int

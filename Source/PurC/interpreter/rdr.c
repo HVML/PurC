@@ -360,6 +360,12 @@ pcintr_attach_to_renderer(struct pcrdr_conn *conn, pcintr_coroutine_t cor,
         goto failed;
     }
 
+    pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
+    if (!handle) {
+        pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
+    }
+
+
     assert(conn->caps);
 
     struct renderer_capabilities *rdr_caps = conn->caps;
@@ -766,7 +772,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
-        if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+        if (0 != pcdoc_serialize_fragment_to_stream(doc, NULL, opt, out)) {
             free(path);
             goto failed;
         }
@@ -818,7 +824,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
         opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
-        if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
+        if (0 != pcdoc_serialize_fragment_to_stream(doc, NULL, opt, out)) {
             goto failed;
         }
 

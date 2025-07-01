@@ -68,11 +68,16 @@ void pcejson_update_state_to_parse_double_quoted_attr_value(struct pcejson* pars
 /*
  * Parse ejson.
  */
+typedef bool (*pcejson_parse_is_finished_fn)(struct pcejson *parser,
+        uint32_t character);
+
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
 
-typedef bool (*pcejson_parse_is_finished_fn)(struct pcejson *parser,
-        uint32_t character);
+int pcejson_parse_ex (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+                   purc_rwstream_t rwstream, uint32_t depth,
+                   pcejson_parse_is_finished_fn is_finished);
+
 int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    struct tkz_reader *reader, uint32_t depth,
                    pcejson_parse_is_finished_fn is_finished);
@@ -80,6 +85,9 @@ int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
 int pcejson_set_state(struct pcejson *parser, int state);
 
 int pcejson_set_state_param_string(struct pcejson *parser);
+
+bool
+pcejson_is_finished_stream(struct pcejson *parser, uint32_t character);
 
 #ifdef __cplusplus
 }

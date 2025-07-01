@@ -63,6 +63,11 @@ BadEncoding
     flags: None
     msg: "Bad encoding"
 
+BadIndex
+    except: BadIndex
+    flags: None
+    msg: "Bad index"
+
 NotSupported
     except: Unsupported
     flags: None
@@ -312,4 +317,9 @@ TLSFailure
     except: TLSFailure
     flags: None
     msg: "TLS (Transport Layer Security) failure"
+
+AssertionFailed
+    except: AssertionFailed
+    flags: None
+    msg: "Assertion failed"
 

@@ -1,0 +1,12 @@
+<!DOCTYPE hvml>
+<hvml target="html" foobar=
+    {{
+         {{ $REQ.foo || $STREAM.stdout.writelines("Please specify a value for the query key: foo") }};
+         {{ $REQ.bar || $STREAM.stdout.writelines("Please specify a value for the query key: bar") }}
+    }} silently>
+
+    {{
+        $STREAM.stdout.writelines("foo: $REQ.foo");
+        $STREAM.stdout.writelines("bar: $REQ.bar")
+    }}
+</hvml>

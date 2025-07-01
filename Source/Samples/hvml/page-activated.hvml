@@ -1,0 +1,43 @@
+#!/usr/bin/purc
+
+<hvml target="html">
+    <body>
+        <load from "#main" onto 'main'>
+            <exit with $? />
+        </load>
+    </body>
+
+    <body id="main">
+        <p>main</p>
+
+        <button id="loadBtn"  hvml-events="click">load the child </button>
+
+        <observe on="#loadBtn" for="click">
+            <inherit>
+                $STREAM.stdout.writelines('tpl btn click')
+            </inherit>
+            <load from "#theChild" onto 'self:' async />
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageActivated">
+            <inherit>
+                $STREAM.stderr.writelines("################################### page activated the main\n")
+            </inherit>
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 0L />
+        </observe>
+
+    </body>
+
+    <body id="theChild">
+        <p>child</p>
+        <observe on $CRTN for "rdrState:pageActivated">
+            <inherit>
+                $STREAM.stderr.writelines("################################### page activated the Child\n")
+            </inherit>
+        </observe>
+    </body>
+</hvml>
+

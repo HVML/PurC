@@ -1,4 +1,24 @@
-# test cases for $STR, $DATA, and $URL
+# test cases for $L, $STR, $DATA, and $URL
+negative:
+    $L.assert
+    AssertionFailed
+
+negative:
+    $L.assert(0)
+    AssertionFailed
+
+negative:
+    $L.assert(null)
+    AssertionFailed
+
+negative:
+    $L.assert('')
+    AssertionFailed
+
+positive:
+    $L.assert(true)
+    true
+
 # TODO: more cases for case-insensitive.
 negative:
     $STR.contains
@@ -596,42 +616,42 @@ positive:
     $DATA.hex2bin('48564d4c')
     bx48564d4c
 
-# test cases for $DATA.base64_encode
+# test cases for $DATA.base64
 negative:
-    $DATA.base64_encode
+    $DATA.base64
     ArgumentMissed
 
 negative:
-    $DATA.base64_encode(false)
+    $DATA.base64(false)
     WrongDataType
 
 positive:
-    $DATA.base64_encode('HVML')
+    $DATA.base64('HVML')
     'SFZNTA=='
 
 positive:
-    $DATA.base64_encode(bx48564d4c)
+    $DATA.base64(bx48564d4c)
     'SFZNTA=='
 
 positive:
-    $DATA.base64_encode('HVML 是全球首款可编程标记语言')
+    $DATA.base64('HVML 是全球首款可编程标记语言')
     'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='
 
-# test cases for $DATA.base64_decode
+# test cases for $DATA.base64(! )
 negative:
-    $DATA.base64_decode
+    $DATA.base64(!)
     ArgumentMissed
 
 negative:
-    $DATA.base64_decode(false)
+    $DATA.base64(!false)
     WrongDataType
 
 positive:
-    $DATA.base64_decode('SFZNTA==')
+    $DATA.base64(!'SFZNTA==')
     bx48564d4c
 
 positive:
-    $DATA.fetchstr($DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
+    $DATA.fetchstr($DATA.base64(!'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
     'HVML 是全球首款可编程标记语言'
 
 # test cases for $DATA.pack
@@ -698,7 +718,7 @@ negative:
     []
 
 positive:
-    $DATA.unpack("utf8", $DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
+    $DATA.unpack("utf8", $DATA.base64(!'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
     'HVML 是全球首款可编程标记语言'
 
 positive:
@@ -969,47 +989,47 @@ positive:
     bx48564d4c
 
 positive:
-    $URL.build_query(true, null, '&', 'rfc1738')
-    0=true
+    $URL.build_query(true, null, 'rfc1738', '&')
+    '0=true'
 
 positive:
-    $URL.build_query(true, "pre_", '&', 'rfc1738')
-    pre_0=true
+    $URL.build_query(true, "pre_", 'rfc1738', '&')
+    'pre_0=true'
 
 positive:
-    $URL.build_query(2, "pre_", '&', 'rfc1738')
-    pre_0=2
+    $URL.build_query(2, "pre_", 'rfc1738', '&')
+    'pre_0=2'
 
 positive:
-    $URL.build_query(2UL, "pre_", '&', 'real-ejson rfc1738')
-    pre_0=2UL
+    $URL.build_query(2UL, "pre_", 'real-ejson rfc1738', '&')
+    'pre_0=2UL'
 
 positive:
-    $URL.build_query(2UL, "pre_", '&', 'real-json rfc1738')
-    pre_0=2
+    $URL.build_query(2UL, "pre_", 'real-json rfc1738', '&')
+    'pre_0=2'
 
 positive:
-    $URL.build_query({'obj':['value_1', 'value_2']}, "pre_", '&', 'real-json rfc1738')
+    $URL.build_query({'obj':['value_1', 'value_2']}, "pre_", 'real-json rfc1738', '&')
     "obj%5B0%5D=value_1&obj%5B1%5D=value_2"
 
 positive:
-    $URL.build_query({'obj':['value_1', 'value_2', {'ka':'b'}]}, "pre_", '&', 'real-json rfc1738')
+    $URL.build_query({'obj':['value_1', 'value_2', {'ka':'b'}]}, "pre_", 'real-json rfc1738')
     "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b"
 
 positive:
-    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], null, '&', 'real-json rfc1738')
+    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], null, 'real-json rfc1738', '&')
     "0=value_1&1=value_2&&2%5Bka%5D=b"
 
 positive:
-    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], "pre", '&', 'real-json rfc1738')
+    $URL.build_query(['value_1', 'value_2', {'ka':'b'}], "pre", 'real-json rfc1738')
     "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b"
 
 positive:
-    $URL.build_query({}, "pre", '&', 'real-json rfc1738')
+    $URL.build_query({}, "pre", 'real-json rfc1738', '&')
     ""
 
 positive:
-    $URL.build_query([], "pre", '&', 'real-json rfc1738')
+    $URL.build_query([], "pre", 'real-json rfc1738', '&')
     ""
 
 # test cases for $DATA.isdivisible

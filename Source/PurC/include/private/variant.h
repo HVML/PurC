@@ -123,17 +123,6 @@ struct purc_variant {
     /* reference count */
     unsigned int refc;
 
-    union {
-        /* the list head for listeners. */
-        struct list_head    listeners;
-
-        /* the list node for reserved variants. */
-        struct list_head    reserved;
-    };
-
-    /* This field saves the extra size for variant. Since 0.9.22. */
-    size_t      extra_size;
-
     /* value */
     union {
         /* for boolean */
@@ -180,6 +169,22 @@ struct purc_variant {
         uint8_t     bytes[0];
     };
 
+    /* This field saves the extra data or extra size for variants.
+       Since 0.9.24. */
+    union {
+        void               *extra_data; /* for native entity */
+        size_t              extra_size; /* for other variants */
+    };
+
+    union {
+        /* the list head for listeners. */
+        struct list_head    listeners;
+
+        /* the list node for reserved variants. */
+        struct list_head    reserved;
+    };
+
+#if 0                   /* removed since 0.9.24 */
     /* XXX: Keep the order, so that we can use the variant structure
        to store a tuple with 3 or less elements without any extra space.  */
     union {
@@ -196,11 +201,48 @@ struct purc_variant {
         /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
         uint32_t            extra_dwords[0];
     };
-
+#endif
 };
 
 #define SZ_SPACE_IN_WRAPPER     \
     (MAX(sizeof(long double), sizeof(void *) * 2) + sizeof(void *))
+
+/* Use this structure for scalar variants, like undefined, null,
+   boolean, number, longint, ulongint, exception, atom, and
+   arbitrary precision integer or float number. */
+struct purc_variant_scalar {
+    unsigned int type:8;
+    unsigned int size:8;
+    unsigned int flags:16;
+    unsigned int refc;
+
+    /* scalar value */
+    union {
+        /* for boolean */
+        bool        b;
+
+        /* for exception and atom string */
+        purc_atom_t atom;
+
+        /* for number */
+        double      d;
+
+        /* for long integer */
+        int64_t     i64;
+
+        /* for unsigned long integer */
+        uint64_t    u64;
+
+        /* for long double */
+        long double ld;
+
+        /* for arbitrary precision integer or float */
+        void       *ptr;
+
+        /* for easy visiting the byets */
+        uint8_t     bytes[0];
+    };
+};
 
 #define USE_LOOP_BUFFER_FOR_RESERVED    0
 

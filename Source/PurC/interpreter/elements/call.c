@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -107,8 +107,8 @@ is_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (purc_variant_is_equal_to(observer->observed, msg->elementValue) ||
-            pcintr_crtn_observed_is_match(observer->observed, msg->elementValue)) {
+    if (msg && (purc_variant_is_equal_to(observer->observed, msg->elementValue) ||
+            pcintr_crtn_observed_is_match(observer->observed, msg->elementValue))) {
         goto match_observed;
     }
     else {
@@ -510,17 +510,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
 
         if (purc_variant_is_object(ctxt->with)) {
-            purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
-            purc_variant_t k, v;
-            foreach_key_value_in_variant_object(ctxt->with, k, v)
-                const char *key = purc_variant_get_string_const(k);
-            if (pcintr_is_variable_token(key)) {
-                bool ok = purc_variant_object_set(exclamation, k, v);
-                if (!ok) {
-                    return NULL;
-                }
-            }
-            end_foreach;
+            pcintr_bind_object_members_as_temp_vars(frame, ctxt->with);
         }
     }
 

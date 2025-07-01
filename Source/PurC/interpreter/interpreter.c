@@ -27,6 +27,7 @@
 
 #include "config.h"
 
+#include "purc-document.h"
 #include "purc-runloop.h"
 
 #include "internal.h"
@@ -166,8 +167,34 @@ doc_init(pcintr_stack_t stack)
     }
 
     const char *target_name = purc_variant_get_string_const(target);
+    const char *target_main = target_name;
+    const char *target_sub = NULL;
+    const char *colon = target_name ? strchr(target_name, ':') : NULL;
+    if (colon) {
+        size_t main_len = colon - target_name;
+        char *main_buf = (char *)malloc(main_len + 1);
+        if (main_buf) {
+            memcpy(main_buf, target_name, main_len);
+            main_buf[main_len] = '\0';
+            target_main = main_buf;
+            target_sub = colon + 1;
+        }
+    }
+
     PC_NONE("Retrieved target name: %s\n", target_name);
-    stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
+    if (colon) {
+        stack->doc = purc_document_new(
+            purc_document_retrieve_type(target_main));
+        free((void*)target_main);
+        if (stack->doc && target_sub && target_sub[0] != '\0') {
+            purc_document_set_global_selector(stack->doc,
+                 target_sub);
+        }
+    } else {
+        stack->doc = purc_document_new(
+            purc_document_retrieve_type(target_main));
+    }
+
     purc_variant_unref(target);
 
     if (stack->doc == NULL) {
@@ -422,33 +449,7 @@ coroutine_release(pcintr_coroutine_t co)
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
-        if (url->schema) {
-            free(url->schema);
-        }
-
-        if (url->user) {
-            free(url->user);
-        }
-
-        if (url->passwd) {
-            free(url->passwd);
-        }
-
-        if (url->host) {
-            free(url->host);
-        }
-
-        if (url->path) {
-            free(url->path);
-        }
-
-        if (url->query) {
-            free(url->query);
-        }
-
-        if (url->fragment) {
-            free(url->fragment);
-        }
+        pcutils_broken_down_url_clear(url);
 
         if (co->target) {
             free(co->target);
@@ -1289,7 +1290,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             break;
 
         purc_variant_t content;
-        content = pcintr_template_expansion(v);
+        content = pcintr_template_expansion(v, frame->silently);
         PURC_VARIANT_SAFE_CLEAR(v);
 
         pcintr_exception_clear(&stack->exception);
@@ -3384,6 +3385,7 @@ struct template_walk_data {
 
     int                          r;
     purc_variant_t               val;
+    bool                         silently;
 };
 
 static int
@@ -3397,9 +3399,11 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
     pcintr_stack_t stack = ud->stack;
     PC_ASSERT(stack);
 
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, stack, false);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_variant_t v = pcvcm_eval(vcm, stack, ud->silently);
+    if (!v) {
+        ud->r = -1;
+        return -1;
+    }
 
     if (purc_variant_is_string(v)) {
         const char *s = purc_variant_get_string_const(v);
@@ -3433,7 +3437,7 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
 }
 
 purc_variant_t
-pcintr_template_expansion(purc_variant_t val)
+pcintr_template_expansion(purc_variant_t val, bool silently)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
@@ -3442,6 +3446,7 @@ pcintr_template_expansion(purc_variant_t val)
         .stack        = stack,
         .r            = 0,
         .val          = PURC_VARIANT_INVALID,
+        .silently     = silently
     };
 
     pcintr_template_walk(val, &ud, template_walker);

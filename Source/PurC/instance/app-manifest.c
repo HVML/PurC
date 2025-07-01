@@ -82,7 +82,7 @@ pcinst_load_app_manifest(const char *app_name)
     PC_DEBUG("manifest path: %s (%p)\n", path_buf, manifest);
 
     if (manifest == PURC_VARIANT_INVALID) {
-        PC_WARN("Failed to load manifest for app %s: %s\n",
+        PC_DEBUG("Failed to load manifest for app %s: %s\n",
                 app_name,
                 purc_get_error_message(purc_get_last_error()));
         purc_clr_error();
@@ -301,10 +301,9 @@ purc_get_app_icon_url(const char *display_density, const char *locale)
     }
     else {
         const char *file = purc_variant_get_string_const(v);
-        assert(file);
 
         char *strp = NULL;
-        if (file[0]) {
+        if (file && file[0]) {
             struct pcinst* inst = pcinst_current();
             assert(inst);
 

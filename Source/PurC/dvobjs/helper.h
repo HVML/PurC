@@ -26,7 +26,7 @@
 #define _DVOJBS_TOOLS_H_
 
 #include "config.h"
-#include "private/debug.h"
+
 #include "purc-variant.h"
 
 #include <time.h>

@@ -160,6 +160,10 @@ purc_document_unref(purc_document_t doc)
 
     unsigned int refc = doc->refc;
     if (refc == 0) {
+        if (doc->selector) {
+            free((void *)doc->selector);
+            doc->selector = NULL;
+        }
         doc->ops->destroy(doc);
     }
 
@@ -178,6 +182,10 @@ unsigned int
 purc_document_delete(purc_document_t doc)
 {
     unsigned int refc = doc->refc;
+    if (doc->selector) {
+        free((void *)doc->selector);
+        doc->selector = NULL;
+    }
     doc->ops->destroy(doc);
     return refc;
 }
@@ -187,6 +195,37 @@ purc_document_special_elem(purc_document_t doc, pcdoc_special_elem_k elem)
 {
     return doc->ops->special_elem(doc, elem);
 }
+
+const char *
+purc_document_set_global_selector(purc_document_t doc,
+        const char *selector)
+{
+    if (!doc) {
+        return NULL;
+    }
+
+    if (doc->selector) {
+        free((void *)doc->selector);
+        doc->selector = NULL;
+    }
+
+    if (selector) {
+        doc->selector = strdup(selector);
+        if (!doc->selector) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+    }
+
+    return doc->selector;
+}
+
+const char *
+purc_document_get_global_selector(purc_document_t doc)
+{
+    return doc ? doc->selector : NULL;
+}
+
 
 pcdoc_element_t
 pcdoc_element_new_element(purc_document_t doc,
@@ -689,6 +728,61 @@ pcdoc_serialize_descendants_to_stream(purc_document_t doc,
     }
 
     return 0;
+}
+
+int
+pcdoc_serialize_fragment_to_stream(purc_document_t doc,
+        const char *selector, unsigned opts, purc_rwstream_t out)
+{
+    int ret = 0;
+    pcdoc_selector_t sel = NULL;
+    pcdoc_elem_coll_t coll = NULL;
+    if (!doc) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (!selector) {
+        selector = doc ? doc->selector : NULL;
+    }
+
+    if (!selector) {
+        ret = purc_document_serialize_contents_to_stream(doc, opts, out);
+        goto out;
+    }
+
+    sel = pcdoc_selector_new(selector);
+    if (!sel) {
+        ret = -1;
+        goto out;
+    }
+
+    coll = pcdoc_elem_coll_new_from_descendants(doc, NULL, sel);
+    if (!coll) {
+        ret = -1;
+        goto out_clear_sel;
+    }
+
+    ssize_t nr = pcdoc_elem_coll_count(doc, coll);
+    for (ssize_t i = 0; i < nr; ++i) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(doc, coll, i);
+        if (elem) {
+            int r = pcdoc_serialize_descendants_to_stream(doc, elem, opts, out);
+            if (r < 0) {
+                ret = r;
+                goto out_clear_coll;
+            }
+        }
+    }
+
+out_clear_coll:
+    pcdoc_elem_coll_delete(doc, coll);
+
+out_clear_sel:
+    pcdoc_selector_delete(sel);
+
+out:
+    return ret;
 }
 
 int

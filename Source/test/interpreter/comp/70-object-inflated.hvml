@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: { a: 1, b: 2, c: 3, d: 4 }
+# RESULT: [ 'd', 'e', 'f', 'g', 'h' ]
 
 <!DOCTYPE hvml>
 <hvml target="void">
@@ -10,8 +10,14 @@
     </init>
 
     <observe on $object for 'change:inflated'>
-        <exit with $_observedOn />
+        <exit with $? />
     </observe>
 
-    <update on $object to merge with { d: 4 } />
+    <init as keys>
+      ['d', 'e', 'f', 'g', 'h']
+    </init>
+
+    <iterate on $keys>
+        <update on $object to merge with { $?: 0 } />
+    </iterate>
 </hvml>

@@ -104,8 +104,8 @@ bool purc_is_valid_endpoint_name(const char* endpoint_name)
 
 static inline const char *check_endpoint_schema (const char *endpoint)
 {
-    if (strncasecmp(endpoint, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0)
-        return endpoint + PURC_LEN_EDPT_SCHEMA;
+    if (strncasecmp(endpoint, PURC_EDPT_SCHEME, PURC_LEN_EDPT_SCHEME) == 0)
+        return endpoint + PURC_LEN_EDPT_SCHEME;
 
     return NULL;
 }
@@ -234,13 +234,13 @@ int purc_assemble_endpoint_name_ex(const char* host_name,
     if ((runner_len = strlen(runner_name)) > PURC_LEN_RUNNER_NAME)
         return 0;
 
-    size_t len = PURC_LEN_EDPT_SCHEMA + host_len + 1 + app_len + 1 + runner_len;
+    size_t len = PURC_LEN_EDPT_SCHEME + host_len + 1 + app_len + 1 + runner_len;
     if (len >= sz)
         return 0;
 
-    strcpy(buff, PURC_EDPT_SCHEMA);
+    strcpy(buff, PURC_EDPT_SCHEME);
     strcat(buff, host_name);
-    buff += PURC_LEN_EDPT_SCHEMA + host_len;
+    buff += PURC_LEN_EDPT_SCHEME + host_len;
     buff[0] = '/';
     buff[1] = '\0';
 
@@ -268,7 +268,7 @@ char* purc_assemble_endpoint_name_alloc(const char* host_name,
     if ((runner_len = strlen(runner_name)) > PURC_LEN_RUNNER_NAME)
         return NULL;
 
-    int len = PURC_LEN_EDPT_SCHEMA + host_len + app_len + runner_len + 3;
+    int len = PURC_LEN_EDPT_SCHEME + host_len + app_len + runner_len + 3;
     if ((endpoint = malloc(len)) == NULL)
         return NULL;
 
@@ -443,7 +443,7 @@ int64_t purc_get_elapsed_milliseconds_alt(time_t t_from,
     return ds * 1000 + dns / 1000000;
 }
 
-#define HVML_SCHEMA         "hvml://"
+#define HVML_SCHEME         "hvml://"
 #define COMP_SEPERATOR      '/'
 #define QUERY_SEPERATOR     '?'
 #define FRAG_SEPERATOR      '#'
@@ -486,7 +486,7 @@ char* purc_hvml_uri_assemble_alloc(const char* host, const char* app,
         const char* runner, const char *group, const char *page)
 {
     char* uri;
-    static const int schema_len = sizeof(HVML_SCHEMA) - 1;
+    static const int schema_len = sizeof(HVML_SCHEME) - 1;
     int host_len, app_len, runner_len, group_len = 0, page_len = 0;
 
     if ((host_len = strlen (host)) > PURC_LEN_HOST_NAME)
@@ -540,10 +540,10 @@ static unsigned int get_path_trail_len(const char *str)
 bool purc_hvml_uri_split(const char *uri,
         char *host, char *app, char *runner, char *group, char *page)
 {
-    static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
+    static const unsigned int sz_schema = sizeof(HVML_SCHEME) - 1;
     unsigned int len;
 
-    if (strncasecmp(uri, HVML_SCHEMA, sz_schema))
+    if (strncasecmp(uri, HVML_SCHEME, sz_schema))
         return false;
 
     uri += sz_schema;
@@ -607,12 +607,12 @@ failed:
 bool purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page)
 {
-    static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
+    static const unsigned int sz_schema = sizeof(HVML_SCHEME) - 1;
     char *my_host = NULL, *my_app = NULL, *my_runner = NULL;
     char *my_group = NULL, *my_page = NULL;
     unsigned int len;
 
-    if (strncasecmp(uri, HVML_SCHEMA, sz_schema))
+    if (strncasecmp(uri, HVML_SCHEME, sz_schema))
         return false;
 
     uri += sz_schema;

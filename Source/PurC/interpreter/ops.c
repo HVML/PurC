@@ -73,6 +73,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_BIND,              pcintr_get_bind_ops},
     {PCHVML_TAG_LOAD,              pcintr_get_load_ops},
     {PCHVML_TAG_REQUEST,           pcintr_get_request_ops},
+    {PCHVML_TAG_ADAPT,             pcintr_get_adapt_ops},
 };
 
 void init_ops(void)

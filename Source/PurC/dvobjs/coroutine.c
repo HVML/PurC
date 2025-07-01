@@ -129,15 +129,15 @@ base_setter(purc_variant_t root,
     /*
      * If the url is invalid, cor->base_url_broken_down should not
      * be changed. If the url is valid, perhaps the string returned
-     * by pcutils_url_assemble() is not identical to the input string.
+     * by pcutils_url_assembly() is not identical to the input string.
      *
      * For example:
      *
      * The input string is `http://www.minigui.org`, but the the output string
-     * of pcutils_url_assemble() is `http://www.minigui.org/`
+     * of pcutils_url_assembly() is `http://www.minigui.org/`
      */
     if (pcutils_url_break_down(&(cor->base_url_broken_down), url)) {
-        char *url = pcutils_url_assemble(&cor->base_url_broken_down, true);
+        char *url = pcutils_url_assembly(&cor->base_url_broken_down, true);
         if (url) {
             free(cor->base_url_string);
             cor->base_url_string = url;

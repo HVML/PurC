@@ -38,7 +38,7 @@ HLLayoutNode *hl_layout_node_create(void)
     if (!node) {
         return NULL;
     }
-    node->box_values.w = HL_UNKNOWN;
+    node->box_values.w = (float)HL_UNKNOWN;
     node->box_values.display = HL_DISPLAY_BLOCK;
     node->box_values.position = HL_POSITION_RELATIVE;
     node->box_values.visibility = HL_VISIBILITY_VISIBLE;

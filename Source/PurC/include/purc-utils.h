@@ -1193,14 +1193,14 @@ pcutils_basename(const char* fname);
 
 /** The structure representing a broken-down URL. */
 struct purc_broken_down_url {
-    /** the schema component */
-    char *schema;
+    /** the scheme component */
+    char *scheme;
     /** the user component */
-    char *user;
+    char *username;
     /** the password component */
-    char *passwd;
+    char *password;
     /** the host component */
-    char *host;
+    char *hostname;
     /** the path component */
     char *path;
     /** the query component */
@@ -1248,7 +1248,7 @@ pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down);
  *  free() to release the memory when done.
  */
 PCA_EXPORT char *
-pcutils_url_assemble(const struct purc_broken_down_url *broken_down,
+pcutils_url_assembly(const struct purc_broken_down_url *broken_down,
         bool keep_percent_escaped);
 
 /**
@@ -1355,15 +1355,24 @@ struct pcutils_mystring {
     size_t sz_space;
 };
 
+/** Initialize the structure. */
 static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
     mystr->buff = NULL;
     mystr->nr_bytes = 0;
     mystr->sz_space = 0;
 }
 
+/** Append a UTF-8 encoded character sequence with length specified. */
 int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
         const unsigned char *mchar, size_t mchar_len);
 
+/** Append a ASCII character */
+static inline int pcutils_mystring_append_char(
+        struct pcutils_mystring *mystr, char c) {
+    return pcutils_mystring_append_mchar(mystr, (const unsigned char *)&c, 1);
+}
+
+/** Append a UTF-8 encoded string */
 static inline int
 pcutils_mystring_append_string(struct pcutils_mystring *mystr,
         const char *str) {
@@ -1371,10 +1380,49 @@ pcutils_mystring_append_string(struct pcutils_mystring *mystr,
         (const unsigned char *)str, 0);
 }
 
+/** Append a Unicode character (codepoint) n times. */
 int pcutils_mystring_append_uchar(struct pcutils_mystring *mystr,
         uint32_t uchar, size_t n);
+
+/** Append a terminating null byte. */
 int pcutils_mystring_done(struct pcutils_mystring *mystr);
+
+/** Free the buffer and reset the fileds in the structure. */
 void pcutils_mystring_free(struct pcutils_mystring *mystr);
+
+/** Encode a host name into Punycode and append to output. */
+int pcutils_punycode_encode(struct pcutils_mystring *output,
+        const char* hostname);
+
+/** Decode a Punycode host name and append to output. */
+int pcutils_punycode_decode(struct pcutils_mystring *output,
+        const char* punycode);
+
+/** Encode URL path components according to RFC 3986 and append to output. */
+int pcutils_url_path_encode(struct pcutils_mystring *output,
+        const char* path);
+
+/** Decode URL path components acorrding to RFC 3986 and append to output. */
+int pcutils_url_path_decode(struct pcutils_mystring *output,
+        const char* encoded);
+
+/** Encode URL query key=value pairs according to RFC 3986 and
+    append to output. */
+int pcutils_url_query_encode(struct pcutils_mystring *output,
+        const char* query);
+
+/** Decode URL query key=value pairs acorrding to RFC 3986 and
+    append to output. */
+int pcutils_url_query_decode(struct pcutils_mystring *output,
+        const char* encoded);
+
+/** Encode a URL fragment according to RFC 3986 and append to output. */
+int pcutils_url_fragment_encode(struct pcutils_mystring *output,
+        const char* fragment);
+
+/** Decode a URL fragment acorrding to RFC 3986 and append to output. */
+int pcutils_url_fragment_decode(struct pcutils_mystring *output,
+        const char* encoded);
 
 PCA_EXTERN_C_END
 

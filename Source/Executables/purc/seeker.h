@@ -36,7 +36,7 @@
 #define SEEKER_RUN_NAME           "seeker"
 #define SEEKER_RDR_NAME           "Seeker"
 #define SEEKER_RDR_URI            \
-    PURC_EDPT_SCHEMA "localhost/" SEEKER_APP_NAME "/" SEEKER_RUN_NAME
+    PURC_EDPT_SCHEME "localhost/" SEEKER_APP_NAME "/" SEEKER_RUN_NAME
 
 #define __STRING(x) #x
 

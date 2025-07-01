@@ -143,6 +143,7 @@ _bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         const char *name = purc_variant_get_string_const(as);
         ret = pcintr_bind_named_variable(&co->stack,
             frame, name, at, temporarily, true, src);
+        pcintr_set_question_var(frame, src);
     }
     else {
         pcintr_set_question_var(frame, src);
@@ -627,7 +628,8 @@ is_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (msg &&
+            !purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
         goto out;
     }
 
@@ -976,7 +978,8 @@ is_async_observer_match(pcintr_coroutine_t cor, struct pcintr_observer *observer
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (msg &&
+            !purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
         goto out;
     }
 
@@ -1374,13 +1377,6 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (ctxt->with && !ctxt->from)
         return 0;
 
-    if (ctxt->from || ctxt->with) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "no element is permitted "
-                "since `from/with` attribute already set");
-        return -1;
-    }
-
     return 0;
 }
 
@@ -1407,14 +1403,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
         return 0;
-
-    // FIXME
-    if ((ctxt->from && !ctxt->async) || ctxt->with) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "no content is permitted "
-                "since there's no `from/with` attribute");
-        return -1;
-    }
 
     purc_variant_t v = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
     if (!v || purc_variant_is_undefined(v)) {

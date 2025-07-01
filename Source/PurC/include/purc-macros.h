@@ -32,11 +32,11 @@
 #define PURC_LEN_RUNNER_NAME            63
 #define PURC_LEN_IDENTIFIER             63
 
-#define PURC_EDPT_SCHEMA                "edpt://"
-#define PURC_LEN_EDPT_SCHEMA            7
+#define PURC_EDPT_SCHEME                "edpt://"
+#define PURC_LEN_EDPT_SCHEME            7
 
 #define PURC_LEN_ENDPOINT_NAME         \
-    (PURC_LEN_EDPT_SCHEMA + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
+    (PURC_LEN_EDPT_SCHEME + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
      PURC_LEN_RUNNER_NAME + 2)
 #define PURC_LEN_UNIQUE_ID             63
 #define PURC_LEN_PROPERTY_NAME         255

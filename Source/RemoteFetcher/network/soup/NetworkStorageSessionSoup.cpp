@@ -164,7 +164,7 @@ void NetworkStorageSession::getCredentialFromPersistentStorage(const ProtectionS
         return;
     }
 
-    GRefPtr<GHashTable> attributes = adoptGRef(secret_attributes_build(SECRET_SCHEMA_COMPAT_NETWORK,
+    GRefPtr<GHashTable> attributes = adoptGRef(secret_attributes_build(SECRET_SCHEME_COMPAT_NETWORK,
         "domain", realm.utf8().data(),
         "server", protectionSpace.host().utf8().data(),
         "port", protectionSpace.port(),
@@ -177,7 +177,7 @@ void NetworkStorageSession::getCredentialFromPersistentStorage(const ProtectionS
     }
 
     auto data = makeUnique<SecretServiceSearchData>(cancellable, WTFMove(completionHandler));
-    secret_service_search(nullptr, SECRET_SCHEMA_COMPAT_NETWORK, attributes.get(),
+    secret_service_search(nullptr, SECRET_SCHEME_COMPAT_NETWORK, attributes.get(),
         static_cast<SecretSearchFlags>(SECRET_SEARCH_UNLOCK | SECRET_SEARCH_LOAD_SECRETS), cancellable,
         [](GObject* source, GAsyncResult* result, gpointer userData) {
             auto data = std::unique_ptr<SecretServiceSearchData>(static_cast<SecretServiceSearchData*>(userData));
@@ -222,7 +222,7 @@ void NetworkStorageSession::saveCredentialToPersistentStorage(const ProtectionSp
     if (realm.isEmpty())
         return;
 
-    GRefPtr<GHashTable> attributes = adoptGRef(secret_attributes_build(SECRET_SCHEMA_COMPAT_NETWORK,
+    GRefPtr<GHashTable> attributes = adoptGRef(secret_attributes_build(SECRET_SCHEME_COMPAT_NETWORK,
         "domain", realm.utf8().data(),
         "server", protectionSpace.host().utf8().data(),
         "port", protectionSpace.port(),
@@ -235,7 +235,7 @@ void NetworkStorageSession::saveCredentialToPersistentStorage(const ProtectionSp
     g_hash_table_insert(attributes.get(), g_strdup("user"), g_strdup(credential.user().utf8().data()));
     CString utf8Password = credential.password().utf8();
     GRefPtr<SecretValue> newSecretValue = adoptGRef(secret_value_new(utf8Password.data(), utf8Password.length(), "text/plain"));
-    secret_service_store(nullptr, SECRET_SCHEMA_COMPAT_NETWORK, attributes.get(), SECRET_COLLECTION_DEFAULT, _("WebKitGTK password"),
+    secret_service_store(nullptr, SECRET_SCHEME_COMPAT_NETWORK, attributes.get(), SECRET_COLLECTION_DEFAULT, _("WebKitGTK password"),
         newSecretValue.get(), nullptr, nullptr, nullptr);
 #else
     UNUSED_PARAM(protectionSpace);

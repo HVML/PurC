@@ -112,7 +112,7 @@ if (HAVE_OPENSSL)
     )
 endif ()
 
-if (ENABLE_SCHEMA_LSQL)
+if (ENABLE_SCHEME_LSQL)
     list(APPEND PurC_LIBRARIES SQLite::SQLite3)
 endif ()
 

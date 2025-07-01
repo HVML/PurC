@@ -304,8 +304,9 @@ is_finished_default(struct pcejson *parser, uint32_t character)
 
 #define EJSON_PARSER_LC_SIZE         3
 
-int pcejson_parse(struct pcvcm_node **vcm_tree,
-        struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
+int pcejson_parse_ex (struct pcvcm_node** vcm_tree, struct pcejson** parser_param,
+                   purc_rwstream_t rws, uint32_t depth,
+                   pcejson_parse_is_finished_fn is_finished)
 {
     int ret;
     struct tkz_reader *reader = tkz_reader_new();
@@ -324,7 +325,7 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,
     tkz_reader_set_data_source_rws(reader, rws);
     tkz_reader_set_lc(reader, lc);
     ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth,
-            is_finished_default);
+            is_finished);
     tkz_lc_destroy(lc);
 
 out_clear_reader:
@@ -332,6 +333,12 @@ out_clear_reader:
 
 out:
     return ret;
+}
+
+int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+                   purc_rwstream_t rws, uint32_t depth)
+{
+    return pcejson_parse_ex(vcm_tree, parser, rws, depth, is_finished_default);
 }
 
 int pcejson_set_state(struct pcejson *parser, int state)
@@ -347,3 +354,18 @@ int pcejson_set_state_param_string(struct pcejson *parser)
     return pcejson_set_state(parser, EJSON_TKZ_STATE_PARAM_STRING);
 }
 
+bool
+pcejson_is_finished_stream(struct pcejson *parser, uint32_t character)
+{
+    (void) character;
+    if (1 == pcejson_token_stack_size(parser->tkz_stack)) {
+        struct pcejson_token *top = pcejson_token_stack_top(parser->tkz_stack);
+        bool is_closed = pcejson_token_is_closed(top);
+        bool finished = is_closed;
+        if (finished && is_whitespace(character)) {
+            tkz_reader_reconsume_last_char(parser->tkz_reader);
+        }
+        return finished;
+    }
+    return false;
+}

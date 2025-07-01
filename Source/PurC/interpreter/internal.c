@@ -51,6 +51,11 @@
 
 #define USE_REQUEST_ID_AS_CRTN_OBSERVED     1
 
+#define ERR_FMT_BIND_VAR_NOT_FOUND   \
+    "EntityNotFound: Target position not found for bind `%s`"
+#define ERR_FMT_VAR_NOT_FOUND        \
+    "EntityNotFound: Not found var `%s`"
+
 
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
@@ -257,32 +262,85 @@ get_temp_by_level(struct pcintr_stack_frame *frame,
 
 static struct pcvdom_element *
 find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        uint64_t level)
+        uint64_t level, uint64_t *level_out)
 {
     /* avoid bind variable on the 'hvml' node of other vdom  */
     struct pcvdom_element *p = frame->pos;
+    assert(p);
+
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&p->node);
+    bool is_stack_vdom = (vdom == stack->vdom);
+
     for (; level > 0; level--) {
-        if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
-                || p->tag_id == PCHVML_TAG_HVML) {
+        if (p == NULL ||
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+            p = NULL;
             break;
         }
         p = pcvdom_element_parent(p);
+        if (!p) {
+            break;
+        }
+
+#if 0
+        if (
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+#else
+        if (p->tag_id == PCHVML_TAG_DEFINE ||
+                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    p->tag_id == PCHVML_TAG_HVML)
+                 )) {
+#endif
+            p = NULL;
+            break;
+        }
     }
 
-    if (p == NULL || p->node.type == PCVDOM_NODE_DOCUMENT
-                || p->tag_id == PCHVML_TAG_HVML) {
-
-        struct pcintr_stack_frame *parent =
-            pcintr_find_prev_include_frame(stack->co, frame, frame->pos);
+    uint64_t level_ret = level;
+    if (p == NULL) {
+        struct pcintr_stack_frame *parent = NULL;
+        parent = pcintr_stack_frame_get_parent(frame);
+        while (parent && parent->pos &&
+                (parent->pos->tag_id != PCHVML_TAG_EXECUTE) &&
+                (parent->pos->tag_id != PCHVML_TAG_CALL)
+                ) {
+            parent = pcintr_stack_frame_get_parent(parent);
+        }
 
         if (parent == NULL || parent->pos == NULL) {
             goto out;
         }
 
-        p = find_bind_position(stack, parent, level);
+        p = find_bind_position(stack, parent, level, &level_ret);
+    }
+
+    if (p == NULL) {
+        struct pcintr_stack_frame *parent = NULL;
+        parent = pcintr_stack_frame_get_parent(frame);
+        while (parent && parent->pos &&
+                parent->pos->tag_id != PCHVML_TAG_OBSERVE) {
+            parent = pcintr_stack_frame_get_parent(parent);
+        }
+
+        if (parent == NULL || parent->pos == NULL) {
+            goto out;
+        }
+
+        parent = pcintr_stack_frame_get_parent(parent);
+        level_ret--;
+        if (parent && parent->pos) {
+            p = find_bind_position(stack, parent, level_ret, NULL);
+        }
     }
 
 out:
+    if (level_out) {
+        *level_out = level;
+    }
     return p;
 }
 
@@ -302,7 +360,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_document_get_root(stack->vdom);
     }
     else {
-        p = find_bind_position(stack, frame, level);
+        p = find_bind_position(stack, frame, level, NULL);
     }
     purc_clr_error();
 
@@ -319,7 +377,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return bind_at_element(stack->co, p, name, val, mgr);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_BIND_VAR_NOT_FOUND, name);
     return -1;
 }
 
@@ -362,7 +420,7 @@ get_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return get_from_element(stack->co, p, name);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_VAR_NOT_FOUND, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -427,7 +485,7 @@ bind_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     if (dest_frame == NULL) {
         if (!frame->silently) {
             purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                    "no vdom element exists");
+                    ERR_FMT_BIND_VAR_NOT_FOUND, name);
             return -1;
         }
 
@@ -458,7 +516,7 @@ get_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     if (dest_frame == NULL) {
         if (!frame->silently) {
             purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                    "no vdom element exists");
+                    ERR_FMT_VAR_NOT_FOUND, name);
             return PURC_VARIANT_INVALID;
         }
 
@@ -506,7 +564,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_BIND_VAR_NOT_FOUND, name);
     return -1;
 }
 
@@ -538,7 +596,7 @@ get_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
+            ERR_FMT_VAR_NOT_FOUND, name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1036,9 +1094,9 @@ static inline const char *
 check_hvml_run_schema(const char *uri, enum HVML_RUN_URI_TYPE *type)
 {
     const char *ret = NULL;
-    if (strncasecmp(uri, PCINTR_HVML_RUN_SCHEMA,
-                PCINTR_LEN_HVML_RUN_SCHEMA) == 0) {
-        ret = uri + PCINTR_LEN_HVML_RUN_SCHEMA;
+    if (strncasecmp(uri, PCINTR_HVML_RUN_SCHEME,
+                PCINTR_LEN_HVML_RUN_SCHEME) == 0) {
+        ret = uri + PCINTR_LEN_HVML_RUN_SCHEME;
         if (!check_hvml_run_resource(ret)) {
             ret = NULL;
             goto out;
@@ -1056,7 +1114,7 @@ check_hvml_run_schema(const char *uri, enum HVML_RUN_URI_TYPE *type)
         }
 
         if (type) {
-            *type = HVML_RUN_URI_OMIT_SCHEMA;
+            *type = HVML_RUN_URI_OMIT_SCHEME;
         }
     }
     else if (strncmp(uri, "/", 1) == 0) {
@@ -1067,7 +1125,7 @@ check_hvml_run_schema(const char *uri, enum HVML_RUN_URI_TYPE *type)
         }
 
         if (type) {
-            *type = HVML_RUN_URI_OMIT_SCHEMA_AND_HOST;
+            *type = HVML_RUN_URI_OMIT_SCHEME_AND_HOST;
         }
     }
 
@@ -1093,7 +1151,7 @@ pcintr_hvml_run_extract_host_name(const char *uri, char *host_name)
 
     switch (type) {
     case HVML_RUN_URI_FULL:
-    case HVML_RUN_URI_OMIT_SCHEMA:
+    case HVML_RUN_URI_OMIT_SCHEME:
     {
         if ((slash = strchr(uri, '/')) == NULL) {
             goto out;
@@ -1109,7 +1167,7 @@ pcintr_hvml_run_extract_host_name(const char *uri, char *host_name)
         break;
     }
 
-    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    case HVML_RUN_URI_OMIT_SCHEME_AND_HOST:
     {
         host_name[0] = '-';
         host_name[1] = '\0';
@@ -1144,7 +1202,7 @@ pcintr_hvml_run_extract_app_name(const char *uri, char *app_name)
 
     switch (type) {
     case HVML_RUN_URI_FULL:
-    case HVML_RUN_URI_OMIT_SCHEMA:
+    case HVML_RUN_URI_OMIT_SCHEME:
     {
         if ((first_slash = strchr(uri, '/')) == 0 ||
                 (second_slash = strchr(first_slash + 1, '/')) == 0) {
@@ -1162,7 +1220,7 @@ pcintr_hvml_run_extract_app_name(const char *uri, char *app_name)
         break;
     }
 
-    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    case HVML_RUN_URI_OMIT_SCHEME_AND_HOST:
     {
         if ((first_slash = strchr(uri, '/')) == NULL) {
             goto out;
@@ -1205,7 +1263,7 @@ pcintr_hvml_run_extract_runner_name(const char *uri, char *runner_name)
 
     switch (type) {
     case HVML_RUN_URI_FULL:
-    case HVML_RUN_URI_OMIT_SCHEMA:
+    case HVML_RUN_URI_OMIT_SCHEME:
     {
         if ((first_slash = strchr(uri, '/')) == 0 ||
                 (second_slash = strchr(first_slash + 1, '/')) == 0 ||
@@ -1225,7 +1283,7 @@ pcintr_hvml_run_extract_runner_name(const char *uri, char *runner_name)
         break;
     }
 
-    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    case HVML_RUN_URI_OMIT_SCHEME_AND_HOST:
     {
         if ((first_slash = strchr(uri, '/')) == 0 ||
                 (second_slash = strchr(first_slash + 1, '/')) == 0) {
@@ -1270,7 +1328,7 @@ pcintr_hvml_run_extract_res_name(const char *uri,
 
     switch (type) {
     case HVML_RUN_URI_FULL:
-    case HVML_RUN_URI_OMIT_SCHEMA:
+    case HVML_RUN_URI_OMIT_SCHEME:
     {
         if ((first_slash = strchr(uri, '/')) == 0 ||
                 (second_slash = strchr(first_slash + 1, '/')) == 0 ||
@@ -1306,7 +1364,7 @@ pcintr_hvml_run_extract_res_name(const char *uri,
         break;
     }
 
-    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    case HVML_RUN_URI_OMIT_SCHEME_AND_HOST:
     {
         if ((first_slash = strchr(uri, '/')) == 0 ||
                 (second_slash = strchr(first_slash + 1, '/')) == 0 ||
@@ -1886,3 +1944,28 @@ out:
     return result;
 }
 
+int
+pcintr_bind_object_members_as_temp_vars(struct pcintr_stack_frame *frame,
+    purc_variant_t obj)
+{
+    int ret = -1;
+    if (!purc_variant_is_object(obj)) {
+        goto out;
+    }
+
+    purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(obj, k, v)
+        const char *key = purc_variant_get_string_const(k);
+        if (pcintr_is_variable_token(key)) {
+            bool ok = purc_variant_object_set(exclamation, k, v);
+            if (!ok) {
+                goto out;
+            }
+        }
+    end_foreach;
+    ret = 0;
+
+out:
+    return ret;
+}

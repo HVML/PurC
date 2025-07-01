@@ -10,7 +10,9 @@
     </init>
 
     <observe on $tuple for 'change:modified'>
-        <exit with $_observedOn />
+        <exit>
+          $_observedOn
+        </exit>
     </observe>
 
     <update on $tuple at 0 with 0 />

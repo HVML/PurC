@@ -44,6 +44,8 @@
 
 #define BUFFER_SIZE 4096
 #define MIN_BUFFER_SIZE 32
+#define READ_BUFFER_MIN_SIZE    32
+#define READ_BUFFER_MAX_SIZE    1024*1024
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -90,6 +92,17 @@ typedef struct rwstream_funcs
 struct purc_rwstream
 {
     rwstream_funcs* funcs;
+
+    /* read buf */
+    uint8_t* rbuf;
+    /* read buffer capacity */
+    size_t rcap;
+    /* current bytes count in read buffer */
+    size_t rcnt;
+    /* valid data start index (for ring buffer optimization) */
+    size_t rstart;
+
+    off_t logical_pos;
 };
 
 struct stdio_rwstream
@@ -212,6 +225,104 @@ static size_t get_min_size(size_t sz_min, size_t sz_max) {
     return min;
 }
 
+/* read buffer begin */
+static int read_buffer_init(purc_rwstream_t rws)
+{
+    rws->rbuf = (uint8_t *) calloc(1, READ_BUFFER_MIN_SIZE);
+    if (!rws->rbuf) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    rws->rcap = READ_BUFFER_MIN_SIZE;
+    rws->rcnt = 0;
+    rws->rstart = 0;
+    rws->logical_pos = 0;
+    return 0;
+}
+
+static int read_buffer_destroy(purc_rwstream_t rws)
+{
+    if (rws->rbuf) {
+        free(rws->rbuf);
+        rws->rbuf = NULL;
+    }
+    return 0;
+}
+
+static int read_buffer_clear(purc_rwstream_t rws)
+{
+    rws->rcnt = 0;
+    rws->rstart = 0;
+    return 0;
+}
+
+static int read_buffer_expand(purc_rwstream_t stream, size_t size)
+{
+    if (stream->rcap >= size || stream->rcap >= READ_BUFFER_MAX_SIZE) {
+        // No need to expand if current capacity is already sufficient or at max
+        if (stream->rcap >= size) return 0;
+        // If already at max and still need more, it's an issue (though get_min_size should handle this)
+        if (stream->rcap >= READ_BUFFER_MAX_SIZE && size > stream->rcap) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY); // Or a more specific error like buffer full
+            return -1;
+        }
+        return 0;
+    }
+
+    size_t new_capacity = get_min_size(size, READ_BUFFER_MAX_SIZE);
+    if (new_capacity <= stream->rcap) { // Should not happen if initial checks are correct
+        return 0;
+    }
+
+    uint8_t* new_buf = NULL;
+    uint8_t* temp_buf = NULL;
+
+    // If data is wrapped around or rstart is not 0, and we have data
+    if (stream->rcnt > 0 && (stream->rstart + stream->rcnt > stream->rcap || stream->rstart != 0)) {
+        temp_buf = (uint8_t*)malloc(stream->rcnt);
+        if (!temp_buf) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return -1;
+        }
+        size_t tail = stream->rcap - stream->rstart;
+        if (tail >= stream->rcnt) { // Data is contiguous
+            memcpy(temp_buf, stream->rbuf + stream->rstart, stream->rcnt);
+        } else { // Data is wrapped
+            memcpy(temp_buf, stream->rbuf + stream->rstart, tail);
+            memcpy(temp_buf + tail, stream->rbuf, stream->rcnt - tail);
+        }
+    }
+
+    new_buf = (uint8_t*)realloc(stream->rbuf, new_capacity);
+    if (!new_buf) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        if (temp_buf) free(temp_buf);
+        // stream->rbuf is still the old buffer, which is valid but not expanded
+        return -1;
+    }
+    stream->rbuf = new_buf;
+    stream->rcap = new_capacity;
+
+    if (temp_buf) {
+        memcpy(stream->rbuf, temp_buf, stream->rcnt);
+        free(temp_buf);
+        stream->rstart = 0;
+    } else if (stream->rcnt == 0) {
+        // If buffer was empty, rstart should be 0
+        stream->rstart = 0;
+    }
+    // If temp_buf was NULL and rcnt > 0, it means data was already linear and at rstart=0
+    // or rstart != 0 but contiguous and we didn't use temp_buf path (which is covered by the first condition of temp_buf allocation)
+    // In the case where rstart != 0 and data is contiguous (not wrapped) and rcnt > 0,
+    // and we didn't use temp_buf (e.g. if the first condition for temp_buf was more restrictive),
+    // we would need to memmove it to the beginning if rstart is not 0.
+    // However, the current temp_buf logic covers rstart != 0 if rcnt > 0.
+
+    return 0;
+}
+
+/* read buffer end */
+
 /* rwstream api */
 purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
@@ -226,6 +337,15 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 
     struct buffer_rwstream* rws = (struct buffer_rwstream*) calloc(
             1, sizeof(struct buffer_rwstream));
+    if (rws == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (read_buffer_init((purc_rwstream_t)rws) != 0) {
+        free(rws);
+        return NULL;
+    }
 
     size_t sz = get_min_size(sz_init, sz_max);
 
@@ -246,6 +366,15 @@ purc_rwstream_t purc_rwstream_new_from_mem (void* mem, size_t sz)
 {
     struct mem_rwstream* rws = (struct mem_rwstream*) calloc(
             1, sizeof(struct mem_rwstream));
+    if (rws == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (read_buffer_init((purc_rwstream_t)rws) != 0) {
+        free(rws);
+        return NULL;
+    }
 
     rws->rwstream.funcs = &mem_funcs;
     rws->base = mem;
@@ -270,6 +399,15 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 {
     struct stdio_rwstream* rws = (struct stdio_rwstream*) calloc(
             1, sizeof(struct stdio_rwstream));
+    if (rws == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (read_buffer_init((purc_rwstream_t)rws) != 0) {
+        free(rws);
+        return NULL;
+    }
 
     rws->rwstream.funcs = &stdio_funcs;
     rws->fp = fp;
@@ -283,6 +421,11 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd)
             1, sizeof(struct fd_rwstream));
     if (fd_rws == NULL) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (read_buffer_init((purc_rwstream_t)fd_rws) != 0) {
+        free(fd_rws);
         return NULL;
     }
 
@@ -349,6 +492,17 @@ purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn)
 
     struct wo_rwstream* rws = (struct wo_rwstream*) calloc(1,
             sizeof (struct wo_rwstream));
+    if (rws == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    /* write only */
+#if 0
+    if (read_buffer_init((purc_rwstream_t)rws) != 0) {
+        free(rws);
+        return NULL;
+    }
+#endif
 
     rws->rwstream.funcs = &wo_funcs;
     rws->ctxt = ctxt;
@@ -402,6 +556,15 @@ purc_rwstream_new_for_read (void *ctxt, pcrws_cb_read fn)
 
     struct ro_rwstream* rws = (struct ro_rwstream*) calloc(1,
             sizeof (struct ro_rwstream));
+    if (rws == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (read_buffer_init((purc_rwstream_t)rws) != 0) {
+        free(rws);
+        return NULL;
+    }
 
     rws->rwstream.funcs = &ro_funcs;
     rws->ctxt = ctxt;
@@ -417,6 +580,8 @@ int purc_rwstream_destroy (purc_rwstream_t rws)
         return -1;
     }
 
+    read_buffer_destroy(rws);
+
     if (rws->funcs->destroy)
         return rws->funcs->destroy(rws);
 
@@ -431,8 +596,14 @@ off_t purc_rwstream_seek (purc_rwstream_t rws, off_t offset, int whence)
         return -1;
     }
 
-    if (rws->funcs->seek)
-        return rws->funcs->seek(rws, offset, whence);
+    if (rws->funcs->seek) {
+        read_buffer_clear(rws);
+        off_t new_pos = rws->funcs->seek(rws, offset, whence);
+        if (new_pos != -1) {
+            rws->logical_pos = new_pos;
+        }
+        return new_pos;
+    }
 
     pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
     return -1;
@@ -445,8 +616,12 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
         return -1;
     }
 
-    if (rws->funcs->tell)
+    if (rws->rcnt) {
+        return rws->logical_pos;
+    }
+    else if (rws->funcs->tell) {
         return rws->funcs->tell(rws);
+    }
 
     pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
     return -1;
@@ -454,13 +629,61 @@ off_t purc_rwstream_tell (purc_rwstream_t rws)
 
 ssize_t purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    if (rws == NULL) {
+    if (rws == NULL || count == 0) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
+    uint8_t* dest = (uint8_t *)buf;
+    size_t size = count;
+    ssize_t total_read = 0;
 
-    if (rws->funcs->read)
-        return rws->funcs->read(rws, buf, count);
+    if (rws->rcnt > 0) {
+        size_t n =
+            (size < rws->rcnt) ? size : rws->rcnt;
+        size_t contiguous = rws->rcap - rws->rstart;
+
+        if (contiguous > n) {
+            contiguous = n;
+        }
+
+        memcpy(dest, rws->rbuf + rws->rstart, contiguous);
+
+        if (contiguous < n) {
+            size_t remaining = n - contiguous;
+            memcpy(dest + contiguous, rws->rbuf, remaining);
+            rws->rstart = remaining;
+        } else {
+            rws->rstart += contiguous;
+        }
+
+        rws->rcnt -= n;
+        dest += n;
+        size -= n;
+        total_read += n;
+        rws->logical_pos += n;
+    }
+
+    if (size > 0) {
+        if (rws->funcs->read) {
+            ssize_t n =  rws->funcs->read(rws, dest, size);
+            if (n == 0) { // EOF
+                return total_read;
+            }
+            else if (n > 0) {
+                total_read += n;
+                rws->logical_pos += n;
+                return total_read;
+            }
+            return -1;
+        }
+        else {
+            pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
+            return -1;
+        }
+    }
+    else if (total_read > 0) {
+        return total_read;
+    }
 
     pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
     return -1;
@@ -537,24 +760,67 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         read_len--;
     }
 
-    // FIXME
-    if (ch_len > 3) {
-        pcinst_set_error(PURC_ERROR_BAD_ENCODING);
-        return -1;
-    }
-
+    uint32_t uc = -1;
     size_t nr_chars;
     if (buf_utf8[0] == 0) {
-        *buf_wc = 0;
+        uc = 0;
     }
     else if(pcutils_string_check_utf8_len(buf_utf8, ch_len, &nr_chars, NULL)) {
-        *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
+        uc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
     }
     else {
         ch_len = -1;
         pcinst_set_error(PURC_ERROR_BAD_ENCODING);
     }
+
+    if (buf_wc)
+        *buf_wc = uc;
+
     return ch_len;
+}
+
+int purc_rwstream_ungetc(purc_rwstream_t rws, const char* utf8ch, int len)
+{
+    if (rws == NULL || utf8ch == NULL || len <= 0) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (rws->rbuf == NULL || rws->rcap == 0) {
+        pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return -1;
+    }
+
+    size_t curr_size = rws->rcnt;
+    size_t need_size = curr_size + (size_t)len;
+
+    if (need_size > rws->rcap) {
+        if (read_buffer_expand(rws, need_size) != 0) {
+            // read_buffer_expand already sets the error
+            return -1;
+        }
+    }
+
+    size_t new_rstart;
+    if (rws->rstart >= (size_t)len) {
+        new_rstart = rws->rstart - (size_t)len;
+    } else {
+        new_rstart = rws->rcap - ((size_t)len - rws->rstart);
+    }
+
+    if (new_rstart + (size_t)len <= rws->rcap) {
+        memcpy(rws->rbuf + new_rstart, utf8ch, (size_t)len);
+    } else {
+        size_t first_part_len = rws->rcap - new_rstart;
+        memcpy(rws->rbuf + new_rstart, utf8ch, first_part_len);
+        memcpy(rws->rbuf, utf8ch + first_part_len, (size_t)len - first_part_len);
+    }
+
+    rws->rstart = new_rstart;
+    rws->rcnt += (size_t)len;
+    rws->logical_pos -= len;
+
+    return len;
 }
 
 ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
@@ -564,8 +830,15 @@ ssize_t purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count)
         return -1;
     }
 
-    if (rws->funcs->write)
-        return rws->funcs->write(rws, buf, count);
+    read_buffer_clear(rws);
+
+    if (rws->funcs->write) {
+        ssize_t written_bytes = rws->funcs->write(rws, buf, count);
+        if (written_bytes > 0) {
+            rws->logical_pos += written_bytes;
+        }
+        return written_bytes;
+    }
 
     pcinst_set_error(PURC_ERROR_NOT_SUPPORTED);
     return -1;

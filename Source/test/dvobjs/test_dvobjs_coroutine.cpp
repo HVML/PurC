@@ -237,35 +237,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
 
     purc_variant_unref(hvml);
 
-    struct purc_broken_down_url *url = &cor->base_url_broken_down;
-
-    if (url->schema) {
-        free(url->schema);
-    }
-
-    if (url->user) {
-        free(url->user);
-    }
-
-    if (url->passwd) {
-        free(url->passwd);
-    }
-
-    if (url->host) {
-        free(url->host);
-    }
-
-    if (url->path) {
-        free(url->path);
-    }
-
-    if (url->query) {
-        free(url->query);
-    }
-
-    if (url->fragment) {
-        free(url->fragment);
-    }
+    pcutils_broken_down_url_clear(&cor->base_url_broken_down);
 
     if (cor->target) {
         free(cor->target);

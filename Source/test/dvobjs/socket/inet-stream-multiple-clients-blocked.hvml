@@ -11,7 +11,7 @@
         $STREAM.stdout.writelines("Testing for $DATA.serialize($REQ)")
 
         <define as 'commWithServer' >
-            <init as 'stream' with $STREAM.open("$schema://localhost:7788", 'nameless read write cloexec') temp >
+            <init as 'stream' with $STREAM.open("$scheme://localhost:7788", 'nameless read write cloexec') temp >
                 <catch for `ANY`>
                     <return with "Client $2?.name failed with $?.name when calling SOCKET.open()" />
                 </catch>
@@ -61,7 +61,7 @@
 
         <init as 'clients' with {} />
 
-        <init as 'streamSocket' with $SOCKET.stream("$REQ.schema://localhost:7788", 'default') >
+        <init as 'streamSocket' with $SOCKET.stream("$REQ.scheme://localhost:7788", 'default') >
             <catch for `ANY`>
                 <exit with "Server failed with $?.name when calling SOCKET.stream()" />
             </catch>
@@ -74,7 +74,7 @@
 
                 <init as 'clientName' with $? />
 
-                <call on $commWithServer within $clientName with { name: $clientName, schema: $REQ.schema } as $clientName concurrently asynchronously />
+                <call on $commWithServer within $clientName with { name: $clientName, scheme: $REQ.scheme } as $clientName concurrently asynchronously />
                 <observe on ${$clientName} for 'callState:success'>
                     $clientName
 

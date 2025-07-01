@@ -1069,6 +1069,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_DOUBLE_QUOTED)
         }
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
     }
+    if (top->type == ETT_MULTI_UNQUOTED_S) {
+        RESET_TEMP_BUFFER();
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+    }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -1422,7 +1427,7 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
     if (is_parse_finished(parser, character)) {
-        RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (is_whitespace(character)) {
         update_tkz_stack(parser);
@@ -1595,6 +1600,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
     }
     if (character == '[' || character == '.') {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (is_parse_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     update_tkz_stack(parser);
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
@@ -2365,7 +2373,7 @@ END_STATE()
 BEGIN_STATE(EJSON_TKZ_STATE_KEYWORD)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ','
-            || character == ')') {
+            || character == ')' || is_parse_finished(parser,character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_KEYWORD);
     }
     if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
@@ -2460,6 +2468,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_KEYWORD)
             update_tkz_stack(parser);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
+        }
+        struct pcejson_token *prev = tkz_prev_token();
+        if (prev == NULL) {
+            tkz_stack_push(ETT_UNQUOTED_S);
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
         }
         RESET_TEMP_BUFFER();
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -3691,6 +3705,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
         }
         top = tkz_stack_top();
+        if (top && top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
         if (is_parse_finished(parser, character)) {
             if (top->type == ETT_MULTI_UNQUOTED_S) {
                 close_token(parser, top);

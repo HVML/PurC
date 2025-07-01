@@ -143,6 +143,7 @@ static struct const_str_atom _except_names[] = {
     { "UnmetPrecondition", 0 },
     { "ProtocolViolation", 0 },
     { "TLSFailure", 0 },
+    { "AssertionFailed", 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */

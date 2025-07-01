@@ -1,0 +1,110 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <style hvml:raw>
+            .bd {
+                border-style: solid;
+                border-width: thin;
+                border-color:green;
+            }
+            .sz20 {
+                width:20px;
+                height:20px;
+            }
+
+            .btn {
+                color: #FFFFFF;
+                background-color: #DC0000;
+            }
+
+            .btn:hover {
+                background-color: #FF0000;
+            }
+
+            .btn:active {
+                background-color: #FA0000;
+            }
+            .sz20 {
+                width:20px;
+                height:20px;
+            }
+            #id_select_a {
+                width: 100px;
+                height: 200px;
+                margin: 0px;
+                padding: 0px;
+            }
+            #id_select_b {
+                width: 300px;
+                height: 200px;
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <div id="dest" style="border-style: solid; border-width:thick; border-color:green;">
+        </div>
+
+        <init as 'itemsData'>
+        [
+            {
+                "display": "ta",
+                "value": "ta",
+                "keyclass": "bd"
+            },
+            {
+                "display": "tb",
+                "value": "tb",
+                "keyclass": "bd"
+            },
+            {
+                "display": "tc",
+                "value": "tc",
+                "keyclass": "bd"
+            },
+        ]
+        </init>
+
+        <archedata name="item_templ">
+            """<div class="$?.keyclass" value="$?.value" hvml-events="click"><div class="text">$?.display</div></div>"""
+        </archedata>
+
+        <init as 'all_items' with [] />
+
+        <iterate on $itemsData>
+            <update on $all_items to 'append' with $item_templ />
+        </iterate>
+
+        <update on #dest to 'append' at 'content' with $STR.implode($all_items) />
+
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "gogogo", "interval" : 1000, "active" : "no" },
+            ]
+        </update>
+
+        <init as 'progress' with 10UL />
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+
+        <observe on $TIMERS for "expired:gogogo">
+            <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+            <test with $L.ge($progress, 100UL) >
+                <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
+                <forget on $TIMERS for 'expired:*' />
+                <exit with 'Ok' />
+            </test>
+        </observe>
+
+    </body>
+
+</hvml>
+
+

@@ -224,6 +224,41 @@ eval(struct pcvcm_eval_ctxt *ctxt,
                 caller_node_first_child,
                 caller_var, 1, &param_var, GETTER_METHOD,
                 call_flags);
+        if (!ret_var) {
+            ret_var = pcvcm_eval_call_dvariant_method(caller_node_first_child,
+                    caller_var, 0, NULL, GETTER_METHOD, call_flags);
+            if (ret_var && purc_variant_is_string(ret_var) &&
+                    purc_variant_is_string(param_var)) {
+                char *prev = NULL;
+                purc_variant_stringify_alloc(&prev, ret_var);
+                if (!prev) {
+                    goto out;
+                }
+
+                char *next = NULL;
+                purc_variant_stringify_alloc(&next, param_var);
+                if (!next) {
+                    free(prev);
+                    goto out;
+                }
+
+                size_t nr = strlen(prev) + strlen(next) + 2;
+                char *buf = malloc(nr);
+                if (!buf) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    free(prev);
+                    free(next);
+                    goto out;
+                }
+                snprintf(buf, nr, "%s.%s", prev, next);
+
+                purc_variant_unref(ret_var);
+                ret_var = purc_variant_make_string_reuse_buff(buf, nr, true);
+
+                free(prev);
+                free(next);
+            }
+        }
         goto out;
     }
     else if (purc_variant_is_native(caller_var)) {

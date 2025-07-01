@@ -35,6 +35,7 @@
 #include "private/errors.h"
 
 enum pcdvobjs_stream_type {
+    STREAM_TYPE_MEM,
     STREAM_TYPE_FILE,
     STREAM_TYPE_PIPE,
     STREAM_TYPE_FIFO,
@@ -110,7 +111,10 @@ typedef struct pcdvobjs_stream {
     struct purc_broken_down_url *url;
     purc_rwstream_t stm4r;      /* stream for read */
     purc_rwstream_t stm4w;      /* stream for write */
-    purc_variant_t observed;    /* not inc ref */
+    union {
+        purc_variant_t kept;    /* for string or bsequece based */
+        purc_variant_t observed;
+    };
 
     #define NR_STREAM_MONITORS      2
     uintptr_t monitors[0];
@@ -133,6 +137,10 @@ typedef struct pcdvobjs_stream {
 } pcdvobjs_stream;
 
 PCA_EXTERN_C_BEGIN
+
+pcdvobjs_stream *dvobjs_stream_check_entity(purc_variant_t v,
+        struct purc_native_ops **ops)
+    WTF_INTERNAL;
 
 purc_variant_t
 dvobjs_create_stream_from_url(const char *url, purc_variant_t option,

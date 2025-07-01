@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "private/dvobjs.h"
 #include "private/atom-buckets.h"
+#include "purc-utils.h"
 #include "purc-variant.h"
 #include "helper.h"
 

@@ -420,7 +420,8 @@ out:
 }
 
 static purc_vdom_t
-find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
+find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack,
+        bool ignore_supressed_co)
 {
     pcintr_heap_t heap = pcintr_get_heap();
     if (heap == NULL) {
@@ -431,6 +432,9 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
     for (size_t i = 0; i < count; i++) {
         pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
                 heap->loaded_crtn_handles, i, NULL);
+        if (co->supressed && ignore_supressed_co) {
+            continue;
+        }
         if (pcintr_coroutine_is_match_page_handle(co, handle)) {
             if (pstack) {
                 *pstack = &(co->stack);
@@ -478,15 +482,16 @@ on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg
     UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
     struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
-    purc_vdom_t vdom = find_vdom_by_target_window(
-            (uint64_t)msg->targetValue, &stack);
     const char *event = purc_variant_get_string_const(msg->eventName);
-    if (!vdom) {
-        PC_WARN("can not found vdom for event %s\n", event);
-        return;
-    }
 
     if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
+        purc_vdom_t vdom = find_vdom_by_target_window(
+                (uint64_t)msg->targetValue, &stack, false);
+        if (!vdom) {
+            PC_WARN("can not found vdom for event %s\n", event);
+            return;
+        }
+
         rdr_conn = pcintr_coroutine_get_rdr_conn(stack->co, conn);
         if (rdr_conn) {
             pcintr_coroutine_destroy_rdr_conn(stack->co, rdr_conn);
@@ -495,6 +500,36 @@ on_plainwindow_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_CLOSED,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+    else if (strcmp(event, MSG_SUB_TYPE_PAGE_ACTIVATED) == 0) {
+        purc_vdom_t vdom = find_vdom_by_target_window(
+                (uint64_t)msg->targetValue, &stack, true);
+        if (!vdom) {
+            PC_WARN("can not found vdom for event %s\n", event);
+            return;
+        }
+
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_ACTIVATED,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+    else if (strcmp(event, MSG_SUB_TYPE_PAGE_DEACTIVATED) == 0) {
+        purc_vdom_t vdom = find_vdom_by_target_window(
+                (uint64_t)msg->targetValue, &stack, true);
+        if (!vdom) {
+            PC_WARN("can not found vdom for event %s\n", event);
+            return;
+        }
+
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_DEACTIVATED,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
@@ -511,7 +546,7 @@ on_widget_event(struct pcinst *inst, pcrdr_conn *conn, const pcrdr_msg *msg,
     struct pcintr_coroutine_rdr_conn *rdr_conn = NULL;
 
     purc_vdom_t vdom = find_vdom_by_target_window(
-            (uint64_t)msg->targetValue, &stack);
+            (uint64_t)msg->targetValue, &stack, false);
 
     const char *event = purc_variant_get_string_const(msg->eventName);
     if (!vdom) {

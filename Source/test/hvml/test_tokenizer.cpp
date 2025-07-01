@@ -282,9 +282,9 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
 
     if (error_code != PCHVML_SUCCESS)
     {
-        purc_rwstream_destroy(rws);
         tkz_buffer_destroy(buffer);
         pchvml_destroy(parser);
+        purc_rwstream_destroy(rws);
         return;
     }
 

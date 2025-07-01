@@ -171,8 +171,8 @@ is_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (purc_variant_is_equal_to(observer->observed, msg->elementValue) ||
-            pcintr_crtn_observed_is_match(observer->observed, msg->elementValue)) {
+    if (msg && (purc_variant_is_equal_to(observer->observed, msg->elementValue) ||
+            pcintr_crtn_observed_is_match(observer->observed, msg->elementValue))) {
         goto match_observed;
     }
     else {
@@ -358,7 +358,7 @@ is_fetch_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (msg && !purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
         goto out;
     }
 

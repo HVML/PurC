@@ -5,7 +5,7 @@
 <hvml target="void">
     <head>
         <define as 'logMsg'>
-            $RUNNER.enablelog('all', 'stderr')
+            $RUNNER.enablelog('all', 'stdout')
 
             <inherit>
                 $RUNNER.logmsg($DATA.serialize($?))
@@ -59,7 +59,7 @@
                 'purc',
                 '-a', 'cn.fmsoft.hvml.test',
                 '-r', 'worker',
-                '-q', $STR.format_c("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $fd),
+                '-q', $STR.printf("secure=%s&fd=%d&sslsessioncacheid=hvml&handshake=true", $REQ.secure, $fd),
                 "$REQ.base/spawn/worker.hvml"
             ]
             </init>
@@ -169,6 +169,13 @@
 
                             </observe>
 
+                            <observe on $stdout for 'stream:hangup'>
+                                $clientId
+
+                                <inherit on $_observedOn.close() />
+                                <forget on $_observedOn for '*' />
+                            </observe>
+
                             <observe on $stderr for 'stream:readable'>
                                 $clientId
 
@@ -182,6 +189,16 @@
                                     </catch>
                                 </choose>
                             </observe>
+
+                            <observe on $stderr for 'stream:hangup'>
+                                $clientId
+
+                                <inherit on $_observedOn.close() />
+                                <execute with $logMsg on "Removing $_observedContent" />
+                                <update on $clients at ".$_observedContent" to 'remove' silently />
+                                <forget on $_observedOn for '*' />
+                            </observe>
+
                         </test>
                     </call>
 
@@ -200,7 +217,7 @@
                     <exit with 'Bad Client' />
                 </observe>
 
-                <!-- observe on $clients[$clientId].wsStream for 'message'>
+                <observe on $clients[$clientId].wsStream for 'message'>
                     $clientId
 
                     <test with $L.streq('case', $?, 'Bye')>
@@ -222,7 +239,7 @@
 
                         </differ>
                     </test>
-                </observe -->
+                </observe>
 
                 <observe on $clients[$clientId].wsStream for 'close'>
                     $clientId

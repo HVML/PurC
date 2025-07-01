@@ -43,7 +43,7 @@ You can use PurC to run an HVML program or an HVML app by using the command line
 
 We release the PurC library under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
-This is version 0.9.22 of PurC.
+This is version 0.9.24 of PurC.
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -64,7 +64,6 @@ For documents, specifications, and open-source software related to HVML, please 
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
-- xGUI (an HVML renderer wrotten from scratch): <https://github.com/HVML/xGUI>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
 - HVML FPM (the FastCGI Process Manager for HVML): <https://github.com/HVML/HVML-FPM>.
 
@@ -281,7 +280,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```console
 $ purc -v error.hvml
-purc 0.9.22
+purc 0.9.24
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -320,7 +319,7 @@ Run `purc` to execute this HVML program with `-v` option, it will report the exe
 
 ```console
 $ purc -v exception.hvml
-purc 0.9.22
+purc 0.9.24
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -480,7 +479,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.22
+purc 0.9.24
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -564,7 +563,7 @@ You can also try other samples which illustrate the features of the Foil rendere
 - `hvml/foil-progress.hvml`
 - `hvml/foil-meter.hvml`
 
-Note that in the current version (0.9.22), Foil is not fully functional.
+Note that in the current version (0.9.24), Foil is not fully functional.
 Shortly, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    so that you can get a similar experience to a web browser.
 
@@ -657,11 +656,11 @@ Below is the screenshot of this sample:
 
 ### Options for `purc`
 
-You can see the all options supported by `purc` when you run `purc` with `-h` option:
+You can see the all options supported by `purc` when you run `purc` with `--help` option:
 
 ```bash
-$ purc -h
-purc (0.9.22) - a standalone HVML interpreter/debugger based on PurC.
+$ purc --help
+purc (0.9.24) - a standalone HVML interpreter/debugger based on PurC.
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -681,15 +680,15 @@ The following options can be supplied to the command:
         The data fetcher; use `local` or `remote`.
             - `local`: use the built-in data fetcher, and only `file://` URLs
                supported.
-            - `remote`: use the remote data fetcher to support more URL schemas,
+            - `remote`: use the remote data fetcher to support more URL schemes,
                such as `http`, `https`, `ftp` and so on.
 
-  -c --rdr-comm=< headless | thread | socket>
+  -c --rdr-comm=< headless | thread | socket >
         The renderer commnunication method; use `headless` (default), `thread`, or `socket`.
             - `headless`: use the built-in headless renderer.
             - `thread`: use the built-in thread-based renderer.
-            - `socket`: use the remote UNIX domain socket-based renderer or websocket-based renderer;
-              `purc` will connect to the renderer via Unix Socket or WebSocket.
+            - `socket`: use the remote UNIX/local-domain-socket-based renderer or WebSocket-based renderer.
+              `purc` will connect to the renderer via UNIX/local Socket or WebSocket.
 
   -u --rdr-uri=< renderer_uri >
         The renderer uri or shortname:
@@ -707,40 +706,53 @@ The following options can be supplied to the command:
         STDIN stream. (Ctrl+D for end of input after you input the JSON data in a terminal.)
 
   -q --query=< query_string >
-        Use a URL query string (in RFC 3986) for the request data which will be passed to 
+        Use a URL query string (in RFC 3986) for the request data which will be passed to
         the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
 
-  -P --pageid
+     --query-<key> <value>
+        Use a user-defined option for a key-value pair which will be appended to the query_string;
+        e.g., --query-foo bar.
+
+     --pageid=< page_id >
         The page identifier for the HVML programs which do not run in parallel.
 
-  -L --layout-style
+     --layout-style=< layout_style >
         The layout style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin` or `widget`.
 
-  -T --toolkit-style
+     --toolkit-style=< toolkit_style >
         The toolkit style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin` or `widget`.
 
-  -A --transition-style
+     --transition-style=< transition_style >
         The transition style for the HVML programs which do not run in parallel.
         This option is only valid if the page type is `plainwin`.
 
-  -s --allow-switching-rdr=< true | false >
+     --allow-switching-rdr
         Allow switching renderer.
+
+     --allow-scaling-by-density
+        Allow scaling by density.
 
   -l --parallel
         Execute multiple programs in parallel.
 
+  -p --print-docs
+        Print the documents generated by the coroutines to STDOUT.
+
+  -t --print-result
+        Print the exit result of coroutines to STDOUT.
+
   -v --verbose
         Execute the program(s) with verbose output.
 
-  -C --copying
+     --copying
         Display detailed copying information and exit.
 
-  -V --version
+     --version
         Display version information and exit.
 
-  -h --help
+  -h  --help
         This help.
 
 (root only options)
@@ -889,7 +901,7 @@ There are many ways to contribute to PurC:
 ### Current Status
 
 This project was launched in June. 2021, and we opened this repo in July 2022.
-This is version 0.9.22 of PurC.
+This is version 0.9.24 of PurC.
 
 The main purpose of PurC is to provide a library for you to write your own HVML interpreter.
 The current version implements almost all features defined by [HVML Specification V1.0],

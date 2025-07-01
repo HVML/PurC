@@ -63,7 +63,7 @@ docLoadingMethod:$REQ.docLoadingMethod
 
     <init as 'dataLen' with $STR.nr_bytes($data, false) temp />
 
-    <init as 'result_value' with $STR.format_c('%x', $resultValue) temp />
+    <init as 'result_value' with $STR.printf('%x', $resultValue) temp />
 
     <init as 'message' temp >
 """type: response

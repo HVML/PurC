@@ -1,0 +1,20 @@
+#!/usr/bin/purc
+
+# RESULT: [3L, 4L, 5L, 6L, 7L, 8L]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as set uniquely>
+        [ 1, 2, 3 ]
+    </init>
+
+    <observe on $set for 'change:inflated'>
+        <exit with $? />
+    </observe>
+
+    
+    <iterate on 4 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
+        <update on $set to add with $? />
+    </iterate>
+</hvml>

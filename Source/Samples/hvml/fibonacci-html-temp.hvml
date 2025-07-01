@@ -33,7 +33,7 @@
             </iterate>
         </ol>
 
-        <p>$STR.format_c($T.get('Totally %d numbers'), $count)</p>
+        <p>$STR.printf($T.get('Totally %d numbers'), $count)</p>
 
         <exit with [$count, $last_two] />
 

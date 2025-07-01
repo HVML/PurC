@@ -308,42 +308,6 @@ positive:
     '汉字'
 
 negative:
-    $STR.format_c()
-    ArgumentMissed
-
-negative:
-    $STR.format_c('')
-    ArgumentMissed
-
-negative:
-    $STR.format_c(null, 5)
-    WrongDataType
-
-negative:
-    $STR.format_c('%s/%s', 16)
-    WrongDataType
-
-positive:
-    $STR.format_c('%x', 16)
-    '10'
-
-positive:
-    $STR.format_c('Tom is %d years old, while Jerry is %d years old.', 9, 7)
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-$STR.format_c('Tom is %d years old, while Jerry is %d years old.', [9, 7])
-    'Tom is 9 years old, while Jerry is 7 years old.'
-
-positive:
-    $STR.format_c('no format characters', 16)
-    'no format characters'
-
-positive:
-    $STR.format_c('%s/%d', 'Tom', 16)
-    'Tom/16'
-
-negative:
     $STR.trim()
     ArgumentMissed
 
@@ -399,14 +363,6 @@ positive:
     $STR.trim(' 张三李四 ', 'both', ' 张四')
     '三李'
 
-positive:
-    $DATA.serialize($DATA.parse(']'))
-    '"<undefined>"'
-
-positive:
-    $STR.format_c('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
-    'Tom is 009 years old, while Jerry is 007 years old.'
-
 negative:
     $STR.replace(null)
     ArgumentMissed
@@ -460,8 +416,40 @@ positive:
     false
 
 positive:
+    $DATA.is_container(bx00)
+    false
+
+positive:
     $DATA.is_container([])
     true
+
+positive:
+    $DATA.is_container([!])
+    true
+
+positive:
+    $DATA.is_container({})
+    true
+
+positive:
+    $DATA.is_linear_container
+    false
+
+positive:
+    $DATA.is_linear_container(bx00)
+    false
+
+positive:
+    $DATA.is_linear_container([])
+    true
+
+positive:
+    $DATA.is_linear_container([!])
+    true
+
+positive:
+    $DATA.is_linear_container({})
+    false
 
 positive:
     $DATA.numerify('00123')
@@ -494,6 +482,42 @@ positive:
 positive:
     $STR.codepoints('HVML的昵称是呼噜猫', 'tuple')
     [! 72, 86, 77, 76, 30340, 26165, 31216, 26159, 21628, 22108, 29483 ]
+
+negative:
+    $STR.codepoints(!)
+    ArgumentMissed
+
+negative:
+    $STR.codepoints(! null )
+    WrongDataType
+
+positive:
+    $STR.codepoints(! [])
+    ''
+
+positive:
+    $STR.codepoints(! [!])
+    ''
+
+positive:
+    $STR.codepoints(! [72, 86, 77, 76])
+    'HVML'
+
+positive:
+    $STR.codepoints(! [! 20013, 22269 ] )
+    '中国'
+
+positive:
+    $STR.codepoints(! [ 0x4E2D, 0x56FD ])
+    '中国'
+
+positive:
+    $STR.codepoints(! [0x4E2D, 0x200000])
+    '中'
+
+positive:
+    $STR.codepoints(! ['', 0x200000])
+    ''
 
 negative:
     $STR.count_bytes()
@@ -644,12 +668,20 @@ positive:
     'PurC'
 
 positive:
-    $STR.translate('HVML', 'HTML', 'PurC')
-    'HVML'
+    $STR.translate('abcd', 'abc', 'xyz')
+    'xyzd'
 
 positive:
+    $STR.translate('hello world', 'aeiou', '12345')
+    'h2ll4 w4rld'
+
+positive:
+    $STR.translate('HVML', 'HTML', 'PurC')
+    'PVrC'
+
+negative:
     $STR.translate('HVML呼噜猫', '呼噜猫', '')
-    'HVML'
+    InvalidValue
 
 negative:
     $STR.translate('', {})
@@ -678,6 +710,10 @@ positive:
 positive:
     $STR.translate('HVML呼噜猫', {'HVML': 'PurC', '呼噜猫': ''})
     'PurC'
+
+positive:
+    $STR.translate('hi all, I said hello', { "h": "-", "hello": "hi", "hi": "hello"} )
+    'hello all, I said hi'
 
 negative:
     $STR.tokenize()
@@ -792,8 +828,8 @@ positive:
     'bc'
 
 positive:
-    $STR.strpbrk('abc', 'b')
-    'bc'
+    $STR.strpbrk('abc', 'ab')
+    'abc'
 
 positive:
     $STR.strpbrk('abc', 'B', true)
@@ -808,10 +844,849 @@ positive:
     '国'
 
 positive:
+    $STR.strpbrk('中华人民共和国', '华国')
+    '华人民共和国'
+
+positive:
     $STR.strpbrk('ａｂｃ', 'ｃ')
     'ｃ'
 
 positive:
     $STR.strpbrk('ａｂｃ', 'Ａ', true)
     'ａｂｃ'
+
+negative:
+    $STR.htmlentities
+    ArgumentMissed
+
+negative:
+    $STR.htmlentities(null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities('', null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities('', 'foo')
+    InvalidValue
+
+positive:
+    $STR.htmlentities('')
+    ''
+
+positive:
+    $STR.htmlentities('normal text')
+    'normal text'
+
+positive:
+    $STR.htmlentities('"')
+    '&quot;'
+
+positive:
+    $STR.htmlentities('<foo>')
+    '&lt;foo&gt;'
+
+positive:
+    $STR.htmlentities('<foo name="bar">')
+    '&lt;foo name=&quot;bar&quot;&gt;'
+
+positive:
+    $STR.htmlentities('<foo name="bar &amp; foobar">')
+    '&lt;foo name=&quot;bar &amp;amp; foobar&quot;&gt;'
+
+positive:
+    $STR.htmlentities('<foo name="bar &amp; foo\'bar">', 'double-quotes')
+    '&lt;foo name=&quot;bar &amp; foo\'bar&quot;&gt;'
+
+negative:
+    $STR.htmlentities(!)
+    ArgumentMissed
+
+negative:
+    $STR.htmlentities(!null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities(!'', null)
+    WrongDataType
+
+negative:
+    $STR.htmlentities(!'', 'foo')
+    InvalidValue
+
+positive:
+    $STR.htmlentities(!'')
+    ''
+
+positive:
+    $STR.htmlentities(!'normal text')
+    'normal text'
+
+# The following test cases are generated with aid from AI
+negative:
+    $STR.split()
+    ArgumentMissed
+
+negative:
+    $STR.split(null)
+    WrongDataType
+
+negative:
+    $STR.split('', null)
+    WrongDataType
+
+negative:
+    $STR.split('', 0)
+    InvalidValue
+
+negative:
+    $STR.split('', -1)
+    InvalidValue
+
+positive:
+    $STR.split('')
+    []
+
+positive:
+    $STR.split('abc')
+    ['a', 'b', 'c']
+
+positive:
+    $STR.split('abc', 2)
+    ['ab', 'c']
+
+positive:
+    $STR.split('abcd', 2)
+    ['ab', 'cd']
+
+positive:
+    $STR.split('中国人民', 2)
+    ['中国', '人民']
+
+positive:
+    $STR.split('中国人民共和国', 3)
+    ['中国人', '民共和', '国']
+
+positive:
+    $STR.split('中国人民共和国', 4)
+    ['中国人民', '共和国']
+
+positive:
+    $STR.split('中国人民共和国', 5)
+    ['中国人民共', '和国']
+
+positive:
+    $STR.split('中国人民共和国', 7)
+    ['中国人民共和国']
+
+positive:
+    $STR.split('中国人民共和国', 8)
+    ['中国人民共和国']
+
+negative:
+    $STR.pad()
+    ArgumentMissed
+
+negative:
+    $STR.pad(null)
+    ArgumentMissed
+
+negative:
+    $STR.pad('', null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, '', null)
+    WrongDataType
+
+negative:
+    $STR.pad('', 5, '', 'invalid')
+    InvalidValue
+
+negative:
+    $STR.pad('test', -1)
+    InvalidValue
+
+positive:
+    $STR.pad('', 0)
+    ''
+
+positive:
+    $STR.pad('test', 8)
+    'test    '
+
+positive:
+    $STR.pad('test', 8, '*')
+    'test****'
+
+positive:
+    $STR.pad('test', 8, '*', 'left')
+    '****test'
+
+positive:
+    $STR.pad('test', 8, '*', 'both')
+    '**test**'
+
+positive:
+    $STR.pad('测试', 6)
+    '测试    '
+
+positive:
+    $STR.pad('测试', 6, '中')
+    '测试中中中中'
+
+positive:
+    $STR.pad('测试', 6, '中', 'left')
+    '中中中中测试'
+
+positive:
+    $STR.pad('测试', 6, '中', 'both')
+    '中中测试中中'
+
+positive:
+    $STR.pad('test', 8, 'ab')
+    'testabab'
+
+positive:
+    $STR.pad('test', 8, 'ab', 'left')
+    'ababtest'
+
+positive:
+    $STR.pad('test', 8, 'ab', 'both')
+    'abtestab'
+
+positive:
+    $STR.pad('test', 4)
+    'test'
+
+positive:
+    $STR.pad('test', 3)
+    'test'
+negative:
+    $STR.substr_compare()
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare('', null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_compare('', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_compare('abc', 'b', 4)
+    InvalidValue
+
+negative:
+    $STR.substr_compare('abc', 'b', 0, -1)
+    InvalidValue
+
+positive:
+    $STR.substr_compare('abc', 'b', 1)
+    0
+
+positive:
+    $STR.substr_compare('abc', 'B', 1)
+    1
+
+positive:
+    $STR.substr_compare('abc', 'b', -1)
+    1
+
+positive:
+    $STR.substr_compare('abc', 'B', 1, null, true)
+    0
+
+positive:
+    $STR.substr_compare('abcdef', 'cd', 2, 2)
+    0
+
+positive:
+    $STR.substr_compare('abcdef', 'cde', 2, 2)
+    0
+
+positive:
+    $STR.substr_compare('中国人民', '国人', 1, 2)
+    0
+
+positive:
+    $STR.substr_compare('中国人民', '国民', 1, 2)
+    -1
+
+positive:
+    $STR.substr_compare('HVML呼噜猫', 'hvml', 0, 4, true)
+    0
+
+positive:
+    $STR.substr_compare('HVML呼噜猫', 'hvml呼', 0, 5, true)
+    0
+
+positive:
+    $STR.substr_compare('abc', 'def', 0)
+    -1
+
+positive:
+    $STR.substr_compare('def', 'abc', 0)
+    1
+
+negative:
+    $STR.substr_count()
+    ArgumentMissed
+
+negative:
+    $STR.substr_count(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_count('', null)
+    WrongDataType
+
+negative:
+    $STR.substr_count('abc', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_count('abc', 'b', -1)
+    InvalidValue
+
+negative:
+    $STR.substr_count('abc', 'b', 0, -1)
+    InvalidValue
+
+positive:
+    $STR.substr_count('', '')
+    0UL
+
+positive:
+    $STR.substr_count('abc', '')
+    0UL
+
+positive:
+    $STR.substr_count('abc', 'b')
+    1UL
+
+positive:
+    $STR.substr_count('abcabc', 'bc')
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国')
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 2)
+    1UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 0, 4)
+    2UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '中国', 2, 2)
+    1UL
+
+positive:
+    $STR.substr_count('中国中国人民共和国', '日本')
+    0UL
+
+positive:
+    $STR.substr_count('The quick brown fox jumps over the lazy dog', 'the', 0, 0)
+    1UL
+negative:
+    $STR.chunk_split()
+    ArgumentMissed
+
+negative:
+    $STR.chunk_split(null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('', null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('', 76, null)
+    WrongDataType
+
+negative:
+    $STR.chunk_split('test', -1)
+    InvalidValue
+
+negative:
+    $STR.chunk_split('test', 0)
+    InvalidValue
+
+positive:
+    $STR.chunk_split('')
+    ''
+
+positive:
+    $STR.chunk_split('test')
+    'test'
+
+positive:
+    $STR.chunk_split('test', 2)
+    'te\r\nst'
+
+positive:
+    $STR.chunk_split('test', 2, '*')
+    'te*st'
+
+positive:
+    $STR.chunk_split('中国人民', 3)
+    '中国人\r\n民'
+
+positive:
+    $STR.chunk_split('中国人民共和国', 4, '||')
+    '中国人民||共和国'
+
+positive:
+    $STR.chunk_split('HVML is a great programming language!', 5, ' ')
+    'HVML  is a  great  prog rammi ng la nguag e!'
+
+positive:
+    $STR.chunk_split('abcdefghijklmnopqrstuvwxyz', 5, '-')
+    'abcde-fghij-klmno-pqrst-uvwxy-z'
+
+negative:
+    $STR.substr_replace()
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace(null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace('', null)
+    ArgumentMissed
+
+negative:
+    $STR.substr_replace('', '', null)
+    WrongDataType
+
+negative:
+    $STR.substr_replace('', '', 0, null)
+    WrongDataType
+
+positive:
+    $STR.substr_replace('', '', 0)
+    ''
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 0)
+    'PurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1)
+    'HPurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', -1)
+    'HVMPurC'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 0, 2)
+    'PurCML'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1, 2)
+    'HPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', -2, 1)
+    'HVPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 2, -1)
+    'HVPurCL'
+
+positive:
+    $STR.substr_replace('HVML', 'PurC', 1, 0)
+    'HPurCVML'
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], 'PurC', 0)
+    ['PurC', 'PurC']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], 0)
+    ['PurC', 'Pro']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], [0, 1])
+    ['PurC', 'xPro']
+
+positive:
+    $STR.substr_replace(['HVML', 'xGUI'], ['PurC', 'Pro'], 0, [2, 3])
+    ['PurCML', 'ProI']
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', 2)
+    '中华伟大的'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', -2)
+    '中华人民共伟大的'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', 2, 3)
+    '中华伟大的和国'
+
+positive:
+    $STR.substr_replace('中华人民共和国', '伟大的', -3, 2)
+    '中华人民伟大的国'
+
+negative:
+    $STR.printf()
+    ArgumentMissed
+
+negative:
+    $STR.printf('')
+    ArgumentMissed
+
+negative:
+    $STR.printf(null, 5)
+    WrongDataType
+
+negative:
+    $STR.printf('%s/%s', 16)
+    WrongDataType
+
+positive:
+    $STR.printf('%x', 16)
+    '10'
+
+positive:
+    $STR.printf('Tom is %03d years old, while Jerry is %03d years old.', 9, 7)
+    'Tom is 009 years old, while Jerry is 007 years old.'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', 9, 7)
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('Tom is %d years old, while Jerry is %d years old.', [9, 7])
+    'Tom is 9 years old, while Jerry is 7 years old.'
+
+positive:
+    $STR.printf('no format characters', 16)
+    'no format characters'
+
+positive:
+    $STR.printf('%s/%d', 'Tom', 16)
+    'Tom/16'
+
+positive:
+    $STR.printf($STREAM.stdout, '%03d', 16)
+    3UL
+
+positive:
+    $STR.printf($STREAM.stdout, 'Tom is 0x%02X years old, while Jerry is 0x%02X years old.\n', [10, 15])
+    54UL
+
+negative:
+    $STR.scanf()
+    ArgumentMissed
+
+negative:
+    $STR.scanf('')
+    ArgumentMissed
+
+negative:
+    $STR.scanf(null, 5)
+    WrongDataType
+
+negative:
+    $STR.scanf('Tom is 9', 'tom is %d')
+    InvalidValue
+
+negative:
+    $STR.scanf('16', '%Z')
+    InvalidValue
+
+positive:
+    $STR.scanf('%', '%%')
+    []
+
+positive:
+    $STR.scanf('16', '%x')
+    [22UL]
+
+positive:
+    $STR.scanf('125', '%lld')
+    [125L]
+
+positive:
+    $STR.scanf('125', '%u')
+    [125UL]
+
+positive:
+    $STR.scanf('Tom is 9 years old, while Jerry is 7 years old.', 'Tom is %d years old, while Jerry is %d years old.')
+    [9L, 7L]
+
+positive:
+    $STR.scanf('Tom 16', '%*s %d')
+    [16L]
+
+positive:
+    $STR.scanf('Tom   16\t33\r\n 16', '%s %d %u %x')
+    ['Tom', 16L, 33UL, 22UL]
+
+positive:
+    $STR.scanf('Tom/16 165', '%s %f')
+    ['Tom/16', 165]
+
+positive:
+    $STR.scanf('no format characters', 'no format characters')
+    []
+
+positive:
+    $STR.scanf('', '')
+    []
+
+positive:
+    $STR.scanf('123', '%d')
+    [123L]
+
+positive:
+    $STR.scanf('-123', '%d')
+    [-123L]
+
+positive:
+    $STR.scanf('123', '%u')
+    [123UL]
+
+positive:
+    $STR.scanf('0xFF', '%x')
+    [255UL]
+
+positive:
+    $STR.scanf('0777', '%o')
+    [511UL]
+
+positive:
+    $STR.scanf('3.14', '%f')
+    [3.1400001049041748]
+
+positive:
+    $STR.scanf('-3.14e2', '%f')
+    [-314.0]
+
+positive:
+    $STR.scanf('hello world', '%s %s')
+    ['hello', 'world']
+
+positive:
+    $STR.scanf('中国 人民', '%s %s')
+    ['中国', '人民']
+
+positive:
+    $STR.scanf('AB', '%c%c')
+    ['A', 'B']
+
+positive:
+    $STR.scanf('中国', '%3c%3c')
+    ['中', '国']
+
+positive:
+    $STR.scanf('age: 18 height: 175.5', 'age: %d height: %f')
+    [18L, 175.5]
+
+positive:
+    $STR.scanf('12345', '%2d%3d')
+    [12L, 345L]
+
+positive:
+    $STR.scanf('中国人民', '%6s%6s')
+    ['中国', '人民']
+
+positive:
+    $STR.scanf('a:b:c', '%c%*c%c%*c%c')
+    ['a', 'b', 'c']
+
+positive:
+    $STR.scanf(bx313233, '%d')
+    [123L]
+
+positive:
+    $STR.scanf('abc', '%d')
+    []
+
+positive:
+    $STR.scanf('123abc', '%d%d')
+    [123L]
+
+positive:
+    $STR.scanf('A B', '%c %c')
+    ['A', 'B']
+
+positive:
+    $STR.scanf('中 国', '%3c %3c')
+    ['中', '国']
+
+positive:
+    $STR.scanf('姓名:Linux 年龄:25', '姓名:%s 年龄:%d')
+    ['Linux', 25L]
+
+negative:
+    $STR.printp()
+    ArgumentMissed
+
+negative:
+    $STR.printp(null)
+    ArgumentMissed
+
+negative:
+    $STR.printp('[0]', null)
+    WrongDataType
+
+negative:
+    $STR.printp('{foo}', null)
+    WrongDataType
+
+negative:
+    $STR.printp('[1]', [null])
+    BadIndex
+
+negative:
+    $STR.printp('{foo}', {'bar': 'baz'})
+    NoSuchKey
+
+negative:
+    $STR.printp('#1', null)
+    ArgumentMissed
+
+positive:
+    $STR.printp('', '')
+    ''
+
+positive:
+    $STR.printp('\\[]', null)
+    '[]'
+
+positive:
+    $STR.printp('\\{]', null)
+   '{]'
+
+positive:
+     $STR.printp('\\#0', null)
+    '#0'
+
+positive:
+     $STR.printp('\\\\', null)
+    '\\'
+
+positive:
+    $STR.printp('#0', '')
+    '""'
+
+positive:
+    $STR.printp('There are two boys: [0] and [1]', ['Tom', 'Jerry'])
+    'There are two boys: "Tom" and "Jerry"'
+
+positive:
+    $STR.printp('There are two boys: {name0} and {name1}', { name0: 'Tom', name1: 'Jerry' })
+    'There are two boys: "Tom" and "Jerry"'
+
+positive:
+    $STR.printp('There are two boys: #0 and #1', 'Tom', 'Jerry')
+    'There are two boys: "Tom" and "Jerry"'
+
+positive:
+    $STR.printp('There are two boys: {name0} and {name1}; the object serialized: #0', { name0: 'Tom', name1: 'Jerry' })
+    'There are two boys: "Tom" and "Jerry"; the object serialized: {"name0":"Tom","name1":"Jerry"}'
+
+positive:
+    $STR.printp($STREAM.stdout, 'There are two boys: {name0} and {name1}; the object serialized: #0\n', { name0: 'Tom', name1: 'Jerry' })
+    94UL
+
+negative:
+    $STR.scanp()
+    ArgumentMissed
+
+negative:
+    $STR.scanp(null)
+    ArgumentMissed
+
+negative:
+    $STR.scanp(null, null)
+    WrongDataType
+
+negative:
+    $STR.scanp(null, '{foo}')
+    WrongDataType
+
+positive:
+    $STR.scanp('"bar"', '{foo}')
+    {foo:'bar'}
+
+positive:
+    $STR.scanp('"foo"', '[]')
+    ['foo']
+
+positive:
+    $STR.scanp('"foo"', '[2]')
+    [null, null, 'foo']
+
+positive:
+    $STR.scanp('My name is "Tom"', 'My name is #?')
+    'Tom'
+
+positive:
+    $STR.scanp('My name is "Tom"', 'My\tname\r\nis   #?')
+    'Tom'
+
+positive:
+    $STR.scanp('"foo" "bar"', '[] []')
+    ['foo', 'bar']
+
+positive:
+    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: [0] and [1]')
+    ['Tom Bean', 'Jerry Right']
+
+positive:
+    $STR.scanp('There are two boys: "Tom Bean" and "Jerry Right"', 'There are two boys: {name0} and {name1}')
+    { name0: 'Tom Bean', name1: 'Jerry Right' }
+
+positive:
+    $STR.scanp('The object is { foo: "bar", bar: "baz"}', 'The object is #?')
+    { foo: 'bar', bar: 'baz'}
+
+#positive:
+#    {{ $STREAM.stdout.writelines('Please input `My name is "Tom"` without backticks strictly!'); $STR.scanp($STREAM.stdin, 'My name is #?') }}
+#     'Tom'
+
+positive:
+    $DATA.serialize($DATA.parse(']'))
+    '"<undefined>"'
+
+positive:
+    $DATA.serialize(undefined, 'plain')
+    "null"
+
+positive:
+    $DATA.serialize(300, 'default', $STREAM.stdout)
+    3UL
+
+positive:
+    $DATA.serialize($DATA.sort([], 'asc'))
+    "[]"
+
+positive:
+    $DATA.serialize([1, 2], 'default', $STREAM.stdout)
+    5UL
+
+positive:
+    {{ $STREAM.open('file:///tmp/test_str_scanp', 'write create truncate').writelines('My name is "Tom"'); $STR.scanp($STREAM.open('file:///tmp/test_str_scanp', 'read'), 'My name is #?') }}
+    'Tom'
 

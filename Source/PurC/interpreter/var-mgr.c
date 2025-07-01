@@ -114,117 +114,19 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
+static int mgr_post_event(pcintr_stack_t stack,
+        pcvarmgr_t mgr, const char *name, const char *type,
+        const char *sub_type, purc_variant_t data)
 {
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
+    int ret = -1;
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
+        ret = pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_ATTACHED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                dest, type, sub_type, data, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
-
-    return true;
-}
-
-static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
-    purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
-    if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DETACHED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_unref(dest);
-    }
-
-    return true;
-}
-
-static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(nr_args);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (ctxt == NULL || !stack) {
-        return true;
-    }
-
-    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
-
-    const char* name = purc_variant_get_string_const(argv[0]);
-    purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
-    if (dest) {
-        pcintr_coroutine_post_event(stack->co->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DISPLACED,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_unref(dest);
-    }
-
-    return true;
-}
-
-static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
-{
-    switch (msg_type) {
-    case PCVAR_OPERATION_INFLATED:
-        return mgr_grow_handler(source, msg_type, ctxt, nr_args, argv);
-
-    case PCVAR_OPERATION_DEFLATED:
-        return mgr_shrink_handler(source, msg_type, ctxt, nr_args, argv);
-
-    case PCVAR_OPERATION_MODIFIED:
-        return mgr_change_handler(source, msg_type, ctxt, nr_args, argv);
-
-    default:
-        return true;
-    }
-    return true;
-}
-
-static int
-add_listener_for_co_variables(pcvarmgr_t mgr)
-{
-    int op = PCVAR_OPERATION_INFLATED | PCVAR_OPERATION_DEFLATED |
-        PCVAR_OPERATION_MODIFIED;
-    mgr->listener = purc_variant_register_post_listener(mgr->object,
-        (pcvar_op_t)op, mgr_handler, mgr);
-    if (mgr->listener) {
-        return 0;
-    }
-    return -1;
+    return ret;
 }
 
 #define DEF_ARRAY_SIZE 10
@@ -243,16 +145,7 @@ pcvarmgr_t pcvarmgr_create(void)
         goto err_free_mgr;
     }
 
-    int ret = add_listener_for_co_variables(mgr);
-    if (ret != 0) {
-        goto err_clear_object;
-    }
-
-
     return mgr;
-
-err_clear_object:
-    purc_variant_unref(mgr->object);
 
 err_free_mgr:
     free(mgr);
@@ -295,6 +188,11 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
     purc_variant_t v = purc_variant_object_get_ex(mgr->object, k, true);
     if (v == PURC_VARIANT_INVALID) {
         ret = purc_variant_object_set(mgr->object, k, variant);
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_ATTACHED, PURC_VARIANT_INVALID);
+        }
     }
     else {
         enum purc_variant_type type = purc_variant_get_type(v);
@@ -310,6 +208,11 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
             // XXX: observe on=$name
             ret = purc_variant_object_set(mgr->object, k, variant);
             break;
+        }
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_DISPLACED, PURC_VARIANT_INVALID);
         }
     }
 
@@ -337,8 +240,14 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
 bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 {
     if (name) {
-        return purc_variant_object_remove_by_ckey(mgr->object,
+        bool b =  purc_variant_object_remove_by_ckey(mgr->object,
                 name, silently);
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack) {
+            mgr_post_event(stack, mgr, name, MSG_TYPE_CHANGE,
+                    MSG_SUB_TYPE_DETACHED, PURC_VARIANT_INVALID);
+        }
+        return b;
     }
     return false;
 }
@@ -362,6 +271,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
     return true;
 }
 
+#if 0
 static purc_variant_t
 _find_named_scope_var_in_vdom(purc_coroutine_t cor,
         pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
@@ -416,6 +326,7 @@ _find_named_scope_var(purc_coroutine_t cor,
     }
 
     struct pcintr_stack_frame *parent = frame;
+    pcvdom_element_t last_elem = elem;
 
 again:
 
@@ -460,12 +371,112 @@ find_parent_vdom:
     purc_clr_error();
 
     elem = parent->pos;
-    goto again;
+    if (elem != last_elem) {
+        last_elem = elem;
+        goto again;
+    }
 
 out:
     purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT, name);
     return PURC_VARIANT_INVALID;
 }
+
+#else
+
+static purc_variant_t
+_find_named_var_in_vdom(purc_coroutine_t cor,
+        pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    struct pcvdom_document *vdom = pcvdom_document_from_node(&elem->node);
+    bool is_stack_vdom = (vdom == cor->stack.vdom);
+
+    while (elem) {
+        v = pcintr_get_scope_variable(cor, elem, name);
+        if (v) {
+            if (mgr) {
+                *mgr = pcintr_get_scope_variables(cor, elem);
+            }
+            goto out;
+        }
+
+        elem = pcvdom_element_parent(elem);
+        if (!elem) {
+            goto out_not_found;
+        }
+
+        if (elem->tag_id == PCHVML_TAG_DEFINE ||
+                (!is_stack_vdom && (elem->node.type == PCVDOM_NODE_DOCUMENT ||
+                                    elem->tag_id == PCHVML_TAG_HVML))
+                ) {
+            goto out_not_found;
+        }
+    }
+
+out_not_found:
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, ERROR_NOT_FOUND_FORMAT,
+            name);
+out:
+    return v;
+}
+
+static purc_variant_t
+_find_named_scope_var(purc_coroutine_t cor,
+        struct pcintr_stack_frame *frame, const char* name, pcvarmgr_t* mgr)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    pcvdom_element_t elem = frame->pos;
+    v = _find_named_var_in_vdom(cor, elem, name, mgr);
+    if (v) {
+        goto out;
+    }
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    while (parent && parent->pos &&
+            (parent->pos->tag_id != PCHVML_TAG_EXECUTE) &&
+            (parent->pos->tag_id != PCHVML_TAG_CALL) &&
+            (parent->pos->tag_id != PCHVML_TAG_OBSERVE)
+            ) {
+        parent = pcintr_stack_frame_get_parent(parent);
+    }
+
+    if (parent && parent->pos) {
+        v = _find_named_scope_var(cor, parent, name, mgr);
+        if (v) {
+            goto out;
+        }
+
+        if (parent->pos->tag_id == PCHVML_TAG_OBSERVE) {
+            parent = pcintr_stack_frame_get_parent(parent);
+            if (parent && parent->pos) {
+                if (parent->pos->tag_id == PCHVML_TAG_HVML) {
+                    struct pcvdom_element *body = NULL;
+                    struct pcvdom_element *child =
+                        pcvdom_element_first_child_element(parent->pos);
+                    while(child) {
+                        if (child->tag_id == PCHVML_TAG_BODY) {
+                            body = child;
+                            break;
+                        }
+                        child = pcvdom_element_next_sibling_element(child);
+                    }
+                    if (body) {
+                        v = _find_named_var_in_vdom(cor, body, name, mgr);
+                        if (v) {
+                            goto out;
+                        }
+                    }
+                }
+                v = _find_named_scope_var(cor, parent, name, mgr);
+            }
+        }
+    }
+
+out:
+    return v;
+}
+#endif
 
 static purc_variant_t
 _find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,
@@ -682,7 +693,7 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
 
-    while (frame) {
+    while (frame && frame->pos) {
         pcvdom_element_t elem = frame->pos;
         purc_variant_t elem_id;
         const char *name = elem->tag_name;
@@ -702,7 +713,7 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
         if (purc_variant_is_string(elem_id)) {
             const char *id = purc_variant_get_string_const(elem_id);
-            if (id && id[0] == '#' && strcmp(id+1, anchor) == 0) {
+            if (id && strcmp(id, anchor) == 0) {
                 ret = pcintr_get_symbol_var(frame, symbol_var);
                 if (ret == PURC_VARIANT_INVALID) {
                     purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND,

@@ -4,7 +4,7 @@
  * @date 2021/07/02
  * @brief The implementation of stream dynamic variant object.
  *
- * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -23,6 +23,10 @@
  */
 
 #define _GNU_SOURCE
+
+#include "purc-errors.h"
+#include "purc-rwstream.h"
+#include "purc-utils.h"
 
 #include "config.h"
 #include "stream.h"
@@ -139,6 +143,12 @@ enum {
     K_KW_status,
 #define _KW_seek                    "seek"
     K_KW_seek,
+#define _KW_getuc                   "getuc"
+    K_KW_getuc,
+#define _KW_putuc                   "putuc"
+    K_KW_putuc,
+#define _KW_ungetuc                 "ungetuc"
+    K_KW_ungetuc,
 #define _KW_close                   "close"
     K_KW_close,
 #define _KW_fd                      "fd"
@@ -187,6 +197,9 @@ static struct keyword_to_atom {
     { _KW_writeeof, 0},             // "writeeof"
     { _KW_status, 0},               // "status"
     { _KW_seek, 0},                 // "seek"
+    { _KW_getuc, 0},                // "getuc"
+    { _KW_putuc, 0},                // "putuc"
+    { _KW_ungetuc, 0},              // "ungetuc"
     { _KW_close, 0},                // "close"
     { _KW_fd, 0},                   // "fd"
     { _KW_peer_addr, 0},            // "peerAddr"
@@ -223,6 +236,12 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
 
     stream->stm4w = NULL;
     stream->stm4r = NULL;
+
+    if (stream->type == STREAM_TYPE_MEM &&
+            stream->kept != PURC_VARIANT_INVALID) {
+        purc_variant_unref(stream->kept);
+        stream->kept = PURC_VARIANT_INVALID;
+    }
 
     for (int i = 0; i < NR_STREAM_MONITORS; i++) {
         if (stream->monitors[i]) {
@@ -366,7 +385,8 @@ readstruct_getter(void *native_entity, const char *property_name,
                 goto failed;
             }
         }
-        else if (stream->type == STREAM_TYPE_FILE) {
+        else if (stream->type == STREAM_TYPE_FILE ||
+                stream->type == STREAM_TYPE_MEM) {
             purc_set_error(PURC_ERROR_NO_DATA);
             goto failed;
         }
@@ -581,11 +601,28 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
     size_t total_ucs = 0;
 
     if (entity->fp == NULL) {
-        entity->fp = fdopen(entity->fd4r, "r");
-        if (entity->fp == NULL) {
-            PC_ERROR("Failed fdopen(%d): %s\n", entity->fd4r, strerror(errno));
-            purc_set_error(purc_error_from_errno(errno));
-            goto failed;
+        if (entity->type == STREAM_TYPE_MEM) {
+            void *buff;
+            size_t buff_len;
+            buff = purc_rwstream_get_mem_buffer_ex(entity->stm4r, &buff_len,
+                    NULL, false);
+            assert(buff);
+
+            entity->fp = fmemopen(buff, buff_len, "r");
+            if (entity->fp == NULL) {
+                PC_ERROR("Failed fmemopen(%p, %zu): %s\n", buff, buff_len,
+                        strerror(errno));
+                purc_set_error(purc_error_from_errno(errno));
+                goto failed;
+            }
+        }
+        else {
+            entity->fp = fdopen(entity->fd4r, "r");
+            if (entity->fp == NULL) {
+                PC_ERROR("Failed fdopen(%d): %s\n", entity->fd4r, strerror(errno));
+                purc_set_error(purc_error_from_errno(errno));
+                goto failed;
+            }
         }
     }
 
@@ -675,7 +712,7 @@ static int read_lines(struct pcdvobjs_stream *entity, int line_num,
     return 0;
 
 nothing:
-    if (entity->type == STREAM_TYPE_FILE) {
+    if (entity->type == STREAM_TYPE_FILE || entity->type == STREAM_TYPE_MEM) {
         PC_WARN("Reached the EOF.\n");
         purc_set_error(PURC_ERROR_NO_DATA);
     }
@@ -956,7 +993,8 @@ readbytes_getter(void *native_entity, const char *property_name,
             free(content);
 
             if (size == 0) {
-                if (stream->type == STREAM_TYPE_FILE) {
+                if (stream->type == STREAM_TYPE_FILE ||
+                        stream->type == STREAM_TYPE_MEM) {
                     purc_set_error(PURC_ERROR_NO_DATA);
                     goto out;
                 }
@@ -1044,7 +1082,8 @@ readbytes2buffer_getter(void *native_entity, const char *property_name,
     }
     else {
         if (sz_read == 0) {
-            if (stream->type == STREAM_TYPE_FILE) {
+            if (stream->type == STREAM_TYPE_FILE ||
+                    stream->type == STREAM_TYPE_MEM) {
                 purc_set_error(PURC_ERROR_NO_DATA);
                 goto out;
             }
@@ -1270,7 +1309,6 @@ seek_getter(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(property_name);
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
     int64_t byte_num = 0;
@@ -1331,16 +1369,494 @@ seek_getter(void *native_entity, const char *property_name,
     }
 
     off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
-    if (off == -1) {
+    if (off < 0) {
         goto out;
     }
-    ret_var = purc_variant_make_longint(off);
 
-    return ret_var;
+    return purc_variant_make_ulongint((uint64_t)off);
 
 out:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+getuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    const char *encoding = "utf8";
+    const char *format = "utf8";
+    uint32_t codepoint = 0;
+    uint8_t utf8_bytes[8];
+    uint32_t utf8_len = 0;
+    ssize_t nr_read = 0;
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4r;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+        goto failed;
+    }
+
+    // Parse encoding parameter
+    if (nr_args > 0) {
+        if (!purc_variant_is_string(argv[0])) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+        encoding = purc_variant_get_string_const(argv[0]);
+    }
+
+    // Parse format parameter 
+    if (nr_args > 1) {
+        if (!purc_variant_is_string(argv[1])) {
+            ec = PURC_ERROR_WRONG_DATA_TYPE;
+            goto failed;
+        }
+        format = purc_variant_get_string_const(argv[1]);
+    }
+
+    // Read character according to encoding
+    if (strcmp(encoding, "utf8") == 0) {
+        if ((nr_read = purc_rwstream_read_utf8_char(rwstream,
+                        (char *)utf8_bytes, NULL)) <= 0) {
+            goto ioerr;
+        }
+
+        utf8_len = nr_read;
+        utf8_bytes[utf8_len] = '\0';
+        codepoint = pcutils_utf8_to_unichar(utf8_bytes);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        uint8_t bytes[2];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+            goto ioerr;
+        }
+
+#define MAKEWORD16(low, high)   \
+    ((uint16_t)(((uint8_t)(low)) | (((uint16_t)((uint8_t)(high))) << 8)))
+
+        uint16_t w1, w2;
+        w1 = MAKEWORD16(bytes[0], bytes[1]); 
+        if (w1 < 0xD800 || w1 > 0xDFFF) {
+            codepoint = w1;
+        }
+        else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
+            if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+                goto ioerr;
+            }
+
+            w2 = MAKEWORD16(bytes[0], bytes[1]);
+            if (w2 < 0xDC00 || w2 > 0xDFFF) {
+                ec = PURC_ERROR_BAD_ENCODING;
+                goto failed;
+            }
+
+            codepoint = ((w1 - 0xD800) << 10) + (w2 - 0xDC00) + 0x10000;
+        }
+        else {
+            ec = PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        utf8_len = pcutils_unichar_to_utf8(codepoint, (uint8_t*)utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        uint8_t bytes[2];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+            goto ioerr;
+        }
+
+        uint16_t w1, w2;
+        w1 = MAKEWORD16(bytes[1], bytes[0]);
+        if (w1 < 0xD800 || w1 > 0xDFFF) {
+            codepoint = w1;
+        }
+        else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
+            if ((nr_read = purc_rwstream_read(rwstream, bytes, 2)) != 2) {
+                goto ioerr;
+            }
+
+            w2 = MAKEWORD16(bytes[1], bytes[0]);
+            if (w2 < 0xDC00 || w2 > 0xDFFF) {
+                ec = PURC_ERROR_BAD_ENCODING;
+                goto failed;
+            }
+
+            codepoint = ((w1 - 0xD800) << 10) | (w2 - 0xDC00);
+            codepoint += 0x10000;
+        }
+        else {
+            ec = PURC_ERROR_BAD_ENCODING;
+            goto failed;
+        }
+
+        utf8_len = pcutils_unichar_to_utf8(codepoint, (uint8_t*)utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        uint8_t bytes[4];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 4)) != 4) {
+            goto ioerr;
+        }
+
+#define MAKEDWORD32(first, second, third, fourth)       \
+    ((uint32_t)(                                        \
+        ((uint8_t)(first)) |                            \
+        (((uint32_t)((uint8_t)(second))) << 8) |        \
+        (((uint32_t)((uint8_t)(third))) << 16) |        \
+        (((uint32_t)((uint8_t)(fourth))) << 24)         \
+    ))
+
+        codepoint = MAKEDWORD32(bytes[0], bytes[1], bytes[2], bytes[3]);
+        utf8_len = pcutils_unichar_to_utf8(codepoint, utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        uint8_t bytes[4];
+        if ((nr_read = purc_rwstream_read(rwstream, bytes, 4)) != 4) {
+            goto ioerr;
+        }
+
+        codepoint = MAKEDWORD32(bytes[3], bytes[2], bytes[1], bytes[0]);
+        utf8_len = pcutils_unichar_to_utf8(codepoint, utf8_bytes);
+        utf8_bytes[utf8_len] = '\0';
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Return result according to format
+    if (strcmp(format, "codepoint") == 0) {
+        return purc_variant_make_ulongint(codepoint);
+    }
+    else if (strcmp(format, "utf8") == 0) {
+        return purc_variant_make_string_ex(
+                (const char *)utf8_bytes, utf8_len, false);
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+ioerr:
+    if (nr_read == 0) {
+        if (stream->type == STREAM_TYPE_FILE ||
+                stream->type == STREAM_TYPE_MEM)
+            ec = PURC_ERROR_NO_DATA;
+        else
+            ec = PURC_ERROR_IO_FAILURE;
+    }
+    else {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            ec = PURC_ERROR_AGAIN;
+        }
+        else {
+            ec = PURC_ERROR_IO_FAILURE;
+        }
+    }
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$stream.putuc(
+    < string | ulongint $char: `The character to be written.` >
+    [,
+        < 'utf8 | utf16le | utf16be | utf32le | utf32be' $encoding = 'utf8':
+            - 'utf8':     `The character will be encoded in UTF-8 before writing.`
+            - 'utf16le':  `The character will be encoded in UTF-16 little endian before writing.`
+            - 'utf16be':  `The character will be encoded in UTF-16 big endian before writing.`
+            - 'utf32le':  `The character will be encoded in UTF-32 little endian before writing.`
+            - 'utf32be':  `The character will be encoded in UTF-32 big endian before writing.` >
+    ]
+) ulongint | false
+*/
+static purc_variant_t
+putuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    int uc = 0;
+    const char *encoding = "utf8";
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4w;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    // Get character codepoint from first argument
+    const char *str = NULL;
+    if ((str = purc_variant_get_string_const(argv[0]))) {
+        uc = pcutils_utf8_to_unichar((const unsigned char*)str);
+    }
+    else if (purc_variant_cast_to_int32(argv[0], &uc, false)) {
+    }
+    else {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    if (uc < 0 || uc > 0x10FFFF) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Get encoding from second argument if present
+    if (nr_args > 1 &&
+            (encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    unsigned char buff[8];
+    size_t bytes_written = 0;
+
+    // Handle different encodings
+    if (strcmp(encoding, "utf8") == 0) {
+        int len = pcutils_unichar_to_utf8(uc, buff);
+        bytes_written = purc_rwstream_write(rwstream, buff, len);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = uc & 0xFF;
+            buff[1] = (uc >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 2);
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[0] = w1 & 0xFF;
+            buff[1] = (w1 >> 8) & 0xFF;
+            buff[2] = w2 & 0xFF;
+            buff[3] = (w2 >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 4);
+        }
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = (uc >> 8) & 0xFF;
+            buff[1] = uc & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 2);
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[1] = w1 & 0xFF;
+            buff[0] = (w1 >> 8) & 0xFF;
+            buff[3] = w2 & 0xFF;
+            buff[2] = (w2 >> 8) & 0xFF;
+            bytes_written = purc_rwstream_write(rwstream, buff, 4);
+        }
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        buff[0] = uc & 0xFF;
+        buff[1] = (uc >> 8) & 0xFF;
+        buff[2] = (uc >> 16) & 0xFF;
+        buff[3] = (uc >> 24) & 0xFF;
+        bytes_written = purc_rwstream_write(rwstream, buff, 4);
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        buff[0] = (uc >> 24) & 0xFF;
+        buff[1] = (uc >> 16) & 0xFF;
+        buff[2] = (uc >> 8) & 0xFF;
+        buff[3] = uc & 0xFF;
+        bytes_written = purc_rwstream_write(rwstream, buff, 4);
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (bytes_written == 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            ec = PURC_ERROR_AGAIN;
+        }
+        else {
+            ec = PURC_ERROR_IO_FAILURE;
+        }
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(bytes_written);
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$stream.ungetuc(
+    < string | ulongint $char: `The character to be put back.` >
+    [,
+        < 'utf8 | utf16le | utf16be | utf32le | utf32be' $encoding = 'utf8':
+            - 'utf8':     `The character will be encoded in UTF-8 before putting back.`
+            - 'utf16le':  `The character will be encoded in UTF-16 little endian before putting back.`
+            - 'utf16be':  `The character will be encoded in UTF-16 big endian before putting back.`
+            - 'utf32le':  `The character will be encoded in UTF-32 little endian before putting back.`
+            - 'utf32be':  `The character will be encoded in UTF-32 big endian before putting back.` >
+    ]
+) ulonging | false
+*/
+static purc_variant_t
+ungetuc_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    int ec = PURC_ERROR_OK;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    int uc = 0;
+    const char *encoding = "utf8";
+
+    stream = get_stream(native_entity);
+    rwstream = stream->stm4r;
+    if (rwstream == NULL) {
+        ec = PURC_ERROR_NOT_DESIRED_ENTITY;
+        goto failed;
+    }
+
+    if (nr_args < 1) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto failed;
+    }
+
+    // Get character codepoint from first argument
+    const char *str = NULL;
+    if ((str = purc_variant_get_string_const(argv[0]))) {
+        uc = pcutils_utf8_to_unichar((const unsigned char*)str);
+    }
+    else if (purc_variant_cast_to_int32(argv[0], &uc, false)) {
+    }
+    else {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    if (uc < 0 || uc > 0x10FFFF) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    // Get encoding from second argument if present
+    if (nr_args > 1 &&
+            (encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto failed;
+    }
+
+    char buff[8];
+    int len = 0;
+
+    // Handle different encodings
+    if (strcmp(encoding, "utf8") == 0) {
+        len = pcutils_unichar_to_utf8(uc, (uint8_t *)buff);
+    }
+    else if (strcmp(encoding, "utf16le") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = uc & 0xFF;
+            buff[1] = (uc >> 8) & 0xFF;
+            len = 2;
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[0] = w1 & 0xFF;
+            buff[1] = (w1 >> 8) & 0xFF;
+            buff[2] = w2 & 0xFF;
+            buff[3] = (w2 >> 8) & 0xFF;
+            len = 4;
+        }
+    }
+    else if (strcmp(encoding, "utf16be") == 0) {
+        if (uc <= 0xFFFF) {
+            buff[0] = (uc >> 8) & 0xFF;
+            buff[1] = uc & 0xFF;
+            len = 2;
+        }
+        else {
+            // Handle surrogate pairs for characters above U+FFFF
+            uint32_t code = uc - 0x10000;
+            uint16_t w1 = 0xD800 | (code >> 10);
+            uint16_t w2 = 0xDC00 | (code & 0x3FF);
+
+            buff[1] = w1 & 0xFF;
+            buff[0] = (w1 >> 8) & 0xFF;
+            buff[3] = w2 & 0xFF;
+            buff[2] = (w2 >> 8) & 0xFF;
+            len = 4;
+        }
+    }
+    else if (strcmp(encoding, "utf32le") == 0) {
+        buff[0] = uc & 0xFF;
+        buff[1] = (uc >> 8) & 0xFF;
+        buff[2] = (uc >> 16) & 0xFF;
+        buff[3] = (uc >> 24) & 0xFF;
+        len = 4;
+    }
+    else if (strcmp(encoding, "utf32be") == 0) {
+        buff[0] = (uc >> 24) & 0xFF;
+        buff[1] = (uc >> 16) & 0xFF;
+        buff[2] = (uc >> 8) & 0xFF;
+        buff[3] = uc & 0xFF;
+        len = 4;
+    }
+    else {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    if (purc_rwstream_ungetc(rwstream, buff, len) != len) {
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(len);
+
+failed:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -1588,6 +2104,9 @@ on_observe(void *native_entity, const char *event_name,
 {
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
 
+    if (stream->type == STREAM_TYPE_MEM)
+        return false;
+
     if (stream->cid == 0) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         if (co)
@@ -1628,13 +2147,16 @@ static bool
 on_forget(void *native_entity, const char *event_name,
         const char *event_subname)
 {
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
+
+    if (stream->type == STREAM_TYPE_MEM)
+        return false;
+
     int matched = pcdvobjs_match_events(event_name, event_subname,
             stream_events, PCA_TABLESIZE(stream_events));
     PC_NONE("%s(%s, %s): %d\n", __func__, event_name, event_subname, matched);
     if (matched == -1)
         return false;
-
-    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
 
     int ioevents4r = stream->ioevents4r;
     int ioevents4w = stream->ioevents4w;
@@ -1726,6 +2248,15 @@ property_getter(void *entity, const char *name)
     }
     else if (atom == keywords2atoms[K_KW_seek].atom) {
         return seek_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_getuc].atom) {
+        return getuc_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_putuc].atom) {
+        return putuc_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_ungetuc].atom) {
+        return ungetuc_getter;
     }
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
@@ -1937,6 +2468,63 @@ int parse_from_option(purc_variant_t option)
 
 out:
     return -1;
+}
+
+static
+struct pcdvobjs_stream *create_stream_from_mem(void *mem,
+        size_t mem_len, bool writable)
+{
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_MEM, NULL);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->stm4r = purc_rwstream_new_from_mem(mem, mem_len);
+    if (stream->stm4r == NULL) {
+        goto out_free_stream;
+    }
+
+    if (writable)
+        stream->stm4w = stream->stm4r;
+    stream->fd4r = -1;
+    stream->fd4w = -1;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_delete(stream);
+
+out:
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_stream_from_buffer(size_t sz_init,
+        size_t sz_max)
+{
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_MEM, NULL);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->stm4r = purc_rwstream_new_buffer(sz_init, sz_max);
+    if (stream->stm4r == NULL) {
+        goto out_free_stream;
+    }
+
+    stream->stm4w = stream->stm4r;
+    stream->fd4r = -1;
+    stream->fd4w = -1;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_delete(stream);
+
+out:
+    return NULL;
 }
 
 static
@@ -2686,7 +3274,7 @@ done:
 
 static
 struct pcdvobjs_stream *
-create_inet_socket_stream(purc_atom_t schema,
+create_inet_socket_stream(purc_atom_t scheme,
         struct purc_broken_down_url *url, purc_variant_t option,
         const struct timeval *timeout)
 {
@@ -2699,18 +3287,18 @@ create_inet_socket_stream(purc_atom_t schema,
     char *peer_addr = NULL;
     char *peer_port = NULL;
 
-    if (schema == keywords2atoms[K_KW_inet4].atom) {
+    if (scheme == keywords2atoms[K_KW_inet4].atom) {
         isf = ISF_INET4;
     }
-    else if (schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet6].atom) {
         isf = ISF_INET6;
     }
-    else if (schema != keywords2atoms[K_KW_inet].atom) {
+    else if (scheme != keywords2atoms[K_KW_inet].atom) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto error;
     }
 
-    int fd = inet_socket_connect(isf, url->host, url->port,
+    int fd = inet_socket_connect(isf, url->hostname, url->port,
             &peer_addr, &peer_port, timeout);
     if (fd < 0) {
         purc_set_error(purc_error_from_errno(errno));
@@ -2758,18 +3346,18 @@ error:
     return NULL;
 }
 
+static struct purc_native_ops stream_basic_ops = {
+    .property_getter = property_getter,
+    .on_observe = on_observe,
+    .on_forget = on_forget,
+    .on_release = on_release,
+};
+
 purc_variant_t
 dvobjs_create_stream_from_fd(int fd, purc_variant_t option,
         const char *ext_prot, purc_variant_t extra_opts)
 {
-    static struct purc_native_ops basic_ops = {
-        .property_getter = property_getter,
-        .on_observe = on_observe,
-        .on_forget = on_forget,
-        .on_release = on_release,
-    };
-
-    struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &stream_basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
@@ -2860,6 +3448,27 @@ done:
     return ret_var;
 }
 
+/*
+$STREAM.from(
+    < string | bsequence | longint $source: `A string, a byte sequence, or a file descriptor.` >
+    [, <'[append || nonblock || cloexec] | keep' $flags = 'keep':
+           - 'append':      `Set the file descriptor in append mode.`
+           - 'nonblock':    `Set the file descriptor in nonblocking mode.`
+           - 'cloexec':     `Set the file descriptor flag close-on-exec.`
+           - 'keep':        `Do not change the file descriptor (status) flags.`
+       >
+       [, < 'raw | message | websocket | hbdbus' $ext_protocol = 'raw': `The extended protocol will be used on the stream.`
+           - 'raw':                 `No extended protocol.`
+           - 'message':             `WebSocket-like message-based protocol; only for 'local://' and 'fifo://' connections.`
+           - 'websocket':           `WebSocket protocol; only for 'inetN:// connections.`
+           - 'hbdbus':              `HybridOS data bus protocol; only for 'local://' and 'inetN://' connections.`
+          >
+            [, <object $extra_options: `The extra options.` >
+            ]
+       ]
+    ]
+) native/stream | undefined
+ */
 static purc_variant_t
 stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -2872,42 +3481,112 @@ stream_from_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto error;
     }
 
-    purc_variant_t tmp_v = nr_args > 0 ? argv[0] : PURC_VARIANT_INVALID;
-    int64_t tmp_l;
-    if (tmp_v == PURC_VARIANT_INVALID ||
-            !purc_variant_cast_to_longint(tmp_v, &tmp_l, false)) {
+    const void *bytes = NULL;
+    size_t bytes_len;
+    int64_t tmp_l = -1;
+    if ((bytes = purc_variant_get_string_const_ex(argv[0], &bytes_len))) {
+    }
+    else if ((bytes = purc_variant_get_bytes_const(argv[0], &bytes_len))) {
+    }
+    else if (purc_variant_cast_to_longint(argv[0], &tmp_l, false)) {
+        if (tmp_l < 0 || tmp_l > INT_MAX) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto error;
+        }
+    }
+    else {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto error;
     }
 
-    if (tmp_l < 0 || tmp_l > INT_MAX) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto error;
-    }
+    if (tmp_l >= 0) {
+        int fd = (int)tmp_l;
+        purc_variant_t option = nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID;
+        if (option != PURC_VARIANT_INVALID &&
+                (!purc_variant_is_string(option))) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto error;
+        }
 
-    int fd = (int)tmp_l;
-    purc_variant_t option = nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID;
-    if (option != PURC_VARIANT_INVALID &&
-            (!purc_variant_is_string(option))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto error;
-    }
+        const char *ext_prot = "raw";
+        if (nr_args > 2 && !purc_variant_is_string(argv[2])) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto error;
+        }
+        else if (nr_args > 2)
+            ext_prot = purc_variant_get_string_const(argv[2]);
 
-    const char *ext_prot = "raw";
-    if (nr_args > 2 && !purc_variant_is_string(argv[2])) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto error;
+        return dvobjs_create_stream_from_fd(fd, option, ext_prot,
+                (nr_args > 3) ? argv[3] : PURC_VARIANT_INVALID);
     }
-    else if (nr_args > 2)
-        ext_prot = purc_variant_get_string_const(argv[2]);
+    else {
+        struct pcdvobjs_stream *stream;
+        stream = create_stream_from_mem((void *)bytes, bytes_len, false);
+        if (stream == NULL)
+            goto error;
 
-    return dvobjs_create_stream_from_fd(fd, option, ext_prot,
-            (nr_args > 3) ? argv[3] : PURC_VARIANT_INVALID);
+        struct purc_native_ops *ops = &stream_basic_ops;
+        const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
+        purc_variant_t ret;
+        ret = purc_variant_make_native_entity(stream, ops, entity_name);
+        if (ret) {
+            stream->kept = purc_variant_ref(argv[0]);
+        }
+
+        return ret;
+    }
 
 error:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+$STREAM.from_buffer(
+    < ulongint $init_size: `The initial size of the buffer.` >,
+    [,
+        < ulongint $max_size = 0: `The maximum size of the buffer; 0 means no limitation.`>
+    ]
+) native/stream | undefined
+ */
+static purc_variant_t
+stream_from_buffer_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto error;
+    }
+
+    uint64_t sz_init, sz_max  = 0;
+    if (!purc_variant_cast_to_ulongint(argv[0], &sz_init, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto error;
+    }
+
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_ulongint(argv[1], &sz_max, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto error;
+        }
+    }
+
+    struct pcdvobjs_stream *stream;
+    stream = create_stream_from_buffer(sz_init, sz_max);
+    if (stream == NULL)
+        goto error;
+
+    struct purc_native_ops *ops = &stream_basic_ops;
+    const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
+    return purc_variant_make_native_entity(stream, ops, entity_name);
+
+error:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;
 }
 
@@ -2923,7 +3602,7 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
     }
 
     purc_atom_t atom;
-    atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, bdurl->schema);
+    atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, bdurl->scheme);
     if (atom == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
@@ -2941,14 +3620,7 @@ dvobjs_create_stream_from_url(const char *url, purc_variant_t option,
         }
     }
 
-    static struct purc_native_ops basic_ops = {
-        .property_getter = property_getter,
-        .on_observe = on_observe,
-        .on_forget = on_forget,
-        .on_release = on_release,
-    };
-
-    struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &stream_basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
@@ -3095,6 +3767,31 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+pcdvobjs_stream *dvobjs_stream_check_entity(purc_variant_t v,
+        struct purc_native_ops **ops)
+{
+    if ((!purc_variant_is_native(v))) {
+        goto error;
+    }
+
+    const char *entity_name = purc_variant_native_get_name(v);
+    if (entity_name == NULL ||
+            strncmp(entity_name, NATIVE_ENTITY_NAME_STREAM,
+                sizeof(NATIVE_ENTITY_NAME_STREAM) - 1) != 0) {
+        goto error;
+    }
+
+    pcdvobjs_stream *stream = purc_variant_native_get_entity(v);
+    if (ops) {
+       *ops = purc_variant_native_get_ops(v);
+    }
+
+    return stream;
+
+error:
+    return NULL;
+}
+
 static purc_variant_t
 stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3106,21 +3803,13 @@ stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-    if ((!purc_variant_is_native(argv[0]))) {
+    struct purc_native_ops *ops;
+    struct pcdvobjs_stream *stream = dvobjs_stream_check_entity(argv[0], &ops);
+    if (stream == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
 
-    const char *entity_name = purc_variant_native_get_name(argv[0]);
-    if (entity_name == NULL ||
-            strncmp(entity_name, NATIVE_ENTITY_NAME_STREAM,
-                sizeof(NATIVE_ENTITY_NAME_STREAM) - 1) != 0) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    struct pcdvobjs_stream *stream = purc_variant_native_get_entity(argv[0]);
-    struct purc_native_ops* ops = purc_variant_native_get_ops(argv[0]);
     PC_ASSERT(ops->property_getter);
     purc_nvariant_method closer = ops->property_getter(stream, _KW_close);
     return closer(stream, _KW_close, nr_args - 1, argv + 1, call_flags);
@@ -3148,7 +3837,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stdin");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
@@ -3163,7 +3853,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stdout");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
@@ -3178,7 +3869,8 @@ static bool add_stdio_property(purc_variant_t v)
     if (!stream) {
         goto out;
     }
-    var = purc_variant_make_native(stream, &ops);
+    var = purc_variant_make_native_entity(stream, &ops,
+            NATIVE_ENTITY_NAME_STREAM ":raw/stderr");
     if (var == PURC_VARIANT_INVALID) {
         goto out;
     }
@@ -3202,6 +3894,7 @@ purc_variant_t purc_dvobj_stream_new(void)
     static struct purc_dvobj_method  stream[] = {
         { "open",   stream_open_getter,     NULL },
         { "from",   stream_from_getter,     NULL },
+        { "from_buffer",    stream_from_buffer_getter,     NULL },
         { "close",  stream_close_getter,    NULL },
     };
 
@@ -3229,24 +3922,17 @@ purc_variant_t purc_dvobj_stream_new(void)
 
 purc_variant_t
 dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
-        purc_atom_t schema, char *peer_addr, char *peer_port, int fd,
+        purc_atom_t scheme, char *peer_addr, char *peer_port, int fd,
         purc_variant_t prot_v, purc_variant_t prot_opts)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    static struct purc_native_ops basic_ops = {
-        .property_getter = property_getter,
-        .on_observe = on_observe,
-        .on_forget = on_forget,
-        .on_release = on_release,
-    };
-
-    struct purc_native_ops *ops = &basic_ops;
+    struct purc_native_ops *ops = &stream_basic_ops;
     struct pcdvobjs_stream *stream = NULL;
     const char *entity_name = NATIVE_ENTITY_NAME_STREAM ":raw";
 
-    if (schema == keywords2atoms[K_KW_unix].atom ||
-            schema == keywords2atoms[K_KW_local].atom) {
+    if (scheme == keywords2atoms[K_KW_unix].atom ||
+            scheme == keywords2atoms[K_KW_local].atom) {
 
         const char *prot = "raw";
         if (prot_v) {
@@ -3283,9 +3969,9 @@ dvobjs_create_stream_by_accepted(struct pcdvobjs_socket *socket,
             }
         }
     }
-    else if (schema == keywords2atoms[K_KW_inet].atom ||
-            schema == keywords2atoms[K_KW_inet4].atom ||
-            schema == keywords2atoms[K_KW_inet6].atom) {
+    else if (scheme == keywords2atoms[K_KW_inet].atom ||
+            scheme == keywords2atoms[K_KW_inet4].atom ||
+            scheme == keywords2atoms[K_KW_inet6].atom) {
 
         const char *prot = "raw";
         if (prot_v) {

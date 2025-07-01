@@ -1,0 +1,15 @@
+<init as 'modBoolTrue' with true  at '_grandparent' />
+<init as 'modBoolFalse' with false  at '_grandparent' />
+
+<define as 'modOgPrint' at '4'>
+    <inherit>
+        $STREAM.stdout.writelines("Module Og print:  $?")
+    </inherit>
+    <execute with $logMsg on $? />
+</define>
+
+<observe on="$TIMERS" for="expired:clock">
+    <execute with $modOgPrint on "timer clock" />
+    <execute with $mainOgWithInit />
+</observe>
+

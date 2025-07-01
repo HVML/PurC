@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: [ "<div>Tom</div>" ]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <body>
+      <archetype name="myMap"><div>$?.name</div></archetype>
+
+      <init as 'users'>
+          []
+      </init>
+
+      <choose on {"avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" }>
+        <update on $users to append with $myMap />
+      </choose>
+
+      <exit with $users/>
+    </body>
+</hvml>
+
+

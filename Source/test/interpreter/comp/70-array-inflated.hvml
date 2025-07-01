@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: [1, 2, 3, 4]
+# RESULT: [3L, 4L, 5L, 6L, 7L, 8L]
 
 <!DOCTYPE hvml>
 <hvml target="void">
@@ -10,8 +10,11 @@
     </init>
 
     <observe on $array for 'change:inflated'>
-        <exit with $array />
+        <exit with $? />
     </observe>
 
-    <update on $array to append with 4 />
+    
+    <iterate on 4 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
+        <update on $array to append with $? />
+    </iterate>
 </hvml>

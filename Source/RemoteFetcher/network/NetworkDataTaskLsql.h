@@ -48,7 +48,7 @@
 
 #pragma once
 
-#if ENABLE(SCHEMA_LSQL)
+#if ENABLE(SCHEME_LSQL)
 
 #include "NetworkDataTask.h"
 #include "NetworkLoadMetrics.h"
@@ -139,4 +139,4 @@ private:
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(SCHEMA_LSQL)
+#endif // ENABLE(SCHEME_LSQL)

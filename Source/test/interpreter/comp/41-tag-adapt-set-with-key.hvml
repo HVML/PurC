@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: [{"href":"/img/avatars/1.png","title":"Tom"},{"href":"/img/avatars/2.png","title":"Jerry"},{"href":"/img/avatars/2.png","title":"David"}]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <body>
+      <archedata name="myMap">
+          { href: $?.avatar, title: $name }
+      </archedata>
+
+      <init as 'users' uniquely against 'id'>
+          [
+              { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+              { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" },
+              { "id": "3", "avatar": "/img/avatars/2.png", "name": "David", "region": "zh_CN" }
+          ]
+      </init>
+      <adapt on=$users with=$myMap individually>
+        <exit with $?/>
+      </adapt>
+    </body>
+</hvml>
+
+

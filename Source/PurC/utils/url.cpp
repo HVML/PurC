@@ -43,24 +43,24 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
 void
 pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down)
 {
-    if (broken_down->schema) {
-        free(broken_down->schema);
-        broken_down->schema = NULL;
+    if (broken_down->scheme) {
+        free(broken_down->scheme);
+        broken_down->scheme = NULL;
     }
 
-    if (broken_down->user) {
-        free(broken_down->user);
-        broken_down->user = NULL;
+    if (broken_down->username) {
+        free(broken_down->username);
+        broken_down->username = NULL;
     }
 
-    if (broken_down->passwd) {
-        free(broken_down->passwd);
-        broken_down->passwd = NULL;
+    if (broken_down->password) {
+        free(broken_down->password);
+        broken_down->password = NULL;
     }
 
-    if (broken_down->host) {
-        free(broken_down->host);
-        broken_down->host = NULL;
+    if (broken_down->hostname) {
+        free(broken_down->hostname);
+        broken_down->hostname = NULL;
     }
 
     if (broken_down->path) {
@@ -86,20 +86,20 @@ pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down)
 {
     assert(broken_down != NULL);
 
-    if (broken_down->schema) {
-        free(broken_down->schema);
+    if (broken_down->scheme) {
+        free(broken_down->scheme);
     }
 
-    if (broken_down->user) {
-        free(broken_down->user);
+    if (broken_down->username) {
+        free(broken_down->username);
     }
 
-    if (broken_down->passwd) {
-        free(broken_down->passwd);
+    if (broken_down->password) {
+        free(broken_down->password);
     }
 
-    if (broken_down->host) {
-        free(broken_down->host);
+    if (broken_down->hostname) {
+        free(broken_down->hostname);
     }
 
     if (broken_down->path) {
@@ -117,18 +117,33 @@ pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down)
     free(broken_down);
 }
 
-char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct,
+char *pcutils_url_assembly(const struct purc_broken_down_url *url_struct,
         bool keep_percent_escaped)
 {
-    char * url_string = NULL;
+    char *url_string = NULL;
     String string = "";
     PurCWTF::URL url(PurCWTF::URL(), string);
 
-    if (url_struct->schema)
-        url.setProtocol(url_struct->schema);
+    if (url_struct->scheme)
+        url.setProtocol(url_struct->scheme);
 
-    if (url_struct->host)
-        url.setHost(url_struct->host);
+    if (url_struct->hostname) {
+        // PurCWTF might fail to encode the hostname in Punycode.
+        struct pcutils_mystring part;
+        pcutils_mystring_init(&part);
+
+        if (pcutils_punycode_encode(&part, url_struct->hostname)) {
+            pcutils_mystring_free(&part);
+            goto failed;
+        }
+
+        if (pcutils_mystring_done(&part)) {
+            pcutils_mystring_free(&part);
+            goto failed;
+        }
+        url.setHost(part.buff);
+        pcutils_mystring_free(&part);
+    }
 
     if (url_struct->port)
         url.setPort(url_struct->port);
@@ -142,11 +157,11 @@ char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct,
     if (url_struct->fragment)
         url.setFragmentIdentifier(url_struct->fragment);
 
-    if (url_struct->user)
-        url.setUser(url_struct->user);
+    if (url_struct->username)
+        url.setUser(url_struct->username);
 
-    if (url_struct->passwd)
-        url.setPassword(url_struct->passwd);
+    if (url_struct->password)
+        url.setPassword(url_struct->password);
 
     if (url.isValid()) {
         if (keep_percent_escaped) {
@@ -158,7 +173,14 @@ char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct,
             url_string = strdup(tempstring.utf8().data());
         }
     }
+    else {
+        url_string = strdup("");
+    }
 
+    return url_string;
+
+failed:
+    url_string = strdup("");
     return url_string;
 }
 
@@ -200,49 +222,50 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
     const char *tempstring = NULL;
 
     if (valid) {
-        if (url_struct->schema)
-            free(url_struct->schema);
+        if (url_struct->scheme)
+            free(url_struct->scheme);
         StringView protocol = url.protocol();
         CString utf8 = protocol.toString().utf8();
         tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
-            url_struct->schema = strdup(tempstring);
+            url_struct->scheme = strdup(tempstring);
         else
-            url_struct->schema = NULL;
+            url_struct->scheme = NULL;
 
-        if (url_struct->user)
-            free(url_struct->user);
+        if (url_struct->username)
+            free(url_struct->username);
         String user = url.user();
         utf8 = user.utf8();
         tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
-            url_struct->user = strdup(tempstring);
+            url_struct->username = strdup(tempstring);
         else
-            url_struct->user = NULL;
+            url_struct->username = NULL;
 
-        if (url_struct->passwd)
-            free(url_struct->passwd);
+        if (url_struct->password)
+            free(url_struct->password);
         String password = url.password();
         utf8 = password.utf8();
         tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
-            url_struct->passwd = strdup(tempstring);
+            url_struct->password = strdup(tempstring);
         else
-            url_struct->passwd = NULL;
+            url_struct->password = NULL;
 
-        if (url_struct->host)
-            free(url_struct->host);
+        if (url_struct->hostname)
+            free(url_struct->hostname);
         StringView host = url.host();
         utf8 = host.toString().utf8();
         tempstring = utf8.data();
         length = strlen(tempstring);
-        if (length)
-            url_struct->host = strdup(tempstring);
+        if (length) {
+            url_struct->hostname = strdup(tempstring);
+        }
         else
-            url_struct->host = NULL;
+            url_struct->hostname = NULL;
 
         if (url_struct->path)
             free(url_struct->path);

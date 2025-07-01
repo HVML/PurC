@@ -38,8 +38,8 @@
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */
 
-#define PCINTR_HVML_RUN_SCHEMA                "hvml+run://"
-#define PCINTR_LEN_HVML_RUN_SCHEMA            11
+#define PCINTR_HVML_RUN_SCHEME                "hvml+run://"
+#define PCINTR_LEN_HVML_RUN_SCHEME            11
 
 #define PCINTR_HVML_RUN_RES_CRTN              "/CRTN/"
 #define PCINTR_HVML_RUN_RES_CHAN              "/CHAN/"
@@ -94,8 +94,8 @@ enum VIA {
 enum HVML_RUN_URI_TYPE {
     HVML_RUN_URI_INVALID,
     HVML_RUN_URI_FULL,
-    HVML_RUN_URI_OMIT_SCHEMA,
-    HVML_RUN_URI_OMIT_SCHEMA_AND_HOST,
+    HVML_RUN_URI_OMIT_SCHEME,
+    HVML_RUN_URI_OMIT_SCHEME_AND_HOST,
 };
 
 enum HVML_RUN_RES_TYPE {
@@ -311,7 +311,7 @@ pcintr_bind_template(purc_variant_t templates,
         purc_variant_t type, purc_variant_t contents);
 
 purc_variant_t
-pcintr_template_expansion(purc_variant_t val);
+pcintr_template_expansion(purc_variant_t val, bool silently);
 
 purc_variant_t
 pcintr_template_get_type(purc_variant_t val);
@@ -537,6 +537,10 @@ pcintr_common_handle_attr_in(pcintr_coroutine_t co,
 struct pcintr_stack_frame *
 pcintr_find_prev_include_frame(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, pcvdom_element_t elem);
+
+int
+pcintr_bind_object_members_as_temp_vars(struct pcintr_stack_frame *frame,
+         purc_variant_t obj);
 
 PCA_EXTERN_C_END
 

@@ -1182,13 +1182,13 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || v->d < INT64_MIN) {
+            if (isinf(v->d) == -1 || (int64_t)v->d < INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || v->d > INT64_MAX) {
+            else if (isinf(v->d) == 1 || (int64_t)v->d > INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
@@ -1361,7 +1361,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || v->d >= UINT64_MAX) {
+            else if (isinf(v->d) == 1 || (uint64_t)v->d >= UINT64_MAX) {
                 if (force)
                     *u64 = UINT64_MAX;
                 else
@@ -1925,7 +1925,8 @@ purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
 
-    int ret = pcejson_parse (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH);
+    int ret = pcejson_parse_ex (&root, &parser, stream, PCEJSON_DEFAULT_DEPTH,
+            pcejson_is_finished_stream);
     if (ret != PCEJSON_SUCCESS) {
         goto ret;
     }
@@ -3117,7 +3118,8 @@ purc_variant_ejson_parse_stream(purc_rwstream_t rws)
     struct pcvcm_node* root = NULL;
     struct pcejson* parser = NULL;
 
-    int ret = pcejson_parse(&root, &parser, rws, PCEJSON_DEFAULT_DEPTH);
+    int ret = pcejson_parse_ex(&root, &parser, rws, PCEJSON_DEFAULT_DEPTH,
+            pcejson_is_finished_stream);
     if (ret == PCEJSON_SUCCESS) {
         pcejson_destroy(parser);
         return (struct purc_ejson_parsing_tree *)root;

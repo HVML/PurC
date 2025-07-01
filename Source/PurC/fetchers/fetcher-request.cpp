@@ -568,25 +568,38 @@ void PcFetcherRequest::stop()
 
 void PcFetcherRequest::cancel()
 {
-    auto locker = holdLock(m_callbackLock);
-    if (!m_is_async || m_callback == NULL) {
-        return;
+    struct pcfetcher_callback_info *info = m_callback;
+    {
+        auto locker = holdLock(m_callbackLock);
+        if (!m_is_async || m_callback == NULL) {
+            return;
+        }
+
+        m_callback->cancelled = true;
+        m_callback = nullptr;
     }
 
-    struct pcfetcher_callback_info *info = m_callback;
-    m_callback->cancelled = true;
-    m_callback = nullptr;
-
     info->header.ret_code = RESP_CODE_USER_CANCEL;
-    m_runloop->dispatch([info, request=this] {
-            info->handler(info->session, info->req_id, info->ctxt,
-                    PCFETCHER_RESP_TYPE_ERROR,
-                    (const char *)&info->header, 0);
-            info->handler = nullptr;
-            pcfetcher_destroy_callback_info(info);
-            request->m_fetcherProcess->requestFinished(request);
-            }
-        );
+    RunLoop *runloop = &RunLoop::current();
+    if (runloop == m_runloop) {
+        info->handler(info->session, info->req_id, info->ctxt,
+                PCFETCHER_RESP_TYPE_ERROR,
+                (const char *)&info->header, 0);
+        info->handler = nullptr;
+        pcfetcher_destroy_callback_info(info);
+        m_fetcherProcess->requestFinished(this);
+    }
+    else {
+        m_runloop->dispatch([info, request=this] {
+                info->handler(info->session, info->req_id, info->ctxt,
+                        PCFETCHER_RESP_TYPE_ERROR,
+                        (const char *)&info->header, 0);
+                info->handler = nullptr;
+                pcfetcher_destroy_callback_info(info);
+                request->m_fetcherProcess->requestFinished(request);
+                }
+            );
+    }
 }
 
 void PcFetcherRequest::wait(uint32_t timeout)

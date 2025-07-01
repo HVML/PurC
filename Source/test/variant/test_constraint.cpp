@@ -1024,22 +1024,22 @@ static bool set_post_handler (
 
     switch (op) {
         case PCVAR_OPERATION_INFLATED:
-            PC_ASSERT(nr_args == 1);
-            PC_ASSERT(argv);
-            PC_ASSERT(src == ctxt);
-            return set_on_grown(src, argv[0]);
-
-        case PCVAR_OPERATION_MODIFIED:
             PC_ASSERT(nr_args == 2);
             PC_ASSERT(argv);
             PC_ASSERT(src == ctxt);
-            return set_on_changed(src, argv[0], argv[1]);
+            return set_on_grown(src, argv[1]);
 
-        case PCVAR_OPERATION_DEFLATED:
-            PC_ASSERT(nr_args == 1);
+        case PCVAR_OPERATION_MODIFIED:
+            PC_ASSERT(nr_args == 3);
             PC_ASSERT(argv);
             PC_ASSERT(src == ctxt);
-            return set_on_shrunk(src, argv[0]);
+            return set_on_changed(src, argv[1], argv[2]);
+
+        case PCVAR_OPERATION_DEFLATED:
+            PC_ASSERT(nr_args == 2);
+            PC_ASSERT(argv);
+            PC_ASSERT(src == ctxt);
+            return set_on_shrunk(src, argv[1]);
 
         default:
             PC_ASSERT(0);

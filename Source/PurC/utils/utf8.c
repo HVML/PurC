@@ -430,9 +430,7 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
             if (w2 < 0xDC00 || w2 > 0xDFFF)
                 goto bad_encoding;
 
-            uc = w1;
-            uc <<= 10;
-            uc |= (w2 & 0x03FF);
+            uc = ((w1 - 0xD800) << 10) | (w2 - 0xDC00);
             uc += 0x10000;
 
             *consumed += 4;
@@ -751,10 +749,10 @@ pcutils_string_encode_utf16be(const char* utf8, size_t len, size_t nr_chars,
             w1 |= (uc >> 10);
             w2 |= (uc & 0x03FF);
 
-            bytes[3] = LOBYTE(w1);
-            bytes[2] = HIBYTE(w1);
-            bytes[1] = LOBYTE(w2);
-            bytes[0] = HIBYTE(w2);
+            bytes[1] = LOBYTE(w1);
+            bytes[0] = HIBYTE(w1);
+            bytes[3] = LOBYTE(w2);
+            bytes[2] = HIBYTE(w2);
         }
 
         p = pcutils_utf8_next_char(p);
@@ -872,11 +870,9 @@ pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
         return NULL;
 
     const char *p = str_utf8;
-    n = 0;
-    while (*p) {
-        ucs[n] = pcutils_utf8_to_unichar((const unsigned char *)p);
+    for (size_t i = 0; i < n; i++) {
+        ucs[i] = pcutils_utf8_to_unichar((const unsigned char *)p);
         p = pcutils_utf8_next_char(p);
-        n++;
     }
 
     if (nr_chars)

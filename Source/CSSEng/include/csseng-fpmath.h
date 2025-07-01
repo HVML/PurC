@@ -97,11 +97,13 @@ static inline css_fixed
 css_float_to_fixed(const float a) {
 	float xx = a * (float) (1 << CSS_RADIX_POINT);
 
-	if (xx < INT_MIN)
-		xx = INT_MIN;
+    float min = (float)INT_MIN;
+    float max = (float)INT_MAX;
+	if (xx < min)
+		xx = min;
 
-	if (xx > INT_MAX)
-		xx = INT_MAX;
+	if (xx > max)
+		xx = max;
 
 	return (css_fixed) xx;
 }

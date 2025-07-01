@@ -4,7 +4,7 @@
  * @date 2023/10/12
  * @brief The implementation of `websocket` protocol for stream object.
  *
- * Copyright (C) 2023 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2023 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -936,8 +936,10 @@ ws_client_handshake(struct pcdvobjs_stream *stream, purc_variant_t extra_opts)
     struct stream_extended_data *ext = stream->ext0.data;
     purc_variant_t tmp;
 
-    DEFINE_STRING_VAR_FROM_OBJECT(path, stream->url ? stream->url->path : NULL);
-    DEFINE_STRING_VAR_FROM_OBJECT(host, stream->url ? stream->url->host : NULL);
+    DEFINE_STRING_VAR_FROM_OBJECT(path,
+            stream->url ? stream->url->path : NULL);
+    DEFINE_STRING_VAR_FROM_OBJECT(host,
+            stream->url ? stream->url->hostname : NULL);
     DEFINE_STRING_VAR_FROM_OBJECT(origin, "hvml.fmsoft.cn");
     DEFINE_STRING_VAR_FROM_OBJECT(useragent, PURC_USER_AGENT);
     DEFINE_STRING_VAR_FROM_OBJECT(referer, "https://hvml.fmsoft.cn/");

@@ -96,6 +96,10 @@ set(sample_HVML_FILES
     "hvml/sqlite.hvml"
     "hvml/set-get-property.hvml"
     "hvml/object-change.hvml"
+    "hvml/define-execute-1.hvml"
+    "hvml/define-execute-module.hvml"
+    "hvml/page-activated.hvml"
+    "hvml/check-request.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

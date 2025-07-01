@@ -1876,7 +1876,7 @@ TEST(utils, url)
         bool ret = pcutils_url_break_down(&broken_down, good_url[i].url);
         ASSERT_EQ(ret, true);
 
-        char *my_url = pcutils_url_assemble(&broken_down, false);
+        char *my_url = pcutils_url_assembly(&broken_down, false);
         ASSERT_STRCASEEQ(good_url[i].expected, my_url);
         g_free(my_url);
 

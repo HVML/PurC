@@ -716,9 +716,9 @@ TEST(dvobjs, dvobjs_string_replace)
 }
 
 
-TEST(dvobjs, dvobjs_string_format_c)
+TEST(dvobjs, dvobjs_string_printf)
 {
-    const char *function[] = {"format_c"};
+    const char *function[] = {"printf"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -881,9 +881,10 @@ TEST(dvobjs, dvobjs_string_format_c)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_format_p)
+#if 0 // deprecated (VW 250614)
+TEST(dvobjs, dvobjs_string_printp)
 {
-    const char *function[] = {"format_p"};
+    const char *function[] = {"printp"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -1045,6 +1046,7 @@ TEST(dvobjs, dvobjs_string_format_p)
     purc_variant_unref(string);
     purc_cleanup ();
 }
+#endif
 
 TEST(dvobjs, dvobjs_string_join)
 {

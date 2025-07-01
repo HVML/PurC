@@ -265,10 +265,10 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
  *
  * @param rws: purc_rwstream_t
  * @param buf_utf8: the buffer to read character into
- * @param buf_wc: the buffer to convert character into
+ * @param buf_wc (nullable): the buffer to convert character into
  *
- * @return the length of character and the error code is set to indicate the
- *         error. The error code:
+ * @return The number of bytes read if success or < 0 for failure.
+ *  The error code is set to indicate the error:
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
  *  - @PCRWSTREAM_ERROR_IO: IO error
@@ -283,7 +283,6 @@ purc_rwstream_read (purc_rwstream_t rws, void* buf, size_t count);
 PCA_EXPORT int
 purc_rwstream_read_utf8_char (purc_rwstream_t rws,
         char* buf_utf8, uint32_t* buf_wc);
-
 
 /**
  * Write data to purc_rwstream_t
@@ -307,6 +306,23 @@ purc_rwstream_read_utf8_char (purc_rwstream_t rws,
  */
 PCA_EXPORT ssize_t
 purc_rwstream_write (purc_rwstream_t rws, const void* buf, size_t count);
+
+/**
+ * Pushes a character back to the stream.
+ *
+ * @param rws purc_rwstream_t
+ * @param utf8ch The characters to push back.
+ * @param len The 'utf8ch' buffer len.
+ * @return The number of bytes pushed back on success, or -1 on failure.
+ *         The error codes can be:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory if buffer needs to expand and fails
+ *  - @PCRWSTREAM_ERROR_IO: IO error (though less common for ungetc unless it triggers underlying flush with error)
+ *
+ * Since: 0.9.24
+ */
+PCA_EXPORT int
+purc_rwstream_ungetc (purc_rwstream_t rws,  const char* utf8ch, int len);
 
 
 /**

@@ -37,81 +37,98 @@
 #include <stdlib.h>
 #include <string.h>
 
+static size_t
+variant_set_length(variant_set_t data)
+{
+    struct pcutils_array_list *al = &data->al;
+    return pcutils_array_list_length(al);
+}
+
+static purc_variant_t
+variant_set_make_pos(variant_set_t data, size_t idx)
+{
+    size_t len = variant_set_length(data);
+    if (idx > len)
+        idx = len;
+
+    return purc_variant_make_longint(idx);
+}
+
 static bool
-grow(purc_variant_t set, purc_variant_t value,
+grow(purc_variant_t set, purc_variant_t pos, purc_variant_t value,
         bool check)
 {
     if (!check)
         return true;
 
-    purc_variant_t vals[] = { value };
+    purc_variant_t vals[] = { pos, value };
 
     return pcvariant_on_pre_fired(set, PCVAR_OPERATION_INFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
 static bool
-shrink(purc_variant_t set, purc_variant_t value,
+shrink(purc_variant_t set, purc_variant_t pos, purc_variant_t value,
         bool check)
 {
     if (!check)
         return true;
 
-    purc_variant_t vals[] = { value };
+    purc_variant_t vals[] = { pos, value };
 
     return pcvariant_on_pre_fired(set, PCVAR_OPERATION_DEFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
 static bool
-change(purc_variant_t set,
+change(purc_variant_t set, purc_variant_t pos,
         purc_variant_t o, purc_variant_t n,
         bool check)
 {
     if (!check)
         return true;
 
-    purc_variant_t vals[] = { o, n };
+    purc_variant_t vals[] = { pos, o, n };
 
     return pcvariant_on_pre_fired(set, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
 }
 
 static void
-grown(purc_variant_t set, purc_variant_t value,
+grown(purc_variant_t set, purc_variant_t pos, purc_variant_t value,
         bool check)
 {
     if (!check)
         return;
 
-    purc_variant_t vals[] = { value };
+    purc_variant_t vals[] = { pos, value };
 
     pcvariant_on_post_fired(set, PCVAR_OPERATION_INFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
 static void
-shrunk(purc_variant_t set, purc_variant_t value,
+shrunk(purc_variant_t set,  purc_variant_t pos, purc_variant_t value,
         bool check)
 {
     if (!check)
         return;
 
-    purc_variant_t vals[] = { value };
+    purc_variant_t vals[] = { pos, value };
 
     pcvariant_on_post_fired(set, PCVAR_OPERATION_DEFLATED,
             PCA_TABLESIZE(vals), vals);
 }
 
 static void
-changed(purc_variant_t set,
+changed(purc_variant_t set, purc_variant_t pos,
         purc_variant_t o, purc_variant_t n,
         bool check)
 {
     if (!check)
         return;
 
-    purc_variant_t vals[] = { o, n };
+    purc_variant_t vals[] = { pos, o, n };
 
     pcvariant_on_post_fired(set, PCVAR_OPERATION_MODIFIED,
             PCA_TABLESIZE(vals), vals);
@@ -764,12 +781,18 @@ check_shrink(purc_variant_t set, struct set_node *node)
 }
 
 static int
-set_remove(purc_variant_t set, struct set_node *node,
+set_remove(purc_variant_t set, size_t idx, struct set_node *node,
         bool check)
 {
+    variant_set_t data = pcvar_set_get_data(set);
+    purc_variant_t pos = variant_set_make_pos(data, idx);
+    if (pos == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
     do {
         if (check) {
-            if (!shrink(set, node->val, check))
+            if (!shrink(set, pos, node->val, check))
                 break;
 
             if (check_shrink(set, node))
@@ -783,13 +806,16 @@ set_remove(purc_variant_t set, struct set_node *node,
         if (check) {
             pcvar_adjust_set_by_descendant(set);
 
-            shrunk(set, node->val, check);
+            shrunk(set, pos, node->val, check);
         }
 
         elem_node_destroy(set, node);
+        PURC_VARIANT_SAFE_CLEAR(pos);
 
         return 0;
     } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(pos);
 
     return -1;
 }
@@ -841,47 +867,58 @@ insert(purc_variant_t set, variant_set_t data,
 {
     struct set_node *node = NULL;
 
+    purc_variant_t pos = PURC_VARIANT_INVALID;
+
     do {
-        if (check) {
-            if (!grow(set, val, check))
-                break;
+      size_t count = pcutils_array_list_length(&data->al);
+      size_t idx = count;
+      pos = variant_set_make_pos(data, idx);
+      if (pos == PURC_VARIANT_INVALID) {
+        return -1;
+      }
 
-            if (check_grow(set, val))
-                break;
-        }
+      if (check) {
+        if (!grow(set, pos, val, check))
+          break;
 
-        node = variant_set_create_elem_node(set, val);
-        if (!node)
-            break;
+        if (check_grow(set, val))
+          break;
+      }
 
-        PC_ASSERT(node->alnode.idx == (size_t)-1);
-        int r = pcutils_array_list_append(&data->al, &node->alnode);
-        if (r)
-            break;
-        PC_ASSERT(node->alnode.idx != (size_t)-1);
+      node = variant_set_create_elem_node(set, val);
+      if (!node)
+        break;
 
-        size_t count = pcutils_array_list_length(&data->al);
-        node->alnode.idx = count - 1;
+      PC_ASSERT(node->alnode.idx == (size_t)-1);
+      int r = pcutils_array_list_append(&data->al, &node->alnode);
+      if (r)
+        break;
+      PC_ASSERT(node->alnode.idx != (size_t)-1);
 
-        struct rb_node *entry = &node->rbnode;
+      node->alnode.idx = idx;
 
-        pcutils_rbtree_link_node(entry, parent, pnode);
-        pcutils_rbtree_insert_color(entry, &data->elems);
+      struct rb_node *entry = &node->rbnode;
 
-        if (check) {
-            if (!elem_node_setup_constraints(set, node))
-                break;
+      pcutils_rbtree_link_node(entry, parent, pnode);
+      pcutils_rbtree_insert_color(entry, &data->elems);
 
-            pcvar_adjust_set_by_descendant(set);
+      if (check) {
+        if (!elem_node_setup_constraints(set, node))
+          break;
 
-            grown(set, node->val, check);
-        }
+        pcvar_adjust_set_by_descendant(set);
 
-        return 0;
+        grown(set, pos, node->val, check);
+      }
+
+      PURC_VARIANT_SAFE_CLEAR(pos);
+
+      return 0;
     } while (0);
 
     elem_node_destroy(set, node);
 
+    PURC_VARIANT_SAFE_CLEAR(pos);
     return -1;
 }
 
@@ -984,11 +1021,16 @@ insert_or_replace(purc_variant_t set,
         break;
     }
 
+    size_t idx = curr->alnode.idx;
     purc_variant_t _old = purc_variant_ref(curr->val);
+    purc_variant_t pos = variant_set_make_pos(data, idx);
+    if (pos == PURC_VARIANT_INVALID) {
+        return -1;
+    }
 
     do {
         if (check) {
-            if (!change(set, _old, val, check))
+            if (!change(set, pos, _old, val, check))
                 break;
 
             if (check_change(set, curr, val))
@@ -1001,14 +1043,16 @@ insert_or_replace(purc_variant_t set,
         if (check) {
             pcvar_adjust_set_by_descendant(set);
 
-            changed(set, _old, val, check);
+            changed(set, pos, _old, val, check);
         }
 
+        PURC_VARIANT_SAFE_CLEAR(pos);
         PURC_VARIANT_SAFE_CLEAR(_old);
 
         return 1;
     } while (0);
 
+    PURC_VARIANT_SAFE_CLEAR(pos);
     PURC_VARIANT_SAFE_CLEAR(_old);
 
     return -1;
@@ -1169,7 +1213,7 @@ purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
     struct set_node *p;
     p = find_element(set, value);
     if (p) {
-        r = set_remove(set, p, check);
+        r = set_remove(set, p->alnode.idx, p, check);
         if (r == 0) {
             return 1;
         }
@@ -1244,7 +1288,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_ref(v);
 
     bool check = true;
-    int r = set_remove(set, p, check);
+    int r = set_remove(set, p->alnode.idx, p, check);
     if (r) {
         purc_variant_unref(v);
         return PURC_VARIANT_INVALID;
@@ -1331,7 +1375,7 @@ purc_variant_set_remove_by_index(purc_variant_t set, size_t idx)
     purc_variant_ref(v);
 
     bool check = true;
-    int r = set_remove(set, node, check);
+    int r = set_remove(set, idx, node, check);
     if (r) {
         purc_variant_unref(v);
         return PURC_VARIANT_INVALID;

@@ -1,0 +1,158 @@
+PCHVML_TOKEN_DOCTYPE|<!DOCTYPE hvml>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<hvml target="html" lang={{ getMember(getVariable("REQ"), "lang") || callGetter(getMember(getVariable("STR"), "substr"), getMember(getVariable("SYS"), "locale"), 0, 2) }} silently>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<head>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getMember(getVariable("CRTN"), "base"), concatString("file://", getMember(getVariable("SYS"), "cwd"))) hvml:silently/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<style hvml:raw>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|".bd {
+                border-style: solid;
+                border-width: thin;
+                border-color:green;
+            }
+            .sz20 {
+                width:20px;
+                height:20px;
+            }
+
+            .btn {
+                color: #FFFFFF;
+                background-color: #DC0000;
+            }
+
+            .btn:hover {
+                background-color: #FF0000;
+            }
+
+            .btn:active {
+                background-color: #FA0000;
+            }
+            .sz20 {
+                width:20px;
+                height:20px;
+            }
+            #id_select_a {
+                width: 100px;
+                height: 200px;
+                margin: 0px;
+                padding: 0px;
+            }
+            #id_select_b {
+                width: 300px;
+                height: 200px;
+            }"
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_END_TAG|</style>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</head>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<div id="dest" style="border-style: solid; border-width:thick; border-color:green;">
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</div>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<init as="itemsData">
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|make_array(make_object("display", "ta", "value", "ta", "keyclass", "bd"), make_object("display", "tb", "value", "tb", "keyclass", "bd"), make_object("display", "tc", "value", "tc", "keyclass", "bd"))
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<archedata name="item_templ">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|concatString("<div class="", getMember(getVariable("?"), "keyclass"), "" value="", getMember(getVariable("?"), "value"), "" hvml-events="click"><div class="text">", getMember(getVariable("?"), "display"), "</div></div>")
+PCHVML_TOKEN_END_TAG|</archedata>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<init as="all_items" with=make_array()/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("itemsData")>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("all_items") to="append" with=getVariable("item_templ")/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<update on="#dest" to="append" at="content" with=callGetter(getMember(getVariable("STR"), "implode"), getVariable("all_items"))/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="unite">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|make_array(make_object("id", "gogogo", "interval", 1000, "active", "no"))
+PCHVML_TOKEN_END_TAG|</update>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<init as="progress" with=10UL/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("CRTN") for="rdrState:pageClosed">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<exit with="Ok"/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:gogogo">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<init as="progress" at="_grandparent" with=callGetter(getMember(getVariable("DATA"), "arith"), "+", getVariable("progress"), 10UL)/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<test with=callGetter(getMember(getVariable("L"), "ge"), getVariable("progress"), 100UL)>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="subtract" with=make_array(make_object("id", "gogogo"))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<forget on=getVariable("TIMERS") for="expired:*"/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<exit with="Ok"/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</test>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_END_TAG|</hvml>

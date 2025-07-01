@@ -1,0 +1,58 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'overall' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-progress-{$styleCase}.css" />
+
+        <title>Foil progress - $styleCase</title>
+    </head>
+
+    <body>
+        <div>
+            <span>f</span>
+            <span>t</span>
+            <span>n</span>
+            <span>u</span>
+            <span> f </span>
+            <span> t </span>
+            <span> n </span>
+            <span> u </span>
+            <span> fa </span>
+            <span> tb </span>
+            <span> nc </span>
+            <span> ud </span>
+        </div>
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <init as 'progress' with 10UL />
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+
+        <observe on $TIMERS for "expired:gogogo">
+            <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+            <test with $L.ge($progress, 100UL) >
+                <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
+                <forget on $TIMERS for 'expired:*' />
+                <exit with 'Ok' />
+            </test>
+        </observe>
+
+    </body>
+
+</hvml>
+

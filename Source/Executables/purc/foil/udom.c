@@ -363,8 +363,8 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
     char *css = NULL;
     size_t length;
 
-    if (href[0] == '/' && href[1] != '/' && udom->base && udom->base->schema &&
-            strcasecmp(udom->base->schema, "file") == 0) {
+    if (href[0] == '/' && href[1] != '/' && udom->base && udom->base->scheme &&
+            strcasecmp(udom->base->scheme, "file") == 0) {
 
         LOG_DEBUG("Try to load CSS from file (absolute path): %s\n", href);
         css = purc_load_file_contents(href, &length);
@@ -376,7 +376,7 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
         memset(&broken_down, 0, sizeof(broken_down));
         pcutils_url_break_down(&broken_down, href);
 
-        if (strcasecmp(broken_down.schema, "file") == 0) {
+        if (strcasecmp(broken_down.scheme, "file") == 0) {
             LOG_DEBUG("Try to load CSS from file (absolute path): %s\n",
                     broken_down.path);
             css = purc_load_file_contents(broken_down.path, &length);
@@ -389,8 +389,8 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
 
         pcutils_broken_down_url_clear(&broken_down);
     }
-    else if (udom->base && udom->base->schema &&
-            strcasecmp(udom->base->schema, "file") == 0) {
+    else if (udom->base && udom->base->scheme &&
+            strcasecmp(udom->base->scheme, "file") == 0) {
         /* href contains a relative URL */
         char path[strlen(udom->base->path) + strlen(href) + 4];
 
@@ -444,7 +444,7 @@ head_walker(purc_document_t doc, pcdoc_element_t element, void *ctxt)
 
         if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_HREF,
                 &value, &len) == 0 && len > 0) {
-            if (udom->base->schema) {
+            if (udom->base->scheme) {
                 LOG_WARN("Multiple base element found; old base overridden\n");
                 pcutils_broken_down_url_clear(udom->base);
             }
