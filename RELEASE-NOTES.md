@@ -29,6 +29,30 @@ gantt
     ver-1.0.0           :v1, 2025-10-31, 2025-12-31
 ```
 
+# Release Notes
+
+## Version 0.9.26
+
+On Otc. 31, 2025, HVML Community announces the availability of PurC 0.9.26,
+   which is also the 19th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.26
+
+In this version, we implemented all APIs defined by [HVML Predefined Variables V1.0].
+We also made a number of major enhancements and fixed some bugs.
+
+* CHANGES:
+* ENHANCEMENTS:
+* OPTIMIZATIONS:
+   - Find tuned the `struct purc_variant` to reduce memory use for ordinary variants.
+* ADJUSTMENTS:
+* BUGFIXES:
+* CLEANUP:
+* SAMPLES:
+
+>>>>>>> origin/variant
 ## Version 0.9.24
 
 On Jun. 30, 2025, HVML Community announces the availability of PurC 0.9.24,

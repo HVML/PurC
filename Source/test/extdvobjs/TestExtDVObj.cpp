@@ -64,8 +64,9 @@ TestExtDVObj::~TestExtDVObj()
     stat = purc_variant_usage_stat();
 
     if (m_init_stat.nr_total_values != stat->nr_total_values ||
-            stat->sz_total_mem != (m_init_stat.sz_total_mem + (stat->nr_reserved -
-                    m_init_stat.nr_reserved) * purc_variant_wrapper_size())) {
+            stat->sz_total_mem != (m_init_stat.sz_total_mem +
+                (stat->nr_reserved_ord - m_init_stat.nr_reserved_ord) * purc_variant_wrapper_size_ex(true) +
+                (stat->nr_reserved_out - m_init_stat.nr_reserved_out) * purc_variant_wrapper_size_ex(false))) {
         purc_log_error("Memory leak found\n");
     }
 

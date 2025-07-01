@@ -126,7 +126,7 @@ changed(purc_variant_t arr, purc_variant_t pos,
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr)
 {
-    return (variant_arr_t)arr->sz_ptr[1];
+    return (variant_arr_t)arr->ptr2;
 }
 
 static void
@@ -624,7 +624,7 @@ array_release (purc_variant_t arr)
     }
 
     free(data);
-    arr->sz_ptr[1] = (uintptr_t)NULL;
+    arr->ptr2 = NULL;
 
     pcvariant_stat_set_extra_size(arr, 0);
 }
@@ -662,7 +662,7 @@ make_array(size_t sz)
             break;
         }
 
-        var->sz_ptr[1]     = (uintptr_t)data;
+        var->ptr2     = data;
 
         refresh_extra(var);
 
@@ -764,8 +764,8 @@ void pcvariant_array_release (purc_variant_t value)
 int pcvariant_array_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
-    struct pcutils_arrlist *lal = (struct pcutils_arrlist*)lv->sz_ptr[1];
-    struct pcutils_arrlist *ral = (struct pcutils_arrlist*)rv->sz_ptr[1];
+    struct pcutils_arrlist *lal = (struct pcutils_arrlist*)lv->ptr2;
+    struct pcutils_arrlist *ral = (struct pcutils_arrlist*)rv->ptr2;
     size_t                  lnr = pcutils_arrlist_length(lal);
     size_t                  rnr = pcutils_arrlist_length(ral);
 

@@ -1930,7 +1930,8 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
 
     (*conn)->prot_data->fp = fopen(logfile, "a");
     if ((*conn)->prot_data->fp == NULL) {
-        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+        PC_DEBUG("Failed to open logfile: %s\n", logfile);
+        purc_set_error(purc_error_from_errno(errno));
         goto failed;
     }
 

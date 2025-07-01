@@ -576,6 +576,8 @@ int purc_init_ex(unsigned int modules,
 
     struct pcinst *curr_inst = PURC_GET_THREAD_LOCAL(inst);
     if (curr_inst == NULL) {
+        PC_ERROR("Failed to allocate thread local storage for instance: %s\n",
+                strerror(errno));
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
@@ -586,7 +588,7 @@ int purc_init_ex(unsigned int modules,
 
     if (!purc_is_valid_app_name(app_name) ||
             !purc_is_valid_runner_name(runner_name)) {
-        purc_log_info("invalid app or runner name: %s/%s\n", app_name,
+        PC_ERROR("Invalid app or runner name: %s/%s\n", app_name,
                 runner_name);
         return PURC_ERROR_INVALID_VALUE;
     }
@@ -607,6 +609,8 @@ int purc_init_ex(unsigned int modules,
     atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_DEF,
         curr_inst->endpoint_name, &is_mine);
     if (!is_mine) {
+        PC_ERROR("Duplicated app and runner: %s/%s\n", app_name,
+                runner_name);
         return PURC_ERROR_DUPLICATED;
     }
 

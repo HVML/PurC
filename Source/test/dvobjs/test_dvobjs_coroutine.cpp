@@ -38,7 +38,8 @@
 #include <gtest/gtest.h>
 
 extern purc_variant_t get_variant (char *buf, size_t *length);
-extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
+extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv_ord, size_t *resv_out);
+
 #define MAX_PARAM_NR    20
 
 TEST(dvobjs, dvobjs_hvml_setter)
@@ -53,10 +54,12 @@ TEST(dvobjs, dvobjs_hvml_setter)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -70,7 +73,6 @@ TEST(dvobjs, dvobjs_hvml_setter)
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
-
 
     purc_coroutine_t cor = (pcintr_coroutine_t)calloc(1, sizeof(*cor));
     ASSERT_NE(cor, nullptr);
@@ -116,7 +118,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_before);
+                &nr_reserved_ord_before, &nr_reserved_out_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -216,11 +218,12 @@ TEST(dvobjs, dvobjs_hvml_setter)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_after);
+                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
-                            sz_total_mem_before + (nr_reserved_after -
-                                nr_reserved_before) * sizeof(purc_variant));
+                            sz_total_mem_before +
+                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
                 } else
                     continue;
