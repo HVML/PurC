@@ -2643,7 +2643,7 @@ check_template_variant(purc_variant_t val)
     }
 
     struct purc_native_ops *ops;
-    ops = (struct purc_native_ops*)val->ptr_ptr[1];
+    ops = (struct purc_native_ops*)val->ptr2;
 
     if (ops != &ops_tpl) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -3114,7 +3114,7 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     }
 
     struct purc_native_ops *ops;
-    ops = (struct purc_native_ops*)val->ptr_ptr[1];
+    ops = (struct purc_native_ops*)val->ptr2;
     if (ops != &ops_vdom) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;

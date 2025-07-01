@@ -419,7 +419,7 @@ pcexe_cache_set(purc_variant_t input, bool asc_desc)
 {
     UNUSED_PARAM(asc_desc);
 
-    variant_set_t data = (variant_set_t)input->sz_ptr[1];
+    variant_set_t data = (variant_set_t)input->ptr2;
     char *unique_key = NULL;
     if (data->unique_key) {
         unique_key = make_unique_key(data);

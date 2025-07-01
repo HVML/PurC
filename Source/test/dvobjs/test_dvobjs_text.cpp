@@ -37,7 +37,7 @@
 #include <gtest/gtest.h>
 
 extern purc_variant_t get_variant (char *buf, size_t *length);
-extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
+extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv_ord, size_t *resv_out);
 #define MAX_PARAM_NR    20
 
 TEST(dvobjs, dvobjs_t_getter)
@@ -46,10 +46,12 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
     const char *s = NULL;
 
     // get and function
@@ -85,8 +87,8 @@ TEST(dvobjs, dvobjs_t_getter)
     getter = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(getter, nullptr);
 
-   get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_before);
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     param[0] = purc_variant_make_string ("world", false);
     ret_var = getter (t, 1, param, false);
@@ -113,12 +115,12 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_unref(param[0]);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
     ASSERT_EQ(sz_total_mem_after,
-            sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
-
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_variant_unref(t);
     purc_cleanup ();

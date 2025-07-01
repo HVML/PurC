@@ -137,7 +137,7 @@ changed(purc_variant_t set, purc_variant_t pos,
 variant_set_t
 pcvar_set_get_data(purc_variant_t set)
 {
-    return (variant_set_t)set->sz_ptr[1];
+    return (variant_set_t)set->ptr2;
 }
 
 static size_t
@@ -162,7 +162,7 @@ variant_set_get_extra_size(variant_set_t data)
 static void
 pcv_set_set_data(purc_variant_t set, variant_set_t data)
 {
-    set->sz_ptr[1]     = (uintptr_t)data;
+    set->ptr2     = data;
 }
 
 static int

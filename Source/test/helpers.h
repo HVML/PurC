@@ -122,8 +122,12 @@ public:
             info = &this->info;
         }
 
-        if (purc_init_ex (modules, app, runner, info))
+        int ret;
+        if ((ret = purc_init_ex (modules, app, runner, info))) {
+            std::cout << "Failed purc_init_ex(): " << ret << std::endl;
+            exit(1);
             return;
+        }
 
         init_ok = 0;
     }
@@ -140,8 +144,12 @@ public:
         unsigned int modules = enable_remote_fetcher ?
             PURC_MODULE_HVML | PURC_HAVE_FETCHER_R :
             PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
-        if (purc_init_ex (modules, app, runner, &info))
+        int ret;
+        if ((ret = purc_init_ex (modules, app, runner, &info))) {
+            std::cout << "Failed purc_init_ex(): " << ret << std::endl;
+            exit(1);
             return;
+        }
 
         init_ok = 0;
     }
@@ -155,8 +163,12 @@ public:
         unsigned int modules = enable_remote_fetcher ?
             PURC_MODULE_HVML | PURC_HAVE_FETCHER_R :
             PURC_MODULE_HVML;
-        if (purc_init_ex (modules, app, runner, &info))
+        int ret;
+        if ((ret = purc_init_ex (modules, app, runner, &info))) {
+            std::cout << "Failed purc_init_ex(): " << ret << std::endl;
+            exit(1);
             return;
+        }
 
         init_ok = 0;
     }

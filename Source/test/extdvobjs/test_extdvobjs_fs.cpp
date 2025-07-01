@@ -59,7 +59,7 @@ TEST(dvobjs, hee)
 #include <errno.h>
 #include <gtest/gtest.h>
 
-extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
+extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv_ord, size_t *resv_out);
 #define MAX_PARAM_NR    20
 
 // list
@@ -73,10 +73,12 @@ TEST(dvobjs, dvobjs_fs_list)
     size_t size = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -84,7 +86,7 @@ TEST(dvobjs, dvobjs_fs_list)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -330,10 +332,12 @@ TEST(dvobjs, dvobjs_fs_list)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -348,10 +352,12 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     size_t size = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -359,7 +365,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -458,141 +464,15 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
-
-// basename
-#if 0
-TEST(dvobjs, dvobjs_fs_basename)
-{
-    purc_variant_t param[MAX_PARAM_NR];
-    purc_variant_t ret_var = NULL;
-    size_t sz_total_mem_before = 0;
-    size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
-    size_t sz_total_mem_after = 0;
-    size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
-    const char *func_result = NULL;
-
-    purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
-            "dvobjs", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
-
-    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
-    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
-    ASSERT_NE(fs, nullptr);
-    ASSERT_EQ(purc_variant_is_object (fs), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (fs, "basename", true);
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-
-    printf ("TEST basenagme: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param, false);
-    ASSERT_EQ(ret_var, nullptr);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
-
-    // 1) basename("/etc/sudoers.d", ".d")
-    // 1) sudoers
-    printf ("TEST basename: nr_args = 2, param[0] = '/etc/sudoers.d', param[1] = '.d':\n");
-    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
-    param[1] = purc_variant_make_string (".d", true);
-    ret_var = func (NULL, 2, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "sudoers");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-    purc_variant_unref(ret_var);
-
-    // 2) basename("/etc/sudoers.d")
-    // 2) sudoers.d
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/sudoers.d':\n");
-    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "sudoers.d");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 3) basename("/etc/passwd")
-    // 3) passwd
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/passwd':\n");
-    param[0] = purc_variant_make_string ("/etc/passwd", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "passwd");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 4) basename("/etc/")
-    // 4) etc
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/':\n");
-    param[0] = purc_variant_make_string ("/etc/", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "etc");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 5) basename(".")
-    // 5) .
-    printf ("TEST basename: nr_args = 1, param[0] = '.':\n");
-    param[0] = purc_variant_make_string (".", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, ".");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 6) basename("/")
-    // 6) 
-    printf ("TEST basename: nr_args = 1, param[0] = '/':\n");
-    param[0] = purc_variant_make_string ("/", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // Clean up
-    purc_variant_unload_dvobj (fs);
-
-    get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
-    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
-
-    purc_cleanup ();
-}
-#endif
 
 // chgrp
 TEST(dvobjs, dvobjs_fs_chgrp)
@@ -601,10 +481,12 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -612,7 +494,7 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -666,10 +548,12 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -681,10 +565,12 @@ TEST(dvobjs, dvobjs_fs_chmod)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -692,7 +578,7 @@ TEST(dvobjs, dvobjs_fs_chmod)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -756,10 +642,12 @@ TEST(dvobjs, dvobjs_fs_chmod)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -771,10 +659,12 @@ TEST(dvobjs, dvobjs_fs_chown)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -782,7 +672,7 @@ TEST(dvobjs, dvobjs_fs_chown)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -808,38 +698,17 @@ TEST(dvobjs, dvobjs_fs_chown)
     ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
-/*
-    // String param
-    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'sys':\n");
-    param[0] = purc_variant_make_string (file_path, true);
-    param[1] = purc_variant_make_string ("root", true);
-    ret_var = func (NULL, 2, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-    purc_variant_unref(ret_var);
-
-    // Number param
-    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 2:\n");
-    param[0] = purc_variant_make_string (file_path, true);
-    param[1] = purc_variant_make_ulongint (1); // daemon
-    ret_var = func (NULL, 2, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-    purc_variant_unref(ret_var);
-*/
 
     // Clean up
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -851,10 +720,12 @@ TEST(dvobjs, dvobjs_fs_copy)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -862,7 +733,7 @@ TEST(dvobjs, dvobjs_fs_copy)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -934,142 +805,15 @@ TEST(dvobjs, dvobjs_fs_copy)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
-
-// dirname
-#if 0
-TEST(dvobjs, dvobjs_fs_dirname)
-{
-    purc_variant_t param[MAX_PARAM_NR];
-    purc_variant_t ret_var = NULL;
-    size_t sz_total_mem_before = 0;
-    size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
-    size_t sz_total_mem_after = 0;
-    size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
-    const char *func_result = NULL;
-
-    purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
-            "dvobjs", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
-
-    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
-    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
-    ASSERT_NE(fs, nullptr);
-    ASSERT_EQ(purc_variant_is_object (fs), true);
-
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey_ex (fs, "dirname", true);
-    ASSERT_NE(dynamic, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
-
-    purc_dvariant_method func = NULL;
-    func = purc_variant_dynamic_get_getter (dynamic);
-    ASSERT_NE(func, nullptr);
-
-
-    printf ("TEST basenagme: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param, false);
-    ASSERT_EQ(ret_var, nullptr);
-    printf("\t\tReturn PURC_VARIANT_INVALID\n");
-
-    // 1) dirname(".")
-    // 1) .
-    printf ("TEST basename: nr_args = 1, param[0] = '.':\n");
-    param[0] = purc_variant_make_string (".", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, ".");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 2) dirname("/")
-    // 2) /
-    printf ("TEST basename: nr_args = 1, param[0] = '/':\n");
-    param[0] = purc_variant_make_string ("/", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "/");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 3) dirname("/etc/passwd")
-    // 3) /etc
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/passwd':\n");
-    param[0] = purc_variant_make_string ("/etc/passwd", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "/etc");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 4) dirname("/etc/")
-    // 4) /
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/':\n");
-    param[0] = purc_variant_make_string ("/etc/", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "/");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 5) dirname("../hello")
-    // 5) ../
-    printf ("TEST basename: nr_args = 1, param[0] = '../hello':\n");
-    param[0] = purc_variant_make_string ("../hello", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "../");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 6) dirname("/usr/local/lib", 2)
-    // 6) /usr
-    printf ("TEST basename: nr_args = 2, param[0] = '/usr/local/lib', param[1] = 2:\n");
-    param[0] = purc_variant_make_string ("/usr/local/lib", true);
-    param[1] = purc_variant_make_ulongint (2);
-    ret_var = func (NULL, 2, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "/usr");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-    purc_variant_unref(ret_var);
-
-
-    // Clean up
-    purc_variant_unload_dvobj (fs);
-
-    get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
-    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
-
-    purc_cleanup ();
-}
-#endif
 
 // disk_usage
 TEST(dvobjs, dvobjs_fs_disk_usage)
@@ -1078,10 +822,12 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1089,7 +835,7 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1148,10 +894,12 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1163,10 +911,12 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1174,7 +924,7 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1231,10 +981,12 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1246,10 +998,12 @@ TEST(dvobjs, dvobjs_fs_file_is)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1257,7 +1011,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1323,10 +1077,12 @@ TEST(dvobjs, dvobjs_fs_file_is)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1338,10 +1094,12 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1349,7 +1107,7 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1404,10 +1162,12 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1419,10 +1179,12 @@ TEST(dvobjs, dvobjs_fs_lchown)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1430,7 +1192,7 @@ TEST(dvobjs, dvobjs_fs_lchown)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1485,10 +1247,12 @@ TEST(dvobjs, dvobjs_fs_lchown)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1500,10 +1264,12 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1511,7 +1277,7 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1546,10 +1312,12 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1561,10 +1329,12 @@ TEST(dvobjs, dvobjs_fs_lstat)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1572,7 +1342,7 @@ TEST(dvobjs, dvobjs_fs_lstat)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1625,10 +1395,12 @@ TEST(dvobjs, dvobjs_fs_lstat)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1640,10 +1412,12 @@ TEST(dvobjs, dvobjs_fs_link)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1651,7 +1425,7 @@ TEST(dvobjs, dvobjs_fs_link)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1710,10 +1484,12 @@ TEST(dvobjs, dvobjs_fs_link)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1725,10 +1501,12 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1736,7 +1514,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -1790,10 +1568,12 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1805,10 +1585,12 @@ TEST(dvobjs, dvobjs_fs_pathinfo)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1816,7 +1598,7 @@ TEST(dvobjs, dvobjs_fs_pathinfo)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1863,10 +1645,12 @@ TEST(dvobjs, dvobjs_fs_pathinfo)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1878,10 +1662,12 @@ TEST(dvobjs, dvobjs_fs_readlink)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1889,7 +1675,7 @@ TEST(dvobjs, dvobjs_fs_readlink)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -1932,10 +1718,12 @@ TEST(dvobjs, dvobjs_fs_readlink)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -1947,10 +1735,12 @@ TEST(dvobjs, dvobjs_fs_realpath)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1958,7 +1748,7 @@ TEST(dvobjs, dvobjs_fs_realpath)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2015,10 +1805,12 @@ TEST(dvobjs, dvobjs_fs_realpath)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2030,10 +1822,12 @@ TEST(dvobjs, dvobjs_fs_rename)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2041,7 +1835,7 @@ TEST(dvobjs, dvobjs_fs_rename)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2101,10 +1895,12 @@ TEST(dvobjs, dvobjs_fs_rename)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2116,10 +1912,12 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2127,7 +1925,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -2182,10 +1980,12 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2197,10 +1997,12 @@ TEST(dvobjs, dvobjs_fs_stat)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2208,7 +2010,7 @@ TEST(dvobjs, dvobjs_fs_stat)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2263,10 +2065,12 @@ TEST(dvobjs, dvobjs_fs_stat)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2278,10 +2082,12 @@ TEST(dvobjs, dvobjs_fs_symlink)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2289,7 +2095,7 @@ TEST(dvobjs, dvobjs_fs_symlink)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2348,10 +2154,12 @@ TEST(dvobjs, dvobjs_fs_symlink)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2363,10 +2171,12 @@ TEST(dvobjs, dvobjs_fs_tempname)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
     const char *temp_filename = NULL;
 
     purc_instance_extra_info info = {};
@@ -2375,7 +2185,7 @@ TEST(dvobjs, dvobjs_fs_tempname)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2430,10 +2240,12 @@ TEST(dvobjs, dvobjs_fs_tempname)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2445,10 +2257,12 @@ TEST(dvobjs, dvobjs_fs_umask)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2456,7 +2270,7 @@ TEST(dvobjs, dvobjs_fs_umask)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2491,10 +2305,12 @@ TEST(dvobjs, dvobjs_fs_umask)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2506,10 +2322,12 @@ TEST(dvobjs, dvobjs_fs_rm)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2517,7 +2335,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -2572,10 +2390,12 @@ TEST(dvobjs, dvobjs_fs_rm)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2587,10 +2407,12 @@ TEST(dvobjs, dvobjs_fs_unlink)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2598,7 +2420,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -2653,10 +2475,12 @@ TEST(dvobjs, dvobjs_fs_unlink)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2669,10 +2493,12 @@ TEST(dvobjs, dvobjs_fs_touch)
     struct stat file_stat;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2680,7 +2506,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     const char *env;
     env = "DVOBJS_SO_PATH";
@@ -2735,10 +2561,12 @@ TEST(dvobjs, dvobjs_fs_touch)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     unlink (file_path);
 
@@ -2752,10 +2580,12 @@ TEST(dvobjs, dvobjs_fs_file_contents)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2763,7 +2593,7 @@ TEST(dvobjs, dvobjs_fs_file_contents)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2835,10 +2665,12 @@ param[1] = flag, param[2] = offset, param[3] = length:\n");
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
@@ -2855,10 +2687,12 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
+    size_t nr_reserved_ord_before = 0;
+    size_t nr_reserved_out_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
+    size_t nr_reserved_ord_after = 0;
+    size_t nr_reserved_out_after = 0;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -2866,7 +2700,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
+            &nr_reserved_ord_before, &nr_reserved_out_before);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
@@ -2957,10 +2791,12 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
-            &sz_total_values_after, &nr_reserved_after);
+            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
-                nr_reserved_before) * sizeof(purc_variant));
+    ASSERT_EQ(sz_total_mem_after,
+            sz_total_mem_before +
+            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
+            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
 
     purc_cleanup ();
 }
