@@ -41,13 +41,13 @@ struct pcvariant_sorted_array {
     struct sorted_array           *sa;
 };
 
-void sacb_free_def(void *sortv, void *data)
+static void sacb_free_def(void *sortv, void *data)
 {
     UNUSED_PARAM(data);
     purc_variant_unref((purc_variant_t)sortv);
 }
 
-int sacb_compare_def(const void *sortv1, const void *sortv2)
+static int sacb_compare_def(const void *sortv1, const void *sortv2)
 {
     purc_variant_t v1 = (purc_variant_t) sortv1;
     purc_variant_t v2 = (purc_variant_t) sortv2;
@@ -66,7 +66,7 @@ type_getter(void *native_entity, const char *property_name,
     return purc_variant_make_boolean(true);
 }
 
-struct sorted_array *
+static struct sorted_array *
 get_sorted_array(purc_variant_t array)
 {
     void *entity;
@@ -115,7 +115,7 @@ out:
     return method;
 }
 
-void on_release(void *native_entity)
+static void on_release(void *native_entity)
 {
     struct pcvariant_sorted_array *psa;
     psa = (struct pcvariant_sorted_array *)native_entity;

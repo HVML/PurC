@@ -1,10 +1,10 @@
 /*
- * @file variant-basic.c
+ * @file basic-types.c
  * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of variant.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -203,7 +203,7 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
 {
     PCVRNT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
-    static const size_t sz_in_space = SZ_SPACE_IN_WRAPPER;
+    static const size_t sz_in_space = NR_BYTES_IN_WRAPPER;
     purc_variant_t value = NULL;
 
     if (check_encoding) {
@@ -547,7 +547,7 @@ purc_variant_t purc_variant_make_byte_sequence(const void* bytes,
     PCVRNT_CHECK_FAIL_RET((bytes != NULL && nr_bytes > 0),
         PURC_VARIANT_INVALID);
 
-    static const size_t sz_in_space = SZ_SPACE_IN_WRAPPER;
+    static const size_t sz_in_space = NR_BYTES_IN_WRAPPER;
     purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
@@ -638,7 +638,7 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff(void* bytes,
 
 purc_variant_t purc_variant_make_byte_sequence_empty(void)
 {
-    static const size_t sz_in_space = SZ_SPACE_IN_WRAPPER;
+    static const size_t sz_in_space = NR_BYTES_IN_WRAPPER;
     purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
@@ -658,7 +658,7 @@ purc_variant_t purc_variant_make_byte_sequence_empty(void)
 /* Since 0.9.22 */
 purc_variant_t purc_variant_make_byte_sequence_empty_ex(size_t sz_buf)
 {
-    static const size_t sz_in_space = SZ_SPACE_IN_WRAPPER;
+    static const size_t sz_in_space = NR_BYTES_IN_WRAPPER;
     purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
@@ -710,7 +710,7 @@ purc_variant_bsequence_buffer(purc_variant_t sequence, size_t *nr_bytes,
         else {
             bytes = sequence->bytes;
             *nr_bytes = sequence->size;
-            *sz_buf = SZ_SPACE_IN_WRAPPER;
+            *sz_buf = NR_BYTES_IN_WRAPPER;
         }
 
     }
@@ -736,7 +736,7 @@ purc_variant_bsequence_set_bytes(purc_variant_t sequence, size_t nr_bytes)
             }
         }
         else {
-            if (nr_bytes <= SZ_SPACE_IN_WRAPPER) {
+            if (nr_bytes <= NR_BYTES_IN_WRAPPER) {
                 sequence->size = nr_bytes;
                 retv = true;
             }
@@ -771,7 +771,7 @@ bool purc_variant_bsequence_append(purc_variant_t sequence,
         else {
             buf = sequence->bytes;
             curr_bytes = sequence->size;
-            sz_buf = SZ_SPACE_IN_WRAPPER;
+            sz_buf = NR_BYTES_IN_WRAPPER;
         }
     }
     else {
@@ -821,7 +821,7 @@ ssize_t purc_variant_bsequence_roll(purc_variant_t sequence, ssize_t offset)
         else {
             buf = sequence->bytes;
             curr_bytes = sequence->size;
-            sz_buf = SZ_SPACE_IN_WRAPPER;
+            sz_buf = NR_BYTES_IN_WRAPPER;
         }
     }
     else {

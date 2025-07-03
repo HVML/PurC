@@ -65,6 +65,7 @@ void pcvariant_put(purc_variant_t value) WTF_INTERNAL;
 typedef void (* pcvariant_release_fn) (purc_variant_t value);
 
 // for release the resource in a variant
+void pcvariant_bigint_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
@@ -392,6 +393,25 @@ size_t
 pcvariant_set_children_memsize(purc_variant_t set) WTF_INTERNAL;
 size_t
 pcvariant_tuple_children_memsize(purc_variant_t tuple) WTF_INTERNAL;
+
+void bigint_dump(FILE *fp, const char *prefx, purc_variant *p) WTF_INTERNAL;
+int64_t bigint_get_si_sat(const purc_variant *a) WTF_INTERNAL;
+purc_variant *bigint_divrem(const purc_variant *a,
+        const purc_variant *b, bool is_rem) WTF_INTERNAL;
+purc_variant *bigint_logic(const purc_variant *a,
+        const purc_variant *b, purc_variant_operator op) WTF_INTERNAL;
+purc_variant *bigint_not(const purc_variant *a) WTF_INTERNAL;
+purc_variant *bigint_shl(const purc_variant *a,
+        unsigned int shift1) WTF_INTERNAL;
+purc_variant *bigint_shr(const purc_variant *a,
+        unsigned int shift1) WTF_INTERNAL;
+purc_variant *bigint_pow(const purc_variant *a,
+        const purc_variant *b) WTF_INTERNAL;
+double bigint_to_float64(const purc_variant *a) WTF_INTERNAL;
+int bigint_float64_cmp(const purc_variant *a, double b) WTF_INTERNAL;
+int bigint_cmp(const purc_variant *a, const purc_variant *b) WTF_INTERNAL;
+int bigint_stringify(purc_variant_t val, void *ctxt,
+        stringify_f cb) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

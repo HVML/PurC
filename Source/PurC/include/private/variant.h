@@ -113,8 +113,9 @@ struct purc_variant {
     unsigned int type:8;
 
     /* The length for short string and byte sequence (both in bytes).
-       When the extra space (long string and long byte sequence) is used,
-       the value of this field is 0. */
+       The length for short bigint (in limbs).
+       When the extra space is used, the value of this field is 0.
+     */
     unsigned int size:8;
 
     /* flags */
@@ -145,51 +146,66 @@ struct purc_variant {
         void       *ptr;
 
         /* for array, object, and set: the number of children;
+           for bigint, the length of limbs if using the extra size;
            for long byte sequence, the length in bytes;
            for long string, the length in bytes
            (including the terminating null byte) */
         size_t      len;
 
         /* for short string and byte sequence; the real space size of `bytes`
-           is `SZ_SPACE_IN_WRAPPER` (see below) */
+           is `NR_BYTES_IN_WRAPPER` (see below) */
         uint8_t     bytes[0];
+
+        /* for bigint; the real space size of `words`
+           is `NR_WORDS_IN_WRAPPER` (see below) */
+        uint16_t    words[0];
+
+        /* for bigint; the real space size of `dwords`
+           is `NR_DWORDS_IN_WRAPPER` (see below) */
+        uint32_t    dwords[0];
+
+        /* for bigint; the real space size of `qwords`
+           is `NR_QWORDS_IN_WRAPPER` (see below) */
+        uint64_t    qwords[0];
     };
 
     union {
         long double     ld;         // for long double
         void           *ptr2;       // for native entity: ops
                                     // for dynamic variant: setter
+        intptr_t        _padding[2];// make sure this field is 16-byte long,
+                                    // because long double may be 96-bit wide
+                                    // on some system.
     };
 
     union {
         void           *extra_data; // for native entity only.
-        size_t          extra_size; // for other out of ordinary variants
+        size_t          extra_size; // for other complex variants
                                     // which use extra memory space.
-
         /* other aliases */
         uintptr_t       extra_uintptr;
         intptr_t        extra_intptr;
-
-        uint8_t         extra_bytes[0]; // the real length of `extra_bytes`
-                                        // is `sizeof(long double)`
-
-        uint16_t        extra_words[0]; // the real length of `extra_words`
-                                        // is `sizeof(long double) / 2`.
-
-        uint32_t        extra_dwords[0];// the real length of `extra_dwords`
-                                        // is `sizeof(long double) / 4`.
+        uint8_t         extra_bytes[0];
+        uint16_t        extra_words[0];
+        uint32_t        extra_dwords[0];
+        uint64_t        extra_qwords[0];
     };
 
-    /* for observable or out of ordinary variants. */
+    /* for observable or complex variants. */
     union {
         struct list_head    listeners;  // the list head for listeners.
         struct list_head    reserved;   // the list node for reserved variants.
     };
 };
 
-#define SZ_SPACE_IN_WRAPPER                                     \
-    (sizeof(void *) + sizeof(long double) + sizeof(void *) +    \
+#define SZ_VARIANT_HEADER       8
+#define NR_BYTES_IN_WRAPPER                                     \
+    (sizeof(void *) + sizeof(intptr_t) * 2 + sizeof(void *) +   \
         sizeof(struct list_head))
+
+#define NR_WORDS_IN_WRAPPER     (NR_BYTES_IN_WRAPPER / 2)
+#define NR_DWORDS_IN_WRAPPER    (NR_BYTES_IN_WRAPPER / 4)
+#define NR_QWORDS_IN_WRAPPER    (NR_BYTES_IN_WRAPPER / 8)
 
 /* Use this structure for oridinary variants, like undefined, null,
    boolean, number, longint, ulongint, exception, and atom. */
@@ -222,6 +238,19 @@ struct purc_variant_ord {
 };
 
 typedef struct purc_variant_ord purc_variant_ord;
+
+typedef enum {
+    OP_add,
+    OP_sub,
+    OP_mul,
+    OP_div,
+    OP_mod,
+    OP_pow,
+    OP_and,
+    OP_or,
+    OP_xor,
+    OP_not,
+} purc_variant_operator;
 
 struct pcvariant_heap {
     // the constant values.

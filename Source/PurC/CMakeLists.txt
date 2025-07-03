@@ -14,7 +14,7 @@ set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}/purc"
 )
 
-# TODO: List the headers should be installed to system here.
+# List the headers which should be installed to system here.
 set(PurC_FRAMEWORK_HEADERS
     "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
@@ -43,7 +43,7 @@ list(APPEND PurC_INSTALLED_HEADERS
 #    "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
 )
 
-# TODO: List the directorires which do not contain any platform-dependent C source files
+# List the directorires which do not contain any platform-dependent C/C++ source files
 set(PurC_PLATFORM_INDEPENDENT_DIRS
     "instance"
     "utils"
@@ -64,11 +64,11 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "document"
 )
 
-# This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
+# This macro will append all C/CPP source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
 APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIRS}")
 
-# TODO: List the source files individually.
+# List the source files individually.
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
@@ -88,7 +88,7 @@ set(PurC_LIBRARIES
 
 set(PurC_DEPENDENCIES)
 
-# TODO: the source files and libraries for optional features.
+# the source files and libraries for optional features.
 if (ENABLE_WEBSOCKET)
     list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
         "SourcesWebSocket.txt"

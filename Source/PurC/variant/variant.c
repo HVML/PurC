@@ -61,10 +61,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     NULL,                           // PURC_VARIANT_TYPE_ATOM_STRING
 
     NULL,                           // PURC_VARIANT_TYPE_LONGDOUBLE
-#if 0   /* in the future */
-    NULL,                           // PURC_VARIANT_TYPE_BIGINT
-    NULL,                           // PURC_VARIANT_TYPE_BIGFLOAT
-#endif
+    pcvariant_bigint_release,       // PURC_VARIANT_TYPE_BIGINT
     pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
     pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
     NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
@@ -267,10 +264,7 @@ static const char *typenames[] = {
     PURC_VARIANT_TYPE_NAME_ATOMSTRING,
 
     PURC_VARIANT_TYPE_NAME_LONGDOUBLE,
-#if 0 // in the future
     PURC_VARIANT_TYPE_NAME_BIGINT,
-    PURC_VARIANT_TYPE_NAME_BIGFLOAT,
-#endif
     PURC_VARIANT_TYPE_NAME_STRING,
     PURC_VARIANT_TYPE_NAME_BYTESEQUENCE,
     PURC_VARIANT_TYPE_NAME_DYNAMIC,

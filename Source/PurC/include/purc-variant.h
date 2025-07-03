@@ -263,6 +263,76 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_longdouble(long double lf);
 
 /**
+ * purc_variant_make_bigint_from_i64:
+ *
+ * @i64: A signed 64-bit integer.
+ *
+ * Creates a bigint variant which represents a arbitrary precision integer
+ * from @i64.
+ *
+ * Returns: A bigint variant having the specified initial value,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_bigint_from_i64(int64_t i64);
+
+/**
+ * purc_variant_make_bigint_from_u64:
+ *
+ * @u64: A unsigned 64-bit integer.
+ *
+ * Creates a bigint variant which represents a arbitrary precision integer
+ * from @u64.
+ *
+ * Returns: A bigint variant having the specified initial value,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_bigint_from_u64(uint64_t u64);
+
+/**
+ * purc_variant_make_bigint_from_f64:
+ *
+ * @d: A 64-bit float number.
+ *
+ * Creates a bigint variant which represents a arbitrary precision integer
+ * from @u64.
+ *
+ * Returns: A bigint variant having the specified initial value,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_bigint_from_f64(double d);
+
+/**
+ * purc_variant_make_bigint_from_string:
+ *
+ * @str: A number string in the specified base.
+ * @end (nullable): A pointer to a buffer to store the address
+ *      of the first invalid character.
+ * @base: The base of the number string; it must be between 2 and 36 inclusive,
+ *      or be the special value 0.
+ *
+ * Create a bigint variant which represents a arbitrary precision integer
+ * from a number string in the given base.
+ *
+ * This function stores the address of the first invalid character in *end.
+ *
+ * Returns: A bigint variant having the specified initial value,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_bigint_from_string(const char *str, char **end, int base);
+
+/**
  * purc_variant_make_string:
  *
  * @str_utf8: The pointer to a null-terminated string
@@ -3048,9 +3118,7 @@ typedef enum purc_variant_type {
 #define PURC_VARIANT_TYPE_NAME_LONGDOUBLE   "longdouble"
     PURC_VARIANT_TYPE_LONGDOUBLE,
 #define PURC_VARIANT_TYPE_NAME_BIGINT       "bigint"
-    // PURC_VARIANT_TYPE_BIGINT,
-#define PURC_VARIANT_TYPE_NAME_BIGFLOAT     "bigfloat"
-    // PURC_VARIANT_TYPE_BIGFLOAT,
+    PURC_VARIANT_TYPE_BIGINT,
 #define PURC_VARIANT_TYPE_NAME_STRING       "string"
     PURC_VARIANT_TYPE_STRING,
 #define PURC_VARIANT_TYPE_NAME_BYTESEQUENCE "bsequence"
@@ -3233,6 +3301,22 @@ static inline bool purc_variant_is_ulongint(purc_variant_t v)
 }
 
 /**
+ * purc_variant_is_atomstring:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is an atom.
+ *
+ * Returns: %true if the given variant is an atom, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
+static inline bool purc_variant_is_atomstring(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
+}
+
+/**
  * purc_variant_is_longdouble:
  *
  * @v: A valid variant.
@@ -3249,19 +3333,19 @@ static inline bool purc_variant_is_longdouble(purc_variant_t v)
 }
 
 /**
- * purc_variant_is_atomstring:
+ * purc_variant_is_bigint:
  *
  * @v: A valid variant.
  *
- * Checks whether the given variant is an atom.
+ * Checks whether the given variant is a bigint.
  *
- * Returns: %true if the given variant is an atom, otherwise %false.
+ * Returns: %true if the given variant is a bigint otherwise %false.
  *
- * Since: 0.1.0
+ * Since: 0.9.26
  */
-static inline bool purc_variant_is_atomstring(purc_variant_t v)
+static inline bool purc_variant_is_bigint(purc_variant_t v)
 {
-    return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_BIGINT);
 }
 
 /**
