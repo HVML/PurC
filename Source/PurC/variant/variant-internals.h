@@ -410,8 +410,8 @@ purc_variant *bigint_pow(const purc_variant *a,
 double bigint_to_float64(const purc_variant *a) WTF_INTERNAL;
 int bigint_float64_cmp(const purc_variant *a, double b) WTF_INTERNAL;
 int bigint_cmp(const purc_variant *a, const purc_variant *b) WTF_INTERNAL;
-int bigint_stringify(purc_variant_t val, void *ctxt,
-        stringify_f cb) WTF_INTERNAL;
+ssize_t bigint_stringify(purc_variant_t val, int radix,
+        void *ctxt, stringify_f cb) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

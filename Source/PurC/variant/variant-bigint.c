@@ -199,6 +199,7 @@ static purc_variant_t bigint_new(int nr_limbs)
         goto failed;
     }
 
+    v->type = PVT(_BIGINT);
     v->len = nr_limbs;
     if (nr_limbs <= NR_LIMBS_IN_WRAPPER) {
         v->size = nr_limbs;
@@ -216,6 +217,7 @@ static purc_variant_t bigint_new(int nr_limbs)
         pcvariant_stat_set_extra_size(v, sz_extra);
     }
 
+    v->refc = 1;
     return v;
 
 failed:
@@ -307,7 +309,7 @@ static inline int bigint_sign(const purc_variant *a)
 {
     size_t len;
     const bi_limb_t *tab = bigint_get_tab_const(a, &len);
-    return tab[a->len - 1] >> (BIGINT_LIMB_BITS - 1);
+    return tab[len - 1] >> (BIGINT_LIMB_BITS - 1);
 }
 
 int64_t bigint_get_si_sat(const purc_variant *a)
@@ -1143,6 +1145,9 @@ purc_variant_make_bigint_from_string(const char *str, char **end, int radix)
     while (*p == '0')
         p++;
 
+    if (radix == 16 && (*p == 'x' || *p == 'X'))
+        p++;
+
     n_digits = strlen(p);
     log2_radix = 32 - clz32(radix - 1); /* ceil(log2(radix)) */
     /* compute the maximum number of limbs */
@@ -1199,8 +1204,10 @@ purc_variant_make_bigint_from_string(const char *str, char **end, int radix)
         memset(r_tab, 0, sizeof(r_tab[0]) * n_limbs);
         for(i = 0; i < n_digits; i++) {
             c = to_digit(p[n_digits - 1 - i]);
-            if (c > (bi_limb_t)radix)
+            if (c >= (bi_limb_t)radix) {
+                p += n_digits - 1 - i;
                 break;
+            }
 
             bit_pos = i * log2_radix;
             shift = bit_pos & (BIGINT_LIMB_BITS - 1);
@@ -1212,6 +1219,8 @@ purc_variant_make_bigint_from_string(const char *str, char **end, int radix)
                 r_tab[pos + 1] |= c >> (BIGINT_LIMB_BITS - shift);
             }
         }
+
+        p += n_digits;
     }
 
     if (end)
@@ -1311,9 +1320,8 @@ static const bi_limb_t radix_base_table[BIGINT_RADIX_MAX - 1] = {
 #endif
 };
 
-size_t i64toa_radix(char *buf, int64_t n, unsigned int radix);
-
-static purc_variant_t bigint_to_string1(const purc_variant_t val, int radix)
+ssize_t bigint_stringify(const purc_variant_t val, int radix,
+        void *ctxt, stringify_f cb)
 {
     size_t val_len;
     const bi_limb_t *val_tab;
@@ -1321,19 +1329,22 @@ static purc_variant_t bigint_to_string1(const purc_variant_t val, int radix)
 
     if (val_len == 1) {
         char buf[66];
-        int len;
+        size_t len;
         len = i64toa_radix(buf, val_tab[0], radix);
-        return purc_variant_make_string_ex(buf, len, false);
+        if (cb((const unsigned char *)buf, len, ctxt) == 0)
+            return len;
+        return -1;
     } else {
         purc_variant *tmp = NULL;
         char *buf, *q, *buf_end;
         int is_neg, n_bits, log2_radix, n_digits;
         bool is_binary_radix;
-        purc_variant_t res;
 
         if (val_len == 1 && val_tab[0] == 0) {
             /* '0' case */
-            return purc_variant_make_string_static("0", false);
+            if (cb((const unsigned char *)"0", 1, ctxt) == 0)
+                return 1;
+            return -1;
         }
 
         purc_variant *r;
@@ -1342,14 +1353,14 @@ static purc_variant_t bigint_to_string1(const purc_variant_t val, int radix)
         if (is_neg) {
             tmp = bigint_neg(val);
             if (!tmp)
-                return NULL;
+                return -1;
 
             r = tmp;
         } else if (!is_binary_radix) {
             /* need to modify 'val' */
             tmp = bigint_new(val_len);
             if (!tmp)
-                return NULL;
+                return -1;
 
             bi_limb_t *tmp_tab;
             tmp_tab = bigint_get_tab(tmp, NULL);
@@ -1372,7 +1383,7 @@ static purc_variant_t bigint_to_string1(const purc_variant_t val, int radix)
         if (!buf) {
             bigint_free(tmp);
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return NULL;
+            return -1;
         }
 
         q = buf + n_digits + is_neg + 1;
@@ -1417,12 +1428,15 @@ static purc_variant_t bigint_to_string1(const purc_variant_t val, int radix)
                 *--q = digits[c];
             }
         }
+
         if (is_neg)
             *--q = '-';
         bigint_free(tmp);
-        res = purc_variant_make_string_ex(q, buf_end - q, false);
+        ssize_t sz = buf_end - q;
+        if (cb((const unsigned char *)q, sz, ctxt))
+            sz = -1;
         free(buf);
-        return res;
+        return sz;
     }
 }
 
@@ -1520,19 +1534,5 @@ purc_variant_t purc_variant_make_bigint_from_f64(double f64)
     /* the integer is mant*2^e */
     r = bigint_set_si64(&buf, (int64_t)mant);
     return bigint_shl(r, e);
-}
-
-int bigint_stringify(purc_variant_t val, void *ctxt,
-        stringify_f cb)
-{
-    purc_variant_t tmp = bigint_to_string1(val, 10);
-    if (tmp) {
-        size_t len;
-        const char *p = purc_variant_get_string_const_ex(tmp, &len);
-        purc_variant_unref(tmp);
-        return cb((const unsigned char *)p, len, ctxt);
-    }
-
-    return -1;
 }
 

@@ -662,6 +662,19 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
     return nr_written;
 }
 
+static int stringify_cb_bigint(const unsigned char *s, size_t len, void *ctxt)
+{
+    purc_rwstream_t rws = ctxt;
+
+    ssize_t written = purc_rwstream_write(rws, s, len);
+    if (written < 0 || (size_t)written < len)
+        return -1;
+    if (purc_rwstream_write(rws, "n", 1) < 1)
+        return -1;
+
+    return 0;
+}
+
 ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         int level, unsigned int flags, size_t *len_expected)
 {
@@ -763,6 +776,18 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             // sz_content = strlen(buff);
             break;
         }
+
+        case PURC_VARIANT_TYPE_BIGINT:
+            if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
+                MY_WRITE(rws, "\"", 1);
+            n = bigint_stringify(value, 10, rws, stringify_cb_bigint);
+            MY_WRITE(rws, "n", 1);  // postfix
+            if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
+                MY_WRITE(rws, "\"", 1);
+            MY_CHECK(n);
+
+            content = NULL;
+            break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             n = serialize_long_double(rws, value->ld, flags,

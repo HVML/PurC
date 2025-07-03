@@ -1605,3 +1605,89 @@ TEST(variant, reuse_buff)
     purc_cleanup ();
 }
 
+// Test BigInt related APIs
+TEST(variant, pcvariant_bigint) {
+    // Test case structure
+    struct BigIntTestCase {
+        enum {
+            FROM_I64,
+            FROM_U64, 
+            FROM_F64,
+            FROM_STR
+        } type;
+        union {
+            int64_t i64_val;
+            uint64_t u64_val;
+            double f64_val;
+            struct {
+                const char* str;
+                int base;
+            } str_val;
+        } input;
+        const char* expected;
+    };
+
+    // Test cases
+    BigIntTestCase test_cases[] = {
+        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MAX}, "9223372036854775807n"},
+        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MIN}, "-9223372036854775808n"},
+        {BigIntTestCase::FROM_U64, {.u64_val = UINT64_MAX}, "18446744073709551615n"},
+        {BigIntTestCase::FROM_F64, {.f64_val = 12345}, "12345n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 16}}, "255n"}
+    };
+
+    purc_variant_t value = NULL;
+    purc_instance_extra_info info = {};
+    char buf[128];
+    char* end = NULL;
+    size_t len_expected = 0;
+    ssize_t n;
+
+    // Initialize PURC
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test", "variant", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    // Create stream for serialization
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Run test cases
+    for (const auto& test_case : test_cases) {
+        std::cout << "Checking " << test_case.expected << std::endl;
+
+        // Create BigInt based on test case type
+        switch (test_case.type) {
+            case BigIntTestCase::FROM_I64:
+                value = purc_variant_make_bigint_from_i64(test_case.input.i64_val);
+                break;
+            case BigIntTestCase::FROM_U64:
+                value = purc_variant_make_bigint_from_u64(test_case.input.u64_val);
+                break;
+            case BigIntTestCase::FROM_F64:
+                value = purc_variant_make_bigint_from_f64(test_case.input.f64_val);
+                break;
+            case BigIntTestCase::FROM_STR:
+                value = purc_variant_make_bigint_from_string(test_case.input.str_val.str, 
+                        &end, test_case.input.str_val.base);
+                ASSERT_EQ(*end, '\0');  // Ensure entire string was parsed
+                break;
+        }
+
+        ASSERT_NE(value, PURC_VARIANT_INVALID);
+
+        // Serialize and verify
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        n = purc_variant_serialize(value, rws, 0,
+                PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
+                &len_expected);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        ASSERT_STREQ(buf, test_case.expected);
+
+        purc_variant_unref(value);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
