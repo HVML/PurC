@@ -203,6 +203,7 @@ const css_prop_handler property_handlers[LAST_PROP + 1 - FIRST_PROP] =
     css__parse_stroke_miterlimit,
     css__parse_text_anchor,
     css__parse_text_rendering,
+    css__parse_transform,
     css__parse_appearance,
     css__parse__foil_color_info,
     css__parse__foil_color_warning,

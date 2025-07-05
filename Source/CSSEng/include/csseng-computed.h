@@ -646,6 +646,9 @@ uint8_t css_computed_text_anchor(
 
 uint8_t css_computed_text_rendering(const css_computed_style *style);
 
+uint8_t css_computed_transform(const css_computed_style *style,
+        lwc_string **string);
+
 uint8_t css_computed_appearance(const css_computed_style *style);
 
 bool css_computed_style_is_equal(struct css_computed_style *a,

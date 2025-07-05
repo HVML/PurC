@@ -191,6 +191,7 @@ PROPERTY_FUNCS(stroke_linejoin);
 PROPERTY_FUNCS(stroke_miterlimit);
 PROPERTY_FUNCS(text_anchor);
 PROPERTY_FUNCS(text_rendering);
+PROPERTY_FUNCS(transform);
 PROPERTY_FUNCS(line_break);
 PROPERTY_FUNCS(appearance);
 PROPERTY_FUNCS(_foil_color_info);

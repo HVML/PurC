@@ -204,6 +204,7 @@ style = {
     ('stroke_miterlimit', 1, 'fixed', 'CSS_STROKE_MITERLIMIT_SET'),
     ('text_anchor', 4),
     ('text_rendering', 4),
+    ('transform', 1, 'string'),
     # Uncommon group, arrays
     ('counter_increment', 2, 'counter_arr', None, 'CSS_COUNTER_INCREMENT_NONE',
         'Encode counter_increment as an array of name, value pairs, '
