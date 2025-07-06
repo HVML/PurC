@@ -27,7 +27,6 @@ css_error css__set_transform_from_hint(const css_hint *hint,
 	css_error error;
 
 	error = set_transform(style, hint->status, hint->data.string);
-
 	if (hint->data.string != NULL)
 		lwc_string_unref(hint->data.string);
 

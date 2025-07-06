@@ -5,8 +5,13 @@
  * Copyright 2008 John-Mark Bell <jmb@netsurf-browser.org>
  * Copyright (C) 2021 Beijing FMSoft Technologies Co., Ltd.
  */
+#include <assert.h>
+#include <string.h>
 
+#include "bytecode/bytecode.h"
+#include "bytecode/opcodes.h"
 #include "parse/properties/properties.h"
+#include "parse/properties/utils.h"
 
 /**
  * Dispatch table of property handlers, indexed by property enum
