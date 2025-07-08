@@ -32,6 +32,8 @@
 #include "purc-macros.h"
 #include "purc-rwstream.h"
 #include "purc-utils.h"
+#include "purc/purc-features.h"
+#include "purc/purc-macros.h"
 
 /**
  * SECTION: purc_variant
@@ -3888,6 +3890,686 @@ purc_ejson_parsing_tree_evalute(struct purc_ejson_parsing_tree *parse_tree,
  */
 PCA_EXPORT void
 purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
+
+/**
+ * purc_variant_operator_lt:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the less-than comparison (@v1 < @v2) and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+ PCA_EXPORT purc_variant_t
+ purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_le:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the less-than or equal to comparison (@v1 <= @v2) and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+ PCA_EXPORT purc_variant_t
+ purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2);
+
+ /**
+ * purc_variant_operator_eq:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the equal to comparison (@v1 == @v2) and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+ PCA_EXPORT purc_variant_t
+ purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2);
+
+ /**
+ * purc_variant_operator_ne:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the not equal to comparison and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+ PCA_EXPORT purc_variant_t
+ purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_gt:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the greater-than comparison (@v1 > @v2) and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_gt(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_ge:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the greater-than or equal to comparison (@v1 >= @v2) and
+ * return the truth value of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ge(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_not:
+ *
+ * @v: The variant.
+ *
+ * Perform the logical negation (not @v) and return the negation of @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_not(purc_variant_t v);
+
+/**
+ * purc_variant_operator_truth:
+ *
+ * @v: The variant.
+ *
+ * Perform the truth test (bool(@v)) and return the truth value of @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_truth(purc_variant_t v);
+
+/**
+ * purc_variant_operator_is:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the object identity test (@v1 is @v2) and return the truth value
+ * of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_is_not:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the object identity test (@v1 is not @v2) and return the negation
+ * of the result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_is_not(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_abs:
+ *
+ * @v: The variant.
+ *
+ * Perform the absolute value operation (abs(@v)) and return
+ * the absolute value of @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_abs(purc_variant_t v);
+
+/**
+ * purc_variant_operator_neg:
+ *
+ * @v: The variant.
+ *
+ * Perform the negation operation (-@v) and return the negation of @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_neg(purc_variant_t v); 
+
+/**
+  * purc_variant_operator_pos:
+  *
+  * @v: The variant.
+  *
+  * Perform the positive operation (+@v) and return the positive of @v.
+  *
+  * Returns: A variant evaluated on success,
+  *      or %PURC_VARIANT_INVALID on failure.
+  */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_pos(purc_variant_t v); 
+
+/**
+ * purc_variant_operator_add:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the addition operation (@v1 + @v2) and return the summary of
+ * @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_add(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_sub:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the subtraction operation (@v1 - @v2) and return the difference
+ * of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_sub(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_mul:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the multiplication operation (@v1 * @v2) and return the product
+ * of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_mul(purc_variant_t v1, purc_variant_t v2); 
+
+/**
+ * purc_variant_operator_truediv:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the true division operation (@v1 / @v2) and return the true division
+ * of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_truediv(purc_variant_t v1, purc_variant_t v2); 
+
+/**
+ * purc_variant_operator_floordiv:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the floor division operation and return the floor division
+ * of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_floordiv(purc_variant_t v1, purc_variant_t v2);
+
+ /**
+ * purc_variant_operator_mod:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the modulo operation (@v1 % @v2) and return the remainder of
+ * @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_mod(purc_variant_t v1, purc_variant_t v2); 
+
+ /**
+ * purc_variant_operator_pow:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the power operation (@v1 ** @v2) and return the result
+ * of @v1 raised to power @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_pow(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_invert:
+ *
+ * @v: The variant.
+ *
+ * Perform the bitwise inverse of the number represented by @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_invert(purc_variant_t v);
+
+/**
+ * purc_variant_operator_and:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the bitwise and operation (@v1 & @v2) and
+ * return the bitwise and of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_and(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_or:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the bitwise or operation (@v1 | @v2) and
+ * return the bitwise or of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_or(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_xor:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the bitwise xor operation (@v1 ^ @v2) and
+ * return the bitwise xor of @v1 and @v2.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_xor(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_lshift:
+ *
+ * @v: The variant.
+ * @c: The shift count.
+ *
+ * Return @v shifted left by @c.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_lshift(purc_variant_t v, purc_variant_t c);
+
+ /**
+ * purc_variant_operator_rshift:
+ *
+ * @v: The variant.
+ * @c: The shift count.
+ *
+ * Return @v shifted right by @c.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_rshift(purc_variant_t v, purc_variant_t c);
+
+/**
+ * purc_variant_operator_index:
+ *
+ * @v: The variant.
+ *
+ * Perform the convesion to an integer and always return a longint.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_index(purc_variant_t v);
+
+/**
+ * purc_variant_operator_concat:
+ *
+ * @a: The first variant.
+ * @b: The second variant.
+ *
+ * Perform the concatenation operation (@a + @b) for sequences and
+ * return the concatenation of @a and @b.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_concat(purc_variant_t a, purc_variant_t b);
+
+/**
+ * purc_variant_operator_contains:
+ *
+ * @a: The first variant.
+ * @b: The second variant.
+ *
+ * Perform the contains operation (@b in @a) for and
+ * return a boolean result.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_contains(purc_variant_t a, purc_variant_t b);
+
+/**
+ * purc_variant_operator_getitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ *
+ * Perform the get item operation (@a[@b]) and
+ * return the value of @a[@b].
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b);
+
+/**
+ * purc_variant_operator_setitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ * @c: The value to set.
+ *
+ * Perform the set item operation (@a[@b] = @c) and
+ * return the value of @a[@b].
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_setitem(purc_variant_t a, purc_variant_t b,
+        purc_variant_t c);
+
+/**
+ * purc_variant_operator_delitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ *
+ * Perform the del item operation (del @a[@b]) and
+ * return a boolean result indicating whether the item was found and deleted.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b);
+
+/**
+ * purc_variant_operator_iadd:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place addition operation (@v1 += @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_iadd(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_isub:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place subtraction operation (@v1 -= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_isub(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_imul:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place multiplication operation (@v1 *= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_imul(purc_variant_t v1, purc_variant_t v2); 
+
+/**
+ * purc_variant_operator_itruediv:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place true division operation (@v1 /= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_itruediv(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_ifloordiv:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place floor division operation (@v1 //= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ifloordiv(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_imod:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place modulo operation (@v1 %= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_imod(purc_variant_t v1, purc_variant_t v2); 
+
+/**
+ * purc_variant_operator_ipow:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place power operation (@v1 **= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_iand:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place bitwise and operation (@v1 &= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_iand(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_ior:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place bitwise or operation (@v1 |= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ior(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_ixor:
+ *
+ * @v1: The first variant.
+ * @v2: The second variant.
+ *
+ * Perform the in-place bitwise xor operation (@v1 ^= @v2) and return @v1.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ixor(purc_variant_t v1, purc_variant_t v2);
+
+/**
+ * purc_variant_operator_ilshift:
+ *
+ * @v: The variant.
+ * @c: The shift count.
+ *
+ * Perform the in-place left shift operation (@v <<= @c) and return @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ilshift(purc_variant_t v, purc_variant_t c);
+
+/**
+ * purc_variant_operator_irshift:
+ *
+ * @v: The variant.
+ * @c: The shift count.
+ *
+ * Perform the in-place right shift operation (@v >>= @c) and return @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c);
+
+/**
+ * purc_variant_operator_iconcat:
+ *
+ * @a: The first variant.
+ * @b: The second variant.
+ *
+ * Perform the in-place concatenation operation (@a += @b) for sequences and
+ * return @a.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b);
 
 PCA_EXTERN_C_END
 
