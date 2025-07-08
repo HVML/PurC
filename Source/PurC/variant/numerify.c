@@ -233,6 +233,9 @@ pcvar_numerify(purc_variant_t val)
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             return (double)val->ld;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_float64(val);
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             return pcvar_atom_numerify(val);
 

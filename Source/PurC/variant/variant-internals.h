@@ -352,9 +352,9 @@ pcvar_numerify(purc_variant_t val);
 int
 pcvar_diff_numerify(purc_variant_t l, purc_variant_t r);
 
+typedef int (*stringify_f)(const void *s, size_t len, void *ctxt);
 
-typedef int (*stringify_f)(const unsigned char *s, size_t len, void *ctxt);
-
+#if 0 /* VW: deprecated since 0.9.26 */
 int
 pcvar_str_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
 
@@ -384,6 +384,7 @@ pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
 
 int
 pcvar_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+#endif
 
 size_t
 pcvariant_array_children_memsize(purc_variant_t arr) WTF_INTERNAL;
@@ -407,9 +408,22 @@ purc_variant *bigint_shr(const purc_variant *a,
         unsigned int shift1) WTF_INTERNAL;
 purc_variant *bigint_pow(const purc_variant *a,
         const purc_variant *b) WTF_INTERNAL;
+
+bool bigint_to_i32(const purc_variant *a, int32_t *ret, bool force)
+    WTF_INTERNAL;
+bool bigint_to_u32(const purc_variant *a, uint32_t *ret, bool force)
+    WTF_INTERNAL;
+bool bigint_to_i64(const purc_variant *a, int64_t *ret, bool force)
+    WTF_INTERNAL;
+bool bigint_to_u64(const purc_variant *a, uint64_t *ret, bool force)
+    WTF_INTERNAL;
 double bigint_to_float64(const purc_variant *a) WTF_INTERNAL;
-int bigint_float64_cmp(const purc_variant *a, double b) WTF_INTERNAL;
+
+int bigint_i64_cmp(const purc_variant *a, int64_t i64) WTF_INTERNAL;
+int bigint_u64_cmp(const purc_variant *a, uint64_t u64) WTF_INTERNAL;
+int bigint_float64_cmp(const purc_variant *a, double f64) WTF_INTERNAL;
 int bigint_cmp(const purc_variant *a, const purc_variant *b) WTF_INTERNAL;
+
 ssize_t bigint_stringify(purc_variant_t val, int radix,
         void *ctxt, stringify_f cb) WTF_INTERNAL;
 

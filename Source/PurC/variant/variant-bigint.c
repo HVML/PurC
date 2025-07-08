@@ -72,13 +72,16 @@
 
 #endif
 
-/* this bigint structure can hold a 64 bit integer */
+#define NR_TABS_IN_BUFF \
+    (sizeof(purc_variant)-SZ_VARIANT_HEADER)/sizeof(bi_limb_t)
+
+/* this bigint structure can hold a 64 bit unsigned integer */
 typedef struct {
     /* for header of purc_variant */
     bi_limb_t vrt_hdr[SZ_VARIANT_HEADER / sizeof(bi_limb_t)];
 
     /* must come just after */
-    bi_limb_t tab[(64 + BIGINT_LIMB_BITS - 1) / BIGINT_LIMB_BITS];
+    bi_limb_t tab[NR_TABS_IN_BUFF];
 } bigint_buf;
 
 #define BIGINT_MAX_SIZE ((1024 * 1024) / BIGINT_LIMB_BITS) /* in limbs */
@@ -94,7 +97,7 @@ static purc_variant *bigint_set_si(bigint_buf *buf, bi_slimb_t a)
     return r;
 }
 
-static purc_variant *bigint_set_si64(bigint_buf *buf, int64_t a)
+static purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a)
 {
 #if BIGINT_LIMB_BITS == 64
     return bigint_set_si(buf, a);
@@ -113,6 +116,33 @@ static purc_variant *bigint_set_si64(bigint_buf *buf, int64_t a)
     }
     return r;
 #endif
+}
+
+static purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
+{
+    if (a <= INT64_MAX) {
+        return bigint_set_i64(buf, a);
+    } else {
+        assert((65 + BIGINT_LIMB_BITS - 1) / BIGINT_LIMB_BITS >
+                NR_TABS_IN_BUFF);
+
+        purc_variant *r = (purc_variant *)buf->vrt_hdr;
+        r->type = PURC_VARIANT_TYPE_BIGINT;
+        r->flags = 0;   /* do not use extra size */
+        r->refc = 0;    /* fail safe */
+
+#if BIGINT_LIMB_BITS == 64
+        r->size = 2;
+        r->TAB[0] = a;
+        r->TAB[1] = 0;
+#else
+        r->TAB[0] = a;
+        r->TAB[1] = a >> 32;
+        r->TAB[2] = 0;
+        r->size = 3;
+#endif
+        return r;
+    }
 }
 
 static void bigint_set_len(purc_variant *val, size_t len)
@@ -1044,6 +1074,180 @@ int bigint_cmp(const purc_variant *a, const purc_variant *b)
     return res;
 }
 
+/* return false if overflowed or underflowed */
+bool bigint_to_i32(const purc_variant *a, int32_t *ret, bool force)
+{
+    const bi_limb_t *a_tab;
+    size_t a_len;
+    a_tab = bigint_get_tab_const(a, &a_len);
+
+#if BIGINT_LIMB_BITS == 32
+    if (a_len == 1) {
+        /* fast case, including zero */
+        *ret = (int32_t)a_tab[0];
+        return true;
+    }
+#else
+    if (a_len == 1) {
+        int64_t i64 = (int64_t)a_tab[0];
+        if (i64 <= INT32_MAX && i64 >= INT32_MIN) {
+            *ret = (int32_t)i64;
+            return true;
+        }
+    }
+#endif
+
+    if (force) {
+        if (bigint_sign(a)) {
+            *ret = INT32_MIN;
+            return true;
+        }
+        else {
+            *ret = INT32_MAX;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/* return false if overflowed or underflowed */
+bool bigint_to_u32(const purc_variant *a, uint32_t *ret, bool force)
+{
+    if (bigint_sign(a)) {
+        if (force) {
+            *ret = 0;
+            return true;
+        }
+        return false;
+    }
+
+    const bi_limb_t *a_tab;
+    size_t a_len;
+    a_tab = bigint_get_tab_const(a, &a_len);
+
+#if BIGINT_LIMB_BITS == 32
+    if (a_len == 1) {
+        /* fast case, including zero */
+        *ret = (uint32_t)a_tab[0];
+        return true;
+    }
+
+    if (a_len == 2 && a_tab[1] == 0) {
+        *ret = (uint32_t)a_tab[0];
+        return true;
+    }
+#else
+    if (a_len == 1) {
+        uint64_t u64 = (uint64_t)a_tab[0];
+        if (u64 <= UINT32_MAX) {
+            *ret = (uint32_t)u64;
+            return true;
+        }
+    }
+#endif
+
+    if (force) {
+        *ret = UINT32_MAX;
+        return true;
+    }
+
+    return false;
+}
+
+/* return false if overflowed or underflowed */
+bool bigint_to_i64(const purc_variant *a, int64_t *ret, bool force)
+{
+    const bi_limb_t *a_tab;
+    size_t a_len;
+    a_tab = bigint_get_tab_const(a, &a_len);
+
+    if (a_len == 1) {
+        /* fast case, including zero */
+        *ret = (int64_t)(bi_slimb_t)a_tab[0];
+        return true;
+    }
+
+#if BIGINT_LIMB_BITS == 32
+    if (a_len == 2) {
+        *ret = r->TAB[1];
+        *ret <<= BIGINT_LIMB_BITS;
+        *ret |= r->TAB[0];
+        return true;
+    }
+#endif
+
+    if (force) {
+        if (bigint_sign(a)) {
+            *ret = INT64_MIN;
+        }
+        else {
+            *ret = INT64_MAX;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/* return false if overflowed or underflowed */
+bool bigint_to_u64(const purc_variant *a, uint64_t *ret, bool force)
+{
+    if (bigint_sign(a)) {
+        if (force) {
+            *ret = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    const bi_limb_t *a_tab;
+    size_t a_len;
+    a_tab = bigint_get_tab_const(a, &a_len);
+
+    if (a_len == 1) {
+        /* fast case, including zero */
+        *ret = (bi_limb_t)a_tab[0];
+        return true;
+    }
+
+#if BIGINT_LIMB_BITS == 64
+    if (a_len == 2 && a_tab[1] == 0) {
+        *ret = (bi_limb_t)a_tab[0];
+        return true;
+    }
+#else
+    if (a_len == 2 || (a_len == 3 && a_tab[2] == 0)) {
+        *ret = r->TAB[1];
+        *ret <<= BIGINT_LIMB_BITS;
+        *ret |= r->TAB[0];
+        return true;
+    }
+#endif
+
+    if (force) {
+        *ret = UINT64_MAX;
+        return true;
+    }
+
+    return false;
+}
+
+int bigint_i64_cmp(const purc_variant *a, int64_t i64)
+{
+    bigint_buf buf;
+    purc_variant *b = bigint_set_i64(&buf, i64);
+    return bigint_cmp(a, b);
+}
+
+int bigint_u64_cmp(const purc_variant *a, uint64_t u64)
+{
+    bigint_buf buf;
+    purc_variant *b = bigint_set_u64(&buf, u64);
+    return bigint_cmp(a, b);
+}
+
 /* contains 10^i */
 static const bi_limb_t bi_pow_dec[BIGINT_LIMB_DIGITS + 1] = {
     1U,
@@ -1331,7 +1535,7 @@ ssize_t bigint_stringify(const purc_variant_t val, int radix,
         char buf[66];
         size_t len;
         len = i64toa_radix(buf, val_tab[0], radix);
-        if (cb((const unsigned char *)buf, len, ctxt) == 0)
+        if (cb(buf, len, ctxt) == 0)
             return len;
         return -1;
     } else {
@@ -1342,7 +1546,7 @@ ssize_t bigint_stringify(const purc_variant_t val, int radix,
 
         if (val_len == 1 && val_tab[0] == 0) {
             /* '0' case */
-            if (cb((const unsigned char *)"0", 1, ctxt) == 0)
+            if (cb("0", 1, ctxt) == 0)
                 return 1;
             return -1;
         }
@@ -1433,7 +1637,7 @@ ssize_t bigint_stringify(const purc_variant_t val, int radix,
             *--q = '-';
         bigint_free(tmp);
         ssize_t sz = buf_end - q;
-        if (cb((const unsigned char *)q, sz, ctxt))
+        if (cb(q, sz, ctxt))
             sz = -1;
         free(buf);
         return sz;
@@ -1532,7 +1736,7 @@ purc_variant_t purc_variant_make_bigint_from_f64(double f64)
     if (sgn)
         mant = -mant;
     /* the integer is mant*2^e */
-    r = bigint_set_si64(&buf, (int64_t)mant);
+    r = bigint_set_i64(&buf, (int64_t)mant);
     return bigint_shl(r, e);
 }
 

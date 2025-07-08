@@ -679,6 +679,9 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             return equal_long_doubles(v1->ld, v2->ld);
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_cmp(v1, v2) == 0;
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             str1 = purc_atom_to_string(v1->atom);
             str2 = purc_atom_to_string(v2->atom);
@@ -893,6 +896,9 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
             }
             return true;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_i32(v, i32, force);
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             if (!force)
                 break;
@@ -1065,6 +1071,9 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
             }
             return true;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_u32(v, u32, force);
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             if (!force)
                 break;
@@ -1232,6 +1241,9 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
                 *i64 = (int64_t)v->ld;
             }
             return true;
+
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_i64(v, i64, force);
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
             if (!force)
@@ -1402,6 +1414,9 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             }
             return true;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_u64(v, u64, force);
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             if (!force)
                 break;
@@ -1532,6 +1547,10 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
             *d = (double)v->ld;
             return true;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            *d = bigint_to_float64(v);
+            return true;
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             if (!force)
                 break;
@@ -1653,6 +1672,10 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             *d = (long double)v->ld;
+            return true;
+
+        case PURC_VARIANT_TYPE_BIGINT:
+            *d = (long double)bigint_to_float64(v); /* XXX */
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
@@ -1779,6 +1802,25 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
     return false;
 }
 
+static int compare_bigint_method (purc_variant_t v1, purc_variant_t v2)
+{
+    if (v1->type == v2->type) {
+        assert(v1->type == PURC_VARIANT_TYPE_BIGINT);
+        return bigint_cmp(v1, v2);
+    }
+
+    purc_variant_t bigint = (v1->type == PURC_VARIANT_TYPE_BIGINT) ? v1 : v2;
+    purc_variant_t other = (bigint == v1) ? v2 : v1;
+
+    double f64 = purc_variant_numerify(other);
+    int ret = bigint_float64_cmp(bigint, f64);
+
+    if (bigint != v1)
+        ret = -ret;
+
+    return ret;
+}
+
 static int compare_number_method (purc_variant_t v1, purc_variant_t v2)
 {
     int ret = 0;
@@ -1897,7 +1939,11 @@ int purc_variant_compare_ex (purc_variant_t v1,
     else if (opt == PCVRNT_COMPARE_METHOD_NUMBER)
         compare = compare_number_method (v1, v2);
     else if (opt == PCVRNT_COMPARE_METHOD_AUTO) {
-        if (v1 && ((v1->type == PURC_VARIANT_TYPE_NUMBER) ||
+        if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
+                v2->type == PURC_VARIANT_TYPE_BIGINT) {
+            compare = compare_bigint_method (v1, v2);
+        }
+        else if (((v1->type == PURC_VARIANT_TYPE_NUMBER) ||
                 (v1->type == PURC_VARIANT_TYPE_LONGINT) ||
                 (v1->type == PURC_VARIANT_TYPE_ULONGINT) ||
                 (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE)))
@@ -2330,6 +2376,8 @@ purc_variant_numerify(purc_variant_t value)
             return value->u64;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             return value->ld;
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_to_float64(value);
         case PURC_VARIANT_TYPE_ATOMSTRING:
             s = purc_variant_get_atom_string_const(value);
             return numerify_str(s);
@@ -2455,6 +2503,9 @@ purc_variant_booleanize(purc_variant_t value)
     case PURC_VARIANT_TYPE_LONGDOUBLE:
         return value->ld != 0;
 
+    case PURC_VARIANT_TYPE_BIGINT:
+        return bigint_i64_cmp(value, 0) != 0;
+
     case PURC_VARIANT_TYPE_EXCEPTION:
     case PURC_VARIANT_TYPE_ATOMSTRING:
     case PURC_VARIANT_TYPE_STRING:
@@ -2500,6 +2551,13 @@ struct stringify_arg
     void *arg;
     unsigned int flags;
 };
+
+static int stringify_cb_bigint(const void *s, size_t len, void *ctxt)
+{
+    struct stringify_arg *arg = ctxt;
+    arg->cb(arg->arg, s, len);
+    return 0;
+}
 
 static void
 stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
@@ -2668,6 +2726,10 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
             snprintf(buf, sizeof(buf), "%Lg", value->ld);
             arg->cb(arg, buf, 0);
         }
+        break;
+
+    case PURC_VARIANT_TYPE_BIGINT:
+        bigint_stringify(value, 16, arg, stringify_cb_bigint);
         break;
 
     case PURC_VARIANT_TYPE_EXCEPTION:
@@ -3494,6 +3556,9 @@ homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             return ld_diff(l->ld, r->ld);
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_cmp(l, r);
+
         case PURC_VARIANT_TYPE_ATOMSTRING:
             return atom_diff(l, r, data);
 
@@ -3563,6 +3628,10 @@ stringify(char *buf, size_t len, purc_variant_t v)
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             nr = snprintf(buf, len, "%Lg", v->ld);
+            break;
+
+        case PURC_VARIANT_TYPE_BIGINT:
+            nr = snprintf(buf, len, "%g", bigint_to_float64(v));
             break;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
@@ -3757,6 +3826,9 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
                 return 0;
 
             return (l->ld < r->ld) ? -1 : 1;
+
+        case PURC_VARIANT_TYPE_BIGINT:
+            return bigint_cmp(l, r);
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
             return l->atom - r->atom;
@@ -4027,6 +4099,7 @@ bool pcvariant_is_scalar(purc_variant_t v)
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_BIGINT:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
@@ -4061,6 +4134,7 @@ bool pcvariant_is_of_number(purc_variant_t v)
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_BIGINT:
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
@@ -4082,6 +4156,7 @@ bool pcvariant_is_of_number(purc_variant_t v)
     return false;
 }
 
+/* XXX */
 bool pcvariant_is_of_string(purc_variant_t v)
 {
     switch (v->type) {
@@ -4096,6 +4171,7 @@ bool pcvariant_is_of_string(purc_variant_t v)
 
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_BIGINT:
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
@@ -4155,9 +4231,17 @@ purc_variant_get_memory_size(purc_variant_t v)
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             break;
 
+        case PURC_VARIANT_TYPE_BIGINT:
+            if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                memsize += v->extra_size;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            memsize += v->extra_size;
+            if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                memsize += v->extra_size;
+            }
             break;
 
         case PURC_VARIANT_TYPE_DYNAMIC:

@@ -662,7 +662,7 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
     return nr_written;
 }
 
-static int stringify_cb_bigint(const unsigned char *s, size_t len, void *ctxt)
+static int stringify_cb_bigint(const void *s, size_t len, void *ctxt)
 {
     purc_rwstream_t rws = ctxt;
 
