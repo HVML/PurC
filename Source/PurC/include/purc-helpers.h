@@ -271,12 +271,12 @@ purc_is_valid_loose_token(const char *token, int max_len);
  * one or more `-` ':' ASCII characters.
  *
  *
- * Returns: true for a valid loose token, otherwise false.
+ * Returns: true for a valid html token, otherwise false.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT bool 
-purc_is_valid_attribute_name(const char* attrname);
+purc_is_valid_html_attribute(const char* attrname);
 
 /**
  * Generate a global unique unsigned long long integer.

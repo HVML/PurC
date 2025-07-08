@@ -60,7 +60,7 @@ bool purc_is_valid_token(const char* token, int max_len)
     return true;
 }
 
-bool purc_is_valid_attribute_name(const char* attrname)
+bool purc_is_valid_html_attribute(const char* attrname)
 {
     int i;
     int len = strlen(attrname);
