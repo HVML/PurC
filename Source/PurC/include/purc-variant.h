@@ -3903,8 +3903,8 @@ purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
  * Returns: A variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
  */
- PCA_EXPORT purc_variant_t
- purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT purc_variant_t
+purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * purc_variant_operator_le:
@@ -3918,8 +3918,8 @@ purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
  * Returns: A variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
  */
- PCA_EXPORT purc_variant_t
- purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT purc_variant_t
+purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2);
 
  /**
  * purc_variant_operator_eq:
@@ -3933,10 +3933,10 @@ purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
  * Returns: A variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
  */
- PCA_EXPORT purc_variant_t
- purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT purc_variant_t
+purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2);
 
- /**
+/**
  * purc_variant_operator_ne:
  *
  * @v1: The first variant.
@@ -3948,8 +3948,8 @@ purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
  * Returns: A variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
  */
- PCA_EXPORT purc_variant_t
- purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2);
+PCA_EXPORT purc_variant_t
+purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * purc_variant_operator_gt:
@@ -4065,15 +4065,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_operator_neg(purc_variant_t v); 
 
 /**
-  * purc_variant_operator_pos:
-  *
-  * @v: The variant.
-  *
-  * Perform the positive operation (+@v) and return the positive of @v.
-  *
-  * Returns: A variant evaluated on success,
-  *      or %PURC_VARIANT_INVALID on failure.
-  */
+ * purc_variant_operator_pos:
+ *
+ * @v: The variant.
+ *
+ * Perform the positive operation (+@v) and return the positive of @v.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
 PCA_EXPORT purc_variant_t
 purc_variant_operator_pos(purc_variant_t v); 
 
@@ -4126,7 +4126,7 @@ purc_variant_operator_sub(purc_variant_t v1, purc_variant_t v2);
  * Since: 0.9.26
  */
 PCA_EXPORT purc_variant_t
-purc_variant_operator_mul(purc_variant_t v1, purc_variant_t v2); 
+purc_variant_operator_mul(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * purc_variant_operator_truediv:
@@ -4143,7 +4143,7 @@ purc_variant_operator_mul(purc_variant_t v1, purc_variant_t v2);
  * Since: 0.9.26
  */
 PCA_EXPORT purc_variant_t
-purc_variant_operator_truediv(purc_variant_t v1, purc_variant_t v2); 
+purc_variant_operator_truediv(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * purc_variant_operator_floordiv:
@@ -4160,7 +4160,7 @@ purc_variant_operator_truediv(purc_variant_t v1, purc_variant_t v2);
 PCA_EXPORT purc_variant_t
 purc_variant_operator_floordiv(purc_variant_t v1, purc_variant_t v2);
 
- /**
+/**
  * purc_variant_operator_mod:
  *
  * @v1: The first variant.
@@ -4175,9 +4175,9 @@ purc_variant_operator_floordiv(purc_variant_t v1, purc_variant_t v2);
  * Since: 0.9.26
  */
 PCA_EXPORT purc_variant_t
-purc_variant_operator_mod(purc_variant_t v1, purc_variant_t v2); 
+purc_variant_operator_mod(purc_variant_t v1, purc_variant_t v2);
 
- /**
+/**
  * purc_variant_operator_pow:
  *
  * @v1: The first variant.

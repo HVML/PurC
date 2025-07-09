@@ -64,7 +64,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "document"
 )
 
-# This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
+# This macro will append all C/CPP source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
 # to ${PurC_SOURCES}
 APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIRS}")
 

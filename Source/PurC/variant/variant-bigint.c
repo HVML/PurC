@@ -262,6 +262,20 @@ static void bigint_free(purc_variant_t v)
     pcvariant_put(v);
 }
 
+purc_variant_t bigint_clone(const struct purc_variant *a)
+{
+    size_t a_len;
+    const bi_limb_t *a_tab = bigint_get_tab_const(a, &a_len);
+
+    purc_variant_t b = bigint_new(a_len);
+    if (b) {
+        bi_limb_t *b_tab = bigint_get_tab(b, NULL);
+        memcpy(b_tab, a_tab, sizeof(bi_limb_t) * a_len);
+    }
+
+    return b;
+};
+
 static purc_variant *bigint_new_si(bi_slimb_t a)
 {
     purc_variant *r;
@@ -467,12 +481,21 @@ static purc_variant *bigint_add(const purc_variant *a,
 }
 
 /* XXX: optimize */
-static purc_variant *bigint_neg(const purc_variant *a)
+purc_variant *bigint_neg(const purc_variant *a)
 {
     bigint_buf buf;
     purc_variant *b;
     b = bigint_set_si(&buf, 0);
     return bigint_add(b, a, 1);
+}
+
+purc_variant *bigint_abs(const purc_variant *a)
+{
+    if (bigint_sign(a)) {
+        return bigint_neg(a);
+    }
+
+    return bigint_clone(a);
 }
 
 static purc_variant *bigint_mul(const purc_variant *a,
