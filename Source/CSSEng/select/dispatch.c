@@ -696,6 +696,10 @@ struct prop_table prop_dispatch[CSS_N_PROPERTIES] = {
         1,
     },
     {
+        PROPERTY_FUNCS(transform),
+        0,
+    },
+    {
         PROPERTY_FUNCS(line_break),
         1,
     },

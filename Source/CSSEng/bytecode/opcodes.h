@@ -1160,6 +1160,11 @@ enum op_text_rendering {
     TEXT_RENDERING_DEFAULT              = 0x0004
 };
 
+enum op_transform {
+	TRANSFORM_URI		= 0x0080,
+	TRANSFORM_NONE		= 0x0000
+};
+
 enum op_foil_candidate_marks {
     FOIL_CANDIDATE_MARKS_AUTO = 0x0000,
     FOIL_CANDIDATE_MARKS_SET  = 0x0080,

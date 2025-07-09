@@ -1,4 +1,6 @@
-``` mermaid
+# Release Notes
+
+```mermaid
 gantt
     title PurC Release Plan
     dateFormat  YYYY-MM-DD
@@ -22,8 +24,9 @@ gantt
     ver-0.9.19          :a16, 2023-09-01, 2023-12-30
     ver-0.9.22          :a17, 2023-12-31, 2025-04-30
     ver-0.9.24          :a18, 2025-04-30, 2025-06-30
-    ver-0.9.30          :a19, 2025-06-30, 2025-09-30
-    ver-1.0.0           :v1, 2025-09-30, 2025-12-31
+    ver-0.9.26          :a19, 2025-06-30, 2025-08-31
+    ver-0.9.30          :a20, 2025-08-31, 2025-10-31
+    ver-1.0.0           :v1, 2025-10-31, 2025-12-31
 ```
 
 # Release Notes
@@ -49,6 +52,7 @@ We also made a number of major enhancements and fixed some bugs.
 * CLEANUP:
 * SAMPLES:
 
+>>>>>>> origin/variant
 ## Version 0.9.24
 
 On Jun. 30, 2025, HVML Community announces the availability of PurC 0.9.24,

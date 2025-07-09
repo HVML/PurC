@@ -35,7 +35,8 @@ css_error css__initial_background_color(css_select_state *state)
          is defined by the user-agent */
 	css_hint hint;
 	css_error error;
-
+    
+    memset(&hint,0,sizeof(css_hint));
 	error = state->handler->ua_default_for_property(state->pw,
 			CSS_PROP_BACKGROUND_COLOR, &hint);
 	if (error != CSS_OK)

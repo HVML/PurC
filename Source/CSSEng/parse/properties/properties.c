@@ -5,8 +5,13 @@
  * Copyright 2008 John-Mark Bell <jmb@netsurf-browser.org>
  * Copyright (C) 2021 Beijing FMSoft Technologies Co., Ltd.
  */
+#include <assert.h>
+#include <string.h>
 
+#include "bytecode/bytecode.h"
+#include "bytecode/opcodes.h"
 #include "parse/properties/properties.h"
+#include "parse/properties/utils.h"
 
 /**
  * Dispatch table of property handlers, indexed by property enum
@@ -203,6 +208,7 @@ const css_prop_handler property_handlers[LAST_PROP + 1 - FIRST_PROP] =
     css__parse_stroke_miterlimit,
     css__parse_text_anchor,
     css__parse_text_rendering,
+    css__parse_transform,
     css__parse_appearance,
     css__parse__foil_color_info,
     css__parse__foil_color_warning,

@@ -635,7 +635,13 @@ css_error css__parse_text_anchor(css_language *c,
 css_error css__parse_text_rendering(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result);
-
+css_error css__parse_transform(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse_transform_impl(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result, int np);
+        
 css_error css__parse_appearance(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result);

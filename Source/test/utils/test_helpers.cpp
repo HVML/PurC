@@ -186,6 +186,38 @@ TEST(test_transition_styles, transition_style)
     }
 }
 
+TEST(test_is_valid_html_attribute, is_valid_html_attribute)
+{
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+      // Test case structure
+    struct test_case {
+        const char* attrname;          // attribute name;
+        bool is_html;             // is it a valid html attribute;
+    };
+    
+    static struct test_case attr_cases[] = {
+        {"href", true},
+        {"xlink:href", true},
+        {"src", true},
+        {"wdith", true},
+        {"_wdith", true},
+        {"test-case", true},
+        {"test_case", true},
+        {"test:case", true},
+        {"5case", false},
+        {":case", false},
+        {"test+case", false},
+        {"test,case", false},
+        {"test?case", false},
+    };
+    
+    // Test URL encoding
+    for (size_t i = 0; i < sizeof(attr_cases)/sizeof(attr_cases[0]); i++) {
+        bool is_html = purc_is_valid_html_attribute(attr_cases[i].attrname);
+        ASSERT_EQ(is_html, attr_cases[i].is_html);
+    }
+}
+
 // This test is written with aid from ChatGPT.
 TEST(test_url_encode_decode, url_encode_decode)
 {
