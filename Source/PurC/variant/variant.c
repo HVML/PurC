@@ -59,9 +59,9 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     NULL,                           // PURC_VARIANT_TYPE_ULONGINT
     NULL,                           // PURC_VARIANT_TYPE_EXCEPTION
     NULL,                           // PURC_VARIANT_TYPE_ATOM_STRING
-
-    NULL,                           // PURC_VARIANT_TYPE_LONGDOUBLE
+    pcvariant_longdouble_release,   // PURC_VARIANT_TYPE_LONGDOUBLE
     pcvariant_bigint_release,       // PURC_VARIANT_TYPE_BIGINT
+
     pcvariant_string_release,       // PURC_VARIANT_TYPE_STRING
     pcvariant_sequence_release,     // PURC_VARIANT_TYPE_SEQUENCE
     NULL,                           // PURC_VARIANT_TYPE_DYNAMIC
@@ -91,38 +91,38 @@ static struct err_msg_seg _variant_err_msgs_seg = {
 };
 
 #if HAVE(GLIB)
-purc_variant *pcvariant_alloc(bool ordinary) {
-    if (ordinary)
-        return (purc_variant *)(void *)g_slice_alloc(sizeof(purc_variant_ord));
+purc_variant *pcvariant_alloc(bool scalar) {
+    if (scalar)
+        return (purc_variant *)(void *)g_slice_alloc(sizeof(purc_variant_scalar));
     return (purc_variant *)g_slice_alloc(sizeof(purc_variant));
 }
 
-purc_variant *pcvariant_alloc_0(bool ordinary) {
-    if (ordinary) {
-        return (purc_variant *)(void *)g_slice_alloc0(sizeof(purc_variant_ord));
+purc_variant *pcvariant_alloc_0(bool scalar) {
+    if (scalar) {
+        return (purc_variant *)(void *)g_slice_alloc0(sizeof(purc_variant_scalar));
     }
     return (purc_variant *)g_slice_alloc0(sizeof(purc_variant));
 }
 
 void pcvariant_free(purc_variant *v) {
-    if (is_variant_ordinary(v)) {
-        g_slice_free1(sizeof(purc_variant_ord), (gpointer)v);
+    if (is_variant_scalar(v)) {
+        g_slice_free1(sizeof(purc_variant_scalar), (gpointer)v);
     }
     else {
         g_slice_free1(sizeof(purc_variant), (gpointer)v);
     }
 }
 #else
-purc_variant *pcvariant_alloc(bool ordinary) {
-    if (ordinary)
-        return (purc_variant *)(void *)malloc(sizeof(purc_variant_ord));
+purc_variant *pcvariant_alloc(bool scalar) {
+    if (scalar)
+        return (purc_variant *)(void *)malloc(sizeof(purc_variant_scalar));
 
     return (purc_variant *)malloc(sizeof(purc_variant));
 }
 
 purc_variant *pcvariant_alloc_0(void) {
-    if (ordinary)
-        return (purc_variant *)(void *)calloc(1, sizeof(purc_variant_ord));
+    if (scalar)
+        return (purc_variant *)(void *)calloc(1, sizeof(purc_variant_scalar));
 
     return (purc_variant *)calloc(1, sizeof(purc_variant));
 }
@@ -162,10 +162,10 @@ static void _cleanup_instance(struct pcinst *inst)
     if (heap == NULL)
         return;
 
-    for (size_t i = 0; i < heap->stat.nr_max_reserved_ord; i++) {
-        if (heap->v_reserved_ord[i]) {
-            pcvariant_free(heap->v_reserved_ord[i]);
-            heap->v_reserved_ord[i] = NULL;
+    for (size_t i = 0; i < heap->stat.nr_max_reserved_scalar; i++) {
+        if (heap->v_reserved_sca[i]) {
+            pcvariant_free(heap->v_reserved_sca[i]);
+            heap->v_reserved_sca[i] = NULL;
         }
     }
     heap->headpos = 0;
@@ -225,18 +225,18 @@ static int _init_instance(struct pcinst *curr_inst,
     /* XXX: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap->stat);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant_ord);
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant_scalar);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant_ord);
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant_scalar);
     stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant_ord) * 2;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant_scalar) * 2;
     stat->nr_total_values = 4;
-    stat->sz_total_mem = 4 * sizeof(purc_variant_ord);
+    stat->sz_total_mem = 4 * sizeof(purc_variant_scalar);
 
-    stat->nr_reserved_ord = 0;
-    stat->nr_reserved_out = 0;
-    stat->nr_max_reserved_ord = MAX_RESERVED_VARIANTS;
-    stat->nr_max_reserved_out = MAX_RESERVED_VARIANTS;
+    stat->nr_reserved_scalar = 0;
+    stat->nr_reserved_vector = 0;
+    stat->nr_max_reserved_scalar = MAX_RESERVED_VARIANTS;
+    stat->nr_max_reserved_vector = MAX_RESERVED_VARIANTS;
 
     INIT_LIST_HEAD(&inst->variant_heap->v_reserved);
 
@@ -283,9 +283,9 @@ _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PURC_VARIANT_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
 
 size_t
-purc_variant_wrapper_size_ex(bool ordinary)
+purc_variant_wrapper_size_ex(bool scalar)
 {
-    return ordinary ? sizeof(purc_variant_ord) : sizeof(purc_variant);
+    return scalar ? sizeof(purc_variant_scalar) : sizeof(purc_variant);
 }
 
 const char* purc_variant_typename(enum purc_variant_type type)
@@ -434,6 +434,37 @@ void pcvariant_stat_set_extra_size(purc_variant_t value, size_t extra_size)
     }
 }
 
+void pcvariant_stat_inc_extra_size(purc_variant_t value, size_t extra_size)
+{
+    struct pcinst *instance = pcinst_current();
+
+    PC_ASSERT(value);
+    PC_ASSERT(instance);
+
+    struct purc_variant_stat *stat = &(instance->variant_heap->stat);
+    int type = value->type;
+
+    stat->sz_mem[type] += extra_size;
+    stat->sz_total_mem += extra_size;
+}
+
+void pcvariant_stat_dec_extra_size(purc_variant_t value, size_t extra_size)
+{
+    struct pcinst *instance = pcinst_current();
+
+    PC_ASSERT(value);
+    PC_ASSERT(instance);
+
+    struct purc_variant_stat *stat = &(instance->variant_heap->stat);
+    int type = value->type;
+
+    PC_ASSERT(stat->sz_mem[type] > extra_size);
+    PC_ASSERT(stat->sz_total_mem > extra_size);
+
+    stat->sz_mem[type] -= extra_size;
+    stat->sz_total_mem -= extra_size;
+}
+
 purc_variant_t pcvariant_get(enum purc_variant_type type)
 {
     purc_variant_t value = NULL;
@@ -441,24 +472,24 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     struct pcvariant_heap *heap = instance->variant_heap;
     struct purc_variant_stat *stat = &(heap->stat);
 
-    if (is_type_ordinary(type)) {
-        if (stat->nr_reserved_ord == 0) {
+    if (is_type_scalar(type)) {
+        if (stat->nr_reserved_scalar == 0) {
             // no reserved, allocate one
             value = pcvariant_alloc_0(true);
             if (value == NULL)
                 return PURC_VARIANT_INVALID;
 
-            stat->sz_mem[type] += sizeof(purc_variant_ord);
-            stat->sz_total_mem += sizeof(purc_variant_ord);
+            stat->sz_mem[type] += sizeof(purc_variant_scalar);
+            stat->sz_total_mem += sizeof(purc_variant_scalar);
         }
         else {
-            value = heap->v_reserved_ord[heap->tailpos];
+            value = heap->v_reserved_sca[heap->tailpos];
             // VWNOTE: set the slot as NULL
-            heap->v_reserved_ord[heap->tailpos] = NULL;
-            heap->tailpos = (heap->tailpos + 1) % stat->nr_max_reserved_ord;
+            heap->v_reserved_sca[heap->tailpos] = NULL;
+            heap->tailpos = (heap->tailpos + 1) % stat->nr_max_reserved_scalar;
 
-            /* VWNOTE: do not forget to set nr_reserved_ord. */
-            stat->nr_reserved_ord--;
+            /* VWNOTE: do not forget to set nr_reserved_scalar. */
+            stat->nr_reserved_scalar--;
         }
     }
     else {
@@ -477,8 +508,8 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 
             list_del(&value->reserved);
 
-            /* VWNOTE: do not forget to set nr_reserved_out. */
-            stat->nr_reserved_out--;
+            /* VWNOTE: do not forget to set nr_reserved_vector. */
+            stat->nr_reserved_vector--;
         }
 
         // init listeners
@@ -507,23 +538,23 @@ void pcvariant_put(purc_variant_t value)
     stat->nr_values[value->type]--;
     stat->nr_total_values--;
 
-    if (is_variant_ordinary(value)) {
-        if (stat->nr_reserved_ord == stat->nr_max_reserved_ord) {
-            stat->sz_mem[value->type] -= sizeof(purc_variant_ord);
-            stat->sz_total_mem -= sizeof(purc_variant_ord);
+    if (is_variant_scalar(value)) {
+        if (stat->nr_reserved_scalar == stat->nr_max_reserved_scalar) {
+            stat->sz_mem[value->type] -= sizeof(purc_variant_scalar);
+            stat->sz_total_mem -= sizeof(purc_variant_scalar);
 
             pcvariant_free(value);
         }
         else {
-            heap->v_reserved_ord[heap->headpos] = value;
-            heap->headpos = (heap->headpos + 1) % stat->nr_max_reserved_ord;
+            heap->v_reserved_sca[heap->headpos] = value;
+            heap->headpos = (heap->headpos + 1) % stat->nr_max_reserved_scalar;
 
-            /* VWNOTE: do not forget to set nr_reserved_ord. */
-            stat->nr_reserved_ord++;
+            /* VWNOTE: do not forget to set nr_reserved_scalar. */
+            stat->nr_reserved_scalar++;
         }
     }
     else {
-        if (stat->nr_reserved_out == stat->nr_max_reserved_out) {
+        if (stat->nr_reserved_vector == stat->nr_max_reserved_vector) {
             stat->sz_mem[value->type] -= sizeof(purc_variant);
             stat->sz_total_mem -= sizeof(purc_variant);
 
@@ -532,8 +563,8 @@ void pcvariant_put(purc_variant_t value)
         else {
             list_add_tail(&value->reserved, &heap->v_reserved);
 
-            /* VWNOTE: do not forget to set nr_reserved_out. */
-            stat->nr_reserved_out++;
+            /* VWNOTE: do not forget to set nr_reserved_vector. */
+            stat->nr_reserved_vector++;
         }
     }
 }
@@ -677,7 +708,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
             return v1->u64 == v2->u64;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return equal_long_doubles(v1->ld, v2->ld);
+            return equal_long_doubles(*v1->ld, *v2->ld);
 
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_cmp(v1, v2) == 0;
@@ -876,23 +907,23 @@ purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (isnan(v->ld))
+            if (isnan(*v->ld))
                 break;
 
-            if (isinf(v->d) == -1 || v->ld < INT32_MIN) {
+            if (isinf(v->d) == -1 || *v->ld < INT32_MIN) {
                 if (force)
                     *i32 = INT32_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || v->ld > INT32_MAX) {
+            else if (isinf(v->d) == 1 || *v->ld > INT32_MAX) {
                 if (force)
                     *i32 = INT32_MAX;
                 else
                     break;
             }
             else {
-                *i32 = (int32_t)v->ld;
+                *i32 = (int32_t)*v->ld;
             }
             return true;
 
@@ -1051,23 +1082,23 @@ purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (isnan(v->ld))
+            if (isnan(*v->ld))
                 break;
 
-            if (isinf(v->ld) == -1 || v->ld < 0) {
+            if (isinf(*v->ld) == -1 || *v->ld < 0) {
                 if (force)
                     *u32 = 0;
                 else
                     break;
             }
-            else if (isinf(v->ld) == 1 || v->ld > UINT32_MAX) {
+            else if (isinf(*v->ld) == 1 || *v->ld > UINT32_MAX) {
                 if (force)
                     *u32 = UINT32_MAX;
                 else
                     break;
             }
             else {
-                *u32 = (uint32_t)v->ld;
+                *u32 = (uint32_t)*v->ld;
             }
             return true;
 
@@ -1222,23 +1253,23 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (isnan(v->ld))
+            if (isnan(*v->ld))
                 break;
 
-            if (isinf(v->d) == -1 || v->ld < INT64_MIN) {
+            if (isinf(v->d) == -1 || *v->ld < INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || v->ld > INT64_MAX) {
+            else if (isinf(v->d) == 1 || *v->ld > INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
                     break;
             }
             else {
-                *i64 = (int64_t)v->ld;
+                *i64 = (int64_t)*v->ld;
             }
             return true;
 
@@ -1397,20 +1428,20 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (isnan(v->ld))
+            if (isnan(*v->ld))
                 break;
 
-            if (isinf(v->ld) == -1 || v->ld < 0) {
+            if (isinf(*v->ld) == -1 || *v->ld < 0) {
                 if (force)
                     *u64 = 0;
                 else
                     break;
             }
-            else if (isinf(v->ld) == 1 || v->ld >= UINT64_MAX) {
+            else if (isinf(*v->ld) == 1 || *v->ld >= UINT64_MAX) {
                 *u64 = UINT64_MAX;
             }
             else {
-                *u64 = (uint64_t)v->ld;
+                *u64 = (uint64_t)*v->ld;
             }
             return true;
 
@@ -1544,7 +1575,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            *d = (double)v->ld;
+            *d = (double)*v->ld;
             return true;
 
         case PURC_VARIANT_TYPE_BIGINT:
@@ -1671,7 +1702,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            *d = (long double)v->ld;
+            *d = (long double)*v->ld;
             return true;
 
         case PURC_VARIANT_TYPE_BIGINT:
@@ -2375,7 +2406,7 @@ purc_variant_numerify(purc_variant_t value)
         case PURC_VARIANT_TYPE_ULONGINT:
             return value->u64;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return value->ld;
+            return *value->ld;
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_to_float64(value);
         case PURC_VARIANT_TYPE_ATOMSTRING:
@@ -2501,7 +2532,7 @@ purc_variant_booleanize(purc_variant_t value)
         return value->u64 != 0;
 
     case PURC_VARIANT_TYPE_LONGDOUBLE:
-        return value->ld != 0;
+        return *value->ld != 0;
 
     case PURC_VARIANT_TYPE_BIGINT:
         return bigint_i64_cmp(value, 0) != 0;
@@ -2720,10 +2751,10 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 
     case PURC_VARIANT_TYPE_LONGDOUBLE:
         if (arg->flags & PCVRNT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg, &value->ld, sizeof(long double));
+            arg->cb(arg, value->ld, sizeof(long double));
         }
         else {
-            snprintf(buf, sizeof(buf), "%Lg", value->ld);
+            snprintf(buf, sizeof(buf), "%Lg", *value->ld);
             arg->cb(arg, buf, 0);
         }
         break;
@@ -3554,7 +3585,7 @@ homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
             return u64_diff(l->u64, r->u64);
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return ld_diff(l->ld, r->ld);
+            return ld_diff(*l->ld, *r->ld);
 
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_cmp(l, r);
@@ -3627,7 +3658,7 @@ stringify(char *buf, size_t len, purc_variant_t v)
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            nr = snprintf(buf, len, "%Lg", v->ld);
+            nr = snprintf(buf, len, "%Lg", *v->ld);
             break;
 
         case PURC_VARIANT_TYPE_BIGINT:
@@ -3822,10 +3853,10 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
             return (l->u64 < r->u64) ? -1 : 1;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (equal_long_doubles(l->ld, r->ld))
+            if (equal_long_doubles(*l->ld, *r->ld))
                 return 0;
 
-            return (l->ld < r->ld) ? -1 : 1;
+            return (*l->ld < *r->ld) ? -1 : 1;
 
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_cmp(l, r);
@@ -4225,7 +4256,7 @@ purc_variant_get_memory_size(purc_variant_t v)
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            memsize = sizeof(purc_variant_ord);
+            memsize = sizeof(purc_variant_scalar);
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:

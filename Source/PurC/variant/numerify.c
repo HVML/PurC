@@ -231,7 +231,7 @@ pcvar_numerify(purc_variant_t val)
             return (double)val->u64;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return (double)val->ld;
+            return (double)*val->ld;
 
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_to_float64(val);

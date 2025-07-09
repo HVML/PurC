@@ -51,12 +51,12 @@ TEST(dvobjs, type)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -107,7 +107,7 @@ TEST(dvobjs, type)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -185,12 +185,12 @@ TEST(dvobjs, type)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -218,12 +218,12 @@ TEST(dvobjs, count)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -274,7 +274,7 @@ TEST(dvobjs, count)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -351,12 +351,12 @@ TEST(dvobjs, count)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -384,12 +384,12 @@ TEST(dvobjs, compare)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -440,7 +440,7 @@ TEST(dvobjs, compare)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -520,12 +520,12 @@ TEST(dvobjs, compare)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -553,12 +553,12 @@ TEST(dvobjs, sort)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -609,7 +609,7 @@ TEST(dvobjs, sort)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -693,12 +693,12 @@ TEST(dvobjs, sort)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else

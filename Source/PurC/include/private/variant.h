@@ -39,7 +39,7 @@ PCA_EXTERN_C_BEGIN
 #define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT
 #define PCVRNT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
-#define PCVRNT_FLAG_STATIC_DATA   (0x01 << 2)  // make_string_static
+#define PCVRNT_FLAG_STATIC_DATA     (0x01 << 2)  // make_string_static
 
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
 #define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
@@ -145,6 +145,9 @@ struct purc_variant {
            for dynamic variant, the pointer to the getter.  */
         void       *ptr;
 
+        /* for long double */
+        long double *ld;
+
         /* for array, object, and set: the number of children;
            for bigint, the length of limbs if using the extra size;
            for long byte sequence, the length in bytes;
@@ -169,14 +172,8 @@ struct purc_variant {
         uint64_t    qwords[0];
     };
 
-    union {
-        long double     ld;         // for long double
-        void           *ptr2;       // for native entity: ops
+    void           *ptr2;           // for native entity: ops
                                     // for dynamic variant: setter
-        intptr_t        _padding[2];// make sure this field is 16-byte long,
-                                    // because long double may be 96-bit wide
-                                    // on some system.
-    };
 
     union {
         void           *extra_data; // for native entity only.
@@ -200,16 +197,17 @@ struct purc_variant {
 
 #define SZ_VARIANT_HEADER       8
 #define NR_BYTES_IN_WRAPPER                                     \
-    (sizeof(void *) + sizeof(intptr_t) * 2 + sizeof(void *) +   \
+    (sizeof(void *) + sizeof(void *) + sizeof(void *) +         \
         sizeof(struct list_head))
 
 #define NR_WORDS_IN_WRAPPER     (NR_BYTES_IN_WRAPPER / 2)
 #define NR_DWORDS_IN_WRAPPER    (NR_BYTES_IN_WRAPPER / 4)
 #define NR_QWORDS_IN_WRAPPER    (NR_BYTES_IN_WRAPPER / 8)
 
-/* Use this structure for oridinary variants, like undefined, null,
-   boolean, number, longint, ulongint, exception, and atom. */
-struct purc_variant_ord {
+/* Use this structure for scalar variants, like undefined, null,
+   boolean, number, longint, ulongint, bigint, longdouble,
+   exception, and atom. */
+struct purc_variant_scalar {
     unsigned int type:8;
     unsigned int size:8;
     unsigned int flags:16;
@@ -234,16 +232,20 @@ struct purc_variant_ord {
 
         /* for pointer */
         void       *ptr;
+
+        /* for long double */
+        long double *ld;
     };
 };
 
-typedef struct purc_variant_ord purc_variant_ord;
+typedef struct purc_variant_scalar purc_variant_scalar;
 
 typedef enum {
     OP_add,
     OP_sub,
     OP_mul,
-    OP_div,
+    OP_floordiv,
+    OP_truediv,
     OP_mod,
     OP_pow,
     OP_and,
@@ -254,16 +256,16 @@ typedef enum {
 
 struct pcvariant_heap {
     // the constant values.
-    struct purc_variant_ord v_undefined;
-    struct purc_variant_ord v_null;
-    struct purc_variant_ord v_false;
-    struct purc_variant_ord v_true;
+    struct purc_variant_scalar v_undefined;
+    struct purc_variant_scalar v_null;
+    struct purc_variant_scalar v_false;
+    struct purc_variant_scalar v_true;
 
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
-    // the loop buffer for reserved ordinary variants.
-    purc_variant_t      v_reserved_ord[MAX_RESERVED_VARIANTS];
+    // the loop buffer for reserved scalar variants.
+    purc_variant_t      v_reserved_sca[MAX_RESERVED_VARIANTS];
     int                 headpos;
     int                 tailpos;
 
@@ -278,16 +280,16 @@ purc_variant_t pcvariant_move_heap_out(purc_variant_t v) WTF_INTERNAL;
 void pcvariant_use_move_heap(void) WTF_INTERNAL;
 void pcvariant_use_norm_heap(void) WTF_INTERNAL;
 
-static inline bool is_type_ordinary(enum purc_variant_type type) {
-    return (type <= PURC_VARIANT_TYPE_LAST_ORDINARY) ? true : false;
+static inline bool is_type_scalar(enum purc_variant_type type) {
+    return (type <= PURC_VARIANT_TYPE_LAST_SCALAR) ? true : false;
 }
 
-static inline bool is_variant_ordinary(purc_variant *v) {
-    return (v->type <= PURC_VARIANT_TYPE_LAST_ORDINARY) ? true : false;
+static inline bool is_variant_scalar(purc_variant *v) {
+    return (v->type <= PURC_VARIANT_TYPE_LAST_SCALAR) ? true : false;
 }
 
-purc_variant *pcvariant_alloc(bool ordinary) WTF_INTERNAL;
-purc_variant *pcvariant_alloc_0(bool ordinary) WTF_INTERNAL;
+purc_variant *pcvariant_alloc(bool scalar) WTF_INTERNAL;
+purc_variant *pcvariant_alloc_0(bool scalar) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 struct pcinst;

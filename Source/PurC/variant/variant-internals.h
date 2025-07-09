@@ -29,6 +29,7 @@
 #include "config.h"
 #include "private/debug.h"
 #include "private/variant.h"
+#include "private/mpops.h"
 
 #define PCVRNT_CHECK_FAIL_RET(cond, ret)                        \
     if (!(cond)) {                                              \
@@ -50,6 +51,14 @@ extern "C" {
  */
 void pcvariant_stat_set_extra_size(purc_variant_t v, size_t sz) WTF_INTERNAL;
 
+/*
+ * Since 0.9.26, increase or decrease the memory use statistics data.
+ * This function should be called for the ordinary variants who
+ * manage the extra memory by themselves.
+ */
+void pcvariant_stat_inc_extra_size(purc_variant_t v, size_t sz) WTF_INTERNAL;
+void pcvariant_stat_dec_extra_size(purc_variant_t v, size_t sz) WTF_INTERNAL;
+
 /* Allocate a variant for the specific type. */
 purc_variant_t pcvariant_get(enum purc_variant_type type) WTF_INTERNAL;
 
@@ -65,15 +74,16 @@ void pcvariant_put(purc_variant_t value) WTF_INTERNAL;
 typedef void (* pcvariant_release_fn) (purc_variant_t value);
 
 // for release the resource in a variant
-void pcvariant_bigint_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_string_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_sequence_release(purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_tuple_release   (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_sorted_array_release (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_longdouble_release(purc_variant_t value)     WTF_INTERNAL;
+void pcvariant_bigint_release  (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_string_release  (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_sequence_release(purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_native_release  (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_object_release  (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_array_release   (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_set_release     (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_tuple_release   (purc_variant_t value)       WTF_INTERNAL;
+void pcvariant_sorted_array_release(purc_variant_t value)   WTF_INTERNAL;
 
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;
@@ -397,13 +407,38 @@ pcvariant_set_children_memsize(purc_variant_t set) WTF_INTERNAL;
 size_t
 pcvariant_tuple_children_memsize(purc_variant_t tuple) WTF_INTERNAL;
 
+#if BIGINT_LIMB_BITS == 32
+#   define NR_CLIMBS_IN_BUFF    8
+#else
+#   define NR_CLIMBS_IN_BUFF    4
+#endif
+
+/* this bigint structure can hold at least four 64 bit unsigned integers */
+typedef struct {
+    /* space for ordinary variant */
+    struct purc_variant_scalar vrt_hdr;
+    /* must come just after */
+    bi_limb_t tab[NR_CLIMBS_IN_BUFF];
+} bigint_buf;
+
+purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a) WTF_INTERNAL;
+purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a) WTF_INTERNAL;
+
 void bigint_dump(FILE *fp, const char *prefx, purc_variant *p) WTF_INTERNAL;
 int64_t bigint_get_si_sat(const purc_variant *a) WTF_INTERNAL;
 
 purc_variant_t bigint_clone(const struct purc_variant *a) WTF_INTERNAL;
+void bigint_move(struct purc_variant *to, struct purc_variant *from)
+    WTF_INTERNAL;
+
+int bigint_sign(const purc_variant *a) WTF_INTERNAL;
 purc_variant *bigint_neg(const purc_variant *a) WTF_INTERNAL;
 purc_variant *bigint_abs(const purc_variant *a) WTF_INTERNAL;
 
+purc_variant *bigint_add(const purc_variant *a,
+        const purc_variant *b, int b_neg) WTF_INTERNAL;
+purc_variant *bigint_mul(const purc_variant *a,
+        const purc_variant *b) WTF_INTERNAL;
 purc_variant *bigint_divrem(const purc_variant *a,
         const purc_variant *b, bool is_rem) WTF_INTERNAL;
 purc_variant *bigint_logic(const purc_variant *a,

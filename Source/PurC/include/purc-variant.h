@@ -53,23 +53,21 @@ PCA_EXTERN_C_BEGIN
 /**
  * purc_variant_wrapper_size_ex:
  *
- * @ordinary: Indicate the category of a variant (ordinary or not).
+ * @scalar: Indicate the category of a variant (scalar or not).
  *
- * Gets the size of the wrapper of an ordinary or extraordinary variant.
+ * Gets the size of the wrapper of a scalar or vector variant.
  *
  * Returns: The size of a variant wrapper.
  *
  * Since: 0.1.1
  */
 PCA_EXPORT size_t
-purc_variant_wrapper_size_ex(bool ordinary);
+purc_variant_wrapper_size_ex(bool scalar);
 
 /**
  * purc_variant_wrapper_size:
  *
- * @ordinary: Indicate the category of a variant, ordinary or not.
- *
- * Gets the size of the wrapper of an extraordinary variant.
+ * Gets the size of the wrapper of a vector variant.
  *
  * Returns: The size of a variant wrapper.
  *
@@ -3112,15 +3110,15 @@ typedef enum purc_variant_type {
     PURC_VARIANT_TYPE_EXCEPTION,
 #define PURC_VARIANT_TYPE_NAME_ATOMSTRING   "atomstring"
     PURC_VARIANT_TYPE_ATOMSTRING,
-
-    /* the above types are considered as ordinary ones:
-       bit-width is LE 64, no extra size, and without change events. */
-    PURC_VARIANT_TYPE_LAST_ORDINARY = PURC_VARIANT_TYPE_ATOMSTRING,
-
 #define PURC_VARIANT_TYPE_NAME_LONGDOUBLE   "longdouble"
     PURC_VARIANT_TYPE_LONGDOUBLE,
 #define PURC_VARIANT_TYPE_NAME_BIGINT       "bigint"
     PURC_VARIANT_TYPE_BIGINT,
+
+    /* the above types are considered as scalar variants:
+       bit-width is LE 64, no extra size, and without change events. */
+    PURC_VARIANT_TYPE_LAST_SCALAR = PURC_VARIANT_TYPE_BIGINT,
+
 #define PURC_VARIANT_TYPE_NAME_STRING       "string"
     PURC_VARIANT_TYPE_STRING,
 #define PURC_VARIANT_TYPE_NAME_BYTESEQUENCE "bsequence"
@@ -3529,8 +3527,8 @@ struct purc_variant_stat {
     size_t sz_mem[PURC_VARIANT_TYPE_NR];
     size_t nr_total_values;
     size_t sz_total_mem;
-    size_t nr_reserved_ord, nr_reserved_out;            // Since 0.9.26
-    size_t nr_max_reserved_ord, nr_max_reserved_out;    // Since 0.9.26
+    size_t nr_reserved_scalar, nr_reserved_vector;            // Since 0.9.26
+    size_t nr_max_reserved_scalar, nr_max_reserved_vector;    // Since 0.9.26
 };
 
 /**
@@ -4378,12 +4376,11 @@ purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b);
  *
  * Perform the in-place addition operation (@v1 += @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_iadd(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4394,12 +4391,11 @@ purc_variant_operator_iadd(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place subtraction operation (@v1 -= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_isub(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4410,12 +4406,11 @@ purc_variant_operator_isub(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place multiplication operation (@v1 *= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_imul(purc_variant_t v1, purc_variant_t v2); 
 
 /**
@@ -4426,12 +4421,11 @@ purc_variant_operator_imul(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place true division operation (@v1 /= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_itruediv(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4442,10 +4436,9 @@ purc_variant_operator_itruediv(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place floor division operation (@v1 //= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_ifloordiv(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4456,12 +4449,11 @@ purc_variant_operator_ifloordiv(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place modulo operation (@v1 %= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_imod(purc_variant_t v1, purc_variant_t v2); 
 
 /**
@@ -4472,12 +4464,11 @@ purc_variant_operator_imod(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place power operation (@v1 **= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4488,10 +4479,9 @@ purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place bitwise and operation (@v1 &= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_iand(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4502,10 +4492,9 @@ purc_variant_operator_iand(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place bitwise or operation (@v1 |= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_ior(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4516,10 +4505,9 @@ purc_variant_operator_ior(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place bitwise xor operation (@v1 ^= @v2) and return @v1.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_ixor(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4530,12 +4518,11 @@ purc_variant_operator_ixor(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the in-place left shift operation (@v <<= @c) and return @v.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_ilshift(purc_variant_t v, purc_variant_t c);
 
 /**
@@ -4546,12 +4533,11 @@ purc_variant_operator_ilshift(purc_variant_t v, purc_variant_t c);
  *
  * Perform the in-place right shift operation (@v >>= @c) and return @v.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c);
 
 /**
@@ -4563,12 +4549,11 @@ purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c);
  * Perform the in-place concatenation operation (@a += @b) for sequences and
  * return @a.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: 0 on success, or -1 on failure.
  *
  * Since: 0.9.26
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT int
 purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b);
 
 PCA_EXTERN_C_END

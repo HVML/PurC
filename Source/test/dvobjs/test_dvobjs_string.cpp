@@ -47,12 +47,12 @@ TEST(dvobjs, dvobjs_string_contains)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -100,7 +100,7 @@ TEST(dvobjs, dvobjs_string_contains)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -177,12 +177,12 @@ TEST(dvobjs, dvobjs_string_contains)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -211,12 +211,12 @@ TEST(dvobjs, dvobjs_string_explode)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -264,7 +264,7 @@ TEST(dvobjs, dvobjs_string_explode)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -355,12 +355,12 @@ TEST(dvobjs, dvobjs_string_explode)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -389,12 +389,12 @@ TEST(dvobjs, dvobjs_string_shuffle)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -442,7 +442,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -537,12 +537,12 @@ TEST(dvobjs, dvobjs_string_shuffle)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -570,12 +570,12 @@ TEST(dvobjs, dvobjs_string_replace)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -623,7 +623,7 @@ TEST(dvobjs, dvobjs_string_replace)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -705,12 +705,12 @@ TEST(dvobjs, dvobjs_string_replace)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -739,12 +739,12 @@ TEST(dvobjs, dvobjs_string_printf)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -792,7 +792,7 @@ TEST(dvobjs, dvobjs_string_printf)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -874,12 +874,12 @@ TEST(dvobjs, dvobjs_string_printf)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -907,12 +907,12 @@ TEST(dvobjs, dvobjs_string_join)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -960,7 +960,7 @@ TEST(dvobjs, dvobjs_string_join)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -1042,12 +1042,12 @@ TEST(dvobjs, dvobjs_string_join)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -1075,12 +1075,12 @@ TEST(dvobjs, dvobjs_string_tolower)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -1128,7 +1128,7 @@ TEST(dvobjs, dvobjs_string_tolower)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -1210,12 +1210,12 @@ TEST(dvobjs, dvobjs_string_tolower)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -1243,12 +1243,12 @@ TEST(dvobjs, dvobjs_string_toupper)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -1296,7 +1296,7 @@ TEST(dvobjs, dvobjs_string_toupper)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -1378,12 +1378,12 @@ TEST(dvobjs, dvobjs_string_toupper)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -1411,12 +1411,12 @@ TEST(dvobjs, dvobjs_string_nr_chars)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -1464,7 +1464,7 @@ TEST(dvobjs, dvobjs_string_nr_chars)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -1546,12 +1546,12 @@ TEST(dvobjs, dvobjs_string_nr_chars)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else
@@ -1579,12 +1579,12 @@ TEST(dvobjs, dvobjs_string_substr)
     size_t line_number = 0;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
-    size_t nr_reserved_ord_before = 0;
-    size_t nr_reserved_out_before = 0;
+    size_t nr_reserved_scalar_before = 0;
+    size_t nr_reserved_vector_before = 0;
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
-    size_t nr_reserved_ord_after = 0;
-    size_t nr_reserved_out_after = 0;
+    size_t nr_reserved_scalar_after = 0;
+    size_t nr_reserved_vector_after = 0;
     char file_path[1024];
     char data_path[PATH_MAX+1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -1632,7 +1632,7 @@ TEST(dvobjs, dvobjs_string_substr)
         line_number = 0;
 
         get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_ord_before, &nr_reserved_out_before);
+                &nr_reserved_scalar_before, &nr_reserved_vector_before);
 
         while ((read = getline(&line, &sz, fp)) != -1) {
             *(line + read - 1) = 0;
@@ -1712,12 +1712,12 @@ TEST(dvobjs, dvobjs_string_substr)
                     }
 
                     get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_ord_after, &nr_reserved_out_after);
+                            &sz_total_values_after, &nr_reserved_scalar_after, &nr_reserved_vector_after);
                     ASSERT_EQ(sz_total_values_before, sz_total_values_after);
                     ASSERT_EQ(sz_total_mem_after,
                             sz_total_mem_before +
-                            (nr_reserved_ord_after - nr_reserved_ord_before) * sizeof(purc_variant_ord) +
-                            (nr_reserved_out_after - nr_reserved_out_before) * sizeof(purc_variant));
+                            (nr_reserved_scalar_after - nr_reserved_scalar_before) * sizeof(purc_variant_scalar) +
+                            (nr_reserved_vector_after - nr_reserved_vector_before) * sizeof(purc_variant));
                 } else
                     continue;
             } else

@@ -52,7 +52,6 @@
 
 #include "variant-internals.h"
 
-#include "private/mpops.h"
 #include "private/instance.h"
 
 #include "purc-errors.h"
@@ -61,34 +60,27 @@
 #if BIGINT_LIMB_BITS == 32
 
 #define TAB                 dwords
-#define NR_LIMBS_IN_WRAPPER (int)NR_DWORDS_IN_WRAPPER
+#define NR_LIMBS_IN_WRAPPER 2
 #define BIGINT_LIMB_DIGITS  9
 
 #else
 
 #define TAB                 qwords
-#define NR_LIMBS_IN_WRAPPER (int)NR_DWORDS_IN_WRAPPER
-#define BIGINT_LIMB_DIGITS 19
+#define NR_LIMBS_IN_WRAPPER 1
+#define BIGINT_LIMB_DIGITS  19
 
 #endif
 
-#define NR_TABS_IN_BUFF \
-    (sizeof(purc_variant)-SZ_VARIANT_HEADER)/sizeof(bi_limb_t)
-
-/* this bigint structure can hold a 64 bit unsigned integer */
-typedef struct {
-    /* for header of purc_variant */
-    bi_limb_t vrt_hdr[SZ_VARIANT_HEADER / sizeof(bi_limb_t)];
-
-    /* must come just after */
-    bi_limb_t tab[NR_TABS_IN_BUFF];
-} bigint_buf;
-
 #define BIGINT_MAX_SIZE ((1024 * 1024) / BIGINT_LIMB_BITS) /* in limbs */
+
+struct bigint_limbs {
+    size_t len;
+    bi_limb_t tab[];
+};
 
 static purc_variant *bigint_set_si(bigint_buf *buf, bi_slimb_t a)
 {
-    purc_variant *r = (purc_variant *)buf->vrt_hdr;
+    purc_variant *r = (purc_variant *)buf;
     r->type = PURC_VARIANT_TYPE_BIGINT;
     r->size = 1;
     r->flags = 0;   /* do not use extra size */
@@ -97,14 +89,14 @@ static purc_variant *bigint_set_si(bigint_buf *buf, bi_slimb_t a)
     return r;
 }
 
-static purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a)
+purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a)
 {
 #if BIGINT_LIMB_BITS == 64
     return bigint_set_si(buf, a);
 #else
-    purc_variant *r = (purc_variant *)buf->vrt_hdr;
+    purc_variant *r = (purc_variant *)buf;
     r->type = PURC_VARIANT_TYPE_BIGINT;
-    r->flags = 0;   /* do not use extra size */
+    r->flags = PCVRNT_FLAG_STATIC_DATA;
     r->refc = 0;    /* fail safe */
     if (a >= INT32_MIN && a <= INT32_MAX) {
         r->size = 1;
@@ -118,16 +110,13 @@ static purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a)
 #endif
 }
 
-static purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
+purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
 {
     if (a <= INT64_MAX) {
         return bigint_set_i64(buf, a);
     } else {
-        assert((65 + BIGINT_LIMB_BITS - 1) / BIGINT_LIMB_BITS >
-                NR_TABS_IN_BUFF);
-
-        purc_variant *r = (purc_variant *)buf->vrt_hdr;
-        r->type = PURC_VARIANT_TYPE_BIGINT;
+        purc_variant *r = (purc_variant *)buf;
+        r->type = PCVRNT_FLAG_STATIC_DATA;
         r->flags = 0;   /* do not use extra size */
         r->refc = 0;    /* fail safe */
 
@@ -148,9 +137,10 @@ static purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
 static void bigint_set_len(purc_variant *val, size_t len)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
-    if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-        assert(len <= val->len);
-        val->len = len;
+    if (val->size > NR_LIMBS_IN_WRAPPER) {
+        struct bigint_limbs *limbs = val->ptr;
+        assert(len <= limbs->len);
+        limbs->len = len;
     }
     else {
         assert(len <= val->size);
@@ -161,8 +151,9 @@ static void bigint_set_len(purc_variant *val, size_t len)
 static size_t bigint_get_len(const purc_variant *val)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
-    if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-        return val->len;
+    if (val->size > NR_LIMBS_IN_WRAPPER) {
+        struct bigint_limbs *limbs = val->ptr;
+        return limbs->len;
     }
     else {
         return val->size;
@@ -173,9 +164,10 @@ static bi_limb_t *bigint_get_tab(purc_variant *val, size_t *len)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
     if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        struct bigint_limbs *limbs = val->ptr;
         if (len)
-            *len = val->len;
-        return val->ptr2;
+            *len = limbs->len;
+        return limbs->tab;
     }
     else {
         if (len)
@@ -189,9 +181,10 @@ bigint_get_tab_const(const purc_variant *val, size_t *len)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
     if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        struct bigint_limbs *limbs = val->ptr;
         if (len)
-            *len = val->len;
-        return val->ptr2;
+            *len = limbs->len;
+        return limbs->tab;
     }
     else {
         if (len)
@@ -236,15 +229,16 @@ static purc_variant_t bigint_new(int nr_limbs)
         v->flags = 0;
     }
     else {
-        v->size = 0;
-        v->flags = PCVRNT_FLAG_EXTRA_SIZE;
-        v->len = nr_limbs;
-        v->ptr2 = calloc(nr_limbs, sizeof(bi_limb_t));
-        if (v->ptr2 == NULL)
+        size_t sz_extra = sizeof(struct bigint_limbs);
+        sz_extra += sizeof(bi_limb_t) * nr_limbs;
+        struct bigint_limbs *limbs = malloc(sz_extra);
+        if (limbs == NULL)
             goto failed;
 
-        size_t sz_extra = sizeof(bi_limb_t) * nr_limbs;
-        pcvariant_stat_set_extra_size(v, sz_extra);
+        v->size = 0;
+        v->flags = PCVRNT_FLAG_EXTRA_SIZE;
+        v->ptr = limbs;
+        pcvariant_stat_inc_extra_size(v, sz_extra);
     }
 
     v->refc = 1;
@@ -307,6 +301,28 @@ static purc_variant *bigint_new_di(bi_sdlimb_t a)
     return r;
 }
 
+void bigint_move(purc_variant_t to, purc_variant_t from)
+{
+    assert(from->type == PURC_VARIANT_TYPE_BIGINT &&
+            to->type == PURC_VARIANT_TYPE_BIGINT);
+
+    if (to->flags & PCVRNT_FLAG_EXTRA_SIZE)
+        free(to->ptr);
+
+    to->size = from->size;
+    if (from->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        assert(from->ptr);
+        to->ptr = from->ptr;
+        to->flags = from->flags;
+        from->flags = 0;
+    }
+    else {
+        to->u64 = from->u64;    /* limbs are in wrapper */
+    }
+
+    pcvariant_put(from);
+}
+
 /* Remove redundant high order limbs. Warning: 'a' may be
    reallocated. Can never fail.
 */
@@ -330,10 +346,17 @@ static purc_variant *bigint_normalize1(purc_variant *a, size_t l)
     if (l < len) {
         if (a->flags & PCVRNT_FLAG_EXTRA_SIZE) {
             /* realloc to reduce the size */
-            size_t sz_extra = sizeof(bi_limb_t) * l;
-            a->ptr2 = realloc(a->ptr2, sz_extra);
-            pcvariant_stat_set_extra_size(a, sz_extra);
-            a->len = l;
+            size_t sz_old_extra = sizeof(struct bigint_limbs);
+            struct bigint_limbs *limbs = a->ptr;
+            sz_old_extra += sizeof(bi_limb_t) * limbs->len;
+
+            size_t sz_extra = sizeof(struct bigint_limbs);
+            sz_extra += sizeof(bi_limb_t) * l;
+            a->ptr = realloc(a->ptr, sz_extra);
+
+            pcvariant_stat_dec_extra_size(a, sz_old_extra);
+            pcvariant_stat_inc_extra_size(a, sz_extra);
+            limbs->len = l;
         }
         else {
             a->size = l;
@@ -349,7 +372,7 @@ static purc_variant *bigint_normalize(purc_variant *a)
 }
 
 /* return 0 or 1 depending on the sign */
-static inline int bigint_sign(const purc_variant *a)
+int bigint_sign(const purc_variant *a)
 {
     size_t len;
     const bi_limb_t *tab = bigint_get_tab_const(a, &len);
@@ -386,34 +409,41 @@ static purc_variant *bigint_extend(purc_variant *r, bi_limb_t op1)
     if ((op1 != 0 && op1 != (bi_limb_t)-1) ||
             (op1 & 1) != tab[n2 - 1] >> (BIGINT_LIMB_BITS - 1)) {
 
-        size_t sz_extra = sizeof(bi_limb_t) * (n2 + 1);
+        size_t sz_extra = sizeof(struct bigint_limbs);
+        sz_extra += sizeof(bi_limb_t) * (n2 + 1);
         if (r->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-            r->ptr2 = realloc(r->ptr2, sz_extra);
-            if (r->ptr2 == NULL)
+
+            size_t sz_old_extra = sizeof(struct bigint_limbs);
+            struct bigint_limbs *limbs = r->ptr;
+            sz_old_extra += sizeof(bi_limb_t) * limbs->len;
+
+            r->ptr = realloc(r->ptr, sz_extra);
+            if (r->ptr == NULL)
                 goto failed;
 
-            r->len = n2 + 1;
-            tab = r->ptr2;
-            tab[n2] = op1;
-            pcvariant_stat_set_extra_size(r, sz_extra);
+            limbs->len = n2 + 1;
+            limbs->tab[n2] = op1;
+
+            pcvariant_stat_dec_extra_size(r, sz_old_extra);
+            pcvariant_stat_inc_extra_size(r, sz_extra);
         }
         else if ((n2 + 1) <= NR_LIMBS_IN_WRAPPER) {
             r->size = n2 + 1;
             r->TAB[n2] = op1;
         }
         else {
-            r->ptr2 = malloc(sz_extra);
-            if (r->ptr2 == NULL)
+            r->ptr = malloc(sz_extra);
+            if (r->ptr == NULL)
                 goto failed;
-            memcpy(r->ptr2, r->TAB, sizeof(sz_extra) - sizeof(bi_limb_t));
-            tab = r->ptr2;
-            tab[n2] = op1;
+
+            struct bigint_limbs *limbs = r->ptr;
+            memcpy(limbs->tab, r->TAB, sizeof(bi_limb_t) * r->size);
+            limbs->len = n2 + 1;
+            limbs->tab[n2] = op1;
 
             r->size = 0;
             r->flags = PCVRNT_FLAG_EXTRA_SIZE;
-            r->len = n2 + 1;
-            r->extra_size = 0;          /* old extra size must be zero */
-            pcvariant_stat_set_extra_size(r, sz_extra);
+            pcvariant_stat_inc_extra_size(r, sz_extra);
         }
     } else {
         /* otherwise still need to normalize the result */
@@ -431,8 +461,8 @@ failed:
 /* return NULL in case of error. Compute a + b (b_neg = 0) or a - b
    (b_neg = 1) */
 /* XXX: optimize */
-static purc_variant *bigint_add(const purc_variant *a,
-                               const purc_variant *b, int b_neg)
+purc_variant *bigint_add(const purc_variant *a,
+        const purc_variant *b, int b_neg)
 {
     purc_variant *r;
     const bi_limb_t *a_tab, *b_tab;
@@ -498,8 +528,8 @@ purc_variant *bigint_abs(const purc_variant *a)
     return bigint_clone(a);
 }
 
-static purc_variant *bigint_mul(const purc_variant *a,
-                               const purc_variant *b)
+purc_variant *bigint_mul(const purc_variant *a,
+        const purc_variant *b)
 {
     purc_variant *r;
     const bi_limb_t *a_tab, *b_tab;
@@ -526,7 +556,7 @@ static purc_variant *bigint_mul(const purc_variant *a,
 /* return the division or the remainder. 'b' must be != 0. return NULL
    in case of exception (division by zero or memory error) */
 purc_variant *bigint_divrem(const purc_variant *a,
-                                  const purc_variant *b, bool is_rem)
+        const purc_variant *b, bool is_rem)
 {
     const bi_limb_t *a_tab, *b_tab;
     size_t na, nb;
@@ -1669,8 +1699,10 @@ ssize_t bigint_stringify(const purc_variant_t val, int radix,
 
 void pcvariant_bigint_release(purc_variant_t v)
 {
-    if (v->flags & PCVRNT_FLAG_EXTRA_SIZE && v->ptr2)
-        free(v->ptr2);
+    if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        assert(v->ptr);
+        free(v->ptr);
+    }
 }
 
 purc_variant_t purc_variant_make_bigint_from_i64(int64_t a)

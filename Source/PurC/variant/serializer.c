@@ -790,7 +790,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            n = serialize_long_double(rws, value->ld, flags,
+            n = serialize_long_double(rws, *value->ld, flags,
                     format_long_double, len_expected);
             MY_CHECK(n);
 

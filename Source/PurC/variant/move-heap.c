@@ -52,8 +52,8 @@ static void mvheap_cleanup_once(void)
     PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
     PC_DEBUG("total values in move heap: %zu\n", stat->nr_total_values);
     PC_DEBUG("total memory used by move heap: %zu\n", stat->sz_total_mem);
-    PC_DEBUG("total ordinary values reserved in move heap: %zu\n", stat->nr_reserved_ord);
-    PC_DEBUG("total out of ordinary values reserved in move heap: %zu\n", stat->nr_reserved_out);
+    PC_DEBUG("total scalar values reserved in move heap: %zu\n", stat->nr_reserved_scalar);
+    PC_DEBUG("total vector values reserved in move heap: %zu\n", stat->nr_reserved_vector);
 
     PC_ASSERT(move_heap.v_undefined.refc == 0);
     PC_ASSERT(move_heap.v_null.refc == 0);
@@ -66,7 +66,7 @@ static void mvheap_cleanup_once(void)
     }
 
     PC_ASSERT(stat->nr_total_values == 4);
-    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant_ord));
+    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant_scalar));
 }
 
 static int mvheap_init_once(void)
@@ -91,18 +91,18 @@ static int mvheap_init_once(void)
 
     struct purc_variant_stat *stat = &move_heap.stat;
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant_ord);
+    stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant_scalar);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant_ord);
+    stat->sz_mem[PURC_VARIANT_TYPE_NULL] = sizeof(purc_variant_scalar);
     stat->nr_values[PURC_VARIANT_TYPE_BOOLEAN] = 0;
-    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant_ord) * 2;
+    stat->sz_mem[PURC_VARIANT_TYPE_BOOLEAN] = sizeof(purc_variant_scalar) * 2;
     stat->nr_total_values = 4;
-    stat->sz_total_mem = 4 * sizeof(purc_variant_ord);
+    stat->sz_total_mem = 4 * sizeof(purc_variant_scalar);
 
-    stat->nr_reserved_ord = 0;
-    stat->nr_reserved_out = 0;
-    stat->nr_max_reserved_ord = 0;  // no need to reserve variants
-    stat->nr_max_reserved_out = 0;  // for move heap.
+    stat->nr_reserved_scalar = 0;
+    stat->nr_reserved_vector = 0;
+    stat->nr_max_reserved_scalar = 0;  // no need to reserve variants
+    stat->nr_max_reserved_vector = 0;  // for move heap.
 
     INIT_LIST_HEAD(&move_heap.v_reserved);
 
@@ -153,7 +153,7 @@ move_variant_in(struct pcinst *inst, purc_variant_t v)
     move_heap.stat.nr_total_values++;
 
     size_t sz_wrapper =
-        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+        is_variant_scalar(v)?sizeof(purc_variant_scalar):sizeof(purc_variant);
     inst->org_vrt_heap->stat.sz_mem[v->type] -= sz_wrapper;
     inst->org_vrt_heap->stat.sz_total_mem -= sz_wrapper;
     move_heap.stat.sz_mem[v->type] += sz_wrapper;
@@ -206,11 +206,11 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
                 (size_t)v->len,
                 v->extra_size);
 
-        bool ordinary = is_variant_ordinary(v);
+        bool scalar = is_variant_scalar(v);
         size_t sz_wrapper =
-            ordinary?sizeof(purc_variant_ord):sizeof(purc_variant);
+            scalar?sizeof(purc_variant_scalar):sizeof(purc_variant);
 
-        retv = pcvariant_alloc(ordinary);
+        retv = pcvariant_alloc(scalar);
         memcpy(retv, v, sz_wrapper);
         retv->refc = 1;
 
@@ -1006,7 +1006,7 @@ static void move_container_self_out(purc_variant_t v)
     move_heap.stat.nr_total_values--;
 
     size_t sz_wrapper =
-        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+        is_variant_scalar(v)?sizeof(purc_variant_scalar):sizeof(purc_variant);
     inst->org_vrt_heap->stat.sz_mem[v->type] += sz_wrapper;
     inst->org_vrt_heap->stat.sz_total_mem += sz_wrapper;
     move_heap.stat.sz_mem[v->type] -= sz_wrapper;
@@ -1257,7 +1257,7 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     move_heap.stat.nr_total_values--;
 
     size_t sz_wrapper =
-        is_variant_ordinary(v)?sizeof(purc_variant_ord):sizeof(purc_variant);
+        is_variant_scalar(v)?sizeof(purc_variant_scalar):sizeof(purc_variant);
     inst->org_vrt_heap->stat.sz_mem[v->type] += sz_wrapper;
     inst->org_vrt_heap->stat.sz_total_mem += sz_wrapper;
     move_heap.stat.sz_mem[v->type] -= sz_wrapper;

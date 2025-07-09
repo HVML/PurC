@@ -41,8 +41,8 @@ void get_variant_total_info (size_t *mem, size_t *value, size_t *resv_ord, size_
 
     *mem = stat->sz_total_mem;
     *value = stat->nr_total_values;
-    *resv_ord = stat->nr_reserved_ord;
-    *resv_out = stat->nr_reserved_out;
+    *resv_ord = stat->nr_reserved_scalar;
+    *resv_out = stat->nr_reserved_vector;
 }
 
 static purc_variant_t getter(

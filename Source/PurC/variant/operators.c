@@ -65,7 +65,7 @@ static int variant_compare(purc_variant_t v1, purc_variant_t v2)
             cmp = bigint_u64_cmp(a, b->u64);
             break;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            cmp = bigint_float64_cmp(a, (double)b->ld);
+            cmp = bigint_float64_cmp(a, (double)*b->ld);
             break;
         case PURC_VARIANT_TYPE_NUMBER:
             cmp = bigint_float64_cmp(a, b->d);
@@ -79,12 +79,12 @@ static int variant_compare(purc_variant_t v1, purc_variant_t v2)
             v2->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
         long double a, b;
         if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
-            a = v1->ld;
+            a = *v1->ld;
             b = purc_variant_numerify(v2);
         }
         else {
             a = purc_variant_numerify(v1);
-            b = v2->ld;
+            b = *v2->ld;
         }
 
         if (pcutils_equal_longdoubles(a, b)) {
@@ -260,7 +260,7 @@ purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2)
         res = true;
     else if (v1->type != v2->type)
         res = false;
-    else if (is_variant_ordinary(v1))
+    else if (is_variant_scalar(v1))
         res = v1->u64 == v2->u64;
     else
         res = false;
@@ -277,7 +277,7 @@ purc_variant_operator_is_not(purc_variant_t v1, purc_variant_t v2)
         res = true;
     else if (v1->type != v2->type)
         res = false;
-    else if (is_variant_ordinary(v1))
+    else if (is_variant_scalar(v1))
         res = v1->u64 == v2->u64;
     else
         res = false;
@@ -351,103 +351,852 @@ purc_variant_operator_pos(purc_variant_t v)
     }
 }
 
-#if 0
+static uint64_t
+binary_lifting_power(uint64_t base, uint64_t exponent, bool *overflow)
+{
+    uint64_t res = 1;
+    *overflow = false;
+
+    while (exponent) {
+        if (exponent & 1) {
+            res *= base;
+
+            if (res < base) {
+                *overflow = true;
+                break;
+            }
+        }
+        uint64_t new_base = base * base;
+        if (new_base < base) {
+            *overflow = true;
+            break;
+        }
+
+        base = new_base;
+        exponent >>= 1;
+    }
+
+    return res;
+}
+
+static int64_t
+binary_lifting_power_sbase(int64_t base, uint64_t exponent, bool *overflow)
+{
+    uint64_t res;
+    int64_t ans = 1;
+
+    if (base >= 0) {
+        res = binary_lifting_power(base, exponent, overflow);
+        if (res > INT64_MAX) {
+            *overflow = true;
+        }
+        else {
+            ans = res;
+        }
+    }
+    else {
+        res = binary_lifting_power(-base, exponent, overflow);
+        if ((!*overflow) && res > INT64_MAX) {
+            *overflow = true;
+        }
+        else if (!*overflow) {
+            if (exponent & 0x01)
+                ans = -res;
+            else
+                ans = res;
+        }
+    }
+
+    return ans;
+}
+
+static purc_variant_t
+variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
+        purc_variant_operator op)
+{
+    purc_variant_t res = PURC_VARIANT_INVALID;
+
+    if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
+            v2->type == PURC_VARIANT_TYPE_BIGINT) {
+        purc_variant_t a, b;
+        if (v1->type == PURC_VARIANT_TYPE_BIGINT) {
+            a = v1;
+            b = v2;
+        }
+        else {
+            a = v2;
+            b = v1;
+        }
+
+        bigint_buf buf;
+        switch (b->type) {
+        case PURC_VARIANT_TYPE_BIGINT:
+            break;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            b = bigint_set_i64(&buf, b->i64);
+            break;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            b = bigint_set_i64(&buf, b->u64);
+            break;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            b = purc_variant_make_bigint_from_f64((double)*b->ld);
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            b = purc_variant_make_bigint_from_f64((double)b->d);
+            break;
+
+        default:
+            b = purc_variant_make_bigint_from_f64(purc_variant_numerify(b));
+            break;
+        }
+
+        if (b) {
+            switch (op) {
+            case OP_add:
+                res = bigint_add(a, b, 0);
+                break;
+
+            case OP_sub:
+                if (a == v1)
+                    res = bigint_add(a, b, 1);
+                else
+                    res = bigint_add(b, a, 1);
+                break;
+
+            case OP_mul:
+                res = bigint_mul(a, b);
+                break;
+
+            case OP_floordiv:
+            case OP_truediv:
+                if (a == v1)
+                    res = bigint_divrem(a, b, false);
+                else
+                    res = bigint_divrem(b, a, false);
+                break;
+
+            case OP_mod:
+                if (a == v1)
+                    res = bigint_divrem(a, b, true);
+                else
+                    res = bigint_divrem(b, a, true);
+                break;
+
+            case OP_pow:
+                if (a == v1) {
+                    if (bigint_sign(b)) {
+                        double base = bigint_to_float64(a);
+                        double exp = bigint_to_float64(b);
+                        res = purc_variant_make_number(pow(base, exp));
+                    }
+                    else {
+                        res = bigint_pow(a, b);
+                    }
+                }
+                else {
+                    if (bigint_sign(a)) {
+                        double base = bigint_to_float64(b);
+                        double exp = bigint_to_float64(a);
+                        res = purc_variant_make_number(pow(base, exp));
+                    }
+                    else {
+                        res = bigint_pow(b, a);
+                    }
+                }
+                break;
+
+            default:
+                assert(0);
+                break;
+            }
+
+            if (b != (void *)&buf && b != v1 && b != v2)
+                pcvariant_put(b);
+        }
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE ||
+            v2->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        long double a, b, c;
+        if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+            a = *v1->ld;
+            b = purc_variant_numerify(v2);
+        }
+        else {
+            a = purc_variant_numerify(v1);
+            b = *v2->ld;
+        }
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            c = floorl(a / b);
+            break;
+
+        case OP_truediv:
+            c = a / b;
+            break;
+
+        case OP_mod:
+            c = fmodl(a, b);
+            break;
+
+        case OP_pow:
+            c = powl(a, b);
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_longdouble(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_NUMBER ||
+            v2->type == PURC_VARIANT_TYPE_NUMBER) {
+        double a, b, c;
+        if (v1->type == PURC_VARIANT_TYPE_NUMBER) {
+            a = v1->d;
+            b = purc_variant_numerify(v2);
+        }
+        else {
+            a = purc_variant_numerify(v1);
+            b = v2->d;
+        }
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            c = floor(a / b);
+            break;
+
+        case OP_truediv:
+            c = a / b;
+            break;
+
+        case OP_mod:
+            c = fmod(a, b);
+            break;
+
+        case OP_pow:
+            c = pow(a, b);
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_number(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT) {
+        int64_t a = v1->i64, b = v2->i64, c = 0;
+        double d = 0;
+        bool use_float = false;
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a / b;
+            break;
+
+        case OP_truediv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            d = 1.0 * a / b;
+            use_float = true;
+            break;
+
+        case OP_mod:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a % b;
+            break;
+
+        case OP_pow: {
+            if (b < 0) {
+                d = pow(a, b);
+                use_float = true;
+            }
+            else if (b == 0) {
+                c = 1;
+            }
+            else {
+                bool overflow;
+                c = binary_lifting_power_sbase(a, b, &overflow);
+                if (overflow) {
+                    bigint_buf base_buf, expo_buf;
+                    purc_variant_t base = bigint_set_i64(&base_buf, a);
+                    purc_variant_t expo = bigint_set_i64(&expo_buf, b);
+
+                    res = bigint_pow(base, expo);
+                    break;
+                }
+            }
+            break;
+        }
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (use_float)
+            res = purc_variant_make_number(d);
+        else
+            res = purc_variant_make_longint(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+            v2->type == PURC_VARIANT_TYPE_ULONGINT) {
+        uint64_t a = v1->u64, b = v2->u64;
+        uint64_t c = 0;
+        double d = 0;
+        bool use_float = false;
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a / b;
+            break;
+
+        case OP_truediv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            d = 1.0 * a / b;
+            use_float = true;
+            break;
+
+        case OP_mod:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a % b;
+            break;
+
+        case OP_pow:
+            if (b == 0) {
+                c = 1;
+            }
+            else {
+                bool overflow;
+                c = binary_lifting_power(a, b, &overflow);
+                if (overflow) {
+                    bigint_buf base_buf, expo_buf;
+                    purc_variant_t base = bigint_set_u64(&base_buf, a);
+                    purc_variant_t expo = bigint_set_u64(&expo_buf, b);
+
+                    res = bigint_pow(base, expo);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (use_float)
+            res = purc_variant_make_number(d);
+        else
+            res = purc_variant_make_ulongint(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT) {
+        uint64_t a = v1->u64, c = 0;
+        int64_t b = v2->i64;
+        double d = 0;
+        bool use_float = false;
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a / b;
+            break;
+
+        case OP_truediv:
+            d = 1.0 * a / b;
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            break;
+
+        case OP_mod:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a % b;
+            break;
+
+        case OP_pow:
+            if (b < 0) {
+                d = pow(a, b);
+                use_float = true;
+            }
+            else if (b == 0) {
+                c = 1;
+            }
+            else {
+                bool overflow;
+                c = binary_lifting_power(a, b, &overflow);
+                if (overflow) {
+                    bigint_buf base_buf, expo_buf;
+                    purc_variant_t base = bigint_set_u64(&base_buf, a);
+                    purc_variant_t expo = bigint_set_i64(&expo_buf, b);
+
+                    res = bigint_pow(base, expo);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (use_float)
+            res = purc_variant_make_number(d);
+        else
+            res = purc_variant_make_ulongint(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_ULONGINT) {
+        int64_t a = v1->i64;
+        uint64_t b = v2->u64, c = 0;
+        double d = 0;
+        bool use_float = false;
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a / b;
+            break;
+
+        case OP_truediv:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            d = 1.0 * a / b;
+            use_float = true;
+            break;
+
+        case OP_mod:
+            if (b == 0) {
+                pcinst_set_error(PURC_ERROR_DIVBYZERO);
+                break;
+            }
+            c = a % b;
+            break;
+
+        case OP_pow:
+            if (b == 0) {
+                c = 1;
+            }
+            else {
+                bool overflow;
+                c = binary_lifting_power_sbase(a, b, &overflow);
+                if (overflow) {
+                    bigint_buf base_buf, expo_buf;
+                    purc_variant_t base = bigint_set_i64(&base_buf, a);
+                    purc_variant_t expo = bigint_set_u64(&expo_buf, b);
+
+                    res = bigint_pow(base, expo);
+                    break;
+                }
+            }
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (use_float)
+            res = purc_variant_make_number(d);
+        else
+            res = purc_variant_make_ulongint(c);
+    }
+    else {
+        /* for any other situations */
+        double a, b, c = 0;
+        a = purc_variant_numerify(v1);
+        b = purc_variant_numerify(v2);
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            c = floor(a / b);
+            break;
+
+        case OP_truediv:
+            c = a / b;
+            break;
+
+        case OP_mod:
+            c = fmod(a, b);
+            break;
+
+        case OP_pow:
+            c = pow(a, b);
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_number(c);
+    }
+
+    return res;
+}
+
 purc_variant_t
 purc_variant_operator_add(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_add);
 }
 
 purc_variant_t
 purc_variant_operator_sub(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_sub);
 }
 
 purc_variant_t
 purc_variant_operator_mul(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_mul);
 }
 
 purc_variant_t
 purc_variant_operator_truediv(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_truediv);
 }
 
 purc_variant_t
 purc_variant_operator_floordiv(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_floordiv);
 }
 
 purc_variant_t
 purc_variant_operator_mod(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_mod);
 }
 
 purc_variant_t
 purc_variant_operator_pow(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_arithmetic_op(v1, v2, OP_pow);
 }
 
 purc_variant_t
 purc_variant_operator_invert(purc_variant_t v)
 {
+    purc_variant_t res = PURC_VARIANT_INVALID;
+
+    switch (v->type) {
+    case PURC_VARIANT_TYPE_BIGINT:
+        res = bigint_not(v);
+        break;
+
+    case PURC_VARIANT_TYPE_LONGINT:
+        res = purc_variant_make_longint(~v->i64);
+        break;
+
+    case PURC_VARIANT_TYPE_ULONGINT:
+        res = purc_variant_make_ulongint(~v->u64);
+        break;
+
+    default:
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        break;
+    }
+
+    return res;
+}
+
+static purc_variant_t
+variant_bitwise_op(purc_variant_t v1, purc_variant_t v2,
+        purc_variant_operator op)
+{
+    purc_variant_t res = PURC_VARIANT_INVALID;
+
+    if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
+            v2->type == PURC_VARIANT_TYPE_BIGINT) {
+        purc_variant_t a, b;
+        if (v1->type == PURC_VARIANT_TYPE_BIGINT) {
+            a = v1;
+            b = v2;
+        }
+        else {
+            a = v2;
+            b = v1;
+        }
+
+        bigint_buf buf;
+        switch (b->type) {
+        case PURC_VARIANT_TYPE_BIGINT:
+            break;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            b = bigint_set_i64(&buf, b->i64);
+            break;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            b = bigint_set_i64(&buf, b->u64);
+            break;
+
+        default:
+            b = PURC_VARIANT_INVALID;
+            pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+            break;
+        }
+
+        if (b) {
+            res = bigint_logic(a, b, op);
+        }
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT) {
+        int64_t a = v1->i64, b = v2->i64, c;
+
+        switch (op) {
+        case OP_and:
+            c = a & b;
+            break;
+        case OP_or:
+            c = a | b;
+            break;
+        case OP_xor:
+            c = a ^ b;
+            break;
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_longint(c);
+    }
+    else if ((v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+                v2->type == PURC_VARIANT_TYPE_ULONGINT) ||
+            (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+                v2->type == PURC_VARIANT_TYPE_LONGINT) ||
+            (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+                v2->type == PURC_VARIANT_TYPE_ULONGINT)) {
+        /* always returns ulongint */
+        uint64_t a = v1->u64, b = v2->u64, c;
+
+        switch (op) {
+        case OP_and:
+            c = a & b;
+            break;
+        case OP_or:
+            c = a | b;
+            break;
+        case OP_xor:
+            c = a ^ b;
+            break;
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_ulongint(c);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+    }
+
+    return res;
 }
 
 purc_variant_t
 purc_variant_operator_and(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_op(v1, v2, OP_and);
 }
 
 purc_variant_t
 purc_variant_operator_or(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_op(v1, v2, OP_or);
 }
 
 purc_variant_t
 purc_variant_operator_xor(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_op(v1, v2, OP_xor);
+}
+
+static purc_variant_t
+variant_shift_op(purc_variant_t v, purc_variant_t c, bool is_right)
+{
+    purc_variant_t res = PURC_VARIANT_INVALID;
+
+    uint32_t u32;
+    if (!purc_variant_cast_to_uint32(c, &u32, false)) {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+        if (is_right)
+            res = bigint_shr(v, u32);
+        else
+            res = bigint_shl(v, u32);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_ULONGINT) {
+        uint64_t u64;
+        if (is_right) {
+            u64 = v->u64 >> u32;
+        }
+        else {
+            u64 = v->u64 << u32;
+        }
+
+        res = purc_variant_make_ulongint(u64);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGINT) {
+        int64_t i64;
+        if (is_right) {
+            i64 = v->i64 >> u32;
+        }
+        else {
+            i64 = v->i64 << u32;
+        }
+
+        res = purc_variant_make_longint(i64);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+    }
+
+    return res;
 }
 
 purc_variant_t
 purc_variant_operator_lshift(purc_variant_t v, purc_variant_t c)
 {
+    return variant_shift_op(v, c, false);
 }
 
 purc_variant_t
 purc_variant_operator_rshift(purc_variant_t v, purc_variant_t c)
 {
+    return variant_shift_op(v, c, true);
 }
 
-purc_variant_t
-purc_variant_operator_index(purc_variant_t v)
-{
-}
-
-purc_variant_t
-purc_variant_operator_concat(purc_variant_t a, purc_variant_t b)
-{
-}
-
-purc_variant_t
-purc_variant_operator_contains(purc_variant_t a, purc_variant_t b)
-{
-}
-
-purc_variant_t
-purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b)
-{
-}
-
-purc_variant_t
-purc_variant_operator_setitem(purc_variant_t a, purc_variant_t b,
-        purc_variant_t c)
-{
-}
-
-purc_variant_t
-purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b)
-{
-}
-
+#if 0
 purc_variant_t
 purc_variant_operator_iadd(purc_variant_t v1, purc_variant_t v2)
 {
@@ -482,34 +1231,205 @@ purc_variant_t
 purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2)
 {
 }
+#endif
 
-purc_variant_t
+static int
+variant_bitwise_iop(purc_variant_t v1, purc_variant_t v2,
+        purc_variant_operator op)
+{
+    int ret = 0;
+
+    if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
+            v2->type == PURC_VARIANT_TYPE_BIGINT) {
+        purc_variant_t a, b;
+        if (v1->type == PURC_VARIANT_TYPE_BIGINT) {
+            a = v1;
+            b = v2;
+        }
+        else {
+            a = v2;
+            b = v1;
+        }
+
+        bigint_buf buf;
+        switch (b->type) {
+        case PURC_VARIANT_TYPE_BIGINT:
+            break;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            b = bigint_set_i64(&buf, b->i64);
+            break;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            b = bigint_set_i64(&buf, b->u64);
+            break;
+
+        default:
+            b = PURC_VARIANT_INVALID;
+            pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+            ret = -1;
+            break;
+        }
+
+        if (b) {
+            purc_variant_t res = bigint_logic(a, b, op);
+            bigint_move(a, res);
+        }
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT) {
+        switch (op) {
+        case OP_and:
+            v1->i64 &= v2->i64;
+            break;
+        case OP_or:
+            v1->i64 |= v2->i64;
+            break;
+        case OP_xor:
+            v1->i64 ^= v2->i64;
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    }
+    else if ((v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+                v2->type == PURC_VARIANT_TYPE_ULONGINT) ||
+            (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
+                v2->type == PURC_VARIANT_TYPE_LONGINT) ||
+            (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+                v2->type == PURC_VARIANT_TYPE_ULONGINT)) {
+        /* always cast to ulongint */
+        v1->type = PURC_VARIANT_TYPE_ULONGINT;
+        switch (op) {
+        case OP_and:
+            v1->u64 &= v2->u64;
+            break;
+        case OP_or:
+            v1->u64 |= v2->u64;
+            break;
+        case OP_xor:
+            v1->u64 ^= v2->u64;
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        ret = -1;
+    }
+
+    return ret;
+}
+
+int
 purc_variant_operator_iand(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_iop(v1, v2, OP_and);
 }
 
-purc_variant_t
+int
 purc_variant_operator_ior(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_iop(v1, v2, OP_or);
 }
 
-purc_variant_t
+int
 purc_variant_operator_ixor(purc_variant_t v1, purc_variant_t v2)
 {
+    return variant_bitwise_iop(v1, v2, OP_xor);
 }
 
-purc_variant_t
+static int
+variant_shift_iop(purc_variant_t v, purc_variant_t c, bool is_right)
+{
+    int res = 0;
+
+    uint32_t u32;
+    if (!purc_variant_cast_to_uint32(c, &u32, false)) {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        res = -1;
+    }
+    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+        purc_variant_t tmp;
+        if (is_right)
+            tmp = bigint_shr(v, u32);
+        else
+            tmp = bigint_shl(v, u32);
+        bigint_move(v, tmp);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_ULONGINT) {
+        if (is_right) {
+            v->u64 >>= u32;
+        }
+        else {
+            v->u64 <<= u32;
+        }
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGINT) {
+        if (is_right) {
+            v->i64 >>= u32;
+        }
+        else {
+            v->i64 <<= u32;
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        res = -1;
+    }
+
+    return res;
+}
+
+int
 purc_variant_operator_ilshift(purc_variant_t v, purc_variant_t c)
+{
+    return variant_shift_iop(v, c, false);
+}
+
+int
+purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c)
+{
+    return variant_shift_iop(v, c, true);
+}
+
+#if 0
+purc_variant_t
+purc_variant_operator_index(purc_variant_t v)
 {
 }
 
 purc_variant_t
-purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c)
+purc_variant_operator_concat(purc_variant_t a, purc_variant_t b)
 {
 }
 
 purc_variant_t
 purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b)
+{
+}
+
+purc_variant_t
+purc_variant_operator_contains(purc_variant_t a, purc_variant_t b)
+{
+}
+
+purc_variant_t
+purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b)
+{
+}
+
+purc_variant_t
+purc_variant_operator_setitem(purc_variant_t a, purc_variant_t b,
+        purc_variant_t c)
+{
+}
+
+purc_variant_t
+purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b)
 {
 }
 #endif

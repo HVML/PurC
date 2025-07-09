@@ -171,12 +171,12 @@ purc_variant_t purc_variant_make_longint (int64_t i64)
     return value;
 }
 
-purc_variant_t purc_variant_make_longdouble (long double lf)
+purc_variant_t purc_variant_make_longdouble(long double lf)
 {
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_LONGDOUBLE);
+    purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_LONGDOUBLE);
 
     if (value == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
@@ -184,9 +184,21 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->ld = lf;
+    value->ld = malloc(sizeof(long double));
+    *value->ld = lf;
 
+    pcvariant_stat_inc_extra_size(value, sizeof(long double));
     return value;
+}
+
+void pcvariant_longdouble_release(purc_variant_t val)
+{
+    if (IS_TYPE(val, PURC_VARIANT_TYPE_LONGDOUBLE)) {
+        free(val->ld);
+        pcvariant_stat_dec_extra_size(val, sizeof(long double));
+    }
+    else
+        pcinst_set_error(PCVRNT_ERROR_INVALID_TYPE);
 }
 
 purc_variant_t
