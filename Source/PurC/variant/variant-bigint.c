@@ -252,6 +252,18 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+void pcvariant_bigint_release(purc_variant_t v)
+{
+    if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        assert(v->ptr);
+        struct bigint_limbs *limbs = v->ptr;
+        size_t sz_extra = sizeof(struct bigint_limbs);
+        sz_extra += sizeof(bi_limb_t) * limbs->len;
+        pcvariant_stat_dec_extra_size(v, sz_extra);
+        free(v->ptr);
+    }
+}
+
 static void bigint_free(purc_variant_t v)
 {
     pcvariant_put(v);
@@ -1729,14 +1741,6 @@ ssize_t bigint_stringify(const purc_variant_t val, int radix,
             sz = -1;
         free(buf);
         return sz;
-    }
-}
-
-void pcvariant_bigint_release(purc_variant_t v)
-{
-    if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-        assert(v->ptr);
-        free(v->ptr);
     }
 }
 

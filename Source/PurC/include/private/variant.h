@@ -42,10 +42,23 @@ PCA_EXTERN_C_BEGIN
 #define PCVRNT_FLAG_STATIC_DATA     (0x01 << 2)  // make_string_static
 
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
-#define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
-                        t == PURC_VARIANT_TYPE_ARRAY || \
-                        t == PURC_VARIANT_TYPE_SET || \
-                        t == PURC_VARIANT_TYPE_TUPLE)
+
+#define IS_SCALAR(t)    (t <= PURC_VARIANT_TYPE_LAST_SCALAR)
+
+#define IS_NUMBER(t)    (t == PURC_VARIANT_TYPE_BOOLEAN ||      \
+                         t == PURC_VARIANT_TYPE_NUMBER ||       \
+                         t == PURC_VARIANT_TYPE_LONGINT ||      \
+                         t == PURC_VARIANT_TYPE_ULONGINT ||     \
+                         t == PURC_VARIANT_TYPE_LONGDOUBLE ||   \
+                         t == PURC_VARIANT_TYPE_BIGINT)
+
+#define IS_SEQUENCE(t)  (t == PURC_VARIANT_TYPE_STRING ||       \
+                         t == PURC_VARIANT_TYPE_BSEQUENCE)
+
+#define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT ||       \
+                         t == PURC_VARIANT_TYPE_ARRAY ||        \
+                         t == PURC_VARIANT_TYPE_SET ||          \
+                         t == PURC_VARIANT_TYPE_TUPLE)
 
 #ifndef NDEBUG
 // VW (NOTE): use 0 for easy finding memory leaks.

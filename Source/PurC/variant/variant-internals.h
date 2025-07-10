@@ -85,6 +85,13 @@ void pcvariant_set_release     (purc_variant_t value)       WTF_INTERNAL;
 void pcvariant_tuple_release   (purc_variant_t value)       WTF_INTERNAL;
 void pcvariant_sorted_array_release(purc_variant_t value)   WTF_INTERNAL;
 
+// move content between scalar variants
+void pcvariant_move_scalar(purc_variant_t to, purc_variant_t from)
+    WTF_INTERNAL;
+// move content between sequence variants
+void pcvariant_move_sequence(purc_variant_t to, purc_variant_t from)
+    WTF_INTERNAL;
+
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;
 variant_obj_t

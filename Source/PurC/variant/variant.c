@@ -4260,11 +4260,14 @@ purc_variant_get_memory_size(purc_variant_t v)
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+            memsize = sizeof(purc_variant_scalar);
+            memsize += sizeof(long double);
             break;
 
         case PURC_VARIANT_TYPE_BIGINT:
+            memsize = sizeof(purc_variant_scalar);
             if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
-                memsize += v->extra_size;
+                memsize += bigint_extra_size(v);
             }
             break;
 
@@ -4305,5 +4308,59 @@ purc_variant_get_memory_size(purc_variant_t v)
     }
 
     return memsize;
+}
+
+void pcvariant_move_scalar(purc_variant_t to, purc_variant_t from)
+{
+    assert(IS_SCALAR(to->type) && IS_SCALAR(from->type));
+
+    assert(from->refc == 1);
+
+    if (to->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        pcvariant_longdouble_release(to);
+    }
+    else if (to->type == PURC_VARIANT_TYPE_BIGINT) {
+        pcvariant_bigint_release(to);
+    }
+
+    to->type = from->type;
+    to->flags = from->flags;
+    to->size = from->size;
+    // keep to->refc unchanged.
+    to->ptr = from->ptr;
+
+    from->type = PURC_VARIANT_TYPE_UNDEFINED;
+    pcvariant_put(from);
+}
+
+void pcvariant_move_sequence(purc_variant_t to, purc_variant_t from)
+{
+    assert(IS_SEQUENCE(to->type) && IS_SEQUENCE(from->type));
+
+    assert(from->refc == 1);
+
+    if (to->type == PURC_VARIANT_TYPE_STRING) {
+        pcvariant_string_release(to);
+    }
+    else if (to->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+        pcvariant_sequence_release(to);
+    }
+
+    to->type = from->type;
+    to->flags = from->flags;
+    to->size = from->size;
+    // keep to->refc unchanged.
+
+    if (from->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        to->len = from->len;
+        to->extra_size = from->extra_size;
+        to->ptr2 = from->ptr2;
+    }
+    else {
+        memcpy(to->bytes, from->bytes, to->size);
+    }
+
+    from->type = PURC_VARIANT_TYPE_UNDEFINED;
+    pcvariant_put(from);
 }
 

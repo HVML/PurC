@@ -158,6 +158,7 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_BIGINT:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
@@ -203,6 +204,7 @@ nr_children_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_BIGINT:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
@@ -538,6 +540,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
         case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_BIGINT:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
             n = purc_variant_stringify_buff(buff_in_stack, sizeof(buff_in_stack),

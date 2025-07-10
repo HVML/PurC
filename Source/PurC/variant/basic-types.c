@@ -193,12 +193,9 @@ purc_variant_t purc_variant_make_longdouble(long double lf)
 
 void pcvariant_longdouble_release(purc_variant_t val)
 {
-    if (IS_TYPE(val, PURC_VARIANT_TYPE_LONGDOUBLE)) {
-        free(val->ld);
-        pcvariant_stat_dec_extra_size(val, sizeof(long double));
-    }
-    else
-        pcinst_set_error(PCVRNT_ERROR_INVALID_TYPE);
+    assert(val->type == PURC_VARIANT_TYPE_LONGDOUBLE);
+    pcvariant_stat_dec_extra_size(val, sizeof(long double));
+    free(val->ld);
 }
 
 purc_variant_t

@@ -1,5 +1,5 @@
 /*
- * @file serializer.c
+ * @file operators.c
  * @author Vincent Wei
  * @date 2025/07/09
  * @brief The operators of variant.
@@ -387,10 +387,10 @@ binary_lifting_power_sbase(int64_t base, uint64_t exponent, bool *overflow)
 
     if (base >= 0) {
         res = binary_lifting_power(base, exponent, overflow);
-        if (res > INT64_MAX) {
+        if ((!*overflow) && res > INT64_MAX) {
             *overflow = true;
         }
-        else {
+        else if (!*overflow) {
             ans = res;
         }
     }
@@ -414,9 +414,123 @@ static purc_variant_t
 variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         purc_variant_operator op)
 {
+    int ec = PURC_ERROR_OK;
     purc_variant_t res = PURC_VARIANT_INVALID;
 
-    if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
+    if (!IS_NUMBER(v1->type) || !IS_NUMBER(v2->type)) {
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto done;
+    }
+
+    if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE ||
+            v2->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        long double a, b, c;
+        if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+            a = *v1->ld;
+            if (!purc_variant_cast_to_longdouble(v2, &b, false)) {
+                ec = PURC_ERROR_INVALID_OPERAND;
+                goto done;
+            }
+        }
+        else {
+            if (!purc_variant_cast_to_longdouble(v1, &a, false)) {
+                ec = PURC_ERROR_INVALID_OPERAND;
+                goto done;
+            }
+            b = *v2->ld;
+        }
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            c = floorl(a / b);
+            break;
+
+        case OP_truediv:
+            c = a / b;
+            break;
+
+        case OP_mod:
+            c = fmodl(a, b);
+            break;
+
+        case OP_pow:
+            c = powl(a, b);
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_longdouble(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_NUMBER ||
+            v2->type == PURC_VARIANT_TYPE_NUMBER) {
+        double a, b, c;
+        if (v1->type == PURC_VARIANT_TYPE_NUMBER) {
+            a = v1->d;
+            if (!purc_variant_cast_to_number(v2, &b, false)) {
+                ec = PURC_ERROR_INVALID_OPERAND;
+                goto done;
+            }
+        }
+        else {
+            if (!purc_variant_cast_to_number(v1, &a, false)) {
+                ec = PURC_ERROR_INVALID_OPERAND;
+                goto done;
+            }
+            b = v2->d;
+        }
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            break;
+
+        case OP_floordiv:
+            c = floor(a / b);
+            break;
+
+        case OP_truediv:
+            c = a / b;
+            break;
+
+        case OP_mod:
+            c = fmod(a, b);
+            break;
+
+        case OP_pow:
+            c = pow(a, b);
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        res = purc_variant_make_number(c);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_BIGINT ||
             v2->type == PURC_VARIANT_TYPE_BIGINT) {
         purc_variant_t a, b;
         if (v1->type == PURC_VARIANT_TYPE_BIGINT) {
@@ -438,19 +552,11 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         case PURC_VARIANT_TYPE_ULONGINT:
-            b = bigint_set_i64(&buf, b->u64);
-            break;
-
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            b = purc_variant_make_bigint_from_f64((double)*b->ld);
-            break;
-
-        case PURC_VARIANT_TYPE_NUMBER:
-            b = purc_variant_make_bigint_from_f64((double)b->d);
+            b = bigint_set_u64(&buf, b->u64);
             break;
 
         default:
-            b = purc_variant_make_bigint_from_f64(purc_variant_numerify(b));
+            assert(0);  // never be here.
             break;
         }
 
@@ -518,102 +624,6 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
                 pcvariant_put(b);
         }
     }
-    else if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE ||
-            v2->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
-        long double a, b, c;
-        if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
-            a = *v1->ld;
-            b = purc_variant_numerify(v2);
-        }
-        else {
-            a = purc_variant_numerify(v1);
-            b = *v2->ld;
-        }
-
-        switch (op) {
-        case OP_add:
-            c = a + b;
-            break;
-
-        case OP_sub:
-            c = a - b;
-            break;
-
-        case OP_mul:
-            c = a * b;
-            break;
-
-        case OP_floordiv:
-            c = floorl(a / b);
-            break;
-
-        case OP_truediv:
-            c = a / b;
-            break;
-
-        case OP_mod:
-            c = fmodl(a, b);
-            break;
-
-        case OP_pow:
-            c = powl(a, b);
-            break;
-
-        default:
-            assert(0);
-            break;
-        }
-
-        res = purc_variant_make_longdouble(c);
-    }
-    else if (v1->type == PURC_VARIANT_TYPE_NUMBER ||
-            v2->type == PURC_VARIANT_TYPE_NUMBER) {
-        double a, b, c;
-        if (v1->type == PURC_VARIANT_TYPE_NUMBER) {
-            a = v1->d;
-            b = purc_variant_numerify(v2);
-        }
-        else {
-            a = purc_variant_numerify(v1);
-            b = v2->d;
-        }
-
-        switch (op) {
-        case OP_add:
-            c = a + b;
-            break;
-
-        case OP_sub:
-            c = a - b;
-            break;
-
-        case OP_mul:
-            c = a * b;
-            break;
-
-        case OP_floordiv:
-            c = floor(a / b);
-            break;
-
-        case OP_truediv:
-            c = a / b;
-            break;
-
-        case OP_mod:
-            c = fmod(a, b);
-            break;
-
-        case OP_pow:
-            c = pow(a, b);
-            break;
-
-        default:
-            assert(0);
-            break;
-        }
-
-        res = purc_variant_make_number(c);
-    }
     else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
             v2->type == PURC_VARIANT_TYPE_LONGINT) {
         int64_t a = v1->i64, b = v2->i64, c = 0;
@@ -631,20 +641,28 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         case OP_mul:
             c = a * b;
+            if (a && (c / a != b)) {
+                // overflowed
+                bigint_buf a_buf, b_buf;
+                purc_variant_t big_a = bigint_set_i64(&a_buf, a);
+                purc_variant_t big_b = bigint_set_i64(&b_buf, b);
+                res = bigint_mul(big_a, big_b);
+                goto done;
+            }
             break;
 
         case OP_floordiv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a / b;
             break;
 
         case OP_truediv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             d = 1.0 * a / b;
             use_float = true;
@@ -652,8 +670,8 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         case OP_mod:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a % b;
             break;
@@ -675,7 +693,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
                     purc_variant_t expo = bigint_set_i64(&expo_buf, b);
 
                     res = bigint_pow(base, expo);
-                    break;
+                    goto done;
                 }
             }
             break;
@@ -709,20 +727,28 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         case OP_mul:
             c = a * b;
+            if (a && (c / a != b)) {
+                // overflowed
+                bigint_buf a_buf, b_buf;
+                purc_variant_t big_a = bigint_set_u64(&a_buf, a);
+                purc_variant_t big_b = bigint_set_u64(&b_buf, b);
+                res = bigint_mul(big_a, big_b);
+                goto done;
+            }
             break;
 
         case OP_floordiv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a / b;
             break;
 
         case OP_truediv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             d = 1.0 * a / b;
             use_float = true;
@@ -730,8 +756,8 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         case OP_mod:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a % b;
             break;
@@ -749,7 +775,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
                     purc_variant_t expo = bigint_set_u64(&expo_buf, b);
 
                     res = bigint_pow(base, expo);
-                    break;
+                    goto done;
                 }
             }
             break;
@@ -781,13 +807,26 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         case OP_mul:
-            c = a * b;
+            if (a == 0 || b == 0) {
+                c = 0;
+            }
+            else if (b > 0 && (a * v2->u64) / a == v2->u64) {
+                c = a * b;
+            }
+            else {
+                // cast to bigint
+                bigint_buf a_buf, b_buf;
+                purc_variant_t big_a = bigint_set_u64(&a_buf, a);
+                purc_variant_t big_b = bigint_set_i64(&b_buf, b);
+                res = bigint_mul(big_a, big_b);
+                goto done;
+            }
             break;
 
         case OP_floordiv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a / b;
             break;
@@ -795,15 +834,15 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         case OP_truediv:
             d = 1.0 * a / b;
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             break;
 
         case OP_mod:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a % b;
             break;
@@ -857,21 +896,34 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         case OP_mul:
-            c = a * b;
+            if (a == 0 || b == 0) {
+                c = 0;
+            }
+            else if (a > 0 && (v1->u64 * b) / v1->u64 == b) {
+                c = a * b;
+            }
+            else {
+                // overflowed
+                bigint_buf a_buf, b_buf;
+                purc_variant_t big_a = bigint_set_i64(&a_buf, a);
+                purc_variant_t big_b = bigint_set_u64(&b_buf, b);
+                res = bigint_mul(big_a, big_b);
+                goto done;
+            }
             break;
 
         case OP_floordiv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a / b;
             break;
 
         case OP_truediv:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             d = 1.0 * a / b;
             use_float = true;
@@ -879,8 +931,8 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         case OP_mod:
             if (b == 0) {
-                pcinst_set_error(PURC_ERROR_DIVBYZERO);
-                break;
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
             }
             c = a % b;
             break;
@@ -956,6 +1008,9 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         res = purc_variant_make_number(c);
     }
 
+done:
+    if (ec)
+        pcinst_set_error(ec);
     return res;
 }
 
@@ -1196,42 +1251,89 @@ purc_variant_operator_rshift(purc_variant_t v, purc_variant_t c)
     return variant_shift_op(v, c, true);
 }
 
-#if 0
-purc_variant_t
+int
 purc_variant_operator_iadd(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_add);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_isub(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_sub);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_imul(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_mul);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_itruediv(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_truediv);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_ifloordiv(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_floordiv);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_imod(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_mod);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
 
-purc_variant_t
+int
 purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2)
 {
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_mod);
+    if (res) {
+        pcvariant_move_scalar(v1, res);
+        return 0;
+    }
+
+    return -1;
 }
-#endif
 
 static int
 variant_bitwise_iop(purc_variant_t v1, purc_variant_t v2,
@@ -1261,7 +1363,7 @@ variant_bitwise_iop(purc_variant_t v1, purc_variant_t v2,
             break;
 
         case PURC_VARIANT_TYPE_ULONGINT:
-            b = bigint_set_i64(&buf, b->u64);
+            b = bigint_set_u64(&buf, b->u64);
             break;
 
         default:
@@ -1396,19 +1498,76 @@ purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c)
     return variant_shift_iop(v, c, true);
 }
 
-#if 0
-purc_variant_t
-purc_variant_operator_index(purc_variant_t v)
-{
-}
-
 purc_variant_t
 purc_variant_operator_concat(purc_variant_t a, purc_variant_t b)
 {
+    purc_variant_t res = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    const char *str_a, *str_b;
+    size_t len_a, len_b;
+    str_a = purc_variant_get_string_const_ex(a, &len_a);
+    str_b = purc_variant_get_string_const_ex(b, &len_b);
+
+    if (str_a && str_b) {
+        size_t sz_buf = len_a + len_b + 1;
+        char *buf = malloc(sz_buf);
+        if (buf == NULL) {
+            ec = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
+        memcpy(buf, str_a, len_a);
+        memcpy(buf + len_a, str_b, len_b);
+        buf[len_a + len_b] = 0;
+        res = purc_variant_make_string_reuse_buff(buf, sz_buf, false);
+    }
+    else {
+        const unsigned char *bytes_a, *bytes_b;
+        bytes_a = purc_variant_get_bytes_const(a, &len_a);
+        bytes_b = purc_variant_get_bytes_const(b, &len_b);
+        if (bytes_a && bytes_b) {
+            size_t sz_buf = len_a + len_b;
+            char *buf = malloc(sz_buf);
+            if (buf == NULL) {
+                ec = PURC_ERROR_OUT_OF_MEMORY;
+                goto failed;
+            }
+            memcpy(buf, bytes_a, len_a);
+            memcpy(buf + len_a, bytes_b, len_b);
+            res = purc_variant_make_byte_sequence_reuse_buff(
+                    buf, sz_buf, sz_buf);
+        }
+        else {
+            ec = PURC_ERROR_INVALID_OPERAND;
+        }
+    }
+
+failed:
+    if (ec)
+        pcinst_set_error(ec);
+    return res;
 }
 
-purc_variant_t
+int
 purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b)
+{
+    if (!IS_SEQUENCE(a->type)) {
+        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        return -1;
+    }
+
+    purc_variant_t res = purc_variant_operator_concat(a, b);
+    if (res) {
+        pcvariant_move_sequence(a, res);
+        return 0;
+    }
+
+    return -1;
+}
+
+#if 0
+purc_variant_t
+purc_variant_operator_index(purc_variant_t v)
 {
 }
 

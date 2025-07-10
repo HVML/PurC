@@ -143,10 +143,10 @@ move_variant_in(struct pcinst *inst, purc_variant_t v)
         sz_extra = v->extra_size;
     }
     else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
-        size_t sz_extra = sizeof(long double);
+        sz_extra = sizeof(long double);
     }
     else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
-        size_t sz_extra = bigint_extra_size(v);
+        sz_extra = bigint_extra_size(v);
     }
 
     if (sz_extra) {
