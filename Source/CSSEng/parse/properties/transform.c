@@ -25,10 +25,10 @@ css_error css__parse_transform_impl(css_language *c,
     lwc_string * trans = NULL;
     size_t num;
     uint32_t trans_snumber;
-    int i;
+    size_t i;
     
     num = 0;
-    parserutils_vector_get_length(vector,&num);
+    parserutils_vector_get_length((parserutils_vector *)vector,&num);
     
     memset(buff,0,sizeof(buff));
     for (i = 0; i < num; i++) {
