@@ -427,6 +427,9 @@ purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a) WTF_INTERNAL;
 void bigint_dump(FILE *fp, const char *prefx, purc_variant *p) WTF_INTERNAL;
 int64_t bigint_get_si_sat(const purc_variant *a) WTF_INTERNAL;
 
+size_t bigint_extra_size(const struct purc_variant *v) WTF_INTERNAL;
+size_t bigint_clone_limbs(struct purc_variant *wrapper,
+        const struct purc_variant *from) WTF_INTERNAL;
 purc_variant_t bigint_clone(const struct purc_variant *a) WTF_INTERNAL;
 void bigint_move(struct purc_variant *to, struct purc_variant *from)
     WTF_INTERNAL;

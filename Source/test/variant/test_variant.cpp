@@ -1668,7 +1668,7 @@ TEST(variant, pcvariant_bigint) {
                 value = purc_variant_make_bigint_from_f64(test_case.input.f64_val);
                 break;
             case BigIntTestCase::FROM_STR:
-                value = purc_variant_make_bigint_from_string(test_case.input.str_val.str, 
+                value = purc_variant_make_bigint_from_string(test_case.input.str_val.str,
                         &end, test_case.input.str_val.base);
                 ASSERT_EQ(*end, '\0');  // Ensure entire string was parsed
                 break;

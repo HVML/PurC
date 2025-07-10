@@ -137,7 +137,7 @@ purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
 static void bigint_set_len(purc_variant *val, size_t len)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
-    if (val->size > NR_LIMBS_IN_WRAPPER) {
+    if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
         struct bigint_limbs *limbs = val->ptr;
         assert(len <= limbs->len);
         limbs->len = len;
@@ -151,7 +151,7 @@ static void bigint_set_len(purc_variant *val, size_t len)
 static size_t bigint_get_len(const purc_variant *val)
 {
     assert(val->type == PURC_VARIANT_TYPE_BIGINT);
-    if (val->size > NR_LIMBS_IN_WRAPPER) {
+    if (val->flags & PCVRNT_FLAG_EXTRA_SIZE) {
         struct bigint_limbs *limbs = val->ptr;
         return limbs->len;
     }
@@ -234,6 +234,7 @@ static purc_variant_t bigint_new(int nr_limbs)
         struct bigint_limbs *limbs = malloc(sz_extra);
         if (limbs == NULL)
             goto failed;
+        limbs->len = nr_limbs;
 
         v->size = 0;
         v->flags = PCVRNT_FLAG_EXTRA_SIZE;
@@ -254,6 +255,40 @@ failed:
 static void bigint_free(purc_variant_t v)
 {
     pcvariant_put(v);
+}
+
+size_t bigint_extra_size(const struct purc_variant *v)
+{
+    size_t sz_extra;
+
+    if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+        struct bigint_limbs *limbs = v->ptr;
+
+        sz_extra = sizeof(struct bigint_limbs);
+        sz_extra += sizeof(bi_limb_t) * limbs->len;
+    }
+    else {
+        sz_extra = 0;
+    }
+
+    return sz_extra;
+}
+
+size_t bigint_clone_limbs(struct purc_variant *wrapper,
+        const struct purc_variant *from)
+{
+    size_t sz_extra = bigint_extra_size(from);
+    if (sz_extra) {
+        wrapper->ptr = malloc(sz_extra);
+        memcpy(wrapper->ptr, from->ptr, sz_extra);
+        wrapper->flags = PCVRNT_FLAG_EXTRA_SIZE;
+        wrapper->size = 0;
+    }
+    else {
+        wrapper->ptr = from->ptr;
+    }
+
+    return sz_extra;
 }
 
 purc_variant_t bigint_clone(const struct purc_variant *a)

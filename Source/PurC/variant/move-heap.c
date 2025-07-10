@@ -135,16 +135,25 @@ static void
 move_variant_in(struct pcinst *inst, purc_variant_t v)
 {
     /* move directly and change the stat info */
-
+    size_t sz_extra = 0;
     if (IS_CONTAINER(v->type) ||
             ((v->type == PURC_VARIANT_TYPE_STRING ||
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
             (v->flags & PCVRNT_FLAG_EXTRA_SIZE))) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] -= v->extra_size;
-        inst->org_vrt_heap->stat.sz_total_mem -= v->extra_size;
+        sz_extra = v->extra_size;
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        size_t sz_extra = sizeof(long double);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+        size_t sz_extra = bigint_extra_size(v);
+    }
 
-        move_heap.stat.sz_mem[v->type] += v->extra_size;
-        move_heap.stat.sz_total_mem += v->extra_size;
+    if (sz_extra) {
+        inst->org_vrt_heap->stat.sz_mem[v->type] -= sz_extra;
+        inst->org_vrt_heap->stat.sz_total_mem -= sz_extra;
+        move_heap.stat.sz_mem[v->type] += sz_extra;
+        move_heap.stat.sz_total_mem += sz_extra;
     }
 
     inst->org_vrt_heap->stat.nr_values[v->type]--;
@@ -198,7 +207,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         move_variant_in(inst, v);
     }
     else {
-        // clone the immutable variant
+        // clone the scalar variant
         PC_NONE("Clone a variant type %s (%u): %s (%lu/%lu)\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
@@ -214,16 +223,27 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         memcpy(retv, v, sz_wrapper);
         retv->refc = 1;
 
+        size_t sz_extra = 0;
         /* copy the extra space */
-        if ((v->type == PURC_VARIANT_TYPE_STRING ||
+        if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+            sz_extra = sizeof(long double);
+            retv->ld = malloc(sz_extra);
+            *retv->ld = *v->ld;
+        }
+        else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+            sz_extra = bigint_clone_limbs(retv, v);
+        }
+        else if ((v->type == PURC_VARIANT_TYPE_STRING ||
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
                 (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
+            sz_extra = v->extra_size;
+            retv->ptr2 = malloc(sz_extra);
+            memcpy(retv->ptr2, v->ptr2, sz_extra);
+        }
 
-            retv->ptr2 = malloc(v->extra_size);
-            memcpy(retv->ptr2, v->ptr2, v->extra_size);
-
-            move_heap.stat.sz_mem[v->type] += v->extra_size;
-            move_heap.stat.sz_total_mem += v->extra_size;
+        if (sz_extra) {
+            move_heap.stat.sz_mem[v->type] += sz_extra;
+            move_heap.stat.sz_total_mem += sz_extra;
         }
 
         move_heap.stat.nr_values[v->type]++;
@@ -275,7 +295,7 @@ move_keys_in_cloned_array(struct travel_context *ctxt, purc_variant_t arr)
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -351,7 +371,7 @@ move_keys_in_cloned_set(struct travel_context *ctxt, purc_variant_t set)
             break;
 
         default:
-            // immutable element
+            // scalar and sequece element
             break;
         }
 
@@ -389,7 +409,7 @@ move_keys_in_cloned_tuple(struct travel_context *ctxt, purc_variant_t arr)
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -473,7 +493,7 @@ move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -529,7 +549,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -597,7 +617,7 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -656,7 +676,7 @@ move_or_clone_mutable_descendants_in_tuple(struct travel_context *ctxt,
             break;
 
         default:
-            // immutable element
+            // scalar and sequence element
             break;
         }
 
@@ -981,7 +1001,8 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
         purc_variant_unref(v);
     }
 
-    // the cloned immutable descendants will be unreferenced in cb_free_element
+    // the cloned scalar and sequence descendants will be unreferenced
+    // in cb_free_element
     pcutils_arrlist_free(ctxt.vrts_to_unref);
 
     return retv;
@@ -1187,6 +1208,7 @@ static purc_variant_t move_variant_out(purc_variant_t v)
 {
     purc_variant_t retv = v;
     struct pcinst *inst = pcinst_current();
+    size_t sz_extra = 0;
 
     if (v == (purc_variant_t)&move_heap.v_undefined) {
         retv = (purc_variant_t)&inst->org_vrt_heap->v_undefined;
@@ -1212,21 +1234,19 @@ static purc_variant_t move_variant_out(purc_variant_t v)
         retv->refc++;
         return retv;
     }
+    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        sz_extra = sizeof(long double);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+        sz_extra = bigint_extra_size(v);
+    }
     else if ((v->type == PURC_VARIANT_TYPE_STRING ||
                   v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
                  (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] += v->extra_size;
-        inst->org_vrt_heap->stat.sz_total_mem += v->extra_size;
-
-        move_heap.stat.sz_mem[v->type] -= v->extra_size;
-        move_heap.stat.sz_total_mem -= v->extra_size;
+        sz_extra = v->extra_size;
     }
     else if (IS_CONTAINER(v->type)) {
-        inst->org_vrt_heap->stat.sz_mem[v->type] += v->extra_size;
-        inst->org_vrt_heap->stat.sz_total_mem += v->extra_size;
-
-        move_heap.stat.sz_mem[v->type] -= v->extra_size;
-        move_heap.stat.sz_total_mem -= v->extra_size;
+        sz_extra = v->extra_size;
 
         if (v->type == PURC_VARIANT_TYPE_ARRAY) {
             retv = move_array_descendants_out(v);
@@ -1240,6 +1260,14 @@ static purc_variant_t move_variant_out(purc_variant_t v)
         else if (v->type == PURC_VARIANT_TYPE_TUPLE) {
             retv = move_tuple_descendants_out(v);
         }
+    }
+
+    if (sz_extra) {
+        inst->org_vrt_heap->stat.sz_mem[v->type] += sz_extra;
+        inst->org_vrt_heap->stat.sz_total_mem += sz_extra;
+
+        move_heap.stat.sz_mem[v->type] -= sz_extra;
+        move_heap.stat.sz_total_mem -= sz_extra;
     }
 
     inst->org_vrt_heap->stat.nr_values[v->type]++;
