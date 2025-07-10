@@ -410,6 +410,66 @@ binary_lifting_power_sbase(int64_t base, uint64_t exponent, bool *overflow)
     return ans;
 }
 
+#if !HAVE(INT128_T)
+#   error Unsupported
+#endif
+
+static purc_variant_t
+variant_arithmetic_op_as_bigint(purc_variant_t v1, purc_variant_t v2,
+        purc_variant_operator op)
+{
+    bigint_buf a_buf, b_buf;
+    purc_variant_t a, b;
+    if (v1->type == PURC_VARIANT_TYPE_ULONGINT)
+        a = bigint_set_u64(&a_buf, v1->u64);
+    else
+        a = bigint_set_i64(&a_buf, v1->i64);
+
+    if (v2->type == PURC_VARIANT_TYPE_ULONGINT)
+        b = bigint_set_u64(&b_buf, v2->u64);
+    else
+        b = bigint_set_i64(&b_buf, v2->i64);
+
+    purc_variant_t res = PURC_VARIANT_INVALID;
+
+    switch (op) {
+    case OP_add:
+        res = bigint_add(a, b, 0);
+        break;
+
+    case OP_sub:
+        res = bigint_add(a, b, 1);
+        break;
+
+    case OP_mul:
+        res = bigint_mul(a, b);
+        break;
+
+    case OP_floordiv:
+        res = bigint_divrem(a, b, false);
+        break;
+
+    case OP_truediv:
+        assert(0);
+        break;
+
+    case OP_mod:
+        res = bigint_divrem(a, b, true);
+        break;
+
+    case OP_pow:
+        assert(bigint_sign(b) == 0);
+        res = bigint_pow(a, b);
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    return res;
+}
+
 static purc_variant_t
 variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         purc_variant_operator op)
@@ -578,12 +638,23 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
                 break;
 
             case OP_floordiv:
-            case OP_truediv:
                 if (a == v1)
                     res = bigint_divrem(a, b, false);
                 else
                     res = bigint_divrem(b, a, false);
                 break;
+
+            case OP_truediv: {
+                double f_a = bigint_to_float64(a);
+                double f_b = bigint_to_float64(b);
+                double f_c;
+                if (a == v1)
+                    f_c = f_a / f_b;
+                else
+                    f_c = f_b / f_a;
+                res = purc_variant_make_number(f_c);
+                break;
+            }
 
             case OP_mod:
                 if (a == v1)
@@ -624,30 +695,130 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
                 pcvariant_put(b);
         }
     }
-    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
-            v2->type == PURC_VARIANT_TYPE_LONGINT) {
-        int64_t a = v1->i64, b = v2->i64, c = 0;
+    else if (v1->type == PURC_VARIANT_TYPE_ULONGINT ||
+            v2->type == PURC_VARIANT_TYPE_ULONGINT) {
+        int128_t a, b, c;
+        if (v1->type == PURC_VARIANT_TYPE_ULONGINT)
+            a = v1->u64;
+        else
+            a = v1->i64;
+
+        if (v2->type == PURC_VARIANT_TYPE_ULONGINT)
+            b = v2->u64;
+        else
+            b = v2->i64;
+
         double d = 0;
-        bool use_float = false;
+        bool use_float = false, overflow = false;
 
         switch (op) {
         case OP_add:
             c = a + b;
+            if (c < INT64_MAX || c > UINT64_MAX)
+                overflow = true;
             break;
 
         case OP_sub:
             c = a - b;
+            if (c < INT64_MAX || c > UINT64_MAX)
+                overflow = true;
+            break;
+
+        case OP_mul:
+            c = a * b;
+            if (a && (c / a != b))
+                overflow = true;
+            break;
+
+        case OP_floordiv:
+            if (b == 0) {
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
+            }
+            c = a / b;
+            break;
+
+        case OP_truediv:
+            if (b == 0) {
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
+            }
+            d = 1.0 * a / b;
+            use_float = true;
+            break;
+
+        case OP_mod:
+            if (b == 0) {
+                ec = PURC_ERROR_DIVBYZERO;
+                goto done;
+            }
+            c = a % b;
+            break;
+
+        case OP_pow: {
+            if (v2->i64 == 0) {
+                c = 1;
+            }
+            else if (v2->type == PURC_VARIANT_TYPE_LONGINT && v2->i64 < 0) {
+                double base;
+                if (v1->type == PURC_VARIANT_TYPE_ULONGINT)
+                    base = v1->u64;
+                else
+                    base = v1->i64;
+
+                d = pow(base, v2->i64);
+                use_float = true;
+            }
+            else {
+                if (v1->type == PURC_VARIANT_TYPE_ULONGINT)
+                    c = binary_lifting_power(v1->u64, (uint64_t)v2->i64,
+                            &overflow);
+                else
+                    c = binary_lifting_power_sbase(v1->i64, (uint64_t)v2->i64,
+                            &overflow);
+            }
+            break;
+        }
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (use_float)
+            res = purc_variant_make_number(d);
+        else if (overflow)
+            res = variant_arithmetic_op_as_bigint(v1, v2, op);
+        else if (c < 0)
+            res = purc_variant_make_longint((int64_t)c);
+        else
+            res = purc_variant_make_ulongint((uint64_t)c);
+    }
+    else {
+        assert(v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT);
+
+        int128_t a = v1->i64, b = v2->i64, c = 0;
+        double d = 0;
+        bool use_float = false, overflow = false;
+
+        switch (op) {
+        case OP_add:
+            c = a + b;
+            if (c < INT64_MAX || c > INT64_MAX)
+                overflow = true;
+            break;
+
+        case OP_sub:
+            c = a - b;
+            if (c < INT64_MAX || c > INT64_MAX)
+                overflow = true;
             break;
 
         case OP_mul:
             c = a * b;
             if (a && (c / a != b)) {
-                // overflowed
-                bigint_buf a_buf, b_buf;
-                purc_variant_t big_a = bigint_set_i64(&a_buf, a);
-                purc_variant_t big_b = bigint_set_i64(&b_buf, b);
-                res = bigint_mul(big_a, big_b);
-                goto done;
+                overflow = true;
             }
             break;
 
@@ -677,24 +848,16 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         case OP_pow: {
-            if (b < 0) {
-                d = pow(a, b);
+            if (b == 0) {
+                c = 1;
+            }
+            else if (b < 0) {
+                d = pow(v1->i64, v2->i64);
                 use_float = true;
             }
-            else if (b == 0) {
-                c = 1;
-            }
             else {
-                bool overflow;
-                c = binary_lifting_power_sbase(a, b, &overflow);
-                if (overflow) {
-                    bigint_buf base_buf, expo_buf;
-                    purc_variant_t base = bigint_set_i64(&base_buf, a);
-                    purc_variant_t expo = bigint_set_i64(&expo_buf, b);
-
-                    res = bigint_pow(base, expo);
-                    goto done;
-                }
+                c = binary_lifting_power_sbase(v2->i64, (uint64_t)v2->i64,
+                        &overflow);
             }
             break;
         }
@@ -706,265 +869,12 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         if (use_float)
             res = purc_variant_make_number(d);
+        else if (overflow)
+            res = variant_arithmetic_op_as_bigint(v1, v2, op);
         else
-            res = purc_variant_make_longint(c);
+            res = purc_variant_make_longint((int64_t)c);
     }
-    else if (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
-            v2->type == PURC_VARIANT_TYPE_ULONGINT) {
-        uint64_t a = v1->u64, b = v2->u64;
-        uint64_t c = 0;
-        double d = 0;
-        bool use_float = false;
-
-        switch (op) {
-        case OP_add:
-            c = a + b;
-            break;
-
-        case OP_sub:
-            c = a - b;
-            break;
-
-        case OP_mul:
-            c = a * b;
-            if (a && (c / a != b)) {
-                // overflowed
-                bigint_buf a_buf, b_buf;
-                purc_variant_t big_a = bigint_set_u64(&a_buf, a);
-                purc_variant_t big_b = bigint_set_u64(&b_buf, b);
-                res = bigint_mul(big_a, big_b);
-                goto done;
-            }
-            break;
-
-        case OP_floordiv:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a / b;
-            break;
-
-        case OP_truediv:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            d = 1.0 * a / b;
-            use_float = true;
-            break;
-
-        case OP_mod:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a % b;
-            break;
-
-        case OP_pow:
-            if (b == 0) {
-                c = 1;
-            }
-            else {
-                bool overflow;
-                c = binary_lifting_power(a, b, &overflow);
-                if (overflow) {
-                    bigint_buf base_buf, expo_buf;
-                    purc_variant_t base = bigint_set_u64(&base_buf, a);
-                    purc_variant_t expo = bigint_set_u64(&expo_buf, b);
-
-                    res = bigint_pow(base, expo);
-                    goto done;
-                }
-            }
-            break;
-
-        default:
-            assert(0);
-            break;
-        }
-
-        if (use_float)
-            res = purc_variant_make_number(d);
-        else
-            res = purc_variant_make_ulongint(c);
-    }
-    else if (v1->type == PURC_VARIANT_TYPE_ULONGINT &&
-            v2->type == PURC_VARIANT_TYPE_LONGINT) {
-        uint64_t a = v1->u64, c = 0;
-        int64_t b = v2->i64;
-        double d = 0;
-        bool use_float = false;
-
-        switch (op) {
-        case OP_add:
-            c = a + b;
-            break;
-
-        case OP_sub:
-            c = a - b;
-            break;
-
-        case OP_mul:
-            if (a == 0 || b == 0) {
-                c = 0;
-            }
-            else if (b > 0 && (a * v2->u64) / a == v2->u64) {
-                c = a * b;
-            }
-            else {
-                // cast to bigint
-                bigint_buf a_buf, b_buf;
-                purc_variant_t big_a = bigint_set_u64(&a_buf, a);
-                purc_variant_t big_b = bigint_set_i64(&b_buf, b);
-                res = bigint_mul(big_a, big_b);
-                goto done;
-            }
-            break;
-
-        case OP_floordiv:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a / b;
-            break;
-
-        case OP_truediv:
-            d = 1.0 * a / b;
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            break;
-
-        case OP_mod:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a % b;
-            break;
-
-        case OP_pow:
-            if (b < 0) {
-                d = pow(a, b);
-                use_float = true;
-            }
-            else if (b == 0) {
-                c = 1;
-            }
-            else {
-                bool overflow;
-                c = binary_lifting_power(a, b, &overflow);
-                if (overflow) {
-                    bigint_buf base_buf, expo_buf;
-                    purc_variant_t base = bigint_set_u64(&base_buf, a);
-                    purc_variant_t expo = bigint_set_i64(&expo_buf, b);
-
-                    res = bigint_pow(base, expo);
-                    break;
-                }
-            }
-            break;
-
-        default:
-            assert(0);
-            break;
-        }
-
-        if (use_float)
-            res = purc_variant_make_number(d);
-        else
-            res = purc_variant_make_ulongint(c);
-    }
-    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
-            v2->type == PURC_VARIANT_TYPE_ULONGINT) {
-        int64_t a = v1->i64;
-        uint64_t b = v2->u64, c = 0;
-        double d = 0;
-        bool use_float = false;
-
-        switch (op) {
-        case OP_add:
-            c = a + b;
-            break;
-
-        case OP_sub:
-            c = a - b;
-            break;
-
-        case OP_mul:
-            if (a == 0 || b == 0) {
-                c = 0;
-            }
-            else if (a > 0 && (v1->u64 * b) / v1->u64 == b) {
-                c = a * b;
-            }
-            else {
-                // overflowed
-                bigint_buf a_buf, b_buf;
-                purc_variant_t big_a = bigint_set_i64(&a_buf, a);
-                purc_variant_t big_b = bigint_set_u64(&b_buf, b);
-                res = bigint_mul(big_a, big_b);
-                goto done;
-            }
-            break;
-
-        case OP_floordiv:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a / b;
-            break;
-
-        case OP_truediv:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            d = 1.0 * a / b;
-            use_float = true;
-            break;
-
-        case OP_mod:
-            if (b == 0) {
-                ec = PURC_ERROR_DIVBYZERO;
-                goto done;
-            }
-            c = a % b;
-            break;
-
-        case OP_pow:
-            if (b == 0) {
-                c = 1;
-            }
-            else {
-                bool overflow;
-                c = binary_lifting_power_sbase(a, b, &overflow);
-                if (overflow) {
-                    bigint_buf base_buf, expo_buf;
-                    purc_variant_t base = bigint_set_i64(&base_buf, a);
-                    purc_variant_t expo = bigint_set_u64(&expo_buf, b);
-
-                    res = bigint_pow(base, expo);
-                    break;
-                }
-            }
-            break;
-
-        default:
-            assert(0);
-            break;
-        }
-
-        if (use_float)
-            res = purc_variant_make_number(d);
-        else
-            res = purc_variant_make_ulongint(c);
-    }
+#if 0
     else {
         /* for any other situations */
         double a, b, c = 0;
@@ -1007,6 +917,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         res = purc_variant_make_number(c);
     }
+#endif
 
 done:
     if (ec)
