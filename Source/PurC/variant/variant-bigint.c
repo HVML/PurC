@@ -116,7 +116,8 @@ purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
         return bigint_set_i64(buf, a);
     } else {
         purc_variant *r = (purc_variant *)buf;
-        r->type = PCVRNT_FLAG_STATIC_DATA;
+        r->type = PURC_VARIANT_TYPE_BIGINT;
+        r->flags = PCVRNT_FLAG_STATIC_DATA;
         r->flags = 0;   /* do not use extra size */
         r->refc = 0;    /* fail safe */
 

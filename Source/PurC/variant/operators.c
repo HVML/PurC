@@ -710,13 +710,13 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         switch (op) {
         case OP_add:
             c = a + b;
-            if (c < INT64_MAX || c > UINT64_MAX)
+            if (c < INT64_MIN || c > UINT64_MAX)
                 overflow = true;
             break;
 
         case OP_sub:
             c = a - b;
-            if (c < INT64_MAX || c > UINT64_MAX)
+            if (c < INT64_MIN || c > UINT64_MAX)
                 overflow = true;
             break;
 
@@ -801,13 +801,13 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         switch (op) {
         case OP_add:
             c = a + b;
-            if (c < INT64_MAX || c > INT64_MAX)
+            if (c < INT64_MIN || c > INT64_MAX)
                 overflow = true;
             break;
 
         case OP_sub:
             c = a - b;
-            if (c < INT64_MAX || c > INT64_MAX)
+            if (c < INT64_MIN || c > INT64_MAX)
                 overflow = true;
             break;
 

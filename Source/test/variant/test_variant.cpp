@@ -1634,7 +1634,11 @@ TEST(variant, pcvariant_bigint) {
         {BigIntTestCase::FROM_U64, {.u64_val = UINT64_MAX}, "18446744073709551615n"},
         {BigIntTestCase::FROM_F64, {.f64_val = 12345}, "12345n"},
         {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 16}}, "255n"}
+        {BigIntTestCase::FROM_STR, {.str_val = {"016", 8}}, "14n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 16}}, "255n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"016", 0}}, "14n"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 0}}, "255n"},
     };
 
     purc_variant_t value = NULL;

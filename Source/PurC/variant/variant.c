@@ -1702,7 +1702,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            *d = (long double)*v->ld;
+            *d = *v->ld;
             return true;
 
         case PURC_VARIANT_TYPE_BIGINT:
