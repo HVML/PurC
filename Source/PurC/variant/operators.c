@@ -315,13 +315,9 @@ purc_variant_operator_neg(purc_variant_t v)
             return purc_variant_make_longint(-i64);
         }
 
-        purc_variant_t r = purc_variant_make_bigint_from_u64(v->u64);
-        if (r) {
-            purc_variant_t r1 = bigint_neg(r);
-            purc_variant_unref(r);
-            r = r1;
-        }
-        return r;
+        bigint_buf a_buf;
+        purc_variant_t a = bigint_set_u64(&a_buf, v->u64);
+        return bigint_neg(a);
     }
     else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
         return bigint_neg(v);
