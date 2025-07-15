@@ -55,10 +55,15 @@
 #define    pc_free(p)     free(p)
 #endif
 
+bool pcejson_is_exceed_max_depth (struct pcejson* parser)
+{
+    return parser->depth <= parser->max_depth;
+}
+
 bool pcejson_inc_depth (struct pcejson* parser)
 {
     parser->depth++;
-    return parser->depth <= parser->max_depth;
+    return pcejson_is_exceed_max_depth(parser);
 }
 
 void pcejson_dec_depth (struct pcejson* parser)

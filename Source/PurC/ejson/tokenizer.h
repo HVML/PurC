@@ -366,6 +366,9 @@ struct pcejson_token *
 pcejson_token_stack_get(struct pcejson_token_stack *stack, int idx);
 
 bool
+pcejson_is_exceed_max_depth (struct pcejson* parser);
+
+bool
 pcejson_inc_depth (struct pcejson* parser);
 
 void
