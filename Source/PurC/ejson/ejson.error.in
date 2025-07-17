@@ -108,3 +108,7 @@ UnexpectedUnescapedControlCharacter
     flags: None
     msg: "Unexpected unescaped control character"
 
+MaxEmbeddedLevels
+    except: MaxEmbeddedLevels
+    flags: None
+    msg: "Max embedded levels"

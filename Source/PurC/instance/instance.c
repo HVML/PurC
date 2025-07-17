@@ -144,6 +144,7 @@ static struct const_str_atom _except_names[] = {
     { "ProtocolViolation", 0 },
     { "TLSFailure", 0 },
     { "AssertionFailed", 0 },
+    { "MaxEmbeddedLevels", 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */

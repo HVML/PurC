@@ -588,7 +588,7 @@ pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type)
 {
     if (need_update_depth(type)) {
         if (!pcejson_inc_depth(parser)) {
-            SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+            SET_ERR(PCEJSON_ERROR_MAX_EMBEDDED_LEVELS);
             return NULL;
         }
     }

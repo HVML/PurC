@@ -323,3 +323,7 @@ AssertionFailed
     flags: None
     msg: "Assertion failed"
 
+MaxEmbeddedLevels
+    except: MaxEmbeddedLevels
+    flags: None
+    msg: "Max embedded levels"
