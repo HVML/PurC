@@ -430,7 +430,206 @@ failed:
 }
 
 static purc_variant_t
-numerify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+longint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    int64_t ret;
+    if (nr_args == 0) {
+        // treat as undefined
+        ret = 0;
+    }
+    else if (!purc_variant_cast_to_longint(argv[0], &ret, true)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    return purc_variant_make_longint(ret);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_longint(0);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+ulongint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    uint64_t ret;
+    if (nr_args == 0) {
+        // treat as undefined
+        ret = 0;
+    }
+    else if (!purc_variant_cast_to_ulongint(argv[0], &ret, true)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(ret);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_ulongint(0);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+bigint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    enum {
+        FT_I64, FT_U64, FT_BIG, FT_DBL, FT_LDBL, FT_STR, FT_CVT
+    } type = FT_I64;
+    int ec = PURC_ERROR_OK;
+    const char *str = NULL;
+    int64_t i64;
+    uint64_t u64;
+    double d;
+    long double ld;
+
+    if (nr_args == 0) {
+        // treat as undefined
+        i64 = 0;
+    }
+    else {
+        purc_variant_t v = argv[0];
+
+        switch (v->type) {
+            case PURC_VARIANT_TYPE_NULL:
+                i64 = 0;
+                break;
+
+            case PURC_VARIANT_TYPE_BOOLEAN:
+                i64 = v->b ? 1 : 0;
+                break;
+
+            case PURC_VARIANT_TYPE_LONGINT:
+                i64 = v->i64;
+                break;
+
+            case PURC_VARIANT_TYPE_ULONGINT:
+                type = FT_U64;
+                u64 = v->u64;
+                break;
+
+            case PURC_VARIANT_TYPE_BIGINT:
+                type = FT_BIG;
+                break;
+
+            case PURC_VARIANT_TYPE_NUMBER:
+                if (isnan(v->d)) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+                else if (isinf(v->d) == -1) {
+                    ec = PURC_ERROR_OVERFLOW;
+                    goto failed;
+                }
+                else if (isinf(v->d) == 1) {
+                    ec = PURC_ERROR_UNDERFLOW;
+                    goto failed;
+                }
+                type = FT_DBL;
+                d = v->d;
+                break;
+
+            case PURC_VARIANT_TYPE_LONGDOUBLE:
+                if (isnan(*v->ld)) {
+                    ec = PURC_ERROR_INVALID_VALUE;
+                    goto failed;
+                }
+                else if (isinf(*v->ld) == -1) {
+                    ec = PURC_ERROR_OVERFLOW;
+                    goto failed;
+                }
+                else if (isinf(*v->ld) == 1) {
+                    ec = PURC_ERROR_UNDERFLOW;
+                    goto failed;
+                }
+
+                type = FT_LDBL;
+                ld = (*v->ld);
+                break;
+
+            case PURC_VARIANT_TYPE_ATOMSTRING:
+                type = FT_STR;
+                str = purc_atom_to_string(v->atom);
+                break;
+
+            case PURC_VARIANT_TYPE_STRING:
+                type = FT_STR;
+                if (v->flags & PCVRNT_FLAG_STATIC_DATA) {
+                    str = (void*)v->ptr2;
+                }
+                else if (v->flags & PCVRNT_FLAG_EXTRA_SIZE) {
+                    str = (void*)v->ptr2;
+                }
+                else {
+                    str = (void*)v->bytes;
+                }
+                break;
+
+            case PURC_VARIANT_TYPE_BSEQUENCE:
+                type = FT_CVT;
+                break;
+
+            default:
+                type = FT_CVT;
+                break;
+        }
+    }
+
+    purc_variant_t ret;
+    switch (type) {
+        case FT_I64:
+            ret = purc_variant_make_bigint_from_i64(i64);
+            break;
+        case FT_U64:
+            ret = purc_variant_make_bigint_from_u64(u64);
+            break;
+        case FT_BIG:
+            ret = purc_variant_ref(argv[0]);
+            break;
+        case FT_DBL:
+            ret = purc_variant_make_bigint_from_double(d, true);
+            break;
+        case FT_LDBL:
+            ret = purc_variant_make_bigint_from_longdouble(ld, true);
+            break;
+        case FT_STR:
+            assert(str);
+            ret = purc_variant_make_bigint_from_string(str, NULL, 0);
+            break;
+        case FT_CVT:
+            d = purc_variant_numerify(argv[0]);
+            ret = purc_variant_make_bigint_from_double(d, true);
+            break;
+    }
+
+    return ret;
+
+failed:
+    if (ec)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_bigint_from_i64(0);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+double_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -447,6 +646,26 @@ numerify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     return purc_variant_make_number(number);
+}
+
+static purc_variant_t
+longdouble_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(call_flags);
+
+    double number;
+    if (nr_args == 0) {
+        // treat as undefined
+        number = 0.0;
+    }
+    else {
+        assert(argv[0]);
+        number = purc_variant_numerify(argv[0]);
+    }
+
+    return purc_variant_make_longdouble(number);
 }
 
 static purc_variant_t
@@ -3841,7 +4060,12 @@ purc_variant_t purc_dvobj_data_new(void)
         { "memsize",    memsize_getter, NULL },
         { "count",      count_getter, NULL },
         { "nr_children",nr_children_getter, NULL },
-        { "numerify",   numerify_getter, NULL },
+        { "longint",    longint_getter, NULL },
+        { "ulongint",   ulongint_getter, NULL },
+        { "bigint",     bigint_getter, NULL },
+        { "double",     double_getter, NULL },
+        { "longdouble", longdouble_getter, NULL },
+        { "numerify",   double_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },
         { "serialize",  serialize_getter, NULL },

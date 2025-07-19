@@ -1669,7 +1669,7 @@ TEST(variant, pcvariant_bigint) {
                 value = purc_variant_make_bigint_from_u64(test_case.input.u64_val);
                 break;
             case BigIntTestCase::FROM_F64:
-                value = purc_variant_make_bigint_from_f64(test_case.input.f64_val);
+                value = purc_variant_make_bigint_from_double(test_case.input.f64_val, true);
                 break;
             case BigIntTestCase::FROM_STR:
                 value = purc_variant_make_bigint_from_string(test_case.input.str_val.str,

@@ -267,7 +267,7 @@ purc_variant_make_longdouble(long double lf);
  *
  * @i64: A signed 64-bit integer.
  *
- * Creates a bigint variant which represents a arbitrary precision integer
+ * Creates a bigint variant which represents an arbitrary precision integer
  * from @i64.
  *
  * Returns: A bigint variant having the specified initial value,
@@ -283,7 +283,7 @@ purc_variant_make_bigint_from_i64(int64_t i64);
  *
  * @u64: A unsigned 64-bit integer.
  *
- * Creates a bigint variant which represents a arbitrary precision integer
+ * Creates a bigint variant which represents an arbitrary precision integer
  * from @u64.
  *
  * Returns: A bigint variant having the specified initial value,
@@ -295,12 +295,14 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_bigint_from_u64(uint64_t u64);
 
 /**
- * purc_variant_make_bigint_from_f64:
+ * purc_variant_make_bigint_from_double:
  *
- * @d: A 64-bit float number.
+ * @d: A double (64-bit) floating-point number.
+ * @force: A boolean indicates whether to discard the fraction part of
+ *      the floating number.
  *
- * Creates a bigint variant which represents a arbitrary precision integer
- * from @u64.
+ * Creates a bigint variant which represents an arbitrary precision integer
+ * from @d.
  *
  * Returns: A bigint variant having the specified initial value,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -308,7 +310,25 @@ purc_variant_make_bigint_from_u64(uint64_t u64);
  * Since: 0.9.26
  */
 PCA_EXPORT purc_variant_t
-purc_variant_make_bigint_from_f64(double d);
+purc_variant_make_bigint_from_double(double d, bool force);
+
+/**
+ * purc_variant_make_bigint_from_longdouble:
+ *
+ * @ld: A long double floating-point number.
+ * @force: A boolean indicates whether to discard the fraction part of
+ *      the floating number.
+ *
+ * Creates a bigint variant which represents an arbitrary precision integer
+ * from @ld.
+ *
+ * Returns: A bigint variant having the specified initial value,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_bigint_from_longdouble(long double ld, bool force);
 
 /**
  * purc_variant_make_bigint_from_string:
@@ -319,7 +339,7 @@ purc_variant_make_bigint_from_f64(double d);
  * @base: The base of the number string; it must be between 2 and 36 inclusive,
  *      or be the special value 0.
  *
- * Create a bigint variant which represents a arbitrary precision integer
+ * Create a bigint variant which represents an arbitrary precision integer
  * from a number string in the given base.
  *
  * This function stores the address of the first invalid character in *end.

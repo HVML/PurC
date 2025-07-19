@@ -87,6 +87,28 @@ static inline double uint64_as_float64(uint64_t u64)
     return u.d;
 }
 
+#if HAVE(INT128_T)
+static inline uint128_t ldouble_as_uint128(long double ld)
+{
+    union {
+        long double ld;
+        uint128_t u128;
+    } u;
+    u.ld = ld;
+    return u.u128;
+}
+
+static inline long double uint128_as_ldouble(uint128_t u128)
+{
+    union {
+        long double ld;
+        uint128_t u128;
+    } u;
+    u.u128 = u128;
+    return u.ld;
+}
+#endif
+
 static inline double fromfp16(uint16_t v)
 {
     double d;

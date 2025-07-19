@@ -110,6 +110,51 @@ purc_variant *bigint_set_i64(bigint_buf *buf, int64_t a)
 #endif
 }
 
+#if HAVE(INT128_T)
+static purc_variant *bigint_set_i128(bigint_buf *buf, int128_t a)
+{
+#if BIGINT_LIMB_BITS == 64
+    purc_variant *r = (purc_variant *)buf;
+    r->type = PURC_VARIANT_TYPE_BIGINT;
+    r->flags = PCVRNT_FLAG_STATIC_DATA;
+    r->refc = 0;    /* fail safe */
+    if (a >= INT64_MIN && a <= INT64_MAX) {
+        r->size = 1;
+        r->TAB[0] = a;
+    }
+    else {
+        r->size = 2;
+        r->TAB[0] = a;
+        r->TAB[1] = a >> BIGINT_LIMB_BITS;
+    }
+
+    return r;
+#else
+    purc_variant *r = (purc_variant *)buf;
+    r->type = PURC_VARIANT_TYPE_BIGINT;
+    r->flags = PCVRNT_FLAG_STATIC_DATA;
+    r->refc = 0;    /* fail safe */
+    if (a >= INT32_MIN && a <= INT32_MAX) {
+        r->size = 1;
+        r->TAB[0] = a;
+    }
+    else if (a >= INT64_MIN && a <= INT64_MAX) {
+        r->size = 2;
+        r->TAB[0] = a;
+        r->TAB[1] = a >> BIGINT_LIMB_BITS;
+    }
+    else {
+        r->size = 4;
+        r->TAB[0] = a;
+        r->TAB[1] = a >> BIGINT_LIMB_BITS;
+        r->TAB[2] = a >> (BIGINT_LIMB_BITS * 2);
+        r->TAB[3] = a >> (BIGINT_LIMB_BITS * 3);
+    }
+    return r;
+#endif
+}
+#endif
+
 purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
 {
     if (a <= INT64_MAX) {
@@ -1789,49 +1834,179 @@ purc_variant_t purc_variant_make_bigint_from_u64(uint64_t a)
     }
 }
 
-/* return (1, NULL) if not an integer, (2, NULL) if NaN or Infinity,
-   (0, n) if an integer, (0, NULL) in case of memory error */
-purc_variant_t purc_variant_make_bigint_from_f64(double f64)
+purc_variant_t purc_variant_make_bigint_from_double(double f64, bool force)
 {
     uint64_t a = float64_as_uint64(f64);
     int sgn, e, shift;
+    int ec = PURC_ERROR_OK;
     uint64_t mant;
     bigint_buf buf;
     purc_variant *r;
 
+    if (isnan(f64)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+    else if (isinf(f64) == -1) {
+        ec = PURC_ERROR_OVERFLOW;
+        goto failed;
+    }
+    else if (isinf(f64) == 1) {
+        ec = PURC_ERROR_UNDERFLOW;
+        goto failed;
+    }
+
     sgn = a >> 63;
     e = (a >> 52) & ((1 << 11) - 1);
     mant = a & (((uint64_t)1 << 52) - 1);
-    if (e == 2047) {
-        /* NaN, Infinity */
-        pcinst_set_error(PURC_ERROR_OVERFLOW);
-        return NULL;
-    }
+    assert(e != 2047);
+
     if (e == 0 && mant == 0) {
         return bigint_new_si(0);
     }
+
     e -= 1023;
     /* 0 < a < 1 : not an integer */
-    if (e < 0)
-        goto not_an_integer;
+    if (e < 0) {
+        if (force) {
+            mant = llround(f64);
+            e = 0;
+            goto done;
+        }
+        else {
+            ec = PURC_ERROR_INVALID_FLOAT;
+            goto failed;
+        }
+    }
+
     mant |= (uint64_t)1 << 52;
     if (e < 52) {
         shift = 52 - e;
         /* check that there is no fractional part */
         if (mant & (((uint64_t)1 << shift) - 1)) {
-        not_an_integer:
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-            return NULL;
+            if (!force) {
+                ec = PURC_ERROR_INVALID_FLOAT;
+                goto failed;
+            }
         }
         mant >>= shift;
         e = 0;
     } else {
         e -= 52;
     }
+
     if (sgn)
         mant = -mant;
+done:
     /* the integer is mant*2^e */
     r = bigint_set_i64(&buf, (int64_t)mant);
     return bigint_shl(r, e);
+
+failed:
+    if (ec)
+        pcinst_set_error(ec);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+purc_variant_make_bigint_from_longdouble(long double ld, bool force)
+{
+    if (sizeof(long double) == 8) {
+        return purc_variant_make_bigint_from_double((double)ld, force);
+    }
+
+#if HAVE(INT128_T)
+    uint128_t a = ldouble_as_uint128(ld);
+    int sgn, e, shift, bias, mantbits;
+    int ec = PURC_ERROR_OK;
+    uint128_t mant;
+    bigint_buf buf;
+    purc_variant *r;
+
+    if (isnan(ld)) {
+        ec = PURC_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+    else if (isinf(ld) == -1) {
+        ec = PURC_ERROR_OVERFLOW;
+        goto failed;
+    }
+    else if (isinf(ld) == 1) {
+        ec = PURC_ERROR_UNDERFLOW;
+        goto failed;
+    }
+
+    switch (sizeof(long double)) {
+        case 12:  /* 96-bit long double; (Darwin) */
+            sgn = a >> 95;
+            e = (a >> 84) & ((1 << 11) - 1);
+            mant = a & (((uint128_t)1 << 84) - 1);
+            bias = 1023;
+            mantbits = 84;
+            assert(e != 2047);
+            break;
+
+        case 16:  /* 128-bit long double; (GCC) */
+            sgn = a >> 127;
+            e = (a >> 112) & ((1 << 15) - 1);
+            mant = a & (((uint128_t)1 << 112) - 1);
+            bias = 16383;
+            mantbits = 112;
+            assert(e != 32767);
+            break;
+
+        default:
+            ec = PURC_ERROR_NOT_IMPLEMENTED;
+            goto failed;
+    }
+
+    if (e == 0 && mant == 0) {
+        return bigint_new_si(0);
+    }
+
+    e -= bias;
+    /* 0 < a < 1 : not an integer */
+    if (e < 0) {
+        if (force) {
+            mant = llround(ld);
+            e = 0;
+            goto done;
+        }
+        else {
+            ec = PURC_ERROR_INVALID_FLOAT;
+            goto failed;
+        }
+    }
+
+    mant |= (uint128_t)1 << mantbits;
+    if (e < mantbits) {
+        shift = mantbits - e;
+        /* check that there is no fractional part */
+        if (mant & (((uint128_t)1 << shift) - 1)) {
+            if (!force) {
+                ec = PURC_ERROR_INVALID_FLOAT;
+                goto failed;
+            }
+        }
+        mant >>= shift;
+        e = 0;
+    } else {
+        e -= mantbits;
+    }
+
+    if (sgn)
+        mant = -mant;
+done:
+    /* the integer is mant*2^e */
+    r = bigint_set_i128(&buf, (int128_t)mant);
+    return bigint_shl(r, e);
+
+failed:
+    if (ec)
+        pcinst_set_error(ec);
+#else
+    // fallback
+    return purc_variant_make_bigint_from_double((double)ld, force);
+#endif
 }
 
