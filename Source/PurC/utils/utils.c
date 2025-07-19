@@ -257,7 +257,7 @@ int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
     int64_t val;
 
     errno = 0;
-    val = strtoll(buf, &end, 10);
+    val = strtoll(buf, &end, 0);
     if (end != buf)
         *retval = val;
     return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
@@ -275,7 +275,7 @@ int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval)
     if (*buf == '-')
         return 1; /* error: uint cannot be negative */
 
-    val = strtoull(buf, &end, 10);
+    val = strtoull(buf, &end, 0);
     if (end != buf)
         *retval = val;
     return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
