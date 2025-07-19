@@ -190,6 +190,8 @@ static const char *except_messages[] = {
     "TLSFailure",
     /* PURC_EXCEPT_ASSERTION_FAILED */
     "AssertionFailed",
+    /* PURC_EXCEPT_MAX_EMBEDDED_LEVELS */
+    "MaxEmbeddedLevels",
 };
 
 
