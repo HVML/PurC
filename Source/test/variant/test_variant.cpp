@@ -1629,16 +1629,16 @@ TEST(variant, pcvariant_bigint) {
 
     // Test cases
     BigIntTestCase test_cases[] = {
-        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MAX}, "9223372036854775807n"},
-        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MIN}, "-9223372036854775808n"},
-        {BigIntTestCase::FROM_U64, {.u64_val = UINT64_MAX}, "18446744073709551615n"},
-        {BigIntTestCase::FROM_F64, {.f64_val = 12345}, "12345n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"016", 8}}, "14n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 16}}, "255n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"016", 0}}, "14n"},
-        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 0}}, "255n"},
+        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MAX}, "9223372036854775807N"},
+        {BigIntTestCase::FROM_I64, {.i64_val = INT64_MIN}, "-9223372036854775808N"},
+        {BigIntTestCase::FROM_U64, {.u64_val = UINT64_MAX}, "18446744073709551615N"},
+        {BigIntTestCase::FROM_F64, {.f64_val = 12345}, "12345N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"016", 8}}, "14N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 16}}, "255N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"9876543210987654321012345678901234567890", 10}}, "9876543210987654321012345678901234567890N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"016", 0}}, "14N"},
+        {BigIntTestCase::FROM_STR, {.str_val = {"0xFF", 0}}, "255N"},
     };
 
     purc_variant_t value = NULL;

@@ -669,8 +669,6 @@ static int stringify_cb_bigint(const void *s, size_t len, void *ctxt)
     ssize_t written = purc_rwstream_write(rws, s, len);
     if (written < 0 || (size_t)written < len)
         return -1;
-    if (purc_rwstream_write(rws, "n", 1) < 1)
-        return -1;
 
     return 0;
 }
@@ -782,7 +780,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
                 MY_WRITE(rws, "\"", 1);
             n = bigint_stringify(value, 10, rws, stringify_cb_bigint);
-            MY_WRITE(rws, "n", 1);  // postfix
+            MY_WRITE(rws, "N", 1);  // postfix
             if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
                 MY_WRITE(rws, "\"", 1);
             MY_CHECK(n);
