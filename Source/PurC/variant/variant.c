@@ -1201,6 +1201,13 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
     PC_ASSERT(v);
 
     switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            if (force) {
+                *i64 = 0;
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_NULL:
             if (force) {
                 *i64 = 0;
@@ -1210,7 +1217,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (force) {
-                *i64 = (int64_t)v->b;
+                *i64 = v->b ? 1 : 0;
                 return true;
             }
             break;
@@ -1377,6 +1384,13 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
     PC_ASSERT(v);
 
     switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            if (force) {
+                *u64 = 0;
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_NULL:
             if (force) {
                 *u64 = 0;
@@ -1386,7 +1400,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (force) {
-                *u64 = (uint64_t)v->b;
+                *u64 = v->b ? 1 : 0;
                 return true;
             }
             break;
@@ -1548,6 +1562,13 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
     PC_ASSERT(v);
 
     switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            if (force) {
+                *d = 0;
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_NULL:
             if (force) {
                 *d = 0;
@@ -1557,7 +1578,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (force) {
-                *d = (double)v->b;
+                *d = v->b ? 1.0 : 0.0;
                 return true;
             }
             break;
@@ -1675,6 +1696,13 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
     PC_ASSERT(v);
 
     switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            if (force) {
+                *d = 0;
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_NULL:
             if (force) {
                 *d = 0;
@@ -1684,7 +1712,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (force) {
-                *d = (long double)v->b;
+                *d = v->b ? 1.0 : 0.0;
                 return true;
             }
             break;

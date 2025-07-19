@@ -1690,3 +1690,190 @@ positive:
     {{ $STREAM.open('file:///tmp/test_str_scanp', 'write create truncate').writelines('My name is "Tom"'); $STR.scanp($STREAM.open('file:///tmp/test_str_scanp', 'read'), 'My name is #?') }}
     'Tom'
 
+positive:
+    $DATA.longint()
+    0L
+
+positive:
+    $DATA.longint(null)
+    0L
+
+positive:
+    $DATA.longint(0)
+    0L
+
+positive:
+    $DATA.longint(123)
+    123L
+
+positive:
+    $DATA.longint(-123)
+    -123L
+
+positive:
+    $DATA.longint(123.45)
+    123L
+
+positive:
+    $DATA.longint(-123.45)
+    -123L
+
+positive:
+    $DATA.longint("123")
+    123L
+
+positive:
+    $DATA.longint("-123")
+    -123L
+
+positive:
+    $DATA.longint("123.45")
+    123L
+
+positive:
+    $DATA.longint("-123.45")
+    -123L
+
+positive:
+    $DATA.longint("abc")
+    0L
+
+positive:
+    $DATA.longint("12abc")
+    12L
+
+positive:
+    $DATA.longint(9223372036854775807)
+    9223372036854775807L
+
+positive:
+    $DATA.longint(-9223372036854775808)
+    -9223372036854775808L
+
+positive:
+    $DATA.longint(9223372036854775808)
+    9223372036854775808L
+
+positive:
+    $DATA.longint(-9223372036854775809)
+    -9223372036854775809L
+
+positive:
+    $DATA.ulongint()
+    0UL
+
+positive:
+    $DATA.ulongint(null)
+    0UL
+
+positive:
+    $DATA.ulongint(0)
+    0UL
+
+positive:
+    $DATA.ulongint(42)
+    42UL
+
+positive:
+    $DATA.ulongint(-1)
+    0UL
+
+positive:
+    $DATA.ulongint(3.14)
+    3UL
+
+positive:
+    $DATA.ulongint("123")
+    123UL
+
+positive:
+    $DATA.ulongint("0xFF")
+    255UL
+
+positive:
+    $DATA.ulongint("18446744073709551615")
+    18446744073709551615UL
+
+positive:
+    $DATA.ulongint("18446744073709551616")
+    18446744073709551615UL
+
+positive:
+    $DATA.ulongint("-123")
+    0UL
+
+positive:
+    $DATA.ulongint(true)
+    1UL
+
+positive:
+    $DATA.ulongint(false)
+    0UL
+
+positive:
+    $DATA.ulongint("invalid")
+    0UL
+
+positive:
+    $DATA.ulongint([])
+    0UL
+
+positive:
+    $DATA.ulongint({})
+    0UL
+
+positive:
+    $DATA.longdouble()
+    0FL
+
+positive:
+    $DATA.longdouble(null)
+    0FL
+
+positive:
+    $DATA.longdouble(0)
+    0.0FL
+
+positive:
+    $DATA.longdouble(123)
+    123.0FL
+
+positive:
+    $DATA.longdouble(-123)
+    -123.0FL
+
+positive:
+    $DATA.longdouble(123.456)
+    123.456FL
+
+positive:
+    $DATA.longdouble(-123.456)
+    -123.456FL
+
+positive:
+    $DATA.longdouble('123.456')
+    123.456FL
+
+positive:
+    $DATA.longdouble('-123.456')
+    -123.456FL
+
+positive:
+    $DATA.longdouble('1e10')
+    10000000000.0FL
+
+positive:
+    $DATA.longdouble('-1e-10')
+    -0.0000000001FL
+
+positive:
+    $DATA.longdouble('abc')
+    0.0FL
+
+positive:
+    $DATA.longdouble([])
+    0.0FL
+
+positive:
+    $DATA.longdouble({})
+    0.0FL

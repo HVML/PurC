@@ -336,7 +336,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             exp_len = read - 1;
             exp = pcutils_trim_spaces(line, &exp_len);
 
-            purc_log_info("Result `%s` expected\n", exp);
+            purc_log_info("Expected result: `%s`\n", exp);
 
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
             expected = purc_ejson_parsing_tree_evalute(ptree,
@@ -351,6 +351,8 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
                 ssize_t n = purc_variant_serialize(result, stm, 0, 0, NULL);
                 ASSERT_GT(n, 0);
                 buf[n] = '\0';
+                purc_log_info("Expected result type: %s\n",
+                        purc_variant_typename(purc_variant_get_type(expected)));
                 purc_log_info("Serialized result: %s\n", buf);
                 purc_rwstream_destroy(stm);
             }

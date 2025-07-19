@@ -756,6 +756,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             if (snprintf(buff, sizeof(buff), format,
                         (long long int)value->i64) < 0)
                 goto failed;
+            printf("format: %s; got: %s\n", format, buff);
             content = buff;
             // sz_content = strlen(buff);
             break;
