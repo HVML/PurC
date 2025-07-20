@@ -569,20 +569,6 @@ void pcvariant_put(purc_variant_t value)
     }
 }
 
-/* securely comparison of floating-point variables */
-static bool equal_doubles(double a, double b)
-{
-    double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
-    return (fabs(a - b) <= max_val * DBL_EPSILON);
-}
-
-/* securely comparison of floating-point variables */
-static bool equal_long_doubles(long double a, long double b)
-{
-    long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
-    return (fabsl(a - b) <= max_val * LDBL_EPSILON);
-}
-
 static bool equal_objects(purc_variant_t v1, purc_variant_t v2)
 {
     purc_variant_t key;
@@ -699,7 +685,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
             return v1->atom == v2->atom;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            return equal_doubles(v1->d, v2->d);
+            return pcutils_equal_doubles(v1->d, v2->d);
 
         case PURC_VARIANT_TYPE_LONGINT:
             return v1->i64 == v2->i64;
@@ -708,7 +694,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
             return v1->u64 == v2->u64;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return equal_long_doubles(*v1->ld, *v2->ld);
+            return pcutils_equal_longdoubles(*v1->ld, *v2->ld);
 
         case PURC_VARIANT_TYPE_BIGINT:
             return bigint_cmp(v1, v2) == 0;
@@ -772,7 +758,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         long double ld1, ld2;
         if (purc_variant_cast_to_longdouble(v1, &ld1, false) &&
                 purc_variant_cast_to_longdouble(v2, &ld2, false)) {
-            if (equal_long_doubles(ld1, ld2))
+            if (pcutils_equal_longdoubles(ld1, ld2))
                 return 0;
 
             // VWNOTE: this may get zero because of too small difference:
@@ -1886,7 +1872,7 @@ static int compare_number_method (purc_variant_t v1, purc_variant_t v2)
     double number1 = purc_variant_numerify (v1);
     double number2 = purc_variant_numerify (v2);
 
-    if (equal_doubles (number1, number2))
+    if (pcutils_equal_doubles (number1, number2))
         ret = 0;
     else
         ret = number1 < number2 ? -1: 1;
@@ -3833,7 +3819,7 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
         PC_ASSERT(!isnan(ldl) && !isinf(ldl));
         PC_ASSERT(!isnan(ldr) && !isinf(ldr));
 
-        if (equal_long_doubles(ldl, ldr))
+        if (pcutils_equal_longdoubles(ldl, ldr))
             return 0;
 
         if (ldl < ldr)
@@ -3865,7 +3851,7 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
             return l->atom - r->atom;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            if (equal_doubles(l->d, r->d))
+            if (pcutils_equal_doubles(l->d, r->d))
                 return 0;
 
             return (l->d < r->d) ? -1 : 1;
@@ -3881,7 +3867,7 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
             return (l->u64 < r->u64) ? -1 : 1;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (equal_long_doubles(*l->ld, *r->ld))
+            if (pcutils_equal_longdoubles(*l->ld, *r->ld))
                 return 0;
 
             return (*l->ld < *r->ld) ? -1 : 1;

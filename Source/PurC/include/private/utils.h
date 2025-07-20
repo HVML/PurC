@@ -210,6 +210,15 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
 /* securely comparison of floating-point variables */
 static inline bool pcutils_equal_doubles(double a, double b)
 {
+    if (isnan(a) && isnan(b))
+        return true;
+
+    if (isinf(a) != isinf(b))
+        return false;
+
+    if (isinf(a) != 0 && isinf(a) == isinf(b))
+        return true;
+
     double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= max_val * DBL_EPSILON);
 }
@@ -217,6 +226,15 @@ static inline bool pcutils_equal_doubles(double a, double b)
 /* securely comparison of floating-point variables */
 static inline bool pcutils_equal_longdoubles(long double a, long double b)
 {
+    if (isnan(a) && isnan(b))
+        return true;
+
+    if (isinf(a) != isinf(b))
+        return false;
+
+    if (isinf(a) != 0 && isinf(a) == isinf(b))
+        return true;
+
     long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
 }

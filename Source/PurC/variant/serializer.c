@@ -387,21 +387,6 @@ failed:
     return -1;
 }
 
-/* securely comparison of floating-point variables */
-static inline UNUSED_FUNCTION bool equal_doubles(double a, double b)
-{
-    double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
-    return (fabs(a - b) <= max_val * DBL_EPSILON);
-}
-
-/* securely comparison of floating-point variables */
-static inline UNUSED_FUNCTION bool equal_long_doubles(long double a,
-        long double b)
-{
-    long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
-    return (fabsl(a - b) <= max_val * LDBL_EPSILON);
-}
-
 /* strlen of character literals resolved at compile time */
 #define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
 
@@ -441,7 +426,8 @@ serialize_number(purc_rwstream_t rws, double d, size_t *len_expected)
         }
 
         /* Check whether the original double can be recovered */
-        if ((sscanf(buf, "%lg", &test) != 1) || !equal_doubles(test, d)) {
+        if ((sscanf(buf, "%lg", &test) != 1) ||
+                !pcutils_equal_doubles(test, d)) {
             /* If not, return 0 and call serialize_double */
             return 0;
         }

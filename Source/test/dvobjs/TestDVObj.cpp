@@ -353,7 +353,8 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
                 buf[n] = '\0';
                 purc_log_info("Expected result type: %s\n",
                         purc_variant_typename(purc_variant_get_type(expected)));
-                purc_log_info("Serialized result: %s\n", buf);
+                purc_log_info("Serialized result: %s (%s)\n",
+                        buf, purc_variant_typename(purc_variant_get_type(result)));
                 purc_rwstream_destroy(stm);
             }
 
