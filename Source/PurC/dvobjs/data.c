@@ -76,7 +76,7 @@ type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         assert(argv[0] != PURC_VARIANT_INVALID);
-        type = purc_variant_typename(purc_variant_get_type(argv[0]));
+        type = purc_variant_typename(argv[0]->type);
     }
 
     return purc_variant_make_string_static(type, false);
@@ -100,7 +100,7 @@ islinctnr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         retv = false;
     }
     else {
-        switch (purc_variant_get_type(argv[0])) {
+        switch (argv[0]->type) {
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
@@ -146,7 +146,7 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         count = 0;  // treat as undefined
     }
     else {
-        switch (purc_variant_get_type(argv[0])) {
+        switch (argv[0]->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
             count = 0;
             break;
@@ -195,7 +195,7 @@ nr_children_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         n = 0;  // treat as undefined
     }
     else {
-        switch (purc_variant_get_type(argv[0])) {
+        switch (argv[0]->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
@@ -238,7 +238,7 @@ is_container_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     bool is_container = false;
 
     if (nr_args > 0) {
-        switch (purc_variant_get_type(argv[0])) {
+        switch (argv[0]->type) {
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
@@ -441,9 +441,14 @@ longint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         // treat as undefined
         ret = 0;
     }
-    else if (!purc_variant_cast_to_longint(argv[0], &ret, true)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
+    else {
+        if (argv[0]->type == PURC_VARIANT_TYPE_LONGINT)
+            return purc_variant_ref(argv[0]);
+
+        if (!purc_variant_cast_to_longint(argv[0], &ret, true)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
 
     return purc_variant_make_longint(ret);
@@ -467,9 +472,14 @@ ulongint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         // treat as undefined
         ret = 0;
     }
-    else if (!purc_variant_cast_to_ulongint(argv[0], &ret, true)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
+    else {
+        if (argv[0]->type == PURC_VARIANT_TYPE_ULONGINT)
+            return purc_variant_ref(argv[0]);
+
+        if (!purc_variant_cast_to_ulongint(argv[0], &ret, true)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
 
     return purc_variant_make_ulongint(ret);
@@ -641,7 +651,9 @@ double_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         number = 0.0;
     }
     else {
-        assert(argv[0]);
+        if (argv[0]->type == PURC_VARIANT_TYPE_NUMBER)
+            return purc_variant_ref(argv[0]);
+
         number = purc_variant_numerify(argv[0]);
     }
 
@@ -661,7 +673,9 @@ longdouble_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         number = 0.0;
     }
     else {
-        assert(argv[0]);
+        if (argv[0]->type == PURC_VARIANT_TYPE_LONGDOUBLE)
+            return purc_variant_ref(argv[0]);
+
         number = purc_variant_numerify(argv[0]);
     }
 
@@ -680,7 +694,9 @@ booleanize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         retv = false;
     }
     else {
-        assert(argv[0]);
+        if (argv[0]->type == PURC_VARIANT_TYPE_BOOLEAN)
+            return purc_variant_ref(argv[0]);
+
         if (purc_variant_booleanize(argv[0]))
             retv = true;
         else
@@ -707,7 +723,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         str_static = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
     }
     else {
-        switch (purc_variant_get_type (argv[0])) {
+        switch (argv[0]->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
             str_static = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
             break;
@@ -737,7 +753,6 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
-        case PURC_VARIANT_TYPE_STRING:
         {
             const char *str = purc_variant_get_string_const_ex(argv[0], &n);
             assert(str);
@@ -754,6 +769,9 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 str_static = "";
             break;
         }
+
+        case PURC_VARIANT_TYPE_STRING:
+            return purc_variant_ref(argv[0]);
 
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
@@ -2039,7 +2057,7 @@ purc_dvobj_pack_real(struct pcdvobj_bytes_buff *bf, purc_variant_t item,
         goto failed;
     }
 
-    enum purc_variant_type vt = purc_variant_get_type(item);
+    enum purc_variant_type vt = item->type;
     bool is_linear_container = ((vt == PURC_VARIANT_TYPE_ARRAY) ||
             (vt == PURC_VARIANT_TYPE_SET) || (vt == PURC_VARIANT_TYPE_TUPLE));
     for (size_t n = 0; n < quantity; n++) {

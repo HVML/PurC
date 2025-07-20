@@ -2682,10 +2682,10 @@ purc_variant_linear_container_set(purc_variant_t container,
 /**
  * purc_variant_make_from_json_string:
  *
- * @json: The pointer to a string which contains valid JSON data.
+ * @json: The pointer to a string which contains a valid eJSON data.
  * @sz: The size of string.
  *
- * Creates a variant from a string which contains valid JSON data.
+ * Creates a variant from a string which contains a valid eJSON data.
  *
  * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
@@ -4332,10 +4332,10 @@ purc_variant_operator_concat(purc_variant_t a, purc_variant_t b);
  * @a: The first variant.
  * @b: The second variant.
  *
- * Perform the contains operation (@b in @a) for and
+ * Perform the contains operation (@b in @a) for sequences and
  * return a boolean result.
  *
- * Returns: A variant evaluated on success,
+ * Returns: A boolean variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
  */
 PCA_EXPORT purc_variant_t

@@ -20,6 +20,7 @@
 #include "purc/purc-variant.h"
 
 #include "../helpers.h"
+#include <cstdint>
 #include <cstdlib>
 
 using namespace std;
@@ -133,9 +134,9 @@ TEST(variant, arithmetic_operators)
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
             "2", "30", purc_variant_operator_pow, "1073741824"},  // number ** number (larger)
         { PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
-            "9223372036854775807", "16", purc_variant_operator_pow, "2743062034396844336869514018464698837952741034352782431735406935422555235659604611574795800485902102589878063855381220980247414149652079643899138017548027873771831513201398226700753025465497615356604597023149336546797754176993249443973844794089529533475153606348844332504619566761300314793168852746240001n"},  // longint ** longint
+            "9223372036854775807", "16", purc_variant_operator_pow, "2743062034396844336869514018464698837952741034352782431735406935422555235659604611574795800485902102589878063855381220980247414149652079643899138017548027873771831513201398226700753025465497615356604597023149336546797754176993249443973844794089529533475153606348844332504619566761300314793168852746240001N"},  // longint ** longint
         { PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
-            "18446744073709551615", "50", purc_variant_operator_pow, "1976906478982563988295810691554050614399651424488030850762343678931647978618325561474974086879022536362639642807744003756529842940963577394276662468582411572670825043959009899694489661532504088009120877946903639143166499456428438448880195155499253110091516188286694321777197119674227599132338454581472690647559478166682718820606301933576867149263606282479822069977062577699422966456063707753586195851786206483814160770891312582986610957317552176331001104119220689137430267970695253598479625236453588946233916795030393521191859493297484330703657084378498022511947929753899678606763593843427503615639810405259276058581346303867750708563882561183560546452553196090076061939041007446872127913157825040863114845973565294859768831735607624294122356928888311315808677423812406463069338456801790310944262553921204739016074704752181719029665060048844403891050051589949396129274357516548225563425373464972431095290923353938157423423230896109004106619977392256259918212890625n"},  // ulongint ** ulongint
+            "18446744073709551615", "50", purc_variant_operator_pow, "1976906478982563988295810691554050614399651424488030850762343678931647978618325561474974086879022536362639642807744003756529842940963577394276662468582411572670825043959009899694489661532504088009120877946903639143166499456428438448880195155499253110091516188286694321777197119674227599132338454581472690647559478166682718820606301933576867149263606282479822069977062577699422966456063707753586195851786206483814160770891312582986610957317552176331001104119220689137430267970695253598479625236453588946233916795030393521191859493297484330703657084378498022511947929753899678606763593843427503615639810405259276058581346303867750708563882561183560546452553196090076061939041007446872127913157825040863114845973565294859768831735607624294122356928888311315808677423812406463069338456801790310944262553921204739016074704752181719029665060048844403891050051589949396129274357516548225563425373464972431095290923353938157423423230896109004106619977392256259918212890625N"},  // ulongint ** ulongint
     };
 
     // Create stream for serialization
@@ -175,3 +176,177 @@ TEST(variant, arithmetic_operators)
     purc_cleanup();
 }
 
+TEST(variant, contains_operator)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure
+    struct contains_test_case {
+        const char* container_json;    // eJSON string for container
+        const char* element_json;      // eJSON string for element to find
+        int expected;                  // Expected result：0 for false, 1 for true, and -1 for failure
+        const char* desc;              // Test case description
+    };
+
+    // Build test cases
+    contains_test_case test_cases[] = {
+        // String positive tests
+        {
+            "\"Hello, World!\"",
+            "\"World\"",
+            1,
+            "String contains substring"
+        },
+        {
+            "\"Hello, World!\"",
+            "\"\"",
+            1,
+            "String contains empty string"
+        },
+
+        // String negative tests
+        {
+            "\"Hello, World!\"",
+            "\"xyz\"",
+            0,
+            "String does not contain substring"
+        },
+        // Test cases for non-string data types that should not work with string contains operation
+        {
+            "\"Hello, World!\"",
+            "42",
+            -1,
+            "Number cannot be used for string contains check"
+        },
+        {
+            "\"Hello, World!\"",
+            "true",
+            -1,
+            "Boolean cannot be used for string contains check"
+        },
+        {
+            "\"Hello, World!\"",
+            "[1,2,3]",
+            -1,
+            "Array cannot be used for string contains check"
+        },
+        {
+            "\"Hello, World!\"",
+            "{\"key\":\"value\"}",
+            -1,
+            "Object cannot be used for string contains check"
+        },
+        {
+            "\"Hello, World!\"",
+            "null",
+            -1,
+            "Null cannot be used for string contains check"
+        },
+
+        // Byte sequence positive tests (using Base64 encoding)
+        {
+            "b64SGVsbG8=",
+            "b64SGU=",
+            1,
+            "Byte sequence contains subsequence"
+        },
+        {
+            "b64SGVsbG8=",
+            "b64",
+            1,
+            "Byte sequence contains empty sequence"
+        },
+
+        // Array positive tests
+        {
+            "[1, 2, 3, 4, 5]",
+            "3",
+            1,
+            "Array contains element"
+        },
+
+        // Array negative tests
+        {
+            "[1, 2, 3, 4, 5]",
+            "6",
+            0,
+            "Array does not contain element"
+        },
+
+        // Object positive tests
+        {
+            "{\"name\": \"John\", \"age\": 30}",
+            "\"name\"",
+            1,
+            "Object contains key"
+        },
+
+        // Object negative tests
+        {
+            "{\"name\": \"John\", \"age\": 30}",
+            "\"address\"",
+            0,
+            "Object does not contain key"
+        },
+
+        // Nested structure tests
+        {
+            "[{\"id\": 1, \"data\": [1,2,3]}, {\"id\": 2, \"data\": [4,5,6]}]",
+            "{\"id\": 1, \"data\": [1,2,3]}",
+            1,
+            "Array contains complex object"
+        },
+
+        // Type error tests
+        {
+            "42",
+            "2",
+            -1,
+            "Number type does not support contains operation"
+        },
+        {
+            "true",
+            "true",
+            -1,
+            "Boolean type does not support contains operation"
+        }
+    };
+
+    // Execute test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Construct test data from JSON strings
+        purc_variant_t container = purc_variant_make_from_json_string(
+                test.container_json, strlen(test.container_json));
+        purc_variant_t element = purc_variant_make_from_json_string(
+                test.element_json, strlen(test.element_json));
+
+        EXPECT_NE(container, nullptr);
+        EXPECT_NE(element, nullptr);
+
+        // Perform contains operation
+        purc_variant_t result = purc_variant_operator_contains(container, element);
+
+        if (test.expected == 1) {
+            EXPECT_NE(result, PURC_VARIANT_INVALID);
+            EXPECT_TRUE(purc_variant_booleanize(result));
+        }
+        else if (test.expected == 0) {
+            EXPECT_NE(result, PURC_VARIANT_INVALID);
+            EXPECT_FALSE(purc_variant_booleanize(result));
+        }
+        else {
+            EXPECT_EQ(result, PURC_VARIANT_INVALID);
+        }
+
+        // Cleanup resources
+        if (result != PURC_VARIANT_INVALID) {
+            purc_variant_unref(result);
+        }
+        purc_variant_unref(container);
+        purc_variant_unref(element);
+    }
+
+    purc_cleanup();
+}

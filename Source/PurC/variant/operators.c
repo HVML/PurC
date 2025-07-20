@@ -1472,14 +1472,85 @@ purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b)
     return -1;
 }
 
+purc_variant_t
+purc_variant_operator_contains(purc_variant_t a, purc_variant_t b)
+{
+    int ec = PURC_ERROR_OK;
+    bool ret = false;
+
+    if (a->type == PURC_VARIANT_TYPE_UNDEFINED || IS_NUMBER(a->type)) {
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto failed;
+    }
+
+    size_t sz;
+    const void *p_a, *p_b;
+    size_t len_a, len_b;
+
+    p_a = purc_variant_get_string_const_ex(a, &len_a);
+    p_b = purc_variant_get_string_const_ex(b, &len_b);
+    if (p_a) {
+        if (p_b == NULL) {
+            ec = PURC_ERROR_INVALID_OPERAND;
+            goto failed;
+        }
+
+        if (len_b <= len_a) {
+            ret = strstr(p_a, p_b) != NULL;
+        }
+
+        goto done;
+    }
+    else if (a->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+        p_a = purc_variant_get_bytes_const(a, &len_a);
+        p_b = purc_variant_get_bytes_const(b, &len_b);
+
+        assert(p_a);
+        if (p_b == NULL) {
+            ec = PURC_ERROR_INVALID_OPERAND;
+            goto failed;
+        }
+
+        if (len_b == 0) {
+            ret = true;
+        }
+        else if (len_b <= len_a) {
+            ret = memmem(p_a, len_a, p_b, len_b) != NULL;
+        }
+    }
+    else if (purc_variant_linear_container_size(a, &sz)) {
+        for (size_t i = 0; i < sz; i++) {
+            purc_variant_t item = purc_variant_linear_container_get(a, i);
+
+            if (variant_compare(item, b) == 0) {
+                ret = true;
+                break;
+            }
+        }
+    }
+    else if (a->type == PURC_VARIANT_TYPE_OBJECT) {
+        ret = purc_variant_object_get_ex(a, b, true);
+        goto done;
+    }
+    else {
+        assert(0);
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto failed;
+    }
+
+done:
+    return purc_variant_make_boolean(ret);
+
+failed:
+    if (ec)
+        purc_set_error(ec);
+
+    return PURC_VARIANT_INVALID;
+}
+
 #if 0
 purc_variant_t
 purc_variant_operator_index(purc_variant_t v)
-{
-}
-
-purc_variant_t
-purc_variant_operator_contains(purc_variant_t a, purc_variant_t b)
 {
 }
 
