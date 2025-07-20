@@ -671,19 +671,31 @@ longdouble_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(call_flags);
 
-    double number;
+    long double ld;
     if (nr_args == 0) {
         // treat as undefined
-        number = 0.0;
+        ld = 0.0L;
     }
     else {
-        if (argv[0]->type == PURC_VARIANT_TYPE_LONGDOUBLE)
+        switch (argv[0]->type) {
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
             return purc_variant_ref(argv[0]);
-
-        number = purc_variant_numerify(argv[0]);
+        case PURC_VARIANT_TYPE_STRING:
+            ld = strtold(purc_variant_get_string_const(argv[0]), NULL);
+            break;
+        case PURC_VARIANT_TYPE_LONGINT:
+            ld = (long double)argv[0]->i64;
+            break;
+        case PURC_VARIANT_TYPE_ULONGINT:
+            ld = (long double)argv[0]->u64;
+            break;
+        default:
+            ld = purc_variant_numerify(argv[0]);
+            break;
+        }
     }
 
-    return purc_variant_make_longdouble(number);
+    return purc_variant_make_longdouble(ld);
 }
 
 static purc_variant_t

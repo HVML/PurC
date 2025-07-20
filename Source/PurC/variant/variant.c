@@ -2252,8 +2252,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     return ret;
 }
 
-static double
-numerify_str(const char *s)
+static double numerify_str(const char *s)
 {
     if (!s || !*s)
         return 0.0;
@@ -2261,8 +2260,7 @@ numerify_str(const char *s)
     return strtod(s, NULL);
 }
 
-static double
-numerify_bs(const unsigned char *s, size_t nr)
+static double numerify_bs(const unsigned char *s, size_t nr)
 {
     if (!s || nr == 0)
         return 0.0;

@@ -1871,16 +1871,20 @@ positive:
     -123.456FL
 
 positive:
-    $DATA.longdouble('123.5')
-    123.5FL
+    $DATA.longdouble('123.456')
+    123.456FL
 
 positive:
-    $DATA.longdouble('-123.5')
-    -123.5FL
+    $DATA.longdouble('-123.456')
+    -123.456FL
 
 positive:
     $DATA.longdouble('1e10')
     10000000000.0FL
+
+positive:
+    $DATA.longdouble('-1e-10')
+    -0.0000000001FL
 
 positive:
     $DATA.longdouble('abc')
