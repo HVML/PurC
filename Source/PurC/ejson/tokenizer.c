@@ -2709,7 +2709,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
-    if (is_whitespace(character) || character == '}'
+    if (is_whitespace(character) || is_eof(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
@@ -2818,7 +2818,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT)
-    if (is_whitespace(character) || character == '}'
+    if (is_whitespace(character) || is_eof(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
@@ -2834,7 +2834,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER)
-    if (is_whitespace(character) || character == '}'
+    if (is_whitespace(character) || is_eof(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
@@ -2940,7 +2940,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX)
-    if (is_whitespace(character) || character == '}'
+    if (is_whitespace(character) || is_eof(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX);
     }
@@ -2956,7 +2956,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX)
-    if (is_whitespace(character) || character == '}'
+    if (is_whitespace(character) || is_eof(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX);
     }
