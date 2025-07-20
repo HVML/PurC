@@ -446,10 +446,11 @@ static purc_variant *bigint_normalize1(purc_variant *a, size_t l)
             size_t sz_extra = sizeof(struct bigint_limbs);
             sz_extra += sizeof(bi_limb_t) * l;
             a->ptr = realloc(a->ptr, sz_extra);
+            limbs = a->ptr;
+            limbs->len = l;
 
             pcvariant_stat_dec_extra_size(a, sz_old_extra);
             pcvariant_stat_inc_extra_size(a, sz_extra);
-            limbs->len = l;
         }
         else {
             a->size = l;
@@ -1482,6 +1483,8 @@ purc_variant_make_bigint_from_string(const char *str, char **end, int radix)
         else if (p[0] == '0') {
             radix = 8;
         }
+        else
+            radix = 10;
     }
 
     if (radix > 36 || radix < 2) {

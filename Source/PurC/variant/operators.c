@@ -1107,11 +1107,18 @@ variant_shift_op(purc_variant_t v, purc_variant_t c, bool is_right)
 {
     purc_variant_t res = PURC_VARIANT_INVALID;
 
-    uint32_t u32;
-    if (!purc_variant_cast_to_uint32(c, &u32, false)) {
+    int64_t i64;
+    if (!purc_variant_cast_to_longint(c, &i64, false)) {
         pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto done;
     }
-    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
+    else if (i64 < 0 || i64 > UINT_MAX) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto done;
+    }
+
+    uint32_t u32 = (uint32_t)i64;
+    if (v->type == PURC_VARIANT_TYPE_BIGINT) {
         if (is_right)
             res = bigint_shr(v, u32);
         else
@@ -1143,6 +1150,7 @@ variant_shift_op(purc_variant_t v, purc_variant_t c, bool is_right)
         pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
     }
 
+done:
     return res;
 }
 
@@ -1233,7 +1241,7 @@ purc_variant_operator_imod(purc_variant_t v1, purc_variant_t v2)
 int
 purc_variant_operator_ipow(purc_variant_t v1, purc_variant_t v2)
 {
-    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_mod);
+    purc_variant_t res = variant_arithmetic_op(v1, v2, OP_pow);
     if (res) {
         pcvariant_move_scalar(v1, res);
         return 0;
@@ -1405,8 +1413,8 @@ purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c)
     return variant_shift_iop(v, c, true);
 }
 
-purc_variant_t
-purc_variant_operator_concat(purc_variant_t a, purc_variant_t b)
+static purc_variant_t
+purc_variant_operator_concat_sequence(purc_variant_t a, purc_variant_t b)
 {
     purc_variant_t res = PURC_VARIANT_INVALID;
     int ec = PURC_ERROR_OK;
@@ -1455,20 +1463,120 @@ failed:
     return res;
 }
 
+static purc_variant_t
+purc_variant_operator_concat_array(purc_variant_t a, purc_variant_t b)
+{
+    purc_variant_t res;
+    int ec = PURC_ERROR_OK;
+
+    size_t sz;
+    if (!purc_variant_linear_container_size(b, &sz)) {
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto failed;
+    }
+
+    res = purc_variant_container_clone(a);
+    if (res) {
+        for (size_t i = 0; i < sz; i++) {
+            purc_variant_t item = purc_variant_linear_container_get(b, i);
+            purc_variant_array_append(res, item);
+        }
+    }
+
+    return res;
+
+failed:
+    if (ec)
+        pcinst_set_error(ec);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+purc_variant_operator_concat_tuple(purc_variant_t a, purc_variant_t b)
+{
+    purc_variant_t res = PURC_VARIANT_INVALID;
+    int ec = PURC_ERROR_OK;
+
+    size_t sz_a, sz_b;
+    if (!purc_variant_linear_container_size(a, &sz_a)) {
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto failed;
+    }
+
+    if (!purc_variant_linear_container_size(b, &sz_b)) {
+        ec = PURC_ERROR_INVALID_OPERAND;
+        goto failed;
+    }
+
+    res = purc_variant_make_tuple(sz_a + sz_b, NULL);
+    if (res) {
+        for (size_t i = 0; i < sz_a; i++) {
+            purc_variant_t item = purc_variant_linear_container_get(a, i);
+            purc_variant_tuple_set(res, i, item);
+        }
+        for (size_t i = 0; i < sz_b; i++) {
+            purc_variant_t item = purc_variant_linear_container_get(b, i);
+            purc_variant_tuple_set(res, i + sz_a, item);
+        }
+    }
+
+    return res;
+
+failed:
+    if (ec)
+        pcinst_set_error(ec);
+    return res;
+}
+
+purc_variant_t
+purc_variant_operator_concat(purc_variant_t a, purc_variant_t b)
+{
+    switch (a->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return purc_variant_operator_concat_array(a, b);
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            return purc_variant_operator_concat_tuple(a, b);
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            return purc_variant_operator_concat_sequence(a, b);
+
+        default:
+            pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
+            return PURC_VARIANT_INVALID;
+    }
+}
+
 int
 purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b)
 {
-    if (!IS_SEQUENCE(a->type)) {
-        pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
-        return -1;
+    if (a->type == PURC_VARIANT_TYPE_ARRAY) {
+        size_t sz;
+        if (purc_variant_linear_container_size(b, &sz)) {
+            for (size_t i = 0; i < sz; i++) {
+                purc_variant_t item = purc_variant_linear_container_get(b, i);
+                purc_variant_array_append(a, item);
+            }
+            return 0;
+        }
+        else {
+            goto failed;
+        }
+    }
+    else if (IS_SEQUENCE(a->type)) {
+        purc_variant_t res = purc_variant_operator_concat_sequence(a, b);
+        if (res) {
+            pcvariant_move_sequence(a, res);
+            return 0;
+        }
+        else
+            return -1;
     }
 
-    purc_variant_t res = purc_variant_operator_concat(a, b);
-    if (res) {
-        pcvariant_move_sequence(a, res);
-        return 0;
-    }
 
+failed:
+    pcinst_set_error(PURC_ERROR_INVALID_OPERAND);
     return -1;
 }
 
@@ -1548,25 +1656,65 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#if 0
-purc_variant_t
-purc_variant_operator_index(purc_variant_t v)
-{
-}
+#if 0 // consider in the future.
+/**
+ * purc_variant_operator_index:
+ *
+ * @v: The variant.
+ *
+ * Perform the convesion to an integer and always return a longint.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_index(purc_variant_t v);
 
-purc_variant_t
-purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b)
-{
-}
+/**
+ * purc_variant_operator_getitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ *
+ * Perform the get item operation (@a[@b]) and
+ * return the value of @a[@b].
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b);
 
-purc_variant_t
+/**
+ * purc_variant_operator_setitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ * @c: The value to set.
+ *
+ * Perform the set item operation (@a[@b] = @c) and
+ * return the value of @a[@b].
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
 purc_variant_operator_setitem(purc_variant_t a, purc_variant_t b,
-        purc_variant_t c)
-{
-}
+        purc_variant_t c);
 
-purc_variant_t
-purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b)
-{
-}
-#endif
+/**
+ * purc_variant_operator_delitem:
+ *
+ * @a: The container variant.
+ * @b: The key value.
+ *
+ * Perform the del item operation (del @a[@b]) and
+ * return a boolean result indicating whether the item was found and deleted.
+ *
+ * Returns: A variant evaluated on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b);
+#endif  // consider in the future.
+

@@ -350,3 +350,865 @@ TEST(variant, contains_operator)
 
     purc_cleanup();
 }
+
+TEST(variant, concat_operator)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for concatenation operations
+    struct concat_test_case {
+        const char* input1;      // First input in JSON format
+        const char* input2;      // Second input in JSON format
+        const char* expected;    // Expected result after concatenation
+        const char* desc;        // Test case description
+    };
+
+    // Test cases covering different types and scenarios
+    concat_test_case test_cases[] = {
+        // String concatenation tests
+        {
+            "\"Hello, \"",
+            "\"World!\"",
+            "\"Hello, World!\"",
+            "Basic string concatenation"
+        },
+        {
+            "\"\"",
+            "\"test\"",
+            "\"test\"",
+            "Empty string concatenation"
+        },
+        {
+            "\"test\"",
+            "\"\"",
+            "\"test\"",
+            "Concatenation with empty string"
+        },
+
+        // Byte sequence concatenation tests (using Base64 encoding)
+        {
+            "b64SGVsbG8=",
+            "b64V29ybGQ=",
+            "b64SGVsbG9Xb3JsZA==",
+            "Basic byte sequence concatenation"
+        },
+        {
+            "b64",
+            "b64SGVsbG8=",
+            "b64SGVsbG8=",
+            "Empty byte sequence concatenation"
+        },
+        {
+            "b64SGVsbG8=",
+            "b64",
+            "b64SGVsbG8=",
+            "Concatenation with empty byte sequence"
+        },
+
+        // Array concatenation tests
+        {
+            "[1, 2, 3]",
+            "[4, 5, 6]",
+            "[1,2,3,4,5,6]",
+            "Basic array concatenation"
+        },
+        {
+            "[]",
+            "[1, 2, 3]",
+            "[1,2,3]",
+            "Empty array concatenation"
+        },
+        {
+            "[1, 2, 3]",
+            "[]",
+            "[1,2,3]",
+            "Concatenation with empty array"
+        },
+        {
+            "[\"a\", 1, true]",
+            "[null, 2.5, \"b\"]",
+            "[\"a\",1,true,null,2.5,\"b\"]",
+            "Mixed type array concatenation"
+        },
+
+        // Tuple concatenation tests
+        {
+            "[!1, 2, 3]",
+            "[!4, 5, 6]",
+            "[!1,2,3,4,5,6]",
+            "Basic tuple concatenation"
+        },
+        {
+            "[!]",
+            "[!1, 2, 3]",
+            "[!1,2,3]",
+            "Empty tuple concatenation"
+        },
+        {
+            "[!1, 2, 3]",
+            "[!]",
+            "[!1,2,3]",
+            "Concatenation with empty tuple"
+        },
+        {
+            "[!\"a\", 1, true]",
+            "[null, 2.5, \"b\"]",
+            "[!\"a\",1,true,null,2.5,\"b\"]",
+            "Mixed type tuple concatenation"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Create variants from JSON strings
+        purc_variant_t input1 = purc_variant_make_from_json_string(
+                test.input1, strlen(test.input1));
+        purc_variant_t input2 = purc_variant_make_from_json_string(
+                test.input2, strlen(test.input2));
+
+        ASSERT_NE(input1, nullptr);
+        ASSERT_NE(input2, nullptr);
+
+        // Perform concatenation operation
+        purc_variant_t result = purc_variant_operator_concat(input1, input2);
+        if (test.expected == nullptr) {
+            EXPECT_EQ(result, PURC_VARIANT_INVALID);
+        }
+        else {
+            ASSERT_NE(result, nullptr);
+
+            // Serialize and verify result
+            purc_rwstream_seek(rws, 0, SEEK_SET);
+            size_t n = purc_variant_serialize(result, rws, 0, 
+                PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 | PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+            EXPECT_GT(n, 0);
+            buf[n] = 0;
+            EXPECT_STREQ(buf, test.expected);
+
+            // Cleanup
+            purc_variant_unref(result);
+        }
+
+        purc_variant_unref(input1);
+        purc_variant_unref(input2);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
+
+TEST(variant, iconcat_operator)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for in-place concatenation operations
+    struct iconcat_test_case {
+        const char* input1;      // First input in JSON format
+        const char* input2;      // Second input in JSON format
+        const char* expected;    // Expected result after concatenation
+        const char* desc;        // Test case description
+    };
+
+    // Test cases covering different types and scenarios
+    iconcat_test_case test_cases[] = {
+        // String concatenation tests
+        {
+            "\"Hello, \"",
+            "\"World!\"",
+            "\"Hello, World!\"",
+            "Basic string in-place concatenation"
+        },
+        {
+            "\"\"",
+            "\"test\"",
+            "\"test\"",
+            "Empty string in-place concatenation"
+        },
+        {
+            "\"test\"",
+            "\"\"",
+            "\"test\"",
+            "In-place concatenation with empty string"
+        },
+
+        // Byte sequence concatenation tests
+        {
+            "b64SGVsbG8=",
+            "b64V29ybGQ=",
+            "b64SGVsbG9Xb3JsZA==",
+            "Basic byte sequence in-place concatenation"
+        },
+        {
+            "b64",
+            "b64SGVsbG8=",
+            "b64SGVsbG8=",
+            "Empty byte sequence in-place concatenation"
+        },
+        {
+            "b64SGVsbG8=",
+            "b64",
+            "b64SGVsbG8=",
+            "In-place concatenation with empty byte sequence"
+        },
+
+        // Array concatenation tests
+        {
+            "[1, 2, 3]",
+            "[4, 5, 6]",
+            "[1,2,3,4,5,6]",
+            "Basic array in-place concatenation"
+        },
+        {
+            "[]",
+            "[1, 2, 3]",
+            "[1,2,3]",
+            "Empty array in-place concatenation"
+        },
+        {
+            "[1, 2, 3]",
+            "[]",
+            "[1,2,3]",
+            "In-place concatenation with empty array"
+        },
+        {
+            "[\"a\", 1, true]",
+            "[null, 2.5, \"b\"]",
+            "[\"a\",1,true,null,2.5,\"b\"]",
+            "Mixed type array in-place concatenation"
+        },
+
+        // Array with tuple as second operand
+        {
+            "[1, 2, 3]",
+            "[!4, 5, 6]",
+            "[1,2,3,4,5,6]",
+            "Array in-place concatenation with tuple"
+        },
+        {
+            "[\"a\", 1, true]",
+            "[!null, 2.5, \"b\"]",
+            "[\"a\",1,true,null,2.5,\"b\"]",
+            "Array in-place concatenation with mixed type tuple"
+        },
+
+        // Invalid cases - tuple as first operand
+        {
+            "[!1, 2, 3]",
+            "[4, 5, 6]",
+            nullptr,
+            "Invalid: tuple as first operand"
+        },
+        {
+            "[!]",
+            "[1, 2, 3]",
+            nullptr,
+            "Invalid: empty tuple as first operand"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Create variants from JSON strings
+        purc_variant_t input1 = purc_variant_make_from_json_string(
+                test.input1, strlen(test.input1));
+        purc_variant_t input2 = purc_variant_make_from_json_string(
+                test.input2, strlen(test.input2));
+
+        ASSERT_NE(input1, nullptr);
+        ASSERT_NE(input2, nullptr);
+
+        // Perform in-place concatenation operation
+        int ret = purc_variant_operator_iconcat(input1, input2);
+        if (test.expected == nullptr) {
+            EXPECT_EQ(ret, -1);
+        }
+        else {
+            EXPECT_EQ(ret, 0);
+
+            // Serialize and verify result
+            purc_rwstream_seek(rws, 0, SEEK_SET);
+            size_t n = purc_variant_serialize(input1, rws, 0,
+                PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 | PCVRNT_SERIALIZE_OPT_TUPLE_EJSON, NULL);
+            EXPECT_GT(n, 0);
+            buf[n] = 0;
+            EXPECT_STREQ(buf, test.expected);
+        }
+
+        // Cleanup resources
+        purc_variant_unref(input1);
+        purc_variant_unref(input2);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
+
+TEST(variant, bitwise_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for bitwise operations
+    struct bitwise_test_case {
+        enum purc_variant_type type1;
+        enum purc_variant_type type2;  // For binary operators
+        const char* op1;               // First operand
+        const char* op2;               // Second operand (for binary operators)
+        purc_variant_t (*op)(purc_variant_t, purc_variant_t);  // Binary operator function
+        const char* expected;          // Expected result after serialization
+        const char* desc;              // Test description
+    };
+
+    // Test cases for binary bitwise operators
+    bitwise_test_case binary_test_cases[] = {
+        // AND operator tests
+        { 
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "15", "7", 
+            purc_variant_operator_and,
+            "7L",
+            "Basic AND operation with longint"
+        },
+        { 
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "4294967295", "4294967294",
+            purc_variant_operator_and,
+            "4294967294UL",
+            "AND operation with ulongint"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_LONGINT,
+            "340282366920938463463374607431768211455", "7",
+            purc_variant_operator_and,
+            "7N",
+            "AND operation with bigint"
+        },
+
+        // OR operator tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "12", "7",
+            purc_variant_operator_or,
+            "15L",
+            "Basic OR operation with longint"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "4294967290", "5",
+            purc_variant_operator_or,
+            "4294967295UL",
+            "OR operation with ulongint"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_LONGINT,
+            "340282366920938463463374607431768211455", "8",
+            purc_variant_operator_or,
+            "340282366920938463463374607431768211455N",
+            "OR operation with bigint"
+        },
+
+        // XOR operator tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "15", "7",
+            purc_variant_operator_xor,
+            "8L",
+            "Basic XOR operation with longint"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "4294967295", "1",
+            purc_variant_operator_xor,
+            "4294967294UL",
+            "XOR operation with ulongint"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_LONGINT,
+            "340282366920938463463374607431768211455", "15",
+            purc_variant_operator_xor,
+            "340282366920938463463374607431768211440N",
+            "XOR operation with bigint"
+        },
+
+        // Left shift tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "1", "4",
+            purc_variant_operator_lshift,
+            "16L",
+            "Basic left shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "1", "31",
+            purc_variant_operator_lshift,
+            "2147483648UL",
+            "Large left shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_LONGINT,
+            "340282366920938463463374607431768211455", "1",
+            purc_variant_operator_lshift,
+            "680564733841876926926749214863536422910N",
+            "Left shift operation with bigint"
+        },
+
+        // Right shift tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "16", "2",
+            purc_variant_operator_rshift,
+            "4L",
+            "Basic right shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "4294967295", "1",
+            purc_variant_operator_rshift,
+            "2147483647UL",
+            "Right shift with ulongint"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_LONGINT,
+            "340282366920938463463374607431768211455", "1",
+            purc_variant_operator_rshift,
+            "170141183460469231731687303715884105727N",
+            "Right shift operation with bigint"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Test invert operator separately
+    {
+        std::cout << "Testing invert operator" << std::endl;
+
+        // Test with longint
+        purc_variant_t operand = purc_variant_make_longint(5);
+        purc_variant_t result = purc_variant_operator_invert(operand);
+        ASSERT_NE(result, nullptr);
+        
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        size_t n = purc_variant_serialize(result, rws, 0, PCVRNT_SERIALIZE_OPT_REAL_EJSON, NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        ASSERT_STREQ(buf, "-6L");  // ~5 = -6 in two's complement
+
+        purc_variant_unref(result);
+        purc_variant_unref(operand);
+
+        // Test with bigint
+        operand = purc_variant_make_bigint_from_string("340282366920938463463374607431768211455", nullptr, 0);
+        ASSERT_NE(operand, nullptr);
+
+        result = purc_variant_operator_invert(operand);
+        ASSERT_NE(result, nullptr);
+        
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        n = purc_variant_serialize(result, rws, 0, PCVRNT_SERIALIZE_OPT_REAL_EJSON, NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        ASSERT_STREQ(buf, "-340282366920938463463374607431768211456N");
+
+        purc_variant_unref(result);
+        purc_variant_unref(operand);
+    }
+
+    // Execute binary operator test cases
+    for (const auto& test : binary_test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+        
+        purc_variant_t op1 = make_operand_from_string(test.type1, test.op1);
+        purc_variant_t op2 = make_operand_from_string(test.type2, test.op2);
+
+        ASSERT_NE(op1, nullptr);
+        ASSERT_NE(op2, nullptr);
+
+        // Perform the bitwise operation
+        purc_variant_t result = test.op(op1, op2);
+        ASSERT_NE(result, nullptr);
+
+        // Serialize and verify
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        size_t n = purc_variant_serialize(result, rws, 0, PCVRNT_SERIALIZE_OPT_REAL_EJSON, NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        EXPECT_STREQ(buf, test.expected);
+
+        // Cleanup
+        purc_variant_unref(result);
+        purc_variant_unref(op1);
+        purc_variant_unref(op2);
+    }
+
+    // Negative test cases
+    {
+        std::cout << "Testing negative cases" << std::endl;
+
+        // Test with unsupported type (number)
+        purc_variant_t num = purc_variant_make_number(42.0);
+        purc_variant_t result = purc_variant_operator_invert(num);
+        ASSERT_EQ(result, PURC_VARIANT_INVALID);
+        purc_variant_unref(num);
+
+        // Test with invalid shift count
+        purc_variant_t val = purc_variant_make_longint(1);
+        purc_variant_t invalid_shift = purc_variant_make_longint(-1);
+        result = purc_variant_operator_lshift(val, invalid_shift);
+        ASSERT_EQ(result, PURC_VARIANT_INVALID);
+        purc_variant_unref(val);
+        purc_variant_unref(invalid_shift);
+
+        // Test with too large shift count
+        val = purc_variant_make_longint(1);
+        purc_variant_t large_shift = purc_variant_make_longint(INT64_MAX);
+        result = purc_variant_operator_rshift(val, large_shift);
+        EXPECT_EQ(result, PURC_VARIANT_INVALID);
+        purc_variant_unref(val);
+        purc_variant_unref(large_shift);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
+
+TEST(variant, inplace_arithmetic_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+    
+    // Test case structure for in-place arithmetic operations
+    struct inplace_arithmetic_test_case {
+        enum purc_variant_type type1, type2;
+        const char* op1;        // First operand
+        const char* op2;        // Second operand
+        int (*op)(purc_variant_t, purc_variant_t); // In-place operator function
+        const char* expected;   // Expected result after serialization
+        const char* desc;       // Test description
+    };
+
+    // Test cases covering different numeric types and operations
+    inplace_arithmetic_test_case test_cases[] = {
+        // In-place addition tests
+        { 
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "456", "579", purc_variant_operator_iadd, "1035",
+            "number += number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
+            "9223372036854775807", "1", purc_variant_operator_iadd, "9223372036854775808",
+            "longint += number"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "18446744073709551614", "1", purc_variant_operator_iadd, "18446744073709551615UL",
+            "ulongint += ulongint"
+        },
+
+        // In-place subtraction tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "1000", "250", purc_variant_operator_isub, "750",
+            "number -= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "9223372036854775807", "9223372036854775806", purc_variant_operator_isub, "1L",
+            "longint -= longint"
+        },
+
+        // In-place multiplication tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "123", "456", purc_variant_operator_imul, "56088",
+            "number *= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
+            "922337203685477580", "10", purc_variant_operator_imul, "9223372036854775808",
+            "longint *= number"
+        },
+
+        // In-place true division tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "1000", "3", purc_variant_operator_itruediv, "333.33333333333331",
+            "number /= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
+            "11111", "2", purc_variant_operator_itruediv, "5555.5",
+            "longint /= number"
+        },
+
+        // In-place floor division tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "1000", "3", purc_variant_operator_ifloordiv, "333",
+            "number //= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
+            "11111", "2", purc_variant_operator_ifloordiv, "5555",
+            "longint //= number"
+        },
+
+        // In-place modulo tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "1000", "3", purc_variant_operator_imod, "1",
+            "number %= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "11111", "2", purc_variant_operator_imod, "1L",
+            "longint %= longint"
+        },
+
+        // In-place power tests
+        {
+            PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
+            "2", "10", purc_variant_operator_ipow, "1024",
+            "number **= number"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
+            "2", "30", purc_variant_operator_ipow, "1073741824",
+            "longint **= number"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+        purc_variant_t op1 = make_operand_from_string(test.type1, test.op1);
+        purc_variant_t op2 = make_operand_from_string(test.type2, test.op2);
+
+        ASSERT_NE(op1, nullptr);
+        ASSERT_NE(op2, nullptr);
+
+        // Perform the in-place arithmetic operation
+        int ret = test.op(op1, op2);
+        ASSERT_EQ(ret, 0);
+
+        // Serialize and verify
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        size_t n = purc_variant_serialize(op1, rws, 0,
+                PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
+                NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        EXPECT_STREQ(buf, test.expected);
+
+        // Cleanup
+        purc_variant_unref(op1);
+        purc_variant_unref(op2);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
+
+TEST(variant, inplace_bitwise_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for in-place bitwise operations
+    struct inplace_bitwise_test_case {
+        enum purc_variant_type type1, type2;
+        const char* op1;        // First operand
+        const char* op2;        // Second operand
+        int (*op)(purc_variant_t, purc_variant_t); // Operator function
+        const char* expected;   // Expected result after serialization
+        const char* desc;       // Test description
+    };
+
+    // Test cases covering different numeric types and operations
+    inplace_bitwise_test_case test_cases[] = {
+        // In-place AND tests
+        { 
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "15", "7", 
+            purc_variant_operator_iand, 
+            "7L",
+            "Basic longint AND operation"
+        },
+        { 
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "255", "15", 
+            purc_variant_operator_iand, 
+            "15UL",
+            "Basic ulongint AND operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "340282366920938463463374607431768211455", "255",
+            purc_variant_operator_iand,
+            "255N",
+            "Large bigint AND operation"
+        },
+
+        // In-place XOR tests
+        { 
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "15", "7", 
+            purc_variant_operator_ixor, 
+            "8L",
+            "Basic longint XOR operation"
+        },
+        { 
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "255", "15", 
+            purc_variant_operator_ixor, 
+            "240UL",
+            "Basic ulongint XOR operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "340282366920938463463374607431768211455", "255",
+            purc_variant_operator_ixor,
+            "340282366920938463463374607431768211200N",
+            "Large bigint XOR operation"
+        },
+
+        // In-place OR tests
+        { 
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "12", "7", 
+            purc_variant_operator_ior, 
+            "15L",
+            "Basic longint OR operation"
+        },
+        { 
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "240", "15", 
+            purc_variant_operator_ior, 
+            "255UL",
+            "Basic ulongint OR operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "340282366920938463463374607431768211200", "255",
+            purc_variant_operator_ior,
+            "340282366920938463463374607431768211455N",
+            "Large bigint OR operation"
+        },
+
+        // In-place Left Shift tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "1", "3",
+            purc_variant_operator_ilshift,
+            "8L",
+            "Basic longint left shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "4", "2",
+            purc_variant_operator_ilshift,
+            "16UL",
+            "Basic ulongint left shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "255", "4",
+            purc_variant_operator_ilshift,
+            "4080N",
+            "Basic bigint left shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "1", "63",
+            purc_variant_operator_ilshift,
+            "-9223372036854775808L",
+            "Maximum longint left shift operation"
+        },
+
+        // In-place Right Shift tests
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "8", "2",
+            purc_variant_operator_irshift,
+            "2L",
+            "Basic longint right shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "16", "3",
+            purc_variant_operator_irshift,
+            "2UL",
+            "Basic ulongint right shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "4080", "4",
+            purc_variant_operator_irshift,
+            "255N",
+            "Basic bigint right shift operation"
+        },
+        {
+            PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_LONGINT,
+            "-8", "2",
+            purc_variant_operator_irshift,
+            "-2L",
+            "Signed right shift operation"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+        
+        purc_variant_t op1 = make_operand_from_string(test.type1, test.op1);
+        purc_variant_t op2 = make_operand_from_string(test.type2, test.op2);
+
+        ASSERT_NE(op1, nullptr);
+        ASSERT_NE(op2, nullptr);
+
+        // Perform the in-place operation
+        int result = test.op(op1, op2);
+        ASSERT_EQ(result, 0);
+
+        // Serialize and verify
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        size_t n = purc_variant_serialize(op1, rws, 0,
+                PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
+                NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        EXPECT_STREQ(buf, test.expected);
+
+        // Cleanup
+        purc_variant_unref(op1);
+        purc_variant_unref(op2);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}

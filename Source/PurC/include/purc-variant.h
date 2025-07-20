@@ -4299,26 +4299,13 @@ PCA_EXPORT purc_variant_t
 purc_variant_operator_rshift(purc_variant_t v, purc_variant_t c);
 
 /**
- * purc_variant_operator_index:
- *
- * @v: The variant.
- *
- * Perform the convesion to an integer and always return a longint.
- *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
- */
-PCA_EXPORT purc_variant_t
-purc_variant_operator_index(purc_variant_t v);
-
-/**
  * purc_variant_operator_concat:
  *
  * @a: The first variant.
  * @b: The second variant.
  *
- * Perform the concatenation operation (@a + @b) for sequences and
- * return the concatenation of @a and @b.
+ * Perform the concatenation operation (@a + @b) for two sequences,
+ * arrays, or tuples, and then return the concatenation of @a and @b.
  *
  * Returns: A variant evaluated on success,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -4340,53 +4327,6 @@ purc_variant_operator_concat(purc_variant_t a, purc_variant_t b);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_operator_contains(purc_variant_t a, purc_variant_t b);
-
-/**
- * purc_variant_operator_getitem:
- *
- * @a: The container variant.
- * @b: The key value.
- *
- * Perform the get item operation (@a[@b]) and
- * return the value of @a[@b].
- *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
- */
-PCA_EXPORT purc_variant_t
-purc_variant_operator_getitem(purc_variant_t a, purc_variant_t b);
-
-/**
- * purc_variant_operator_setitem:
- *
- * @a: The container variant.
- * @b: The key value.
- * @c: The value to set.
- *
- * Perform the set item operation (@a[@b] = @c) and
- * return the value of @a[@b].
- *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
- */
-PCA_EXPORT purc_variant_t
-purc_variant_operator_setitem(purc_variant_t a, purc_variant_t b,
-        purc_variant_t c);
-
-/**
- * purc_variant_operator_delitem:
- *
- * @a: The container variant.
- * @b: The key value.
- *
- * Perform the del item operation (del @a[@b]) and
- * return a boolean result indicating whether the item was found and deleted.
- *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
- */
-PCA_EXPORT purc_variant_t
-purc_variant_operator_delitem(purc_variant_t a, purc_variant_t b);
 
 /**
  * purc_variant_operator_iadd:
@@ -4566,8 +4506,8 @@ purc_variant_operator_irshift(purc_variant_t v, purc_variant_t c);
  * @a: The first variant.
  * @b: The second variant.
  *
- * Perform the in-place concatenation operation (@a += @b) for sequences and
- * return @a.
+ * Perform the in-place concatenation operation (@a += @b) for two sequences
+ * or two arrays.
  *
  * Returns: 0 on success, or -1 on failure.
  *
@@ -4579,3 +4519,4 @@ purc_variant_operator_iconcat(purc_variant_t a, purc_variant_t b);
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_VARIANT_H */
+
