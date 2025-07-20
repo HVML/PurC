@@ -1707,6 +1707,10 @@ positive:
     123L
 
 positive:
+    $DATA.longint(0xFFFFFFFFFFFFFFFFUL)
+    -1L
+
+positive:
     $DATA.longint(-123)
     -123L
 
@@ -1776,7 +1780,19 @@ positive:
 
 positive:
     $DATA.ulongint(-1)
-    0UL
+    -1UL
+
+positive:
+    $DATA.ulongint(-1)
+    0xFFFFFFFFFFFFFFFFUL
+
+positive:
+    $DATA.ulongint(-1L)
+    -1UL
+
+positive:
+    $DATA.ulongint(-1L)
+    0xFFFFFFFFFFFFFFFFUL
 
 positive:
     $DATA.ulongint(3.14)

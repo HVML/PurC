@@ -1226,20 +1226,20 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || (int64_t)v->d < INT64_MIN) {
+            if (isinf(v->d) == -1 || v->d < (double)INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || (int64_t)v->d > INT64_MAX) {
+            else if (isinf(v->d) == 1 || v->d > (double)INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
                     break;
             }
             else {
-                *i64 = (int64_t)v->d;
+                *i64 = llround(v->d);
             }
             return true;
 
@@ -1263,20 +1263,20 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             if (isnan(*v->ld))
                 break;
 
-            if (isinf(*v->ld) == -1 || *v->ld < INT64_MIN) {
+            if (isinf(*v->ld) == -1 || *v->ld < (long double)INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(*v->ld) == 1 || *v->ld > INT64_MAX) {
+            else if (isinf(*v->ld) == 1 || *v->ld > (long double)INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
                     break;
             }
             else {
-                *i64 = (int64_t)*v->ld;
+                *i64 = llroundl(*v->ld);
             }
             return true;
 
@@ -1409,20 +1409,20 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || v->d < 0) {
+            if (isinf(v->d) == -1 || v->d < (double)INT64_MIN) {
                 if (force)
-                    *u64 = 0;
+                    *u64 = (uint64_t)INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || (uint64_t)v->d >= UINT64_MAX) {
+            else if (isinf(v->d) == 1 || v->d >= (double)UINT64_MAX) {
                 if (force)
                     *u64 = UINT64_MAX;
                 else
                     break;
             }
             else {
-                *u64 = (uint64_t)v->d;
+                *u64 = (uint64_t)llround(v->d);
             }
             return true;
 
@@ -1445,17 +1445,17 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             if (isnan(*v->ld))
                 break;
 
-            if (isinf(*v->ld) == -1 || *v->ld < 0) {
+            if (isinf(*v->ld) == -1 || *v->ld < (long double)INT64_MIN) {
                 if (force)
-                    *u64 = 0;
+                    *u64 = (uint64_t)INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(*v->ld) == 1 || *v->ld >= UINT64_MAX) {
+            else if (isinf(*v->ld) == 1 || *v->ld >= (long double)UINT64_MAX) {
                 *u64 = UINT64_MAX;
             }
             else {
-                *u64 = (uint64_t)*v->ld;
+                *u64 = (uint64_t)llroundl(*v->ld);
             }
             return true;
 

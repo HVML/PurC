@@ -444,8 +444,9 @@ longint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else {
         if (argv[0]->type == PURC_VARIANT_TYPE_LONGINT)
             return purc_variant_ref(argv[0]);
-
-        if (!purc_variant_cast_to_longint(argv[0], &ret, true)) {
+        else if (argv[0]->type == PURC_VARIANT_TYPE_ULONGINT)
+            ret = (int64_t)argv[0]->u64;
+        else if (!purc_variant_cast_to_longint(argv[0], &ret, true)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -475,8 +476,9 @@ ulongint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else {
         if (argv[0]->type == PURC_VARIANT_TYPE_ULONGINT)
             return purc_variant_ref(argv[0]);
-
-        if (!purc_variant_cast_to_ulongint(argv[0], &ret, true)) {
+        else if (argv[0]->type == PURC_VARIANT_TYPE_LONGINT)
+            ret = (uint64_t)argv[0]->i64;
+        else if (!purc_variant_cast_to_ulongint(argv[0], &ret, true)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -515,6 +517,7 @@ bigint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_t v = argv[0];
 
         switch (v->type) {
+            case PURC_VARIANT_TYPE_UNDEFINED:
             case PURC_VARIANT_TYPE_NULL:
                 i64 = 0;
                 break;
@@ -571,6 +574,7 @@ bigint_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 ld = (*v->ld);
                 break;
 
+            case PURC_VARIANT_TYPE_EXCEPTION:
             case PURC_VARIANT_TYPE_ATOMSTRING:
                 type = FT_STR;
                 str = purc_atom_to_string(v->atom);
