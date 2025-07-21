@@ -45,11 +45,21 @@ We also made a number of major enhancements and fixed some bugs.
 
 * CHANGES:
 * ENHANCEMENTS:
+   - Support for new variant type: `bigint`.
+   - New HVML APIs: `$DATA.longint()`, `$DATA.ulongint()`, `$DATA.bigint()`, `$DATA.double()`, and `$DATA.longdouble()`.
+   - New APIs to provide various variant operators.
+   - New API: `purc_variant_numerify_long()`, `purc_variant_serialize_alloc()`, and so on.
+   - Support for CSS attribute `transform` in CSSEng.
+   - Support for the global selector when serializing the document.
+   - Support for user-defined options (`--query-<key> <value>`) for easy definition of request parameters of `purc`.
 * OPTIMIZATIONS:
-   - Find tuned the `struct purc_variant` to reduce memory use for ordinary variants.
+   - Find tuned the `struct purc_variant` to reduce memory use for scalar variants.
 * ADJUSTMENTS:
 * BUGFIXES:
+   - Fixed some bugs of HVML parser.
+   - Removed unnecessary checks when decoding UTF-8 characters.
 * CLEANUP:
+   - Cleaned up the command line options of `purc`.
 * SAMPLES:
 
 >>>>>>> origin/variant
