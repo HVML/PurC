@@ -655,8 +655,8 @@ static struct purc_native_ops native_pyobject_ops = {
     .on_release = on_release_pyobject,
 };
 
-static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
-        bool *is_basic)
+static purc_variant_t
+make_variant_from_basic_pyobj(PyObject *pyobj, bool *is_basic)
 {
     purc_variant_t v = PURC_VARIANT_INVALID;
 
@@ -679,22 +679,21 @@ static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
             // Format big integer to hexadecimal string
             PyObject *format_str = PyUnicode_FromString("#x");
             if (format_str == NULL) {
-                goto failed_python;
+                goto done;
             }
-            
+
             PyObject *hex_str = PyObject_Format(pyobj, format_str);
             Py_DECREF(format_str);
-            
             if (hex_str == NULL) {
-                goto failed_python;
+                goto done;
             }
-            
+
             const char *c_str = PyUnicode_AsUTF8(hex_str);
             if (c_str == NULL) {
                 Py_DECREF(hex_str);
-                goto failed_python;
+                goto done;
             }
-            
+
             v = purc_variant_make_bigint_from_string(c_str, NULL, 16);
             Py_DECREF(hex_str);
         }
@@ -748,11 +747,8 @@ static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
         *is_basic = false;
     }
 
+done:
     return v;
-
-failed_python:
-    handle_python_error(pyinfo);
-    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t make_variant_from_pyobj(PyObject *pyobj)

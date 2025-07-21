@@ -242,9 +242,9 @@ bigint_get_tab_const(const purc_variant *val, size_t *len)
 static void
 bigint_dump1(FILE *fp, const char *prefix, const bi_limb_t *tab, size_t len)
 {
-    size_t i;
+    ssize_t i;
     fprintf(fp, "%s: ", prefix);
-    for(i = len - 1; i >= 0; i--) {
+    for (i = len - 1; i >= 0; i--) {
 #if BIGINT_LIMB_BITS == 32
         fprintf(fp, " %08x", tab[i]);
 #else
@@ -307,11 +307,14 @@ void pcvariant_bigint_release(purc_variant_t v)
         sz_extra += sizeof(bi_limb_t) * limbs->len;
         pcvariant_stat_dec_extra_size(v, sz_extra);
         free(v->ptr);
+        v->flags = 0;
+        v->ptr = NULL;
     }
 }
 
 static void bigint_free(purc_variant_t v)
 {
+    pcvariant_bigint_release(v);
     pcvariant_put(v);
 }
 
@@ -1025,7 +1028,7 @@ static uint64_t bigint_get_mant_exp(int *pexp, const purc_variant *a)
 {
     bi_limb_t t[4 - BIGINT_LIMB_BITS / 32], carry, v, low_bits;
     int sgn, shift, e;
-    size_t n1, n2, i, j;
+    ssize_t n1, n2, i, j;
     uint64_t a1, a0;
 
     const bi_limb_t *a_tab;
@@ -2007,6 +2010,7 @@ done:
 failed:
     if (ec)
         pcinst_set_error(ec);
+    return PURC_VARIANT_INVALID;
 #else
     // fallback
     return purc_variant_make_bigint_from_double((double)ld, force);
