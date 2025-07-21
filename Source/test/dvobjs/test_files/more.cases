@@ -1902,10 +1902,6 @@ negative:
     $DATA.abs()
     ArgumentMissed
 
-negative:
-    $DATA.abs([1,2.3])
-    WrongDataType
-
 positive:
     $DATA.abs(-3)
     3
@@ -1929,4 +1925,12 @@ positive:
 positive:
     $DATA.abs(null)
     0
+
+positive:
+    $DATA.abs([1,2.3])
+    3.3
+
+positive:
+    $DATA.abs("-123")
+    123
 

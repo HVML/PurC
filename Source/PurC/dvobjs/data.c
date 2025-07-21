@@ -712,8 +712,9 @@ abs_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t retv;
     retv = purc_variant_operator_abs(argv[0]);
     if (retv == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
+        purc_clr_error();
+        double d = purc_variant_numerify(argv[0]);
+        retv = purc_variant_make_number(fabs(d));
     }
 
     return retv;
