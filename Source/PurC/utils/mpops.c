@@ -53,6 +53,8 @@
 
 #include "private/mpops.h"
 
+#include <string.h>
+
 bi_limb_t
 mp_add(bi_limb_t *res, const bi_limb_t *op1, const bi_limb_t *op2,
         bi_limb_t n, bi_limb_t carry)
