@@ -3041,6 +3041,12 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
 
 /**
  * A flag for the purc_variant_serialize() function which causes
+ * the output to use hexadecimal digits for bigint.
+ */
+#define PCVRNT_SERIALIZE_OPT_BIGINT_HEX              0x00004000
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
  * the function ignores the output errors.
  */
 #define PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS           0x10000000
@@ -3078,6 +3084,27 @@ PCA_EXPORT ssize_t
 purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
         int indent_level, unsigned int flags, size_t *len_expected);
 
+/**
+ * purc_variant_serialize_alloc:
+ *
+ * @value: A variant value to be serialized.
+ * @indent_level: The initial indent level. 0 for most cases.
+ * @flags: The serialization flags.
+ * @sz_content (nullable): A pointer to a buffer to receive the length
+ *  of serialized content.
+ * @sz_buffer (nullable): A pointer to a buffer to receive the size
+ *  of the new buffer.
+ *
+ * Serializes a variant value to a newly allocated buffer in the given flags.
+ *
+ * Returns: The pointer to the buffer or NULL on error. The caller is
+ *  responsible to free the buffer by calling free(2).
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT void *
+purc_variant_serialize_alloc(purc_variant_t value, int indent_level,
+        unsigned flags, size_t *sz_content, size_t *sz_buffer);
 
 #define PURC_ENVV_DVOBJS_PATH   "PURC_DVOBJS_PATH"
 
@@ -3161,6 +3188,7 @@ typedef enum purc_variant_type {
     PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_TUPLE,
 } purc_variant_type;
 
+#define PURC_VARIANT_TYPE_DOUBLE            PURC_VARIANT_TYPE_NUMBER
 #define PURC_VARIANT_TYPE_NR \
     (PURC_VARIANT_TYPE_LAST - PURC_VARIANT_TYPE_FIRST + 1)
 

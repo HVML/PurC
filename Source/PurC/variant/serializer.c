@@ -764,7 +764,13 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_BIGINT:
             if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
                 MY_WRITE(rws, "\"", 1);
-            n = bigint_stringify(value, 10, rws, stringify_cb_bigint);
+            if (!(flags & PCVRNT_SERIALIZE_OPT_BIGINT_HEX)) {
+                MY_WRITE(rws, "0x", 2);
+                n = bigint_stringify(value, 16, rws, stringify_cb_bigint);
+            }
+            else {
+                n = bigint_stringify(value, 10, rws, stringify_cb_bigint);
+            }
             MY_WRITE(rws, "N", 1);  // postfix
             if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
                 MY_WRITE(rws, "\"", 1);
@@ -1077,5 +1083,42 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
 failed:
     return -1;
+}
+
+void *
+purc_variant_serialize_alloc(purc_variant_t value,
+        int indent_level, unsigned flags,
+        size_t *sz_content, size_t *sz_buffer)
+{
+    int ec = PURC_ERROR_OK;
+    purc_rwstream_t output;
+
+    output = purc_rwstream_new_buffer(64, -1);
+    if (output == NULL) {
+        ec = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    ssize_t n;
+    n = purc_variant_serialize(value, output, indent_level, flags, NULL);
+    if (n == -1)
+        goto failed;
+
+    if (purc_rwstream_write(output, "\0", 1) < 1)
+        goto failed;
+
+    char *buf = NULL;
+    buf = purc_rwstream_get_mem_buffer_ex(output, sz_content, sz_buffer, true);
+    purc_rwstream_destroy(output);
+    return buf;
+
+failed:
+    if (output)
+        purc_rwstream_destroy(output);
+
+    if (ec)
+        purc_set_error(ec);
+
+    return NULL;
 }
 
