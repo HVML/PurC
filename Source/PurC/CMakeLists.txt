@@ -76,7 +76,7 @@ list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/strnstr.c"
 )
 
-# Put the CXX source files which can be unified in `Sources.txt`
+# Put the CPP source files which can be unified in `Sources.txt`
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
     "Sources.txt"
 )

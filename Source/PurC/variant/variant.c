@@ -2294,27 +2294,11 @@ static double numerify_bs(const unsigned char *bytes, size_t nr)
     if (!bytes || nr == 0)
         return 0.0;
 
-    /* Since 0.9.26: treat the bytes as a float number */
-#if 1
-    if (nr >= sizeof(double)) {
-        double f;
-        memcpy(&f, bytes, sizeof(double));
-        return f;
-    }
-    else if (nr >= sizeof(float)) {
-        float f;
-        memcpy(&f, bytes, sizeof(float));
-        return f;
-    }
-    else {
-        return 0.0;
-    }
-#else
-    long int number = 0;
-    size_t size = sizeof(long int);
+    long number = 0;
+    size_t size = sizeof(long);
 
     if (nr > size) {
-        s += (nr - size);
+        bytes += (nr - size);
         nr = size;
     }
 
@@ -2322,14 +2306,13 @@ static double numerify_bs(const unsigned char *bytes, size_t nr)
 #if CPU(BIG_ENDIAN)
     char buffer[size] = {0,};
     for (int i = 0; i < nr; i++)
-        buffer[size - 1 - i] = *(s + i);
+        buffer[size - 1 - i] = *(bytes + i);
     memcpy(&number, buffer, nr);
 #elif CPU(LITTLE_ENDIAN)
-    memcpy(&number, s, nr);
+    memcpy(&number, bytes, nr);
 #endif
 
     return (double)number;
-#endif
 }
 
 static long double numerify_bs_long(const unsigned char *bytes, size_t nr)
@@ -2337,24 +2320,25 @@ static long double numerify_bs_long(const unsigned char *bytes, size_t nr)
     if (!bytes || nr == 0)
         return 0.0;
 
-    if (nr >= sizeof(long double)) {
-        long double f;
-        memcpy(&f, bytes, sizeof(long double));
-        return f;
+    long long number = 0;
+    size_t size = sizeof(long long);
+
+    if (nr > size) {
+        bytes += (nr - size);
+        nr = size;
     }
-    else if (nr >= sizeof(double)) {
-        double f;
-        memcpy(&f, bytes, sizeof(double));
-        return f;
-    }
-    else if (nr >= sizeof(float)) {
-        float f;
-        memcpy(&f, bytes, sizeof(float));
-        return f;
-    }
-    else {
-        return 0.0;
-    }
+
+    /* FIXME: Use purc_fetch_xxx */
+#if CPU(BIG_ENDIAN)
+    char buffer[size] = {0,};
+    for (int i = 0; i < nr; i++)
+        buffer[size - 1 - i] = *(bytes + i);
+    memcpy(&number, buffer, nr);
+#elif CPU(LITTLE_ENDIAN)
+    memcpy(&number, bytes, nr);
+#endif
+
+    return (long double)number;
 }
 
 static double numerify_dynamic(purc_variant_t value)
