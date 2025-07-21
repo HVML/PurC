@@ -457,6 +457,12 @@ TEST(variant, pcvariant_number)
     buf[n] = 0;
     ASSERT_STREQ(buf, "123.456");
 
+    char *str;
+    str = purc_variant_serialize_alloc(value, 0, PCVRNT_SERIALIZE_OPT_NOZERO,
+            NULL, NULL);
+    ASSERT_STREQ(str, "123.456");
+    free(str);
+
     purc_variant_unref(value);
     purc_rwstream_destroy(my_rws);
 

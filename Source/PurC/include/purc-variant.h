@@ -3102,7 +3102,7 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
  *
  * Since: 0.9.26
  */
-PCA_EXPORT void *
+PCA_EXPORT char *
 purc_variant_serialize_alloc(purc_variant_t value, int indent_level,
         unsigned flags, size_t *sz_content, size_t *sz_buffer);
 

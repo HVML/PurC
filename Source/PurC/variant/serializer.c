@@ -764,7 +764,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_BIGINT:
             if (!(flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON))
                 MY_WRITE(rws, "\"", 1);
-            if (!(flags & PCVRNT_SERIALIZE_OPT_BIGINT_HEX)) {
+            if (flags & PCVRNT_SERIALIZE_OPT_BIGINT_HEX) {
                 MY_WRITE(rws, "0x", 2);
                 n = bigint_stringify(value, 16, rws, stringify_cb_bigint);
             }
@@ -1085,7 +1085,7 @@ failed:
     return -1;
 }
 
-void *
+char *
 purc_variant_serialize_alloc(purc_variant_t value,
         int indent_level, unsigned flags,
         size_t *sz_content, size_t *sz_buffer)
