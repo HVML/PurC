@@ -1897,3 +1897,36 @@ positive:
 positive:
     $DATA.longdouble({})
     0.0FL
+
+negative:
+    $DATA.abs()
+    ArgumentMissed
+
+negative:
+    $DATA.abs([1,2.3])
+    WrongDataType
+
+positive:
+    $DATA.abs(-3)
+    3
+
+positive:
+    $DATA.abs(3L)
+    3L
+
+positive:
+    $DATA.abs(-3.0FL)
+    3.0FL
+
+positive:
+    $DATA.abs(true)
+    1
+
+positive:
+    $DATA.abs(false)
+    0
+
+positive:
+    $DATA.abs(null)
+    0
+

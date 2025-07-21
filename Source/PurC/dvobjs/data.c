@@ -699,6 +699,33 @@ longdouble_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
+abs_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    purc_variant_t retv;
+    retv = purc_variant_operator_abs(argv[0]);
+    if (retv == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return retv;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_number(0);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 booleanize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
@@ -4098,8 +4125,9 @@ purc_variant_t purc_dvobj_data_new(void)
         { "ulongint",   ulongint_getter, NULL },
         { "bigint",     bigint_getter, NULL },
         { "double",     double_getter, NULL },
-        { "longdouble", longdouble_getter, NULL },
         { "numerify",   double_getter, NULL },
+        { "longdouble", longdouble_getter, NULL },
+        { "abs",        abs_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },
         { "serialize",  serialize_getter, NULL },
