@@ -3904,13 +3904,13 @@ scalar_diff(purc_variant_t l, purc_variant_t r, void *ctxt)
         return data->diff;
     }
 
-    if (!pcvariant_is_scalar(l) && !pcvariant_is_scalar(r)) {
+    if (!pcvariant_is_not_container(l) && !pcvariant_is_not_container(r)) {
         data->diff = l->type - r->type;
         PC_ASSERT(data->diff);
         return data->diff;
     }
 
-    if (pcvariant_is_scalar(l) && pcvariant_is_scalar(r)) {
+    if (pcvariant_is_not_container(l) && pcvariant_is_not_container(r)) {
         if (l->type == r->type) {
             data->diff = homo_scalar_diff(l, r, data);
             return data->diff;
@@ -4295,7 +4295,7 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
     return diff;
 }
 
-bool pcvariant_is_scalar(purc_variant_t v)
+bool pcvariant_is_not_container(purc_variant_t v)
 {
     switch (v->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
@@ -4331,12 +4331,6 @@ bool pcvariant_is_scalar(purc_variant_t v)
 bool pcvariant_is_of_number(purc_variant_t v)
 {
     switch (v->type) {
-        case PURC_VARIANT_TYPE_UNDEFINED:
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_BOOLEAN:
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
-
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
@@ -4344,19 +4338,7 @@ bool pcvariant_is_of_number(purc_variant_t v)
         case PURC_VARIANT_TYPE_BIGINT:
             return true;
 
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-        case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-        case PURC_VARIANT_TYPE_DYNAMIC:
-        case PURC_VARIANT_TYPE_NATIVE:
-        case PURC_VARIANT_TYPE_OBJECT:
-        case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
-        case PURC_VARIANT_TYPE_TUPLE:
-            return false;
-
         default:
-            PC_ASSERT(0);
             break;
     }
 

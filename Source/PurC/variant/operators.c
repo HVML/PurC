@@ -373,20 +373,12 @@ purc_variant_operator_neg(purc_variant_t v)
 purc_variant_t
 purc_variant_operator_pos(purc_variant_t v)
 {
-    if (v->type == PURC_VARIANT_TYPE_LONGINT) {
-        return purc_variant_make_longint(v->i64);
-    }
-    else if (v->type == PURC_VARIANT_TYPE_ULONGINT) {
-        return purc_variant_make_ulongint(v->u64);
-    }
-    else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
-        return bigint_clone(v);
-    }
-    else if (v->type == PURC_VARIANT_TYPE_DOUBLE) {
-        return purc_variant_make_number(v->d);
-    }
-    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
-        return purc_variant_make_longdouble(*v->ld);
+    if (v->type == PURC_VARIANT_TYPE_LONGINT ||
+            v->type == PURC_VARIANT_TYPE_ULONGINT ||
+            v->type == PURC_VARIANT_TYPE_NUMBER ||
+            v->type == PURC_VARIANT_TYPE_LONGDOUBLE ||
+            v->type  == PURC_VARIANT_TYPE_BIGINT) {
+        return purc_variant_ref(v);
     }
     else {
         double f64 = purc_variant_numerify(v);
@@ -520,7 +512,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
     int ec = PURC_ERROR_OK;
     purc_variant_t res = PURC_VARIANT_INVALID;
 
-    if (!IS_NUMBER(v1->type) || !IS_NUMBER(v2->type)) {
+    if (!IS_ARITH_NUMBER(v1->type) || !IS_ARITH_NUMBER(v2->type)) {
         ec = PURC_ERROR_INVALID_OPERAND;
         goto done;
     }
@@ -837,10 +829,8 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         else
             res = purc_variant_make_ulongint((uint64_t)c);
     }
-    else {
-        assert(v1->type == PURC_VARIANT_TYPE_LONGINT &&
-            v2->type == PURC_VARIANT_TYPE_LONGINT);
-
+    else if (v1->type == PURC_VARIANT_TYPE_LONGINT &&
+            v2->type == PURC_VARIANT_TYPE_LONGINT) {
         int128_t a = v1->i64, b = v2->i64, c = 0;
         double d = 0;
         bool use_float = false, overflow = false;
@@ -917,9 +907,8 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
         else
             res = purc_variant_make_longint((int64_t)c);
     }
-#if 0
     else {
-        /* for any other situations */
+        /* for any other situations: boolean and null */
         double a, b, c = 0;
         a = purc_variant_numerify(v1);
         b = purc_variant_numerify(v2);
@@ -960,7 +949,6 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
 
         res = purc_variant_make_number(c);
     }
-#endif
 
 done:
     if (ec)
@@ -1633,7 +1621,8 @@ purc_variant_operator_contains(purc_variant_t a, purc_variant_t b)
     int ec = PURC_ERROR_OK;
     bool ret = false;
 
-    if (a->type == PURC_VARIANT_TYPE_UNDEFINED || IS_NUMBER(a->type)) {
+    if (IS_ARITH_NUMBER(a->type) ||
+            a->type == PURC_VARIANT_TYPE_UNDEFINED) {
         ec = PURC_ERROR_INVALID_OPERAND;
         goto failed;
     }

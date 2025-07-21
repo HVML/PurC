@@ -45,12 +45,21 @@ PCA_EXTERN_C_BEGIN
 
 #define IS_SCALAR(t)    (t <= PURC_VARIANT_TYPE_LAST_SCALAR)
 
-#define IS_NUMBER(t)    (t == PURC_VARIANT_TYPE_BOOLEAN ||      \
-                         t == PURC_VARIANT_TYPE_NUMBER ||       \
-                         t == PURC_VARIANT_TYPE_LONGINT ||      \
-                         t == PURC_VARIANT_TYPE_ULONGINT ||     \
-                         t == PURC_VARIANT_TYPE_LONGDOUBLE ||   \
-                         t == PURC_VARIANT_TYPE_BIGINT)
+#define IS_GENUINE_NUMBER(t)                \
+    (t == PURC_VARIANT_TYPE_LONGINT ||      \
+     t == PURC_VARIANT_TYPE_ULONGINT ||     \
+     t == PURC_VARIANT_TYPE_NUMBER ||       \
+     t == PURC_VARIANT_TYPE_LONGDOUBLE ||   \
+     t == PURC_VARIANT_TYPE_BIGINT)
+
+#define IS_ARITH_NUMBER(t)                  \
+    (t == PURC_VARIANT_TYPE_NULL ||         \
+     t == PURC_VARIANT_TYPE_BOOLEAN ||      \
+     t == PURC_VARIANT_TYPE_LONGINT ||      \
+     t == PURC_VARIANT_TYPE_ULONGINT ||     \
+     t == PURC_VARIANT_TYPE_NUMBER ||       \
+     t == PURC_VARIANT_TYPE_LONGDOUBLE ||   \
+     t == PURC_VARIANT_TYPE_BIGINT)
 
 #define IS_SEQUENCE(t)  (t == PURC_VARIANT_TYPE_STRING ||       \
                          t == PURC_VARIANT_TYPE_BSEQUENCE)
@@ -435,7 +444,7 @@ pcvariant_is_false(purc_variant_t v)
 }
 
 bool
-pcvariant_is_scalar(purc_variant_t v);
+pcvariant_is_not_container(purc_variant_t v);
 
 bool
 pcvariant_is_of_string(purc_variant_t v);

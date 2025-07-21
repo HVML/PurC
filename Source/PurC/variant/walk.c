@@ -145,7 +145,7 @@ parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
     if (l == PURC_VARIANT_INVALID || r == PURC_VARIANT_INVALID)
         return cb(l, r, ctxt);
 
-    if (pcvariant_is_scalar(l) || pcvariant_is_scalar(r)) {
+    if (pcvariant_is_not_container(l) || pcvariant_is_not_container(r)) {
         return cb(l, r, ctxt);
     }
 
