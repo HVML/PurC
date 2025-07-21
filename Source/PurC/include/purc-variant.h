@@ -3960,10 +3960,9 @@ purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
  * Perform the less-than comparison (@v1 < @v2) and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 < @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -3975,10 +3974,9 @@ purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2);
  * Perform the less-than or equal to comparison (@v1 <= @v2) and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 <= @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2);
 
  /**
@@ -3990,10 +3988,9 @@ purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2);
  * Perform the equal to comparison (@v1 == @v2) and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 == @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4005,10 +4002,9 @@ purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2);
  * Perform the not equal to comparison and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 != @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4020,10 +4016,9 @@ purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2);
  * Perform the greater-than comparison (@v1 > @v2) and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 > @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_gt(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4035,10 +4030,9 @@ purc_variant_operator_gt(purc_variant_t v1, purc_variant_t v2);
  * Perform the greater-than or equal to comparison (@v1 >= @v2) and
  * return the truth value of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 >= @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_ge(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4048,10 +4042,9 @@ purc_variant_operator_ge(purc_variant_t v1, purc_variant_t v2);
  *
  * Perform the logical negation (not @v) and return the negation of @v.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v is not true, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_not(purc_variant_t v);
 
 /**
@@ -4061,10 +4054,9 @@ purc_variant_operator_not(purc_variant_t v);
  *
  * Perform the truth test (bool(@v)) and return the truth value of @v.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v is true, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_truth(purc_variant_t v);
 
 /**
@@ -4076,10 +4068,9 @@ purc_variant_operator_truth(purc_variant_t v);
  * Perform the object identity test (@v1 is @v2) and return the truth value
  * of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 is @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4091,10 +4082,9 @@ purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2);
  * Perform the object identity test (@v1 is not @v2) and return the negation
  * of the result.
  *
- * Returns: A variant evaluated on success,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: @true if @v1 is not @v2, otherwise @false.
  */
-PCA_EXPORT purc_variant_t
+PCA_EXPORT bool
 purc_variant_operator_is_not(purc_variant_t v1, purc_variant_t v2);
 
 /**
@@ -4122,7 +4112,7 @@ purc_variant_operator_abs(purc_variant_t v);
  *      or %PURC_VARIANT_INVALID on failure.
  */
 PCA_EXPORT purc_variant_t
-purc_variant_operator_neg(purc_variant_t v); 
+purc_variant_operator_neg(purc_variant_t v);
 
 /**
  * purc_variant_operator_pos:
@@ -4135,7 +4125,7 @@ purc_variant_operator_neg(purc_variant_t v);
  *      or %PURC_VARIANT_INVALID on failure.
  */
 PCA_EXPORT purc_variant_t
-purc_variant_operator_pos(purc_variant_t v); 
+purc_variant_operator_pos(purc_variant_t v);
 
 /**
  * purc_variant_operator_add:

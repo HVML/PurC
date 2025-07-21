@@ -31,6 +31,7 @@
 
 #include "purc-variant.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -181,6 +182,28 @@ static int variant_compare(purc_variant_t v1, purc_variant_t v2)
             }
         }
     }
+    else if (is_variant_string(v1) && is_variant_string(v2)) {
+        const char *str_a, *str_b;
+        str_a = purc_variant_get_string_const(v1);
+        str_b = purc_variant_get_string_const(v2);
+        cmp = strcmp(str_a, str_b);
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_BSEQUENCE &&
+            v2->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+        const void *bytes_a, *bytes_b;
+        size_t len_a, len_b;
+        bytes_a = purc_variant_get_bytes_const(v1, &len_a);
+        bytes_b = purc_variant_get_bytes_const(v2, &len_b);
+
+        size_t len = MIN(len_a, len_b);
+        cmp = memcmp(bytes_a, bytes_b, len);
+        if (cmp == 0 && len_a != len_b) {
+            if (len_a > len_b)
+                cmp = 1;
+            else
+                cmp = -1;
+        }
+    }
     else {
         /* for any other situations */
         double a, b;
@@ -201,57 +224,57 @@ static int variant_compare(purc_variant_t v1, purc_variant_t v2)
     return cmp * swapped;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_lt(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) < 0);
+    return variant_compare(v1, v2) < 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_le(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) <= 0);
+    return variant_compare(v1, v2) <= 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_eq(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) == 0);
+    return variant_compare(v1, v2) == 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_ne(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) != 0);
+    return variant_compare(v1, v2) != 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_gt(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) > 0);
+    return variant_compare(v1, v2) > 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_ge(purc_variant_t v1, purc_variant_t v2)
 {
-    return purc_variant_make_boolean(variant_compare(v1, v2) >= 0);
+    return variant_compare(v1, v2) >= 0;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_not(purc_variant_t v)
 {
     bool truth = purc_variant_booleanize(v);
-    return purc_variant_make_boolean(!truth);
+    return !truth;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_truth(purc_variant_t v)
 {
     bool truth = purc_variant_booleanize(v);
-    return purc_variant_make_boolean(truth);
+    return truth;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2)
 {
     bool res;
@@ -260,29 +283,35 @@ purc_variant_operator_is(purc_variant_t v1, purc_variant_t v2)
         res = true;
     else if (v1->type != v2->type)
         res = false;
+    else if (v1->type == PURC_VARIANT_TYPE_LONGDOUBLE)
+        res = *v1->ld == *v2->ld;
+    else if (v1->type == PURC_VARIANT_TYPE_STRING ||
+            v1->type == PURC_VARIANT_TYPE_BSEQUENCE) {
+        size_t len1, len2;
+        const void *p1 = purc_variant_get_bytes_const(v1, &len1);
+        const void *p2 = purc_variant_get_bytes_const(v2, &len2);
+
+        if (len1 != len2) {
+            res = false;
+        }
+        else {
+            res = memcmp(p1, p2, len1) == 0;
+        }
+    }
+    else if (v1->type == PURC_VARIANT_TYPE_BIGINT)
+        res = bigint_cmp(v1, v2) == 0;
     else if (is_variant_scalar(v1))
         res = v1->u64 == v2->u64;
     else
         res = false;
 
-    return purc_variant_make_boolean(res);
+    return res;
 }
 
-purc_variant_t
+bool
 purc_variant_operator_is_not(purc_variant_t v1, purc_variant_t v2)
 {
-    bool res;
-
-    if (v1 == v2)
-        res = true;
-    else if (v1->type != v2->type)
-        res = false;
-    else if (is_variant_scalar(v1))
-        res = v1->u64 == v2->u64;
-    else
-        res = false;
-
-    return purc_variant_make_boolean(!res);
+    return !purc_variant_operator_is(v1, v2);
 }
 
 purc_variant_t
@@ -296,6 +325,12 @@ purc_variant_operator_abs(purc_variant_t v)
     }
     else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
         return bigint_abs(v);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_DOUBLE) {
+        return purc_variant_make_number(fabs(v->d));
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        return purc_variant_make_longdouble(fabsl(*v->ld));
     }
     else {
         double f64 = purc_variant_numerify(v);
@@ -322,6 +357,12 @@ purc_variant_operator_neg(purc_variant_t v)
     else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
         return bigint_neg(v);
     }
+    else if (v->type == PURC_VARIANT_TYPE_DOUBLE) {
+        return purc_variant_make_number(-v->d);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        return purc_variant_make_longdouble(-*v->ld);
+    }
     else {
         double f64 = purc_variant_numerify(v);
         return purc_variant_make_number(-f64);
@@ -340,6 +381,12 @@ purc_variant_operator_pos(purc_variant_t v)
     }
     else if (v->type == PURC_VARIANT_TYPE_BIGINT) {
         return bigint_clone(v);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_DOUBLE) {
+        return purc_variant_make_number(v->d);
+    }
+    else if (v->type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        return purc_variant_make_longdouble(*v->ld);
     }
     else {
         double f64 = purc_variant_numerify(v);

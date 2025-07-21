@@ -1212,3 +1212,477 @@ TEST(variant, inplace_bitwise_operators)
     purc_rwstream_destroy(rws);
     purc_cleanup();
 }
+
+TEST(variant, comparison_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for comparison operations
+    struct comparison_test_case {
+        const char* v1_json;     // First value in JSON format
+        const char* v2_json;     // Second value in JSON format
+        bool is_result;          // Expected result for IS operator
+        bool is_not_result;      // Expected result for IS NOT operator
+        bool lt_result;          // Expected result for < operator
+        bool le_result;          // Expected result for <= operator
+        bool gt_result;          // Expected result for > operator
+        bool ge_result;          // Expected result for >= operator
+        bool eq_result;          // Expected result for == operator
+        bool ne_result;          // Expected result for != operator
+        const char* desc;        // Test case description
+    };
+
+    // Test cases covering different types and scenarios
+    comparison_test_case test_cases[] = {
+        // Number comparisons
+        {
+            "42", "42",
+            true, false, false, true, false, true, true, false,
+            "Equal numbers"
+        },
+        {
+            "42", "43",
+            false, true, true, true, false, false, false, true,
+            "Different numbers"
+        },
+        {
+            "42.0", "42",
+            true, false, false, true, false, true, true, false,
+            "Integer and float equality"
+        },
+
+        // String comparisons
+        {
+            "\"hello\"", "\"hello\"",
+            true, false, false, true, false, true, true, false,
+            "Equal strings"
+        },
+        {
+            "\"hello\"", "\"world\"",
+            false, true, true, true, false, false, false, true,
+            "Different strings"
+        },
+        {
+            "\"\"", "\"\"",
+            true, false, false, true, false, true, true, false,
+            "Empty strings"
+        },
+
+        // Boolean comparisons
+        {
+            "true", "true",
+            true, false, false, true, false, true, true, false,
+            "Equal booleans (true)"
+        },
+        {
+            "false", "false",
+            true, false, false, true, false, true, true, false,
+            "Equal booleans (false)"
+        },
+        {
+            "true", "false",
+            false, true, false, false, true, true, false, true,
+            "Different booleans"
+        },
+
+        // Null comparisons
+        {
+            "null", "null",
+            true, false, false, true, false, true, true, false,
+            "Null equality"
+        },
+        {
+            "null", "42",
+            false, true, true, true, false, false, false, true,
+            "Null and number comparison"
+        },
+
+        // Array comparisons
+        {
+            "[1,2,3]", "[1,2,3]",
+            false, true, false, true, false, true, true, false,
+            "Equal arrays"
+        },
+        {
+            "[1,2]", "[1,2,3]",
+            false, true, true, true, false, false, false, true,
+            "Different length arrays"
+        },
+        {
+            "[1,2,4]", "[1,2,3]",
+            false, true, false, false, true, true, false, true,
+            "Arrays with different elements"
+        },
+
+        // Object comparisons
+        {
+            "{\"a\":1,\"b\":2}", "{\"a\":1,\"b\":2}",
+            false, true, false, true, false, true, true, false,
+            "Equal objects"
+        },
+        {
+            "{\"a\":1}", "{\"a\":1,\"b\":2}",
+            false, true, true, true, false, false, false, true,
+            "Different objects"
+        },
+
+        // Mixed type comparisons
+        {
+            "42", "\"42\"",
+            false, true, false, true, false, true, true, false,
+            "Number and string"
+        },
+        {
+            "true", "1",
+            false, true, false, true, false, true, true, false,
+            "Boolean and number"
+        },
+        {
+            "null", "\"null\"",
+            false, true, false, true, false, true, true, false,
+            "Null and string"
+        }
+    };
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Create variants from JSON strings
+        purc_variant_t v1 = purc_variant_make_from_json_string(
+                test.v1_json, strlen(test.v1_json));
+        purc_variant_t v2 = purc_variant_make_from_json_string(
+                test.v2_json, strlen(test.v2_json));
+
+        ASSERT_NE(v1, nullptr);
+        ASSERT_NE(v2, nullptr);
+
+        // Test IS operator
+        bool is_result = purc_variant_operator_is(v1, v2);
+        EXPECT_EQ(is_result, test.is_result);
+
+        // Test IS NOT operator
+        bool is_not_result = purc_variant_operator_is_not(v1, v2);
+        EXPECT_EQ(is_not_result, test.is_not_result);
+
+        // Test < operator
+        bool lt_result = purc_variant_operator_lt(v1, v2);
+        EXPECT_EQ(lt_result, test.lt_result);
+
+        // Test <= operator
+        bool le_result = purc_variant_operator_le(v1, v2);
+        EXPECT_EQ(le_result, test.le_result);
+
+        // Test > operator
+        bool gt_result = purc_variant_operator_gt(v1, v2);
+        EXPECT_EQ(gt_result, test.gt_result);
+
+        // Test >= operator
+        bool ge_result = purc_variant_operator_ge(v1, v2);
+        EXPECT_EQ(ge_result, test.ge_result);
+
+        // Test == operator
+        bool eq_result = purc_variant_operator_eq(v1, v2);
+        EXPECT_EQ(eq_result, test.eq_result);
+
+        // Test != operator
+        bool ne_result = purc_variant_operator_ne(v1, v2);
+        EXPECT_EQ(ne_result, test.ne_result);
+
+        // Cleanup
+        purc_variant_unref(v1);
+        purc_variant_unref(v2);
+    }
+
+    purc_cleanup();
+}
+
+TEST(variant, truth_and_not_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for truth and not operations
+    struct truth_test_case {
+        const char* input;       // Input value in JSON format
+        bool expected_truth;     // Expected result for truth operation
+        bool expected_not;       // Expected result for not operation
+        const char* desc;        // Test case description
+    };
+
+    // Test cases covering different types and scenarios
+    truth_test_case test_cases[] = {
+        // Boolean tests
+        {
+            "true",
+            true,
+            false,
+            "True boolean value"
+        },
+        {
+            "false",
+            false,
+            true,
+            "False boolean value"
+        },
+
+        // Number tests
+        {
+            "0",
+            false,
+            true,
+            "Zero number"
+        },
+        {
+            "1",
+            true,
+            false,
+            "Positive number"
+        },
+        {
+            "-1",
+            true,
+            false,
+            "Negative number"
+        },
+        {
+            "0.0",
+            false,
+            true,
+            "Zero float"
+        },
+        {
+            "3.14",
+            true,
+            false,
+            "Non-zero float"
+        },
+
+        // String tests
+        {
+            "\"\"",
+            false,
+            true,
+            "Empty string"
+        },
+        {
+            "\"Hello\"",
+            true,
+            false,
+            "Non-empty string"
+        },
+
+        // Array tests
+        {
+            "[]",
+            false,
+            true,
+            "Empty array"
+        },
+        {
+            "[1,2,3]",
+            true,
+            false,
+            "Non-empty array"
+        },
+
+        // Object tests
+        {
+            "{}",
+            false,
+            true,
+            "Empty object"
+        },
+        {
+            "{\"key\":\"value\"}",
+            true,
+            false,
+            "Non-empty object"
+        },
+
+        // Null test
+        {
+            "null",
+            false,
+            true,
+            "Null value"
+        },
+
+        // Byte sequence tests
+        {
+            "b64",
+            false,
+            true,
+            "Empty byte sequence"
+        },
+        {
+            "b64SGVsbG8=",
+            true,
+            false,
+            "Non-empty byte sequence"
+        },
+
+        // Long integer tests
+        {
+            "0L",
+            false,
+            true,
+            "Zero long integer"
+        },
+        {
+            "123L",
+            true,
+            false,
+            "Positive long integer"
+        },
+        {
+            "-123L",
+            true,
+            false,
+            "Negative long integer"
+        },
+
+        // Unsigned long integer tests
+        {
+            "0UL",
+            false,
+            true,
+            "Zero unsigned long integer"
+        },
+        {
+            "123UL",
+            true,
+            false,
+            "Non-zero unsigned long integer"
+        },
+
+        // Long double tests
+        {
+            "0.0FL",
+            false,
+            true,
+            "Zero long double"
+        },
+        {
+            "3.14FL",
+            true,
+            false,
+            "Non-zero long double"
+        }
+    };
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Create variant from JSON string
+        purc_variant_t input = purc_variant_make_from_json_string(
+                test.input, strlen(test.input));
+        ASSERT_NE(input, nullptr);
+
+        // Test truth operation
+        bool truth_result = purc_variant_operator_truth(input);
+        EXPECT_EQ(truth_result, test.expected_truth)
+            << "Truth operation failed for: " << test.desc;
+
+        // Test not operation
+        bool not_result = purc_variant_operator_not(input);
+        EXPECT_EQ(not_result, test.expected_not)
+            << "Not operation failed for: " << test.desc;
+
+        // Cleanup
+        purc_variant_unref(input);
+    }
+
+    purc_cleanup();
+}
+
+TEST(variant, unary_operators)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for unary operations
+    struct unary_test_case {
+        enum purc_variant_type type;
+        const char* operand;        // Input operand
+        purc_variant_t (*op)(purc_variant_t);  // Operator function
+        const char* expected;   // Expected result after serialization
+        const char* desc;       // Test description
+    };
+
+    // Test cases covering different numeric types and unary operations
+    unary_test_case test_cases[] = {
+        // Absolute value tests
+        { PURC_VARIANT_TYPE_NUMBER, "-456", purc_variant_operator_abs, "456",
+            "abs of negative number" },
+        { PURC_VARIANT_TYPE_NUMBER, "456", purc_variant_operator_abs, "456",
+            "abs of positive number" },
+        { PURC_VARIANT_TYPE_LONGINT, "-9223372036854775807", purc_variant_operator_abs, "9223372036854775807L",
+            "abs of negative longint" },
+        { PURC_VARIANT_TYPE_LONGINT, "9223372036854775807", purc_variant_operator_abs, "9223372036854775807L",
+            "abs of positive longint" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "-1.5e308", purc_variant_operator_abs, "1.5e+308FL",
+            "abs of negative longdouble" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "1.5e308", purc_variant_operator_abs, "1.5e+308FL",
+            "abs of positive longdouble" },
+
+        // Negation tests
+        { PURC_VARIANT_TYPE_NUMBER, "456", purc_variant_operator_neg, "-456",
+            "negation of positive number" },
+        { PURC_VARIANT_TYPE_NUMBER, "-456", purc_variant_operator_neg, "456",
+            "negation of negative number" },
+        { PURC_VARIANT_TYPE_LONGINT, "9223372036854775807", purc_variant_operator_neg, "-9223372036854775807L",
+            "negation of positive longint" },
+        { PURC_VARIANT_TYPE_LONGINT, "-9223372036854775807", purc_variant_operator_neg, "9223372036854775807L",
+            "negation of negative longint" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "1.5e308", purc_variant_operator_neg, "-1.5e+308FL",
+            "negation of positive longdouble" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "-1.5e308", purc_variant_operator_neg, "1.5e+308FL",
+            "negation of negative longdouble" },
+
+        // Positive tests (should maintain the same value)
+        { PURC_VARIANT_TYPE_NUMBER, "456", purc_variant_operator_pos, "456",
+            "positive of positive number" },
+        { PURC_VARIANT_TYPE_NUMBER, "-456", purc_variant_operator_pos, "-456",
+            "positive of negative number" },
+        { PURC_VARIANT_TYPE_LONGINT, "9223372036854775807", purc_variant_operator_pos, "9223372036854775807L",
+            "positive of positive longint" },
+        { PURC_VARIANT_TYPE_LONGINT, "-9223372036854775807", purc_variant_operator_pos, "-9223372036854775807L",
+            "positive of negative longint" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "1.5e308", purc_variant_operator_pos, "1.5e+308FL",
+            "positive of positive longdouble" },
+        { PURC_VARIANT_TYPE_LONGDOUBLE, "-1.5e308", purc_variant_operator_pos, "-1.5e+308FL",
+            "positive of negative longdouble" },
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+        purc_variant_t operand = make_operand_from_string(test.type, test.operand);
+        ASSERT_NE(operand, nullptr);
+
+        // Perform the unary operation
+        purc_variant_t result = test.op(operand);
+        ASSERT_NE(result, nullptr);
+
+        // Serialize and verify
+        purc_rwstream_seek(rws, 0, SEEK_SET);
+        size_t n = purc_variant_serialize(result, rws, 0,
+                PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
+                NULL);
+        ASSERT_GT(n, 0);
+        buf[n] = 0;
+        EXPECT_STREQ(buf, test.expected);
+
+        // Cleanup
+        purc_variant_unref(result);
+        purc_variant_unref(operand);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}

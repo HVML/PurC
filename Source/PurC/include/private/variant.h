@@ -301,6 +301,12 @@ static inline bool is_variant_scalar(purc_variant *v) {
     return (v->type <= PURC_VARIANT_TYPE_LAST_SCALAR) ? true : false;
 }
 
+static inline bool is_variant_string(purc_variant *v) {
+    return (v->type == PURC_VARIANT_TYPE_STRING ||
+            v->type == PURC_VARIANT_TYPE_EXCEPTION ||
+            v->type == PURC_VARIANT_TYPE_ATOMSTRING);
+}
+
 purc_variant *pcvariant_alloc(bool scalar) WTF_INTERNAL;
 purc_variant *pcvariant_alloc_0(bool scalar) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
