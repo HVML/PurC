@@ -470,10 +470,12 @@ bool bigint_to_i64(const purc_variant *a, int64_t *ret, bool force)
 bool bigint_to_u64(const purc_variant *a, uint64_t *ret, bool force)
     WTF_INTERNAL;
 double bigint_to_float64(const purc_variant *a) WTF_INTERNAL;
+long double bigint_to_longdouble(const purc_variant *a) WTF_INTERNAL;
 
 int bigint_i64_cmp(const purc_variant *a, int64_t i64) WTF_INTERNAL;
 int bigint_u64_cmp(const purc_variant *a, uint64_t u64) WTF_INTERNAL;
 int bigint_float64_cmp(const purc_variant *a, double f64) WTF_INTERNAL;
+int bigint_longdouble_cmp(const purc_variant *a, long double ld) WTF_INTERNAL;
 int bigint_cmp(const purc_variant *a, const purc_variant *b) WTF_INTERNAL;
 
 ssize_t bigint_stringify(purc_variant_t val, int radix,

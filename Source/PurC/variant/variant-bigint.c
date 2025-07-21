@@ -1129,6 +1129,181 @@ double bigint_to_float64(const purc_variant *a)
                              mant);
 }
 
+/* Count leading zeros in a 128-bit integer */
+static int bi_clz128(uint128_t x) {
+    if (x == 0)
+        return 128;
+
+    int n = 0;
+    
+    /* Check high 64 bits first */
+    uint64_t hi = x >> 64;
+    if (hi == 0) {
+        n += 64;
+        /* If high 64 bits are 0, check low 64 bits */
+        uint64_t lo = (uint64_t)x;
+        
+        /* Use builtin function to count leading zeros */
+#if defined(__GNUC__) || defined(__clang__)
+        n += __builtin_clzll(lo);
+#else
+        /* Manual implementation of leading zero count */
+        if ((lo >> 32) == 0) {
+            n += 32;
+            lo <<= 32;
+        }
+        if ((lo >> 48) == 0) {
+            n += 16;
+            lo <<= 16;
+        }
+        if ((lo >> 56) == 0) {
+            n += 8;
+            lo <<= 8;
+        }
+        if ((lo >> 60) == 0) {
+            n += 4;
+            lo <<= 4;
+        }
+        if ((lo >> 62) == 0) {
+            n += 2;
+            lo <<= 2;
+        }
+        if ((lo >> 63) == 0) {
+            n += 1;
+        }
+#endif
+    } else {
+        /* If high 64 bits are not 0, only count leading zeros in high 64 bits */
+#if defined(__GNUC__) || defined(__clang__)
+        n = __builtin_clzll(hi);
+#else
+        /* Manual implementation of leading zero count */
+        if ((hi >> 32) == 0) {
+            n += 32;
+            hi <<= 32;
+        }
+        if ((hi >> 48) == 0) {
+            n += 16;
+            hi <<= 16;
+        }
+        if ((hi >> 56) == 0) {
+            n += 8;
+            hi <<= 8;
+        }
+        if ((hi >> 60) == 0) {
+            n += 4;
+            hi <<= 4;
+        }
+        if ((hi >> 62) == 0) {
+            n += 2;
+            hi <<= 2;
+        }
+        if ((hi >> 63) == 0) {
+            n += 1;
+        }
+#endif
+    }
+
+    return n;
+}
+
+long double bigint_to_longdouble(const purc_variant *a)
+{
+    if (sizeof(long double) == 8) {
+        return (long double)bigint_to_float64(a);
+    }
+
+    size_t len;
+    const bi_limb_t *tab = bigint_get_tab_const(a, &len);
+    int sign = bigint_sign(a);
+
+    /* Handle small integers */
+    if (len <= 2) {
+#if BIGINT_LIMB_BITS == 32
+        int64_t v = tab[0] | ((int64_t)tab[1] << 32);
+#else
+        int64_t v = tab[0];
+#endif
+        return sign ? -(long double)v : (long double)v;
+    }
+
+    /* Get mantissa and exponent */
+    int exp = 0;
+    uint128_t mant = 0;
+    ssize_t i, j;
+
+    if (sizeof(long double) == 16) {
+        /* 128-bit long double (quadruple precision) */
+        /* 1-bit sign, 15-bit exponent, 112-bit mantissa + 1 implicit bit */
+        const int mantissa_bits = 112;
+        const int bias = 16383;
+
+        /* Extract mantissa bits */
+        for (i = len - 1, j = 0; i >= 0 && j <= mantissa_bits; i--) {
+            mant = (mant << BIGINT_LIMB_BITS) | tab[i];
+            j += BIGINT_LIMB_BITS;
+        }
+
+        /* Normalize mantissa to 113 bits */
+        int shift = bi_clz128(mant) - 15;  /* Keep 113 bits */
+        if (shift > 0) {
+            mant <<= shift;
+            exp -= shift;
+        } else if (shift < 0) {
+            mant >>= -shift;
+            exp += -shift;
+        }
+
+        /* Check for overflow/underflow */
+        if (exp + bias > 32767)
+            return sign ? -INFINITY : INFINITY;
+        if (exp + bias < 0)
+            return sign ? -0.0L : 0.0L;
+
+        /* Pack into long double format */
+        uint128_t bits = 0;
+        bits |= (uint128_t)(sign & 1) << 127;
+        bits |= (uint128_t)(exp + bias) << 112;
+        bits |= mant & (((uint128_t)1 << 112) - 1);
+        return uint128_as_ldouble(bits);
+
+    } else {
+        /* 96-bit long double (extended precision) */
+        /* 1-bit sign, 15-bit exponent, 64-bit mantissa */
+        const int mantissa_bits = 64;
+        const int bias = 16383;
+
+        /* Extract mantissa bits */
+        for (i = len - 1, j = 0; i >= 0 && j <= mantissa_bits; i--) {
+            mant = (mant << BIGINT_LIMB_BITS) | tab[i];
+            j += BIGINT_LIMB_BITS;
+        }
+
+        /* Normalize mantissa to 65 bits */
+        int shift = bi_clz128(mant) - 63;  /* Keep 65 bits */
+        if (shift > 0) {
+            mant <<= shift;
+            exp -= shift;
+        } else if (shift < 0) {
+            mant >>= -shift;
+            exp += -shift;
+        }
+
+        /* Check for overflow/underflow */
+        if (exp + bias > 32767)
+            return sign ? -INFINITY : INFINITY;
+        if (exp + bias < 0)
+            return sign ? -0.0L : 0.0L;
+
+        /* Pack into long double format */
+        uint128_t bits = 0;
+        bits |= (uint128_t)(sign & 1) << 95;
+        bits |= (uint128_t)(exp + bias) << 64;
+        bits |= mant & (((uint128_t)1 << 64) - 1);
+        return uint128_as_ldouble(bits);
+    }
+}
+
 /* return -1, 0, 1 or (2) (unordered) */
 int bigint_float64_cmp(const purc_variant *a, double b)
 {
@@ -1184,6 +1359,87 @@ int bigint_float64_cmp(const purc_variant *a, double b)
                 return 0;
         }
     }
+}
+
+int bigint_longdouble_cmp(const purc_variant *a, long double b) {
+    if (sizeof(long double) == 8) {
+        return bigint_float64_cmp(a, (double)b);
+    }
+
+#if HAVE(INT128_T)
+    uint128_t bits = ldouble_as_uint128(b);
+    int sgn, e, shift, bias, mantbits;
+    uint128_t mant;
+    bigint_buf buf;
+    purc_variant *r;
+
+    if (isnan(b)) {
+        return 1; // NaN is considered greater than any bigint
+    }
+    else if (isinf(b) == -1) {
+        return 1; // -Inf is less than any bigint
+    }
+    else if (isinf(b) == 1) {
+        return -1; // +Inf is greater than any bigint
+    }
+
+    // Handle different long double formats
+    switch (sizeof(long double)) {
+        case 12:  /* 96-bit long double (Darwin) */
+            sgn = bits >> 95;
+            e = (bits >> 84) & ((1 << 11) - 1);
+            mant = bits & (((uint128_t)1 << 84) - 1);
+            bias = 1023;
+            mantbits = 84;
+            break;
+
+        case 16:  /* 128-bit long double (GCC) */
+            sgn = bits >> 127;
+            e = (bits >> 112) & ((1 << 15) - 1);
+            mant = bits & (((uint128_t)1 << 112) - 1);
+            bias = 16383;
+            mantbits = 112;
+            break;
+
+        default:
+            return bigint_float64_cmp(a, (double)b); // Fallback
+    }
+
+    // Handle zero
+    if (e == 0 && mant == 0) {
+        return bigint_cmp(a, bigint_new_si(0));
+    }
+
+    e -= bias;
+    // Not an integer - convert to nearest integer
+    if (e < 0) {
+        mant = llround(b);
+        e = 0;
+    } else {
+        mant |= (uint128_t)1 << mantbits;
+        if (e < mantbits) {
+            shift = mantbits - e;
+            mant >>= shift;
+            e = 0;
+        } else {
+            e -= mantbits;
+        }
+    }
+
+    if (sgn)
+        mant = -mant;
+
+    // Compare with original bigint
+    r = bigint_set_i128(&buf, (int128_t)mant);
+    if (e > 0) {
+        r = bigint_shl(r, e);
+    }
+    return bigint_cmp(a, r);
+
+#else
+    // Fallback to double comparison if int128 not available
+    return bigint_float64_cmp(a, (double)b);
+#endif
 }
 
 /* return -1, 0 or 1 */

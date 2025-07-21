@@ -690,7 +690,7 @@ longdouble_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             ld = (long double)argv[0]->u64;
             break;
         default:
-            ld = purc_variant_numerify(argv[0]);
+            ld = purc_variant_numerify_long(argv[0]);
             break;
         }
     }

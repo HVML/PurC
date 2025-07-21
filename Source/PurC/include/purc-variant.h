@@ -3607,6 +3607,20 @@ PCA_EXPORT double
 purc_variant_numerify(purc_variant_t value);
 
 /**
+ * purc_variant_numerify_long:
+ *
+ * @value: A variant.
+ *
+ * Numerifies a variant to long double.
+ *
+ * Returns: A long double number that is numerified from the given variant.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT long double
+purc_variant_numerify_long(purc_variant_t value);
+
+/**
  * purc_variant_booleanize:
  *
  * @value: variant value to be operated
