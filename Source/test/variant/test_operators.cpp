@@ -1611,6 +1611,20 @@ TEST(variant, unary_operators)
 
     // Test cases covering different numeric types and unary operations
     unary_test_case test_cases[] = {
+        // Test cases for BIGINT type
+        { PURC_VARIANT_TYPE_BIGINT, "123456789012345678901234567890", purc_variant_operator_abs, "123456789012345678901234567890N",
+            "abs of positive bigint" },
+        { PURC_VARIANT_TYPE_BIGINT, "-123456789012345678901234567890", purc_variant_operator_abs, "123456789012345678901234567890N",
+            "abs of negative bigint" },
+        { PURC_VARIANT_TYPE_BIGINT, "123456789012345678901234567890", purc_variant_operator_neg, "-123456789012345678901234567890N",
+            "negation of positive bigint" },
+        { PURC_VARIANT_TYPE_BIGINT, "-123456789012345678901234567890", purc_variant_operator_neg, "123456789012345678901234567890N",
+            "negation of negative bigint" },
+        { PURC_VARIANT_TYPE_BIGINT, "123456789012345678901234567890", purc_variant_operator_pos, "123456789012345678901234567890N",
+            "positive of positive bigint" },
+        { PURC_VARIANT_TYPE_BIGINT, "-123456789012345678901234567890", purc_variant_operator_pos, "-123456789012345678901234567890N",
+            "positive of negative bigint" },
+
         // Absolute value tests
         { PURC_VARIANT_TYPE_NUMBER, "-456", purc_variant_operator_abs, "456",
             "abs of negative number" },
@@ -1681,6 +1695,151 @@ TEST(variant, unary_operators)
         // Cleanup
         purc_variant_unref(result);
         purc_variant_unref(operand);
+    }
+
+    purc_rwstream_destroy(rws);
+    purc_cleanup();
+}
+
+TEST(variant, unary_operators_alt)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    // Test case structure for unary operations
+    struct unary_test_case {
+        const char* input;       // Input in JSON format
+        const char* abs_result;  // Expected result for abs operation
+        const char* neg_result;  // Expected result for neg operation
+        const char* pos_result;  // Expected result for pos operation
+        const char* desc;        // Test case description
+    };
+
+    // Test cases for different data types
+    unary_test_case test_cases[] = {
+        // Test for undefined
+        {
+            "undefined",
+            nullptr,    // abs should return null
+            nullptr,    // neg should return null
+            nullptr,    // pos should return null
+            "Testing undefined value"
+        },
+
+        // Test for null
+        {
+            "null",
+            "0",       // abs(null) = 0
+            "-0",       // neg(null) = 0
+            "0",       // pos(null) = 0
+            "Testing null value"
+        },
+
+        // Test for true
+        {
+            "true",
+            "1",       // abs(true) = 1
+            "-1",      // neg(true) = -1
+            "1",       // pos(true) = 1
+            "Testing true value"
+        },
+
+        // Test for false
+        {
+            "false",
+            "0",       // abs(false) = 0
+            "-0",       // neg(false) = 0
+            "0",       // pos(false) = 0
+            "Testing false value"
+        },
+
+        // Test for array
+        {
+            "[1,2,3]",
+            nullptr,    // abs should return null
+            nullptr,    // neg should return null
+            nullptr,    // pos should return null
+            "Testing array"
+        },
+
+        // Test for tuple
+        {
+            "[!1,2,3]",
+            nullptr,    // abs should return null
+            nullptr,    // neg should return null
+            nullptr,    // pos should return null
+            "Testing tuple"
+        },
+
+        // Test for object
+        {
+            "{\"key\":\"value\"}",
+            nullptr,    // abs should return null
+            nullptr,    // neg should return null
+            nullptr,    // pos should return null
+            "Testing object"
+        }
+    };
+
+    // Create stream for serialization
+    char buf[2048];
+    purc_rwstream_t rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(rws, nullptr);
+
+    // Execute all test cases
+    for (const auto& test : test_cases) {
+        std::cout << "Testing: " << test.desc << std::endl;
+
+        // Create variant from JSON string
+        purc_variant_t input = purc_variant_make_from_json_string(
+                test.input, strlen(test.input));
+        ASSERT_NE(input, nullptr);
+
+        // Test abs operator
+        purc_variant_t abs_result = purc_variant_operator_abs(input);
+        if (test.abs_result == nullptr) {
+            EXPECT_EQ(abs_result, PURC_VARIANT_INVALID);
+        }
+        else {
+            ASSERT_NE(abs_result, nullptr);
+            purc_rwstream_seek(rws, 0, SEEK_SET);
+            size_t n = purc_variant_serialize(abs_result, rws, 0, 0, NULL);
+            EXPECT_GT(n, 0);
+            buf[n] = 0;
+            EXPECT_STREQ(buf, test.abs_result);
+            purc_variant_unref(abs_result);
+        }
+
+        // Test neg operator
+        purc_variant_t neg_result = purc_variant_operator_neg(input);
+        if (test.neg_result == nullptr) {
+            EXPECT_EQ(neg_result, PURC_VARIANT_INVALID);
+        }
+        else {
+            ASSERT_NE(neg_result, nullptr);
+            purc_rwstream_seek(rws, 0, SEEK_SET);
+            size_t n = purc_variant_serialize(neg_result, rws, 0, 0, NULL);
+            EXPECT_GT(n, 0);
+            buf[n] = 0;
+            EXPECT_STREQ(buf, test.neg_result);
+            purc_variant_unref(neg_result);
+        }
+
+        // Test pos operator
+        purc_variant_t pos_result = purc_variant_operator_pos(input);
+        if (test.pos_result == nullptr) {
+            EXPECT_EQ(pos_result, PURC_VARIANT_INVALID);
+        }
+        else {
+            ASSERT_NE(pos_result, nullptr);
+            purc_rwstream_seek(rws, 0, SEEK_SET);
+            size_t n = purc_variant_serialize(pos_result, rws, 0, 0, NULL);
+            EXPECT_GT(n, 0);
+            buf[n] = 0;
+            EXPECT_STREQ(buf, test.pos_result);
+            purc_variant_unref(pos_result);
+        }
+
+        purc_variant_unref(input);
     }
 
     purc_rwstream_destroy(rws);

@@ -317,6 +317,11 @@ purc_variant_operator_is_not(purc_variant_t v1, purc_variant_t v2)
 purc_variant_t
 purc_variant_operator_abs(purc_variant_t v)
 {
+    if (!IS_ARITH_NUMBER(v->type)) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        return PURC_VARIANT_INVALID;
+    }
+
     if (v->type == PURC_VARIANT_TYPE_LONGINT) {
         return purc_variant_make_longint(llabs(v->i64));
     }
@@ -341,6 +346,11 @@ purc_variant_operator_abs(purc_variant_t v)
 purc_variant_t
 purc_variant_operator_neg(purc_variant_t v)
 {
+    if (!IS_ARITH_NUMBER(v->type)) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        return PURC_VARIANT_INVALID;
+    }
+
     if (v->type == PURC_VARIANT_TYPE_LONGINT) {
         return purc_variant_make_longint(-v->i64);
     }
@@ -373,11 +383,12 @@ purc_variant_operator_neg(purc_variant_t v)
 purc_variant_t
 purc_variant_operator_pos(purc_variant_t v)
 {
-    if (v->type == PURC_VARIANT_TYPE_LONGINT ||
-            v->type == PURC_VARIANT_TYPE_ULONGINT ||
-            v->type == PURC_VARIANT_TYPE_NUMBER ||
-            v->type == PURC_VARIANT_TYPE_LONGDOUBLE ||
-            v->type  == PURC_VARIANT_TYPE_BIGINT) {
+    if (!IS_ARITH_NUMBER(v->type)) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (IS_GENUINE_NUMBER(v->type)) {
         return purc_variant_ref(v);
     }
     else {
