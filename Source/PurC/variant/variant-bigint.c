@@ -307,8 +307,6 @@ void pcvariant_bigint_release(purc_variant_t v)
         sz_extra += sizeof(bi_limb_t) * limbs->len;
         pcvariant_stat_dec_extra_size(v, sz_extra);
         free(v->ptr);
-        v->flags = 0;
-        v->ptr = NULL;
     }
 }
 
