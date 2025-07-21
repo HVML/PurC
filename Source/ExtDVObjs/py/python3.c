@@ -470,6 +470,18 @@ static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,
         break;
     }
 
+    case PURC_VARIANT_TYPE_BIGINT: {
+        /* XXX: optimize */
+        void *str = purc_variant_serialize_alloc(v, 0,
+                PCVRNT_SERIALIZE_OPT_BIGINT_HEX, NULL, NULL);
+        if (str == NULL)
+            break;
+
+        pyobj = PyLong_FromString(str, NULL, 16);
+        free(str);
+        break;
+    }
+
     case PURC_VARIANT_TYPE_BSEQUENCE: {
         const unsigned char* bytes;
         size_t length;
@@ -659,6 +671,37 @@ static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
             v = purc_variant_make_boolean(false);
     }
     else if (PyLong_Check(pyobj)) {
+#if 1
+        int overflow;
+        long long ll = PyLong_AsLongLongAndOverflow(pyobj, &overflow);
+        if (overflow) {
+            /* XXX: optimize */
+            // Format big integer to hexadecimal string
+            PyObject *format_str = PyUnicode_FromString("#x");
+            if (format_str == NULL) {
+                goto failed_python;
+            }
+            
+            PyObject *hex_str = PyObject_Format(pyobj, format_str);
+            Py_DECREF(format_str);
+            
+            if (hex_str == NULL) {
+                goto failed_python;
+            }
+            
+            const char *c_str = PyUnicode_AsUTF8(hex_str);
+            if (c_str == NULL) {
+                Py_DECREF(hex_str);
+                goto failed_python;
+            }
+            
+            v = purc_variant_make_bigint_from_string(c_str, NULL, 16);
+            Py_DECREF(hex_str);
+        }
+        else {
+            v = purc_variant_make_longint(ll);
+        }
+#else
         int overflow;
         long l = PyLong_AsLongAndOverflow(pyobj, &overflow);
         if (overflow) {
@@ -695,6 +738,7 @@ static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
         else {
             v = purc_variant_make_longint((int64_t)l);
         }
+#endif
     }
     else if (PyFloat_Check(pyobj)) {
         double d = PyFloat_AsDouble(pyobj);
@@ -705,6 +749,10 @@ static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
     }
 
     return v;
+
+failed_python:
+    handle_python_error(pyinfo);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t make_variant_from_pyobj(PyObject *pyobj)
