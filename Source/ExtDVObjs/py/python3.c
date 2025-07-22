@@ -676,8 +676,8 @@ make_variant_from_basic_pyobj(PyObject *pyobj, bool *is_basic)
         long long ll = PyLong_AsLongLongAndOverflow(pyobj, &overflow);
         if (overflow) {
             /* XXX: optimize */
-            // Format big integer to hexadecimal string
-            PyObject *format_str = PyUnicode_FromString("#x");
+            // Format big integer to hexadecimal string without prefix.
+            PyObject *format_str = PyUnicode_FromString("x");
             if (format_str == NULL) {
                 goto done;
             }
