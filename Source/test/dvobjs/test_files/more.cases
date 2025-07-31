@@ -1898,6 +1898,15 @@ positive:
     $DATA.longdouble({})
     0.0FL
 
+# TODO: more cases for bigint here.
+positive:
+    $DATA.serialize($DATA.bigint(0xFF))
+    '"255N"'
+
+positive:
+    $DATA.serialize($DATA.bigint(0xFF), 'bigint-hex')
+    '"0xffN"'
+
 negative:
     $DATA.abs()
     ArgumentMissed
