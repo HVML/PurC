@@ -89,6 +89,7 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(ENABLE_APP_AUTH "Enable app authentication" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_DNSSD "Enable mDNS Service Discovery" PUBLIC ON)
 
+    PURC_OPTION_DEFINE(ENABLE_QUICKJS "Include QuickJS and the support for $JS" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_CHINESE_NAMES "Toggle support for variable and key names in Chinese (TEST only)" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_SOCKET_STREAM "Toggle socket stream" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_RENDERER_FOIL "Toggle the builtin Foil renderer in `purc`" PUBLIC ON)
