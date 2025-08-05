@@ -75,6 +75,11 @@ list(APPEND qjsc_SOURCES
 
 PURC_ADD_TARGET_C_FLAGS(qjsc ${QuickJS_CFLAGS})
 
+#PURC_ADD_TARGET_C_FLAGS(qjsc
+#    "-DCONFIG_CC=\\\"${CMAKE_C_COMPILER}\\\""
+#    "-DCONFIG_PREFIX=\\\"${CMAKE_INSTALL_PREFIX}\\\""
+#)
+
 set(qjsc_LIBRARIES
     PurC::QuickJS
     -lm
