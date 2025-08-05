@@ -69,6 +69,7 @@ PURC_ADD_TARGET_C_FLAGS(qjsc ${QuickJS_CFLAGS})
 
 set(qjsc_LIBRARIES
     QuickJS
+    -lm
 )
 
 PURC_COMPUTE_SOURCES(qjsc)
@@ -104,6 +105,7 @@ PURC_ADD_TARGET_C_FLAGS(qjs ${QuickJS_CFLAGS})
 
 set(qjs_LIBRARIES
     QuickJS
+    -lm
 )
 
 PURC_COMPUTE_SOURCES(qjs)
