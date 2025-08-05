@@ -40,6 +40,7 @@ static bool features[] = {
     PCA_ENABLE_SSL,
     PCA_ENABLE_APP_AUTH,
     PCA_ENABLE_DNSSD,
+    PCA_ENABLE_QUICKJS,
 };
 
 /* Make sure the number of error messages matches the number of error codes */

@@ -61,6 +61,10 @@
  *      The support for secure socket connection.
  * @PURC_FEATURE_APP_AUTH:
  *      The support for app authentication.
+ * @PURC_FEATURE_DNSSD:
+ *      The support for DNS responsor.
+ * @PURC_FEATURE_QUICKJS:
+ *      The support for QuickJS.
  */
 enum purc_feature {
     PURC_FEATURE_FIRST = 0,
@@ -79,9 +83,10 @@ enum purc_feature {
     PURC_FEATURE_SSL,
     PURC_FEATURE_APP_AUTH,
     PURC_FEATURE_DNSSD,
+    PURC_FEATURE_QUICKJS,
 
     /* XXX: change this if you append a new feature. */
-    PURC_FEATURE_LAST = PURC_FEATURE_DNSSD,
+    PURC_FEATURE_LAST = PURC_FEATURE_QUICKJS,
 };
 
 #define PURC_FEATURE_NR (PURC_FEATURE_LAST - PURC_FEATURE_FIRST + 1)
@@ -105,6 +110,7 @@ enum purc_feature {
 #define PCA_ENABLE_SSL                  _PURC_@ENABLE_SSL@
 #define PCA_ENABLE_APP_AUTH             _PURC_@ENABLE_APP_AUTH@
 #define PCA_ENABLE_DNSSD                _PURC_@ENABLE_DNSSD@
+#define PCA_ENABLE_QUICKJS              _PURC_@ENABLE_QUICKJS@
 
 PCA_EXTERN_C_BEGIN
 
