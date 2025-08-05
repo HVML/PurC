@@ -20,12 +20,12 @@ set(QuickJS_SOURCES
     ${QuickJS_DIR}/quickjs/quickjs-libc.c
 )
 
+set(QuickJS_LIBRARIES)
+set(QuickJS_DEPENDENCIES)
 set(QuickJS_INTERFACE_LIBRARIES QuickJS)
 set(QuickJS_LIBRARY_TYPE "STATIC")
 
 PURC_FRAMEWORK_DECLARE(QuickJS)
-PURC_COMPUTE_SOURCES(QuickJS)
-PURC_FRAMEWORK(QuickJS)
 
 set(QuickJS_INCLUDE_DIRS "${QuickJS_DIR}" PARENT_SCOPE)
 
@@ -54,6 +54,14 @@ PURC_COPY_FILES(QuickJS_CopyHeaders
 )
 list(APPEND QuickJS_INTERFACE_DEPENDENCIES QuickJS_CopyHeaders)
 
+if (NOT INTERNAL_BUILD)
+    add_dependencies(QuickJS_CopyHeaders QuickJS)
+endif ()
+
+PURC_COMPUTE_SOURCES(QuickJS)
+PURC_FRAMEWORK(QuickJS)
+PURC_FRAMEWORK_TARGET(QuickJS)
+
 install(FILES ${QuickJS_INSTALLED_HEADERS}
         DESTINATION "${HEADER_INSTALL_DIR}/purc"
 )
@@ -68,7 +76,7 @@ list(APPEND qjsc_SOURCES
 PURC_ADD_TARGET_C_FLAGS(qjsc ${QuickJS_CFLAGS})
 
 set(qjsc_LIBRARIES
-    QuickJS
+    PurC::QuickJS
     -lm
 )
 
@@ -104,7 +112,7 @@ list(APPEND qjs_SOURCES "${QuickJS_DERIVED_SOURCES_DIR}/repl.c")
 PURC_ADD_TARGET_C_FLAGS(qjs ${QuickJS_CFLAGS})
 
 set(qjs_LIBRARIES
-    QuickJS
+    PurC::QuickJS
     -lm
 )
 

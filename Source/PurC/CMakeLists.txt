@@ -121,7 +121,7 @@ if (ENABLE_DOCTYPE_XML)
 endif ()
 
 if (ENABLE_QUICKJS)
-    list(APPEND PurC_LIBRARIES QuickJS)
+    list(APPEND PurC_LIBRARIES PurC::QuickJS)
 endif ()
 
 set(PurC_INTERFACE_LIBRARIES PurC)
