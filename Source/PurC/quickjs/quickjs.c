@@ -34,7 +34,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wcast-function-type-mismatch"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 #include "quickjs/quickjs.h"
 #pragma GCC diagnostic pop
 
