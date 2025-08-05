@@ -48,8 +48,9 @@
 #define PURC_PATH_APP_TOP_DIR       PURC_HVML_APP_PREFIX "%s"
 
 /* Since 0.9.26 */
-#define PURC_ENVV_JSRT_MEM_LIMIT    "PURC_JSRT_MEM_LIMIT"
-#define PURC_ENVV_JSRT_STACK_SIZE   "PURC_JSRT_STACK_SIZE"
+#define PURC_ENVV_JSRT_MEM_LIMIT    "PURC_JSRT_MEM_LIMIT"   // 2G, 20M, 400K
+#define PURC_ENVV_JSRT_STACK_SIZE   "PURC_JSRT_STACK_SIZE"  // 2G, 20M, 400K
+#define PURC_ENVV_JSRT_STRIP_OPTS   "PURC_JSRT_STRIP_OPTS"  // debug || source
 
 #ifndef __has_declspec_attribute
 #define __has_declspec_attribute(x) 0

@@ -93,6 +93,16 @@ static int _init_instance(struct pcinst *inst,
             JS_SetMaxStackSize(inst->js_rt, sz);
     }
 
+    envv = getenv(PURC_ENVV_JSRT_STRIP_OPTS);
+    if (envv) {
+        int strip_flags = 0;
+        if (strstr(envv, "debug"))
+            strip_flags = JS_STRIP_DEBUG;
+        if (strstr(envv, "source"))
+            strip_flags = JS_STRIP_SOURCE;
+        JS_SetStripInfo(inst->js_rt, strip_flags);
+    }
+
     return 0;
 }
 
