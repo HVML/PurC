@@ -374,6 +374,7 @@ static purc_variant *bigint_new_si(bi_slimb_t a)
     return r;
 }
 
+#if 0
 static purc_variant *bigint_new_di(bi_sdlimb_t a)
 {
     purc_variant *r;
@@ -393,6 +394,7 @@ static purc_variant *bigint_new_di(bi_sdlimb_t a)
     }
     return r;
 }
+#endif
 
 void bigint_move(purc_variant_t to, purc_variant_t from)
 {
@@ -1972,6 +1974,7 @@ static size_t u32toa(char *buf, uint32_t n)
     return len;
 }
 
+#if 0
 static size_t i32toa(char *buf, int32_t n)
 {
     if (n >= 0) {
@@ -1981,6 +1984,7 @@ static size_t i32toa(char *buf, int32_t n)
         return u32toa(buf + 1, -(uint32_t)n) + 1;
     }
 }
+#endif
 
 static size_t u64toa(char *buf, uint64_t n)
 {
@@ -2013,6 +2017,7 @@ static size_t u64toa(char *buf, uint64_t n)
     }
 }
 
+#if 0
 static size_t i64toa(char *buf, int64_t n)
 {
     if (n >= 0) {
@@ -2022,6 +2027,7 @@ static size_t i64toa(char *buf, int64_t n)
         return u64toa(buf + 1, -(uint64_t)n) + 1;
     }
 }
+#endif
 
 /* XXX: only tested for 1 <= n < 2^53 */
 static size_t u64toa_radix(char *buf, uint64_t n, unsigned int radix)
