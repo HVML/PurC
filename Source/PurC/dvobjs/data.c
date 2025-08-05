@@ -880,6 +880,8 @@ enum {
     K_KW_bseq_bin_dots,
 #define _KW_bseq_base64     "bseq-base64"
     K_KW_bseq_base64,
+#define _KW_bigint_hex      "bigint-hex"
+    K_KW_bigint_hex,
 #define _KW_no_trailing_zero    "no-trailing-zero"
     K_KW_no_trailing_zero,
 #define _KW_no_slash_escape     "no-slash-escape"
@@ -904,6 +906,7 @@ static struct keyword_to_atom {
     { _KW_bseq_bin,         PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN, 0 },
     { _KW_bseq_bin_dots,    PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, 0 },
     { _KW_bseq_base64,      PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64, 0 },
+    { _KW_bigint_hex,       PCVRNT_SERIALIZE_OPT_BIGINT_HEX, 0 },
     { _KW_no_trailing_zero, PCVRNT_SERIALIZE_OPT_NOZERO, 0 },
     { _KW_no_slash_escape,  PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
 };
@@ -911,8 +914,8 @@ static struct keyword_to_atom {
 /*
 $DATA.serialize(
     < any $data >
-    [, < '[ [real-json | real-ejson] || [ runtime-null | runtime-string ] || plain || spaced || pretty || pretty_tab || [bseq-hex-string | bseq-hex | bseq-bin | bseq-bin-dots | bseq-base64] || no-trailing-zero || no-slash-escape] | default' $options = `'default'`:
-        - 'real-json':          `Use JSON notation for real numbers, i.e., treat all real numbers (number, longint, ulongint, and longdouble) as JSON numbers.`
+    [, < '[ [real-json | real-ejson] || [ runtime-null | runtime-string ] || plain || spaced || pretty || pretty_tab || [bseq-hex-string | bseq-hex | bseq-bin | bseq-bin-dots | bseq-base64 | bigint-hex] || no-trailing-zero || no-slash-escape] | default' $options = `'default'`:
+        - 'real-json':          `Use JSON notation for real numbers, i.e., treat number, longint, ulongint, and longdouble as JSON number, while bigint as string.`
         - 'real-ejson':         `Use eJSON notation for longint, ulongint, and longdouble, e.g., 100L, 999UL, and 100FL.`
         - 'runtime-null':       `Treat all HVML-specific runtime types as null, i.e., undefined, dynamic, and native values will be serialized as null.`
         - 'runtime-string':     `Use string placehodlers for HVML-specific runtime types: "<undefined>", "<dynamic>", and "<native>".`
@@ -925,6 +928,7 @@ $DATA.serialize(
         - 'bseq-bin':           `Use binary form to serialize binary sequence.`
         - 'bseq-bin-dots':      `Use binary form to serialize binary sequence and use dots to seperate the binary digits per four digits. e.g., b1100.1010.`
         - 'bseq-base64':        `Use Base64 to serialize binary sequence.`
+        - 'bigint-hex':         `Use hexadecimal form to serialize bigint.`
         - 'no-trailing-zero':   `Drop trailing zero for float values.`
         - 'no-slash-escape':    `Do not escape the forward slashes ('/').`
         - 'default':            `Equivalent to 'real-json runtime-string plain bseq-hex-string no-slash-escape'`
@@ -952,7 +956,6 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     unsigned int flags = PCVRNT_SERIALIZE_OPT_REAL_JSON |
             PCVRNT_SERIALIZE_OPT_RUNTIME_STRING |
             PCVRNT_SERIALIZE_OPT_PLAIN |
-            PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
             PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING |
             PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE;
 

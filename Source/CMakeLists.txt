@@ -11,6 +11,10 @@ add_subdirectory(CodeTools)
 
 add_subdirectory(ThirdParty/ebtree)
 
+if (ENABLE_QUICKJS)
+    add_subdirectory(ThirdParty/quickjs)
+endif ()
+
 add_subdirectory(PurC)
 
 add_subdirectory(ExtDVObjs)
