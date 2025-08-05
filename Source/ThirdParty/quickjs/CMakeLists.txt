@@ -40,6 +40,7 @@ PURC_ADD_TARGET_C_FLAGS(QuickJS
     "-Wno-missing-field-initializers"
     "-Wno-unused-parameter"
     "-Wno-cast-align"
+    "-Wno-cast-function-type"
     "-Wno-cast-function-type-mismatch"
 )
 
