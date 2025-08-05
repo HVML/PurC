@@ -360,7 +360,17 @@ static const char *locate_query_value(const char *query, const char *key)
     if (query[0] == 0)
         return NULL;
 
-    char my_key[key_len + 2];
+    char stack_buf[512];
+    char *my_key;
+    if (key_len + 2 < sizeof(stack_buf)) {
+        my_key = stack_buf;
+    }
+    else {
+        my_key = (char *)malloc(key_len + 2);
+        if (my_key == NULL)
+            return NULL;
+    }
+
     strcpy(my_key, key);
     my_key[key_len] = KV_SEPERATOR;
     key_len++;
@@ -369,6 +379,8 @@ static const char *locate_query_value(const char *query, const char *key)
     const char *left = query;
     while (*left) {
         if (strncasecmp(left, my_key, key_len) == 0) {
+            if (my_key != stack_buf)
+                free(my_key);
             return left + key_len;
         }
         else {
@@ -380,6 +392,8 @@ static const char *locate_query_value(const char *query, const char *key)
         }
     }
 
+    if (my_key != stack_buf)
+        free(my_key);
     return NULL;
 }
 

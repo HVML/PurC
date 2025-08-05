@@ -1914,7 +1914,8 @@ static char *rebuild_directive(const char *directive, size_t width)
     // convert width to a decimal string and insert before the conversion specifier.
     // Or, just return a copy of direction.
 
-    char *new_directive = malloc(strlen(directive) + 32 + 1);
+    size_t sz = strlen(directive) + 32 + 1;
+    char *new_directive = malloc(sz);
     if (new_directive == NULL) {
         return NULL;
     }
@@ -1924,9 +1925,10 @@ static char *rebuild_directive(const char *directive, size_t width)
     while (*src) {
         if (strchr("sc[", *src)) {
             // Insert width before the conversion specifier.
-            int n = sprintf(dst, "%zu", width);
+            int n = snprintf(dst, sz, "%zu", width);
             assert(n <= 32);
             dst += n;
+            sz -= n;
         }
 
         *dst = *src;
