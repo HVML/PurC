@@ -61,6 +61,11 @@ struct pcmodule {
     module_cleanup_instance_f  cleanup_instance;
 };
 
+#if ENABLE(QUICKJS)
+struct JSRuntime;
+struct JSContext;
+#endif
+
 struct pcinst {
     int                     errcode;
     purc_atom_t             error_except;
@@ -136,6 +141,11 @@ struct pcinst {
 
     /* Since 0.9.22 */
     unsigned long long     unique_ull;
+
+#if ENABLE(QUICKJS)
+    /* Since 0.9.26 */
+    struct JSRuntime      *js_rt;
+#endif
 };
 
 static inline unsigned long long

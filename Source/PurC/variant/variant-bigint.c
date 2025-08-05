@@ -51,7 +51,6 @@
 #include "config.h"
 
 #include "variant-internals.h"
-
 #include "private/instance.h"
 
 #include "purc-errors.h"
@@ -1929,6 +1928,144 @@ static const bi_limb_t radix_base_table[BIGINT_RADIX_MAX - 1] = {
  0x211e44f7d02c1000, 0x2ee56725f06e5c71, 0x41c21cb8e1000000,
 #endif
 };
+
+static void u32toa_len(char *buf, uint32_t n, size_t len)
+{
+    int digit, i;
+    for(i = len - 1; i >= 0; i--) {
+        digit = n % 10;
+        n = n / 10;
+        buf[i] = digit + '0';
+    }
+}
+
+/* for power of 2 radixes. len >= 1 */
+static void u64toa_bin_len(char *buf, uint64_t n, unsigned int radix_bits, int len)
+{
+    int digit, i;
+    unsigned int mask;
+
+    mask = (1 << radix_bits) - 1;
+    for(i = len - 1; i >= 0; i--) {
+        digit = n & mask;
+        n >>= radix_bits;
+        if (digit < 10)
+            digit += '0';
+        else
+            digit += 'a' - 10;
+        buf[i] = digit;
+    }
+}
+
+static size_t u32toa(char *buf, uint32_t n)
+{
+    char buf1[10], *q;
+    size_t len;
+
+    q = buf1 + sizeof(buf1);
+    do {
+        *--q = n % 10 + '0';
+        n /= 10;
+    } while (n != 0);
+    len = buf1 + sizeof(buf1) - q;
+    memcpy(buf, q, len);
+    return len;
+}
+
+static size_t i32toa(char *buf, int32_t n)
+{
+    if (n >= 0) {
+        return u32toa(buf, n);
+    } else {
+        buf[0] = '-';
+        return u32toa(buf + 1, -(uint32_t)n) + 1;
+    }
+}
+
+static size_t u64toa(char *buf, uint64_t n)
+{
+    if (n < 0x100000000) {
+        return u32toa(buf, n);
+    } else {
+        uint64_t n1;
+        char *q = buf;
+        uint32_t n2;
+
+        n1 = n / 1000000000;
+        n %= 1000000000;
+        if (n1 >= 0x100000000) {
+            n2 = n1 / 1000000000;
+            n1 = n1 % 1000000000;
+            /* at most two digits */
+            if (n2 >= 10) {
+                *q++ = n2 / 10 + '0';
+                n2 %= 10;
+            }
+            *q++ = n2 + '0';
+            u32toa_len(q, n1, 9);
+            q += 9;
+        } else {
+            q += u32toa(q, n1);
+        }
+        u32toa_len(q, n, 9);
+        q += 9;
+        return q - buf;
+    }
+}
+
+static size_t i64toa(char *buf, int64_t n)
+{
+    if (n >= 0) {
+        return u64toa(buf, n);
+    } else {
+        buf[0] = '-';
+        return u64toa(buf + 1, -(uint64_t)n) + 1;
+    }
+}
+
+/* XXX: only tested for 1 <= n < 2^53 */
+static size_t u64toa_radix(char *buf, uint64_t n, unsigned int radix)
+{
+    int radix_bits, l;
+    if (LIKELY(radix == 10))
+        return u64toa(buf, n);
+    if ((radix & (radix - 1)) == 0) {
+        radix_bits = 31 - clz32(radix);
+        if (n == 0)
+            l = 1;
+        else
+            l = (64 - clz64(n) + radix_bits - 1) / radix_bits;
+        u64toa_bin_len(buf, n, radix_bits, l);
+        return l;
+    } else {
+        char buf1[41], *q; /* maximum length for radix = 3 */
+        size_t len;
+        int digit;
+        q = buf1 + sizeof(buf1);
+        do {
+            digit = n % radix;
+            n /= radix;
+            if (digit < 10)
+                digit += '0';
+            else
+                digit += 'a' - 10;
+            *--q = digit;
+        } while (n != 0);
+        len = buf1 + sizeof(buf1) - q;
+        memcpy(buf, q, len);
+        return len;
+    }
+}
+
+static size_t i64toa_radix(char *buf, int64_t n, unsigned int radix)
+{
+    if (n >= 0) {
+        return u64toa_radix(buf, n, radix);
+    } else {
+        buf[0] = '-';
+        return u64toa_radix(buf + 1, -(uint64_t)n, radix) + 1;
+    }
+}
 
 ssize_t bigint_stringify(const purc_variant_t val, int radix,
         void *ctxt, stringify_f cb)

@@ -148,6 +148,7 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_PCRDR         0x0100
 #define PURC_HAVE_FETCHER       0x0200
 #define PURC_HAVE_FETCHER_R     0x0400
+#define PURC_HAVE_QUICKJS       0x1000
 #define PURC_HAVE_ALL (                 \
             PURC_HAVE_UTILS         |   \
             PURC_HAVE_DOM           |   \
@@ -159,7 +160,8 @@ PCA_EXTERN_C_BEGIN
             PURC_HAVE_HVML          |   \
             PURC_HAVE_PCRDR         |   \
             PURC_HAVE_FETCHER       |   \
-            PURC_HAVE_FETCHER_R)
+            PURC_HAVE_FETCHER_R     |   \
+            PURC_HAVE_QUICKJS)
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
@@ -170,7 +172,7 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
 #define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
 #define PURC_MODULE_HVML       (PURC_MODULE_PCRDR    | PURC_HAVE_HVML | \
-            PURC_HAVE_FETCHER)
+            PURC_HAVE_FETCHER | PURC_HAVE_QUICKJS)
 #define PURC_MODULE_ALL         0xFFFF
 
 /**
@@ -186,6 +188,9 @@ PCA_EXTERN_C_BEGIN
  *  - %PURC_MODULE_EJSON: eJSON parser.
  *  - %PURC_MODULE_XGML: XGML Parser (not implemented so far).
  *  - %PURC_MODULE_PCRDR: Communication with renderer.
+ *  - %PURC_MODULE_FETCHER: Data fetcher (local).
+ *  - %PURC_MODULE_FETCHER_R: Data fetcher (remote).
+ *  - %PURC_MODULE_QUICKJS: QuickJS JavaScript engine.
  *  - %PURC_MODULE_ALL: All modules including HVML parser and interpreter.
  * @app_name (nullable): A pointer to a null-terminated string contains
  *      the app name. If this argument is null, the executable program name of

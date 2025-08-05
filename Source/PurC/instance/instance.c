@@ -263,6 +263,7 @@ extern struct pcmodule _module_interpreter;
 extern struct pcmodule _module_fetcher_local;
 extern struct pcmodule _module_fetcher_remote;
 extern struct pcmodule _module_renderer;
+extern struct pcmodule _module_quickjs;
 
 struct pcmodule* _pc_modules[] = {
     &_module_locale,
@@ -294,6 +295,8 @@ struct pcmodule* _pc_modules[] = {
     &_module_fetcher_remote,
 
     &_module_renderer,
+
+    &_module_quickjs,   /* Since 0.9.26 */
 };
 
 static void cleanup_once(void)

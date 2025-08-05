@@ -244,13 +244,6 @@ bi_limb_t mp_shl(bi_limb_t *tabr, const bi_limb_t *taba,
 bi_limb_t mp_shr(bi_limb_t *tab_r, const bi_limb_t *tab,
         int n, int shift, bi_limb_t high) WTF_INTERNAL;
 
-size_t u32toa(char *buf, uint32_t n) WTF_INTERNAL;
-size_t i32toa(char *buf, int32_t n) WTF_INTERNAL;
-size_t u64toa(char *buf, uint64_t n) WTF_INTERNAL;
-size_t i64toa(char *buf, int64_t n) WTF_INTERNAL;
-size_t u64toa_radix(char *buf, uint64_t n, unsigned int radix) WTF_INTERNAL;
-size_t i64toa_radix(char *buf, int64_t n, unsigned int radix) WTF_INTERNAL;
-
 #ifdef __cplusplus
 }
 #endif

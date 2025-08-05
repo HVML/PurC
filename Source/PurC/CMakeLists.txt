@@ -121,6 +121,9 @@ if (ENABLE_DOCTYPE_XML)
 endif ()
 
 if (ENABLE_QUICKJS)
+    list(APPEND PurC_SOURCES
+        "${PURC_DIR}/quickjs/quickjs.c"
+    )
     list(APPEND PurC_LIBRARIES PurC::QuickJS)
 endif ()
 
