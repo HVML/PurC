@@ -64,6 +64,7 @@ struct pcmodule {
 #if ENABLE(QUICKJS)
 struct JSRuntime;
 struct JSContext;
+struct JSContext *JS_NewCustomContext(struct JSRuntime *rt);
 #endif
 
 struct pcinst {

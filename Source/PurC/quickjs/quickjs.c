@@ -36,6 +36,7 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #include "quickjs/quickjs.h"
+#include "quickjs/quickjs-libc.h"
 #pragma GCC diagnostic pop
 
 #include <stdlib.h>
@@ -67,6 +68,19 @@ static size_t get_suffixed_size(const char *str)
     return v;
 }
 
+/* also used to initialize the worker context */
+JSContext *JS_NewCustomContext(JSRuntime *rt)
+{
+    JSContext *ctx;
+    ctx = JS_NewContext(rt);
+    if (!ctx)
+        return NULL;
+    /* system modules */
+    js_init_module_std(ctx, "std");
+    js_init_module_os(ctx, "os");
+    return ctx;
+}
+
 static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
@@ -96,11 +110,24 @@ static int _init_instance(struct pcinst *inst,
     envv = getenv(PURC_ENVV_JSRT_STRIP_OPTS);
     if (envv) {
         int strip_flags = 0;
-        if (strstr(envv, "debug"))
+        if (strcasestr(envv, "debug"))
             strip_flags = JS_STRIP_DEBUG;
-        if (strstr(envv, "source"))
+        if (strcasestr(envv, "source"))
             strip_flags = JS_STRIP_SOURCE;
         JS_SetStripInfo(inst->js_rt, strip_flags);
+    }
+
+    js_std_set_worker_new_context_func(JS_NewCustomContext);
+    js_std_init_handlers(inst->js_rt);
+
+    /* loader for ES6 modules */
+    JS_SetModuleLoaderFunc2(inst->js_rt, NULL, js_module_loader,
+            js_module_check_attributes, NULL);
+
+    envv = getenv(PURC_ENVV_JSRT_UNHANDLED_REJECTION);
+    if (envv && strcasecmp(envv, "dump") == 0) {
+        JS_SetHostPromiseRejectionTracker(inst->js_rt,
+                js_std_promise_rejection_tracker, NULL);
     }
 
     return 0;
@@ -108,8 +135,10 @@ static int _init_instance(struct pcinst *inst,
 
 static void _cleanup_instance(struct pcinst *inst)
 {
-    if (inst->js_rt)
+    if (inst->js_rt) {
+        js_std_free_handlers(inst->js_rt);
         JS_FreeRuntime(inst->js_rt);
+    }
 }
 
 struct pcmodule _module_quickjs = {

@@ -68,6 +68,7 @@
 #define PURC_PREDEF_VARNAME_DOC         "DOC"
 #define PURC_PREDEF_VARNAME_CRTN        "CRTN"
 #define PURC_PREDEF_VARNAME_TIMERS      "TIMERS"
+#define PURC_PREDEF_VARNAME_JS          "JS"
 
 #define PURC_PREDEF_VARNAME_T_ZH        "文本"
 #define PURC_PREDEF_VARNAME_REQ_ZH      "请求"
@@ -126,6 +127,11 @@ purc_dvobj_datetime_new(void);
 /** Make a dynamic variant object for built-in `$CRTN` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_coroutine_new(struct pcintr_coroutine* cor);
+
+/** Make a dynamic variant object for built-in `$JS` variable.
+    Since 0.9.26 */
+PCA_EXPORT purc_variant_t
+purc_dvobj_js_new(struct pcintr_coroutine* cor);
 
 /** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t

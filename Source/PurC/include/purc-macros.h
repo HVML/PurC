@@ -51,6 +51,8 @@
 #define PURC_ENVV_JSRT_MEM_LIMIT    "PURC_JSRT_MEM_LIMIT"   // 2G, 20M, 400K
 #define PURC_ENVV_JSRT_STACK_SIZE   "PURC_JSRT_STACK_SIZE"  // 2G, 20M, 400K
 #define PURC_ENVV_JSRT_STRIP_OPTS   "PURC_JSRT_STRIP_OPTS"  // debug || source
+#define PURC_ENVV_JSRT_UNHANDLED_REJECTION  \
+    "PURC_JSRT_UNHANDLED_REJECTION"                         // dump | ignore
 
 #ifndef __has_declspec_attribute
 #define __has_declspec_attribute(x) 0

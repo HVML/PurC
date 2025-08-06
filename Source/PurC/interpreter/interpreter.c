@@ -1478,6 +1478,7 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
+#define BUILTIN_VAR_JS          PURC_PREDEF_VARNAME_JS  // Since 0.9.26
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 #define BUILTIN_VAR_T           PURC_PREDEF_VARNAME_T
 #define BUILTIN_VAR_DOC         PURC_PREDEF_VARNAME_DOC
@@ -1527,6 +1528,14 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
                 purc_dvobj_text_new())) {
         return false;
     }
+
+#if ENABLE(QUICKJS)
+    // $JS
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_JS,
+                purc_dvobj_js_new(cor))) {
+        return false;
+    }
+#endif
 
     return true;
 }

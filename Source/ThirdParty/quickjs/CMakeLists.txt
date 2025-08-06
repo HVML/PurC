@@ -7,6 +7,7 @@ set(QuickJS_DERIVED_SOURCES_DIR "${CMAKE_BINARY_DIR}/DerivedSources/QuickJS")
 
 set(QuickJS_FRAMEWORK_HEADERS
     "${QuickJS_DIR}/quickjs/quickjs.h"
+    "${QuickJS_DIR}/quickjs/quickjs-libc.h"
 )
 
 set(QuickJS_INSTALLED_HEADERS ${QuickJS_FRAMEWORK_HEADERS})
