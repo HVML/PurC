@@ -149,7 +149,7 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
         val = JS_Eval(ctx, buf, buf_len, filename,
                       eval_flags | JS_EVAL_FLAG_COMPILE_ONLY);
         if (!JS_IsException(val)) {
-            js_module_set_import_meta(ctx, val, TRUE, TRUE);
+            js_module_set_import_meta(ctx, val, true, true);
             val = JS_EvalFunction(ctx, val);
         }
         val = js_std_await(ctx, val);
