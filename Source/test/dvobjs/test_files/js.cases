@@ -1,0 +1,9 @@
+# test cases for $JS
+positive:
+    $JS.load('std')
+    true
+
+positive:
+    $JS.eval('1+2')
+    3
+

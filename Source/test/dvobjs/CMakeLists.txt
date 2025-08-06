@@ -802,3 +802,35 @@ PURC_COMPUTE_SOURCES(test_message_bad_server)
 PURC_FRAMEWORK(test_message_bad_server)
 GTEST_DISCOVER_TESTS(test_message_bad_server DISCOVERY_TIMEOUT 10)
 
+# test_js
+PURC_EXECUTABLE_DECLARE(test_dvobjs_js)
+
+list(APPEND test_dvobjs_js_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    ${GLIB_INCLUDE_DIR}
+    ${GLIBCONFIG_INCLUDE_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_dvobjs_js)
+
+set(test_dvobjs_js_SOURCES
+    test_dvobjs_js.cpp
+    TestDVObj.cpp
+    helper.cpp
+    ../tools.cpp
+)
+
+set(test_dvobjs_js_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_js)
+PURC_FRAMEWORK(test_dvobjs_js)
+GTEST_DISCOVER_TESTS(test_dvobjs_js DISCOVERY_TIMEOUT 10)
+

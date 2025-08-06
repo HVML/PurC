@@ -32,7 +32,7 @@
 
 TestDVObj::TestDVObj(bool hvml)
 {
-    unsigned int modules = PURC_MODULE_EJSON;
+    unsigned int modules = PURC_MODULE_EJSON | PURC_HAVE_QUICKJS;
 
     if (hvml)
         modules = PURC_MODULE_HVML;
@@ -116,6 +116,11 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "RDR") == 0) {
         dvobj = purc_dvobj_rdr_new();
     }
+#if ENABLE(QUICKJS)
+    else if (strcmp(name, "JS") == 0) {
+        dvobj = purc_dvobj_js_new(NULL);
+    }
+#endif
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_dvobjs[name] = dvobj;

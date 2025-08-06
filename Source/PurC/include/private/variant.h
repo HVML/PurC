@@ -33,6 +33,7 @@
 #include "array_list.h"
 #include "private/debug.h"
 #include "private/map.h"
+#include "private/mpops.h"
 
 PCA_EXTERN_C_BEGIN
 
@@ -319,6 +320,10 @@ static inline bool is_variant_string(purc_variant *v) {
 purc_variant *pcvariant_alloc(bool scalar) WTF_INTERNAL;
 purc_variant *pcvariant_alloc_0(bool scalar) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
+
+purc_variant *
+pcvariant_make_bigint_from_limbs(const bi_limb_t *tab, size_t len)
+    WTF_INTERNAL;
 
 struct pcinst;
 struct tuple_node;

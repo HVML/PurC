@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: 'Ok'
+
+<hvml target="void">
+    <head>
+        <define as 'logMsg'>
+            $RUNNER.enablelog('all', 'stderr')
+
+            <inherit>
+                $JS.load('std')
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+        $JS.eval('console.log("Hello, HVML! -- JavaScript")')
+
+        <exit with 'Ok' />
+    </body>
+</hvml>
+

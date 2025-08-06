@@ -2414,3 +2414,15 @@ failed:
 #endif
 }
 
+purc_variant_t
+pcvariant_make_bigint_from_limbs(const bi_limb_t *tab, size_t len)
+{
+    purc_variant_t retv = bigint_new(len);
+    if (retv) {
+        bi_limb_t *dst_tab = bigint_get_tab(retv, NULL);
+        memcpy(dst_tab, tab, sizeof(bi_limb_t) * len);
+    }
+
+    return retv;
+}
+
