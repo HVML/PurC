@@ -7,3 +7,36 @@ positive:
     $JS.eval('1+2')
     3
 
+negative:
+    $JS.eval('{a: 1}', 'foo')
+    InvalidValue
+
+positive:
+    $DATA.parse($JS.eval('[]'))
+    []
+
+positive:
+    $DATA.parse($JS.eval('[null, false, "true"]'))
+    [null, false, "true"]
+
+positive:
+    $JS.eval('[null, false, "true"]', 'string')
+    ',false,true'
+
+positive:
+    $JS.eval('{a: 1}', 'json')
+    1
+
+positive:
+    $DATA.parse($JS.eval('const ages1 = { alice: 18, bob: 27 }; ages1', 'json'))
+    { alice: 18, bob: 27 }
+
+positive:
+    $JS.eval('const ages2 = { alice: 18, bob: 27 }; ages2', 'string')
+    '[object Object]'
+
+# TODO: bigint
+#positive:
+#    $JS.eval('BigInt(9007199254740991)')
+#    9007199254740991N
+

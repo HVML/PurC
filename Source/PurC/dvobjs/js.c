@@ -284,9 +284,8 @@ error:
 }
 
 enum {
-    OBJ_TYPE_NATIVE = 0,
+    OBJ_TYPE_JSON = 0,
     OBJ_TYPE_STRING,
-    OBJ_TYPE_JSON,
 };
 
 /* XXX: It must be consistent with the definition in QuickJS. */
@@ -393,9 +392,8 @@ eval_expr(JSContext *ctx, const void *expr, size_t expr_len, int obj_type)
 }
 
 static struct pcdvobjs_option_to_atom object_type_skws[] = {
-    { "native", 0, OBJ_TYPE_NATIVE },
-    { "string", 0, OBJ_TYPE_STRING },
     { "json",   0, OBJ_TYPE_JSON },
+    { "string", 0, OBJ_TYPE_STRING },
 };
 
 static purc_variant_t eval_getter(purc_variant_t root,
