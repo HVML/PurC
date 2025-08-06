@@ -2095,6 +2095,9 @@ failed:
         pcvdom_document_unref(vdom);
     }
     else {
+        if (co->ln.prev) {
+            list_del(&co->ln);
+        }
         coroutine_destroy(co);
     }
 
