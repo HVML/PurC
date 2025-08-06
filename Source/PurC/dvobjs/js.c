@@ -455,8 +455,6 @@ static bool on_js_being_released(purc_variant_t src, pcvar_op_t op,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    PC_DEBUG("%s: %p\n", __func__, ctxt);
-
     if (op == PCVAR_OPERATION_RELEASING) {
         struct dvobj_jsinfo *jsinfo = ctxt;
 
