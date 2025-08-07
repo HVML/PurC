@@ -517,6 +517,7 @@ static purc_variant *bigint_extend(purc_variant *r, bi_limb_t op1)
             if (r->ptr == NULL)
                 goto failed;
 
+            limbs = r->ptr;
             limbs->len = n2 + 1;
             limbs->tab[n2] = op1;
 
