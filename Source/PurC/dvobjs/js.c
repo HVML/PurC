@@ -351,6 +351,7 @@ variant_from_jsvalue(JSContext *ctx, JSValue val, int obj_type)
             size_t len;
             const char *str = JS_ToCStringLen(ctx, &len, val);
             retv = purc_variant_make_string_ex(str, len, false);
+            JS_FreeCString(ctx, str);
         }
         else if (obj_type == OBJ_TYPE_JSON) {
             JSValue v = JS_JSONStringify(ctx, val,
@@ -359,6 +360,7 @@ variant_from_jsvalue(JSContext *ctx, JSValue val, int obj_type)
             size_t len;
             const char *str = JS_ToCStringLen(ctx, &len, v);
             retv = purc_variant_make_string_ex(str, len, false);
+            JS_FreeCString(ctx, str);
             JS_FreeValue(ctx, v);
         }
         break;
