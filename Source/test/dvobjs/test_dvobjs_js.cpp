@@ -25,6 +25,8 @@
 
 #include <gtest/gtest.h>
 
+#include <limits.h>
+
 TEST(dvobjs, js_basic)
 {
 #if ENABLE(QUICKJS)
