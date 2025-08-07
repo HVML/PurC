@@ -1,4 +1,36 @@
 # test cases for $JS
+negative:
+    $JS.runtime
+    ArgumentMissed
+
+negative:
+    $JS.runtime(null)
+    WrongDataType
+
+negative:
+    $JS.runtime('foo')
+    InvalidValue
+
+positive:
+    $JS.runtime('memory-limit')
+    0UL
+
+negative:
+    $JS.runtime(!)
+    ArgumentMissed
+
+negative:
+    $JS.runtime(!'foo')
+    ArgumentMissed
+
+negative:
+    $JS.runtime(!null, null)
+    WrongDataType
+
+negative:
+    $JS.runtime(!'foo', 2)
+    InvalidValue
+
 positive:
     $JS.load('std')
     true
@@ -43,3 +75,52 @@ positive:
 positive:
     {{ $JS.eval('foo + 2'); $STR.explode($JS.lastError(), '\n')[0] }}
     "ReferenceError: 'foo' is not defined"
+
+positive:
+    $JS.runtime(!'memory-limit', 1024)
+    true
+
+positive:
+    $JS.runtime('memory-limit')
+    1024UL
+
+positive:
+    $JS.runtime(!'max-stack-size', 1024)
+    true
+
+positive:
+    $JS.runtime('max-stack-size')
+    1024UL
+
+positive:
+    $JS.runtime(!'gc-threshold', 1024)
+    true
+
+positive:
+    $JS.runtime('gc-threshold')
+    1024UL
+
+positive:
+    $JS.runtime(!'dump-unhandled-rejection', false)
+    true
+
+positive:
+    $JS.runtime('dump-unhandled-rejection')
+    false
+
+positive:
+    $JS.runtime(!'strip-debug', false)
+    true
+
+positive:
+    $JS.runtime('strip-debug')
+    false
+
+positive:
+    $JS.runtime(!'strip-source', false)
+    true
+
+positive:
+    $JS.runtime('strip-source')
+    false
+

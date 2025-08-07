@@ -50,13 +50,11 @@
 #define JS_KEY_EVAL         "eval"
 #define JS_KEY_EXEC_PENDING "execPending"
 #define JS_KEY_LAST_ERROR   "lastError"
-#define JS_KEY_BACKTRACE    "backtrace"
 
 #define JS_KEY_CONTEXT      "__js_context"
 
 struct dvobj_jsinfo {
     purc_variant_t          root;       // the root variant, i.e., $JS itself
-    JSRuntime              *rt;         // the JavaScript runtime
     JSContext              *ctx;        // the JavaScript context
     struct pcvar_listener  *listener;   // the listener
 };
@@ -71,6 +69,215 @@ static inline struct dvobj_jsinfo *get_jsinfo_from_root(purc_variant_t root)
     return (struct dvobj_jsinfo *)purc_variant_native_get_entity(v);
 }
 
+enum {
+    RTP_MEMORY_LIMIT = 0,
+    RTP_MAX_STACK_SIZE,
+    RTP_GC_THRESHOLD,
+    RTP_DUMP_UNHANDLED_REJECTION,
+    RTP_STRIP_DEBUG,
+    RTP_STRIP_SOURCE,
+};
+
+static struct pcdvobjs_option_to_atom runtime_param_skws[] = {
+    { "memory-limit",               0, RTP_MEMORY_LIMIT },
+    { "max-stack-size",             0, RTP_MAX_STACK_SIZE },
+    { "gc-threshold",               0, RTP_GC_THRESHOLD },
+    { "dump-unhandled-rejection",   0, RTP_DUMP_UNHANDLED_REJECTION },
+    { "strip-debug",                0, RTP_STRIP_DEBUG },
+    { "strip-source",               0, RTP_STRIP_SOURCE },
+};
+
+static purc_variant_t runtime_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    int ec = PURC_ERROR_OK;
+    struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
+
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
+        goto error;
+    }
+
+    if (nr_args == 0) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if (runtime_param_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(runtime_param_skws); j++) {
+            runtime_param_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, runtime_param_skws[j].option);
+        }
+    }
+
+    int param = pcdvobjs_parse_options(argv[0],
+            runtime_param_skws, PCA_TABLESIZE(runtime_param_skws),
+            NULL, 0, RTP_MEMORY_LIMIT, -1);
+    if (param == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    struct pcinst *inst = pcinst_current();
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    switch (param) {
+        case RTP_MEMORY_LIMIT:
+            retv = purc_variant_make_ulongint(inst->js_memory_limit);
+            break;
+
+        case RTP_MAX_STACK_SIZE:
+            retv = purc_variant_make_ulongint(inst->js_max_stack_size);
+            break;
+
+        case RTP_GC_THRESHOLD:
+            retv = purc_variant_make_ulongint(inst->js_gc_threshold);
+            break;
+
+        case RTP_DUMP_UNHANDLED_REJECTION:
+            if (inst->js_promise_rejection_tracker)
+                retv = purc_variant_make_boolean(true);
+            else
+                retv = purc_variant_make_boolean(false);
+            break;
+
+        case RTP_STRIP_DEBUG:
+            if (JS_GetStripInfo(inst->js_rt) & JS_STRIP_DEBUG)
+                retv = purc_variant_make_boolean(true);
+            else
+                retv = purc_variant_make_boolean(false);
+            break;
+
+        case RTP_STRIP_SOURCE:
+            if (JS_GetStripInfo(inst->js_rt) & JS_STRIP_SOURCE)
+                retv = purc_variant_make_boolean(true);
+            else
+                retv = purc_variant_make_boolean(false);
+            break;
+
+        default:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+            break;
+    }
+
+    return retv;
+
+error:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_null();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t runtime_setter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    int ec = PURC_ERROR_OK;
+    struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
+
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
+        goto error;
+    }
+
+    if (nr_args < 2) {
+        ec = PURC_ERROR_ARGUMENT_MISSED;
+        goto error;
+    }
+
+    if (runtime_param_skws[0].atom == 0) {
+        for (size_t j = 0; j < PCA_TABLESIZE(runtime_param_skws); j++) {
+            runtime_param_skws[j].atom = purc_atom_from_static_string_ex(
+                    ATOM_BUCKET_DVOBJ, runtime_param_skws[j].option);
+        }
+    }
+
+    int param = pcdvobjs_parse_options(argv[0],
+            runtime_param_skws, PCA_TABLESIZE(runtime_param_skws),
+            NULL, 0, RTP_MEMORY_LIMIT, -1);
+    if (param == -1) {
+        /* error will be set by pcdvobjs_parse_options() */
+        goto error;
+    }
+
+    uint64_t u64;
+    if (param < RTP_DUMP_UNHANDLED_REJECTION &&
+            !purc_variant_cast_to_ulongint(argv[1], &u64, false)) {
+        ec = PURC_ERROR_WRONG_DATA_TYPE;
+        goto error;
+    }
+    else if (param >= RTP_DUMP_UNHANDLED_REJECTION) {
+        u64 = purc_variant_booleanize(argv[1]);
+    }
+
+    struct pcinst *inst = pcinst_current();
+    int flags;
+    switch (param) {
+        case RTP_MEMORY_LIMIT:
+            JS_SetMemoryLimit(inst->js_rt, u64);
+            inst->js_memory_limit = u64;
+            break;
+
+        case RTP_MAX_STACK_SIZE:
+            JS_SetMaxStackSize(inst->js_rt, u64);
+            inst->js_max_stack_size = u64;
+            break;
+
+        case RTP_GC_THRESHOLD:
+            JS_SetGCThreshold(inst->js_rt, u64);
+            inst->js_gc_threshold = u64;
+            break;
+
+        case RTP_DUMP_UNHANDLED_REJECTION:
+            if (u64) {
+                JS_SetHostPromiseRejectionTracker(inst->js_rt,
+                        js_std_promise_rejection_tracker, NULL);
+                inst->js_promise_rejection_tracker =
+                    js_std_promise_rejection_tracker;
+            }
+            else {
+                JS_SetHostPromiseRejectionTracker(inst->js_rt, NULL, NULL);
+                inst->js_promise_rejection_tracker = NULL;
+            }
+            break;
+
+        case RTP_STRIP_DEBUG:
+            flags = JS_GetStripInfo(inst->js_rt);
+            if (u64)
+                JS_SetStripInfo(inst->js_rt, flags | JS_STRIP_DEBUG);
+            else
+                JS_SetStripInfo(inst->js_rt, flags & ~JS_STRIP_DEBUG);
+            break;
+
+        case RTP_STRIP_SOURCE:
+            flags = JS_GetStripInfo(inst->js_rt);
+            if (u64)
+                JS_SetStripInfo(inst->js_rt, flags | JS_STRIP_SOURCE);
+            else
+                JS_SetStripInfo(inst->js_rt, flags & ~JS_STRIP_SOURCE);
+            break;
+
+        default:
+            ec = PURC_ERROR_INVALID_VALUE;
+            goto error;
+            break;
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 /* TODO: return values in scriptArgs */
 static purc_variant_t args_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
@@ -80,8 +287,10 @@ static purc_variant_t args_getter(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     return purc_variant_make_null();
 
@@ -101,8 +310,10 @@ static purc_variant_t args_setter(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     if (nr_args == 0) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
@@ -235,8 +446,10 @@ static purc_variant_t load_getter(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     if (nr_args == 0) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
@@ -416,8 +629,10 @@ static purc_variant_t eval_getter(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     if (nr_args == 0) {
         ec = PURC_ERROR_ARGUMENT_MISSED;
@@ -471,8 +686,10 @@ static purc_variant_t exec_pending(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     for(;;) {
         int err = JS_ExecutePendingJob(JS_GetRuntime(jsinfo->ctx), NULL);
@@ -511,8 +728,10 @@ static purc_variant_t last_error(purc_variant_t root,
     int ec = PURC_ERROR_OK;
     struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
 
-    if (jsinfo == NULL)
+    if (jsinfo == NULL) {
+        ec = PURC_ERROR_INCOMPLETE_OBJECT;
         goto error;
+    }
 
     if (JS_HasException(jsinfo->ctx)) {
         JSValue exception;
@@ -588,12 +807,12 @@ purc_dvobj_js_new(pcintr_coroutine_t cor)
         goto failed;
     }
     static struct purc_dvobj_method methods[] = {
+        { JS_KEY_RUNTIME,   runtime_getter,     runtime_setter },
         { JS_KEY_ARGS,      args_getter,        args_setter },
         { JS_KEY_LOAD,      load_getter,        NULL },
         { JS_KEY_EVAL,      eval_getter,        NULL },
         { JS_KEY_EXEC_PENDING,  exec_pending,   NULL },
         { JS_KEY_LAST_ERROR,    last_error,     NULL },
-        // { JS_KEY_BACKTRACE,     backtrace,      NULL },
     };
 
     js = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
@@ -605,8 +824,7 @@ purc_dvobj_js_new(pcintr_coroutine_t cor)
         }
 
         jsinfo->root = js;
-        jsinfo->rt = rt;
-        jsinfo->ctx = JS_NewCustomContext(jsinfo->rt);
+        jsinfo->ctx = JS_NewCustomContext(rt);
 
         if (!jsinfo->ctx) {
             PC_ERROR("Cannot allocate JS context\n");

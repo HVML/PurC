@@ -92,12 +92,18 @@ static int _init_instance(struct pcinst *inst,
         return -1;
     }
 
+    inst->js_memory_limit = 0;
+    inst->js_max_stack_size = 0;
+    inst->js_gc_threshold = 0;
+    inst->js_promise_rejection_tracker = NULL;
+
     const char *envv;
     envv = getenv(PURC_ENVV_JSRT_MEM_LIMIT);
     if (envv) {
         size_t sz = get_suffixed_size(envv);
         if (sz)
             JS_SetMemoryLimit(inst->js_rt, sz);
+        inst->js_memory_limit = sz;
     }
 
     envv = getenv(PURC_ENVV_JSRT_STACK_SIZE);
@@ -105,6 +111,15 @@ static int _init_instance(struct pcinst *inst,
         size_t sz = get_suffixed_size(envv);
         if (sz)
             JS_SetMaxStackSize(inst->js_rt, sz);
+        inst->js_max_stack_size = sz;
+    }
+
+    envv = getenv(PURC_ENVV_JSRT_GC_THRESHOLD);
+    if (envv) {
+        size_t sz = get_suffixed_size(envv);
+        if (sz)
+            JS_SetGCThreshold(inst->js_rt, sz);
+        inst->js_gc_threshold = sz;
     }
 
     envv = getenv(PURC_ENVV_JSRT_STRIP_OPTS);
@@ -128,6 +143,7 @@ static int _init_instance(struct pcinst *inst,
     if (envv && strcasecmp(envv, "dump") == 0) {
         JS_SetHostPromiseRejectionTracker(inst->js_rt,
                 js_std_promise_rejection_tracker, NULL);
+        inst->js_promise_rejection_tracker = js_std_promise_rejection_tracker;
     }
 
     return 0;
