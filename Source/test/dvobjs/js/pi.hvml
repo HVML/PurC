@@ -1,0 +1,28 @@
+#!/usr/bin/purc
+
+# RESULT: '3.14159265358979323846264338327950288419716939937510'
+
+<hvml target="void">
+    <head>
+        <inherit on $RUNNER.enablelog('all', 'stderr') />
+        <define as 'logMsg'>
+            <inherit>
+                $RUNNER.logmsg($?)
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+
+        <inherit on $JS.args(!['pi', '50']) />
+        <inherit on $JS.load(['std', $REQ.script]) />
+        <init as pi with $JS.eval('pi()')>
+            <catch for `ExternalFailure`>
+                <execute with $logMsg on 'JS failed' />
+            </catch>
+        </init>
+
+        <exit with $pi />
+    </body>
+</hvml>
+

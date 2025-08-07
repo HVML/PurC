@@ -45,8 +45,13 @@
 #include <errno.h>
 
 #define JS_KEY_ARGS         "args"
+#define JS_KEY_RUNTIME      "runtime"
 #define JS_KEY_LOAD         "load"
 #define JS_KEY_EVAL         "eval"
+#define JS_KEY_EXEC_PENDING "execPending"
+#define JS_KEY_LAST_ERROR   "lastError"
+#define JS_KEY_BACKTRACE    "backtrace"
+
 #define JS_KEY_CONTEXT      "__js_context"
 
 struct dvobj_jsinfo {
@@ -66,6 +71,7 @@ static inline struct dvobj_jsinfo *get_jsinfo_from_root(purc_variant_t root)
     return (struct dvobj_jsinfo *)purc_variant_native_get_entity(v);
 }
 
+/* TODO: return values in scriptArgs */
 static purc_variant_t args_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
@@ -77,7 +83,7 @@ static purc_variant_t args_getter(purc_variant_t root,
     if (jsinfo == NULL)
         goto error;
 
-    return purc_variant_make_boolean(true);
+    return purc_variant_make_null();
 
 error:
     if (ec != PURC_ERROR_OK)
@@ -117,6 +123,11 @@ static purc_variant_t args_setter(purc_variant_t root,
         for (size_t i = 0; i < argc; i++) {
             purc_variant_t v = purc_variant_linear_container_get(argv[0], i);
             const char *arg = purc_variant_get_string_const(v);
+            if (arg == NULL) {
+                ec = PURC_ERROR_INVALID_VALUE;
+                break;
+            }
+
             JS_SetPropertyUint32(jsinfo->ctx, args, i,
                     JS_NewString(jsinfo->ctx, arg));
         }
@@ -124,6 +135,9 @@ static purc_variant_t args_setter(purc_variant_t root,
         JS_SetPropertyStr(jsinfo->ctx, global_obj, "scriptArgs", args);
         JS_FreeValue(jsinfo->ctx, global_obj);
     }
+
+    if (ec != PURC_ERROR_OK)
+        goto error;
 
     return purc_variant_make_boolean(true);
 
@@ -156,8 +170,9 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
     } else {
         val = JS_Eval(ctx, buf, buf_len, filename, eval_flags);
     }
+
     if (JS_IsException(val)) {
-        js_std_dump_error(ctx);
+        purc_set_error(PURC_EXCEPT_EXTERNAL_FAILURE);
         ret = -1;
     } else {
         ret = 0;
@@ -255,7 +270,7 @@ static purc_variant_t load_getter(purc_variant_t root,
             }
 
             if (eval_file(jsinfo->ctx, filename, module))
-                goto js_error;
+                goto error;
         }
     }
     else {
@@ -266,12 +281,10 @@ static purc_variant_t load_getter(purc_variant_t root,
         }
 
         if (eval_file(jsinfo->ctx, filename, module))
-            goto js_error;
+            goto error;
     }
 
     return purc_variant_make_boolean(true);
-
-js_error:
 
 error:
     if (ec != PURC_ERROR_OK)
@@ -382,8 +395,7 @@ eval_expr(JSContext *ctx, const void *expr, size_t expr_len, int obj_type)
 
     val = JS_Eval(ctx, expr, expr_len, "<expression>", 0);
     if (JS_IsException(val)) {
-        js_std_dump_error(ctx);
-
+        purc_set_error(PURC_EXCEPT_EXTERNAL_FAILURE);
         ret = PURC_VARIANT_INVALID;
     } else {
         ret = variant_from_jsvalue(ctx, val, obj_type);
@@ -451,6 +463,94 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t exec_pending(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void)nr_args;
+    (void)argv;
+    int ec = PURC_ERROR_OK;
+    struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
+
+    if (jsinfo == NULL)
+        goto error;
+
+    for(;;) {
+        int err = JS_ExecutePendingJob(JS_GetRuntime(jsinfo->ctx), NULL);
+        if (err == 0) {
+            break;
+        }
+        else if (err < 0) {
+            ec = PURC_ERROR_EXTERNAL_FAILURE;
+            goto error;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+error:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static void js_print_value_write(void *opaque, const char *buf, size_t len)
+{
+    purc_rwstream_t rwstream = opaque;
+    purc_rwstream_write(rwstream, buf, len);
+}
+
+static purc_variant_t last_error(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    (void)nr_args;
+    (void)argv;
+    int ec = PURC_ERROR_OK;
+    struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(root);
+
+    if (jsinfo == NULL)
+        goto error;
+
+    if (JS_HasException(jsinfo->ctx)) {
+        JSValue exception;
+        exception = JS_GetException(jsinfo->ctx);
+
+        purc_rwstream_t rwstream;
+        rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, 0);
+        if (rwstream == NULL)
+            goto error;
+
+        JS_PrintValue(jsinfo->ctx, js_print_value_write, rwstream,
+               exception, NULL);
+        JS_FreeValue(jsinfo->ctx, exception);
+
+        purc_rwstream_write(rwstream, "\0", 1);
+
+        size_t sz_buffer = 0;
+        size_t sz_content = 0;
+        char *content = NULL;
+        content = purc_rwstream_get_mem_buffer_ex(rwstream,
+                &sz_content, &sz_buffer, true);
+        purc_rwstream_destroy(rwstream);
+
+        return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+    }
+
+    return purc_variant_make_null();
+
+error:
+    if (ec != PURC_ERROR_OK)
+        purc_set_error(ec);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
 static bool on_js_being_released(purc_variant_t src, pcvar_op_t op,
         void *ctxt, size_t nr_args, purc_variant_t *argv)
 {
@@ -488,9 +588,12 @@ purc_dvobj_js_new(pcintr_coroutine_t cor)
         goto failed;
     }
     static struct purc_dvobj_method methods[] = {
-        { JS_KEY_ARGS,      args_getter,    args_setter },
-        { JS_KEY_LOAD,      load_getter,    NULL },
-        { JS_KEY_EVAL,      eval_getter,    NULL },
+        { JS_KEY_ARGS,      args_getter,        args_setter },
+        { JS_KEY_LOAD,      load_getter,        NULL },
+        { JS_KEY_EVAL,      eval_getter,        NULL },
+        { JS_KEY_EXEC_PENDING,  exec_pending,   NULL },
+        { JS_KEY_LAST_ERROR,    last_error,     NULL },
+        // { JS_KEY_BACKTRACE,     backtrace,      NULL },
     };
 
     js = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
