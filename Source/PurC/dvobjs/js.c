@@ -24,8 +24,6 @@
 
 #include "config.h"
 
-#if ENABLE(QUICKJS)
-
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/atom-buckets.h"
@@ -34,6 +32,8 @@
 
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
+
+#if ENABLE(QUICKJS)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

@@ -263,7 +263,10 @@ extern struct pcmodule _module_interpreter;
 extern struct pcmodule _module_fetcher_local;
 extern struct pcmodule _module_fetcher_remote;
 extern struct pcmodule _module_renderer;
+
+#if ENABLE(QUICKJS)
 extern struct pcmodule _module_quickjs;
+#endif
 
 struct pcmodule* _pc_modules[] = {
     &_module_locale,
@@ -296,7 +299,9 @@ struct pcmodule* _pc_modules[] = {
 
     &_module_renderer,
 
+#if ENABLE(QUICKJS)
     &_module_quickjs,   /* Since 0.9.26 */
+#endif
 };
 
 static void cleanup_once(void)
