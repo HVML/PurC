@@ -92,9 +92,9 @@ static int _init_instance(struct pcinst *inst,
         return -1;
     }
 
-    inst->js_memory_limit = 0;
+    inst->js_memory_limit = -1;
     inst->js_max_stack_size = 0;
-    inst->js_gc_threshold = 0;
+    inst->js_gc_threshold = 256 * 1024;
     inst->js_promise_rejection_tracker = NULL;
 
     const char *envv;
