@@ -1157,10 +1157,11 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
     pcvdom_element_t scope = frame->scope;
     pcvdom_element_t pos = frame->pos;
-    for (size_t i=0; i<level; ++i) {
-        PC_WARN("  ");
-    }
-    PC_WARN("scope:<%s>; pos:<%s>\n",
+
+    int nr_space = level * 2;
+    char buffer[nr_space + 1];
+    snprintf(buffer, nr_space, "%*s", nr_space, "");
+    PC_WARN("%sscope:<%s>; pos:<%s>\n", buffer,
         (scope ? scope->tag_name : NULL),
         (pos ? pos->tag_name : NULL));
 }
