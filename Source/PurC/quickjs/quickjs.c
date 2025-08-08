@@ -153,7 +153,6 @@ static void _cleanup_instance(struct pcinst *inst)
 {
     if (inst->js_rt) {
         js_std_free_handlers(inst->js_rt);
-        JS_RunGC(inst->js_rt);
         JS_FreeRuntime(inst->js_rt);
         inst->js_rt = NULL;
     }
