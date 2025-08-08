@@ -65,6 +65,9 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
         return PURC_ERROR_NOT_READY;
     }
 
+    remote->process->shutDownProcess();
+    remote->process->terminate();
+
     delete remote->process;
     free(remote);
 
