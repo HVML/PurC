@@ -260,6 +260,10 @@ is_match_catch_tag(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     bool catch = false;
 
     pcvdom_element_t elem = frame->pos;
+    if (!elem) {
+        goto out;
+    }
+
     struct pcvdom_node *node = &elem->node;
     if (node) {
         catch = is_same_level_catched(stack, node);

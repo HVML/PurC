@@ -62,8 +62,8 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    size_t nr_params = frame->nr_params - 1;
-    purc_variant_t params[nr_params];
+    size_t nr_params = frame->nr_params > 0 ? frame->nr_params - 1 : 0;
+    purc_variant_t params[nr_params ? nr_params : 1];
 
     struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
 
