@@ -133,8 +133,13 @@ push_node(struct pcvdom_gen *gen, struct pcvdom_node *node)
 static inline struct pcvdom_node*
 pop_node(struct pcvdom_gen *gen)
 {
-    if (!gen->curr)
+    if (!gen->curr) {
         return NULL;
+    }
+
+    if (!gen->curr->node.parent) {
+        return NULL;
+    }
 
     struct pcvdom_node *node;
     node = container_of(gen->curr->node.parent,
