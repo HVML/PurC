@@ -332,15 +332,15 @@ static purc_variant_t runtime_getter(purc_variant_t root,
     purc_variant_t retv = PURC_VARIANT_INVALID;
     switch (param) {
         case RTP_MEMORY_LIMIT:
-            retv = purc_variant_make_ulongint(inst->js_memory_limit);
+            retv = purc_variant_make_ulongint(JS_GetMemoryLimit(inst->js_rt));
             break;
 
         case RTP_MAX_STACK_SIZE:
-            retv = purc_variant_make_ulongint(inst->js_max_stack_size);
+            retv = purc_variant_make_ulongint(JS_GetMaxStackSize(inst->js_rt));
             break;
 
         case RTP_GC_THRESHOLD:
-            retv = purc_variant_make_ulongint(inst->js_gc_threshold);
+            retv = purc_variant_make_ulongint(JS_GetGCThreshold(inst->js_rt));
             break;
 
         case RTP_DUMP_UNHANDLED_REJECTION:
@@ -428,17 +428,14 @@ static purc_variant_t runtime_setter(purc_variant_t root,
     switch (param) {
         case RTP_MEMORY_LIMIT:
             JS_SetMemoryLimit(inst->js_rt, u64);
-            inst->js_memory_limit = u64;
             break;
 
         case RTP_MAX_STACK_SIZE:
             JS_SetMaxStackSize(inst->js_rt, u64);
-            inst->js_max_stack_size = u64;
             break;
 
         case RTP_GC_THRESHOLD:
             JS_SetGCThreshold(inst->js_rt, u64);
-            inst->js_gc_threshold = u64;
             break;
 
         case RTP_DUMP_UNHANDLED_REJECTION:
