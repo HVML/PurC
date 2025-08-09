@@ -1,0 +1,37 @@
+#!/usr/bin/purc
+
+# RESULT: 'one message from JavaScript'
+
+<hvml target="void">
+    <head>
+        <inherit on $RUNNER.enablelog('all', 'stderr') />
+        <define as 'logMsg'>
+            <inherit>
+                $RUNNER.logmsg($?)
+            </inherit>
+        </define>
+    </head>
+
+    <body>
+
+        <init as js with 'os.setTimeout(() => { console.log("time expired"); hvml.fire("timeout", "one message from JavaScript"); }, 1000);' />
+
+        <inherit on $JS.load('std') />
+        <inherit on $JS.eval($js) >
+            <catch for `ANY`>
+                <execute with $logMsg on $JS.lastError() />
+            </catch>
+        </inherit>
+
+        <observe on $CRTN for 'idle'>
+            <execute with $logMsg on 'On idle' />
+            <inherit on $JS.execPending() />
+        </observe>
+
+        <observe on $JS for 'timeout'>
+            <exit with $? />
+        </observe>
+
+    </body>
+</hvml>
+
