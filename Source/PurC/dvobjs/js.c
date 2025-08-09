@@ -176,6 +176,7 @@ static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
         return JS_FALSE;
     }
 
+    purc_variant_t payload = PURC_VARIANT_INVALID;
     const char *event = NULL;
     size_t len;
     if (JS_IsString(argv[0])) {
@@ -185,7 +186,6 @@ static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
     if (event == NULL)
         goto failed;
 
-    purc_variant_t payload;
     payload = variant_from_jsvalue(ctx, argv[1], OBJ_TYPE_JSON);
     if (payload == PURC_VARIANT_INVALID)
         goto failed;
@@ -197,6 +197,7 @@ static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
 
         purc_variant_tuple_set(tuple, 0, payload);
         purc_variant_unref(payload);
+        payload = PURC_VARIANT_INVALID;
 
         for (int i = 2; i < argc; i++) {
             purc_variant_t item;
@@ -223,6 +224,8 @@ static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
 failed:
     if (event)
         JS_FreeCString(ctx, event);
+    if (payload != PURC_VARIANT_INVALID)
+        purc_variant_unref(payload);
 
     return JS_EXCEPTION;
 }
@@ -581,7 +584,9 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
                       eval_flags | JS_EVAL_FLAG_COMPILE_ONLY);
         if (!JS_IsException(val)) {
             js_module_set_import_meta(ctx, val, true, true);
-            val = JS_EvalFunction(ctx, val);
+            JSValue res = JS_EvalFunction(ctx, val);
+            JS_FreeValue(ctx, val);
+            val = res;
         }
         val = js_std_await(ctx, val);
     } else {
