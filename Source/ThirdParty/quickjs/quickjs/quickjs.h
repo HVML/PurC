@@ -368,9 +368,12 @@ JSRuntime *JS_NewRuntime(void);
 /* info lifetime must exceed that of rt */
 void JS_SetRuntimeInfo(JSRuntime *rt, const char *info);
 void JS_SetMemoryLimit(JSRuntime *rt, size_t limit);
+size_t JS_GetMemoryLimit(JSRuntime *rt);
 void JS_SetGCThreshold(JSRuntime *rt, size_t gc_threshold);
+size_t JS_GetGCThreshold(JSRuntime *rt);
 /* use 0 to disable maximum stack size check */
 void JS_SetMaxStackSize(JSRuntime *rt, size_t stack_size);
+size_t JS_GetMaxStackSize(JSRuntime *rt);
 /* should be called when changing thread to update the stack top value
    used to check stack overflow. */
 void JS_UpdateStackTop(JSRuntime *rt);
