@@ -804,9 +804,6 @@ static purc_variant_t exec_pending(purc_variant_t root,
         goto error;
     }
 
-#if 1
-    js_std_loop(jsinfo->ctx);
-#else
     for (;;) {
         int err = JS_ExecutePendingJob(JS_GetRuntime(jsinfo->ctx), NULL);
         if (err == 0) {
@@ -817,7 +814,12 @@ static purc_variant_t exec_pending(purc_variant_t root,
             goto error;
         }
     }
-#endif
+
+    if (js_std_promise_rejection_check(jsinfo->ctx))
+        return purc_variant_make_boolean(false);
+
+    if (js_os_poll(jsinfo->ctx))
+        return purc_variant_make_boolean(false);
 
     return purc_variant_make_boolean(true);
 

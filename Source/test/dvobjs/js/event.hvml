@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 'one message from JavaScript'
+# RESULT: [!'one message from JavaScript', 1000]
 
 <hvml target="void">
     <head>
@@ -14,7 +14,7 @@
 
     <body>
 
-        <init as js with 'os.setTimeout(() => { console.log("time expired"); hvml.fire("timeout", "one message from JavaScript"); }, 1000);' />
+        <init as js with 'os.setTimeout(() => { console.log("time expired in JS"); hvml.fire("timeout", "one message from JavaScript", 1000); }, 1000);' />
 
         <inherit on $JS.load('std') />
         <inherit on $JS.eval($js) >
@@ -25,7 +25,11 @@
 
         <observe on $CRTN for 'idle'>
             <execute with $logMsg on 'On idle' />
-            <inherit on $JS.execPending() />
+            <test with $JS.execPending() >
+                <differ>
+                    <forget on $CRTN for 'idle' />
+                </differ>
+            </test>
         </observe>
 
         <observe on $JS for 'timeout'>
