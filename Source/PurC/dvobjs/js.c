@@ -122,6 +122,7 @@ variant_from_jsvalue(JSContext *ctx, JSValue val, int obj_type)
         size_t len;
         const char *str = JS_ToCStringLen(ctx, &len, val);
         retv = purc_variant_make_string_ex(str, len, false);
+        JS_FreeCString(ctx, str);
         break;
     }
 
