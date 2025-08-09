@@ -216,6 +216,8 @@ static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
             PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, dvjs,
             event, NULL,
             payload, PURC_VARIANT_INVALID);
+    JS_FreeCString(ctx, event);
+    purc_variant_unref(payload);
     return JS_TRUE;
 
 failed:
