@@ -80,7 +80,11 @@ _load_module(const char *module)
                 n = snprintf(so, sizeof(so),
                         "%s/libpurc-executor-%s%s", dir, module, ext);
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+#if PLATFORM(MAC)
+                library_handle = dlopen(so, RTLD_LAZY | RTLD_NODELETE);
+#else
                 library_handle = dlopen(so, RTLD_LAZY);
+#endif
                 if (library_handle) {
 #ifdef PRINT_DEBUG        /* { */
                     PC_DEBUGX("Loaded Executor from %s\n", so);
@@ -112,7 +116,11 @@ _load_module(const char *module)
         for (size_t i = 0; i < PCA_TABLESIZE(other_tries); i++) {
             n = snprintf(so, sizeof(so), other_tries[i], ver, module, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+#if PLATFORM(MAC)
+            library_handle = dlopen(so, RTLD_LAZY | RTLD_NODELETE);
+#else
             library_handle = dlopen(so, RTLD_LAZY);
+#endif
             if (library_handle) {
 #ifdef PRINT_DEBUG        /* { */
                 PC_DEBUGX("Loaded Executor from %s\n", so);

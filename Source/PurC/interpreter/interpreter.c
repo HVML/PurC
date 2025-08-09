@@ -3222,7 +3222,11 @@ pcintr_load_module(const char *module,
                 n = snprintf(so, sizeof(so),
                         "%s/%s%s%s", dir, prefix, module, ext);
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+#if PLATFORM(MAC)
+                library_handle = dlopen(so, RTLD_LAZY | RTLD_NODELETE);
+#else
                 library_handle = dlopen(so, RTLD_LAZY);
+#endif
                 if (library_handle) {
 #ifdef PRINT_DEBUG        /* { */
                     PC_DEBUGX("Loaded from %s\n", so);
@@ -3250,7 +3254,11 @@ pcintr_load_module(const char *module,
             n = snprintf(so, sizeof(so), other_tries[i], ver,
                     prefix, module, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+#if PLATFORM(MAC)
+            library_handle = dlopen(so, RTLD_LAZY | RTLD_NODELETE);
+#else
             library_handle = dlopen(so, RTLD_LAZY);
+#endif
             if (library_handle) {
 #ifdef PRINT_DEBUG        /* { */
                 PC_DEBUGX("Loaded from %s\n", so);
