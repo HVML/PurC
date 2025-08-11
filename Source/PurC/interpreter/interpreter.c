@@ -3510,7 +3510,8 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
     co->state = state;
 }
 
-int
+//  Utility function, no need to lock
+static int
 insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 {
     // insert catched text node
@@ -3558,6 +3559,8 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     pcdoc_element_t new_elem;
     struct pcinst *inst = pcinst_current();
 
+    pcdoc_document_lock_for_write(doc);
+
     insert_cached_text_node(doc, sync_to_rdr);
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
@@ -3603,6 +3606,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     }
 
 out:
+    pcdoc_document_unlock(doc);
     return new_elem;
 }
 
@@ -3610,22 +3614,32 @@ void
 pcintr_util_clear_element(purc_document_t doc, pcdoc_element_t elem,
         bool sync_to_rdr)
 {
+    pcdoc_document_lock_for_write(doc);
+
     insert_cached_text_node(doc, sync_to_rdr);
     pcdoc_element_clear(doc, elem);
+
     if (sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
+
+    pcdoc_document_unlock(doc);
 }
 
 void
 pcintr_util_erase_element(purc_document_t doc, pcdoc_element_t elem,
         bool sync_to_rdr)
 {
+    pcdoc_document_lock_for_write(doc);
+
     insert_cached_text_node(doc, sync_to_rdr);
     pcdoc_element_erase(doc, elem);
+
     if (sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
+
+    pcdoc_document_unlock(doc);
 }
 
 int
@@ -3638,6 +3652,9 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
     struct pcinst *inst = pcinst_current();
     pcintr_stack_t stack = pcintr_get_stack();
+
+    pcdoc_document_lock_for_write(doc);
+
     if (stack->curr_edom_elem != elem) {
         insert_cached_text_node(doc, sync_to_rdr);
         stack->curr_edom_elem = elem;
@@ -3676,6 +3693,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
                     PCRDR_MSG_DATA_TYPE_PLAIN, txt, len);
         }
     }
+    pcdoc_document_unlock(doc);
     return 0;
 }
 
@@ -3688,6 +3706,8 @@ pcintr_util_new_content(purc_document_t doc,
     pcdoc_node node;
 
     struct pcinst *inst = pcinst_current();
+
+    pcdoc_document_lock_for_write(doc);
 
     insert_cached_text_node(doc, sync_to_rdr);
 
@@ -3742,6 +3762,7 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
 out:
+    pcdoc_document_unlock(doc);
     return node;
 }
 
@@ -3752,9 +3773,17 @@ pcintr_util_set_data_content(purc_document_t doc,
 {
     UNUSED_PARAM(sync_to_rdr);
     UNUSED_PARAM(no_return);
+
+    pcdoc_document_lock_for_write(doc);
+
     insert_cached_text_node(doc, sync_to_rdr);
+
     // TODO: sync to rdr
-    return pcdoc_element_set_data_content(doc, elem, op, data);
+    pcdoc_data_node_t node = pcdoc_element_set_data_content(doc, elem, op, data);
+
+    pcdoc_document_unlock(doc);
+
+    return node;
 }
 
 int
@@ -3763,8 +3792,13 @@ pcintr_util_set_attribute(purc_document_t doc,
         const char *name, const char *val, size_t len,
         bool sync_to_rdr, bool no_return)
 {
-    if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
-        return -1;
+    int ret = 0;
+    pcdoc_document_lock_for_write(doc);
+
+    if (pcdoc_element_set_attribute(doc, elem, op, name, val, len)) {
+        ret = -1;
+        goto out;
+    }
 
     struct pcinst *inst = pcinst_current();
     pcintr_stack_t stack = pcintr_get_stack();
@@ -3781,7 +3815,9 @@ pcintr_util_set_attribute(purc_document_t doc,
                 val, len);
     }
 
-    return 0;
+out:
+    pcdoc_document_unlock(doc);
+    return ret;
 }
 
 void

@@ -413,6 +413,13 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     pcintr_rdr_page_control_register(inst, pconn, stack->co);
                 }
                 pcintr_rdr_page_control_load(inst, pconn, stack->co);
+                int conn_type = pcrdr_conn_type(conn);
+                if (conn_type == CT_MOVE_BUFFER) {
+                    purc_document_t doc = co->stack.doc;
+                    if (doc) {
+                        pcdoc_document_lock_init(doc);
+                    }
+                }
             }
             purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
             pcintr_coroutine_post_event(stack->co->cid,
