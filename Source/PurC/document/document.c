@@ -24,6 +24,7 @@
 
 #include "purc-document.h"
 #include "purc-errors.h"
+#include "purc-ports.h"
 
 #include "private/document.h"
 #include "private/stringbuilder.h"
@@ -82,6 +83,7 @@ pcdoc_document_new(purc_document_type_k type,
     if (doc) {
         doc->refc = 1;
         doc->ldc = 0;
+        doc->rwlock.native_impl = NULL;
         list_head_init(&doc->owner_list);
     }
 
@@ -108,6 +110,7 @@ purc_document_new(purc_document_type_k type)
     if (doc) {
         doc->refc = 1;
         doc->ldc = 0;
+        doc->rwlock.native_impl = NULL;
         list_head_init(&doc->owner_list);
     }
 
@@ -134,6 +137,7 @@ purc_document_load(purc_document_type_k type, const char *content, size_t len)
     if (doc) {
         doc->refc = 1;
         doc->ldc = 0;
+        doc->rwlock.native_impl = NULL;
         list_head_init(&doc->owner_list);
     }
 
@@ -164,6 +168,9 @@ purc_document_unref(purc_document_t doc)
             free((void *)doc->selector);
             doc->selector = NULL;
         }
+        if (doc->rwlock.native_impl) {
+            purc_rwlock_clear(&doc->rwlock);
+        }
         doc->ops->destroy(doc);
     }
 
@@ -185,6 +192,9 @@ purc_document_delete(purc_document_t doc)
     if (doc->selector) {
         free((void *)doc->selector);
         doc->selector = NULL;
+    }
+    if (doc->rwlock.native_impl) {
+        purc_rwlock_clear(&doc->rwlock);
     }
     doc->ops->destroy(doc);
     return refc;
@@ -224,6 +234,70 @@ const char *
 purc_document_get_global_selector(purc_document_t doc)
 {
     return doc ? doc->selector : NULL;
+}
+
+int pcdoc_document_lock_init(purc_document_t doc)
+{
+    if (doc == NULL) {
+        PC_WARN("Invalid document pointer %p\n", doc);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (doc->rwlock.native_impl != NULL) {
+        return 0;
+    }
+
+    purc_rwlock_init(&doc->rwlock);
+    return 0;
+}
+
+int pcdoc_document_lock_for_read(purc_document_t doc)
+{
+    if (doc == NULL) {
+        PC_WARN("Invalid document pointer %p\n", doc);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (doc->rwlock.native_impl == NULL) {
+        return 0;
+    }
+
+    purc_rwlock_reader_lock(&doc->rwlock);
+    return 0;
+}
+
+int pcdoc_document_lock_for_write(purc_document_t doc)
+{
+    if (doc == NULL) {
+        PC_WARN("Invalid document pointer %p\n", doc);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (doc->rwlock.native_impl == NULL) {
+        return 0;
+    }
+
+    purc_rwlock_writer_lock(&doc->rwlock);
+    return 0;
+}
+
+int pcdoc_document_unlock(purc_document_t doc)
+{
+    if (doc == NULL) {
+        PC_WARN("Invalid document pointer %p\n", doc);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (doc->rwlock.native_impl == NULL) {
+        return 0;
+    }
+
+    purc_rwlock_writer_unlock(&doc->rwlock);
+    return 0;
 }
 
 

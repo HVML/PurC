@@ -4,7 +4,7 @@
  * @date 2022/07/11
  * @brief The API of target document.
  *
- * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2022, 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -414,6 +414,57 @@ const char *purc_document_set_global_selector(purc_document_t doc,
 * Since: 0.9.24
 */
 const char *purc_document_get_global_selector(purc_document_t doc);
+
+/**
+ * pcdoc_document_lock_for_read:
+ *
+ * Locks a document for read access.
+ *
+ * @doc: The pointer to a document.
+ *
+ * This function locks a document for read access. Multiple threads can
+ * lock a document for read access simultaneously.
+ *
+ * Returns: 0 on success, -1 on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT int
+pcdoc_document_lock_for_read(purc_document_t doc);
+
+/**
+ * pcdoc_document_lock_for_write:
+ *
+ * Locks a document for write access.
+ *
+ * @doc: The pointer to a document.
+ *
+ * This function locks a document for write access. Only one thread can
+ * lock a document for write access at a time.
+ *
+ * Returns: 0 on success, -1 on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT int
+pcdoc_document_lock_for_write(purc_document_t doc);
+
+/**
+ * pcdoc_document_unlock:
+ *
+ * Unlocks a document.
+ *
+ * @doc: The pointer to a document.
+ *
+ * This function unlocks a document that was previously locked for
+ * read or write access.
+ *
+ * Returns: 0 on success, -1 on failure.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT int
+pcdoc_document_unlock(purc_document_t doc);
 
 typedef enum {
     PCDOC_OP_APPEND = 0,

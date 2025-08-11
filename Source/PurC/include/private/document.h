@@ -3,7 +3,7 @@
  * @date 2022/07/11
  * @brief The internal interfaces for DOCUMENT module.
  *
- * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2022, 2025 FMSoft <https://www.fmsoft.cn>
  *
  * Authors:
  *  Vincent Wei (<https://github.com/VincentWei>), 2022
@@ -180,6 +180,8 @@ struct purc_document {
     /* global selector */
     char *selector;
 
+    purc_rwlock rwlock;
+
     void *impl;
 };
 
@@ -232,6 +234,8 @@ extern struct purc_document_ops _pcdoc_html_ops WTF_INTERNAL;
 purc_document_t
 pcdoc_document_new(purc_document_type_k type,
         const char *content, size_t nr_content);
+
+int pcdoc_document_lock_init(purc_document_t doc);
 
 #ifdef __cplusplus
 }
