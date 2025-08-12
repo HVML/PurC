@@ -3564,6 +3564,9 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     insert_cached_text_node(doc, sync_to_rdr);
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
+
+    pcdoc_document_unlock(doc);
+
     if (new_elem && sync_to_rdr) {
         unsigned opt = 0;
         purc_rwstream_t out = NULL;
@@ -3606,7 +3609,6 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     }
 
 out:
-    pcdoc_document_unlock(doc);
     return new_elem;
 }
 
@@ -3619,11 +3621,11 @@ pcintr_util_clear_element(purc_document_t doc, pcdoc_element_t elem,
     insert_cached_text_node(doc, sync_to_rdr);
     pcdoc_element_clear(doc, elem);
 
+    pcdoc_document_unlock(doc);
+
     if (sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
-
-    pcdoc_document_unlock(doc);
 }
 
 void
@@ -3635,11 +3637,11 @@ pcintr_util_erase_element(purc_document_t doc, pcdoc_element_t elem,
     insert_cached_text_node(doc, sync_to_rdr);
     pcdoc_element_erase(doc, elem);
 
+    pcdoc_document_unlock(doc);
+
     if (sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
-
-    pcdoc_document_unlock(doc);
 }
 
 int
@@ -3663,6 +3665,8 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
     if (op == PCDOC_OP_APPEND) {
         pcutils_str_append(stack->curr_edom_elem_text_content, stack->mraw,
                 (const unsigned char*)txt, len);
+
+        pcdoc_document_unlock(doc);
     }
     else {
         if (stack->curr_edom_elem == elem) {
@@ -3672,6 +3676,8 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_text_node_t text_node;
         text_node = pcdoc_element_new_text_content(doc, elem, op,
                 txt, len);
+
+        pcdoc_document_unlock(doc);
 
         // TODO: append/prepend textContent?
         pcintr_stack_t stack = pcintr_get_stack();
@@ -3693,7 +3699,6 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
                     PCRDR_MSG_DATA_TYPE_PLAIN, txt, len);
         }
     }
-    pcdoc_document_unlock(doc);
     return 0;
 }
 
@@ -3712,6 +3717,8 @@ pcintr_util_new_content(purc_document_t doc,
     insert_cached_text_node(doc, sync_to_rdr);
 
     node = pcdoc_element_new_content(doc, elem, op, content, len);
+
+    pcdoc_document_unlock(doc);
 
     pcrdr_msg_data_type type = doc->def_text_type;
     if (data_type) {
@@ -3762,7 +3769,6 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
 out:
-    pcdoc_document_unlock(doc);
     return node;
 }
 
@@ -3797,6 +3803,10 @@ pcintr_util_set_attribute(purc_document_t doc,
 
     if (pcdoc_element_set_attribute(doc, elem, op, name, val, len)) {
         ret = -1;
+    }
+    pcdoc_document_unlock(doc);
+
+    if (ret != 0) {
         goto out;
     }
 
@@ -3816,7 +3826,6 @@ pcintr_util_set_attribute(purc_document_t doc,
     }
 
 out:
-    pcdoc_document_unlock(doc);
     return ret;
 }
 
