@@ -1212,13 +1212,13 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || v->d < (double)INT64_MIN) {
+            if (isinf(v->d) == -1 || v->d <= (double)INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(v->d) == 1 || v->d > (double)INT64_MAX) {
+            else if (isinf(v->d) == 1 || v->d >= (double)INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
@@ -1249,13 +1249,13 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             if (isnan(*v->ld))
                 break;
 
-            if (isinf(*v->ld) == -1 || *v->ld < (long double)INT64_MIN) {
+            if (isinf(*v->ld) == -1 || *v->ld <= (long double)INT64_MIN) {
                 if (force)
                     *i64 = INT64_MIN;
                 else
                     break;
             }
-            else if (isinf(*v->ld) == 1 || *v->ld > (long double)INT64_MAX) {
+            else if (isinf(*v->ld) == 1 || *v->ld >= (long double)INT64_MAX) {
                 if (force)
                     *i64 = INT64_MAX;
                 else
@@ -1395,7 +1395,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             if (isnan(v->d))
                 break;
 
-            if (isinf(v->d) == -1 || v->d < (double)INT64_MIN) {
+            if (isinf(v->d) == -1 || v->d <= (double)INT64_MIN) {
                 if (force)
                     *u64 = (uint64_t)INT64_MIN;
                 else
@@ -1431,7 +1431,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
             if (isnan(*v->ld))
                 break;
 
-            if (isinf(*v->ld) == -1 || *v->ld < (long double)INT64_MIN) {
+            if (isinf(*v->ld) == -1 || *v->ld <= (long double)INT64_MIN) {
                 if (force)
                     *u64 = (uint64_t)INT64_MIN;
                 else

@@ -2412,7 +2412,7 @@ static int handle_posted_message(JSRuntime *rt, JSContext *ctx,
 
 #if defined(_WIN32)
 
-static int js_os_poll(JSContext *ctx)
+int js_os_poll(JSContext *ctx)
 {
     JSRuntime *rt = JS_GetRuntime(ctx);
     JSThreadState *ts = JS_GetRuntimeOpaque(rt);
@@ -2507,7 +2507,7 @@ static int js_os_poll(JSContext *ctx)
 
 #else
 
-static int js_os_poll(JSContext *ctx)
+int js_os_poll(JSContext *ctx)
 {
     JSRuntime *rt = JS_GetRuntime(ctx);
     JSThreadState *ts = JS_GetRuntimeOpaque(rt);
@@ -4211,7 +4211,7 @@ void js_std_promise_rejection_tracker(JSContext *ctx, JSValueConst promise,
    asynchrously in case a rejected promise is handled later. Currently
    we do it once the application is about to sleep. It could be done
    more often if needed. */
-static void js_std_promise_rejection_check(JSContext *ctx)
+int js_std_promise_rejection_check(JSContext *ctx)
 {
     JSRuntime *rt = JS_GetRuntime(ctx);
     JSThreadState *ts = JS_GetRuntimeOpaque(rt);
@@ -4223,8 +4223,10 @@ static void js_std_promise_rejection_check(JSContext *ctx)
             fprintf(stderr, "Possibly unhandled promise rejection: ");
             js_std_dump_error1(ctx, rp->reason);
         }
-        exit(1);
+        return -1;
     }
+
+    return 0;
 }
 
 /* main loop which calls the user JS callbacks */
@@ -4243,8 +4245,9 @@ void js_std_loop(JSContext *ctx)
             }
         }
 
-        js_std_promise_rejection_check(ctx);
-        
+        if (js_std_promise_rejection_check(ctx))
+            exit(1);
+
         if (!os_poll_func || os_poll_func(ctx))
             break;
     }
@@ -4275,7 +4278,8 @@ JSValue js_std_await(JSContext *ctx, JSValue obj)
                 js_std_dump_error(ctx);
             }
             if (err == 0) {
-                js_std_promise_rejection_check(ctx);
+                if (js_std_promise_rejection_check(ctx))
+                    exit(1);
 
                 if (os_poll_func)
                     os_poll_func(ctx);

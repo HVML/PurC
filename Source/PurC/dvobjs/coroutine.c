@@ -919,6 +919,7 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
     }
 
     cor->base_url_string = strdup(DEFAULT_HVML_BASE);
+    pcutils_broken_down_url_clear(&cor->base_url_broken_down);
     if (cor->base_url_string == NULL ||
             !pcutils_url_break_down(&cor->base_url_broken_down,
                 DEFAULT_HVML_BASE)) {

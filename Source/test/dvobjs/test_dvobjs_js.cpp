@@ -45,7 +45,6 @@ TEST(dvobjs, js_hello)
 #endif
 }
 
-
 TEST(dvobjs, js_pi)
 {
 #if ENABLE(QUICKJS)
@@ -62,6 +61,15 @@ TEST(dvobjs, js_pi)
     free(url);
 
     run_one_comp_test("dvobjs/js/pi.hvml", query);
+#endif
+}
+
+TEST(dvobjs, js_event)
+{
+#if ENABLE(QUICKJS)
+    PurCInstance purc(false);
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+    run_one_comp_test("dvobjs/js/event.hvml");
 #endif
 }
 

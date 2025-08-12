@@ -1735,10 +1735,20 @@ void JS_SetMemoryLimit(JSRuntime *rt, size_t limit)
     rt->malloc_state.malloc_limit = limit;
 }
 
+size_t JS_GetMemoryLimit(JSRuntime *rt)
+{
+    return rt->malloc_state.malloc_limit;
+}
+
 /* use -1 to disable automatic GC */
 void JS_SetGCThreshold(JSRuntime *rt, size_t gc_threshold)
 {
     rt->malloc_gc_threshold = gc_threshold;
+}
+
+size_t JS_GetGCThreshold(JSRuntime *rt)
+{
+    return rt->malloc_gc_threshold;
 }
 
 #define malloc(s) malloc_is_forbidden(s)
@@ -2167,14 +2177,14 @@ static inline void set_value(JSContext *ctx, JSValue *pval, JSValue new_val)
 
 void JS_SetClassProto(JSContext *ctx, JSClassID class_id, JSValue obj)
 {
-    JSRuntime *rt = ctx->rt;
+    JSRuntime *rt __maybe_unused = ctx->rt;
     assert(class_id < rt->class_count);
     set_value(ctx, &ctx->class_proto[class_id], obj);
 }
 
 JSValue JS_GetClassProto(JSContext *ctx, JSClassID class_id)
 {
-    JSRuntime *rt = ctx->rt;
+    JSRuntime *rt __maybe_unused = ctx->rt;
     assert(class_id < rt->class_count);
     return JS_DupValue(ctx, ctx->class_proto[class_id]);
 }
@@ -2331,6 +2341,11 @@ void JS_SetMaxStackSize(JSRuntime *rt, size_t stack_size)
 {
     rt->stack_size = stack_size;
     update_stack_limit(rt);
+}
+
+size_t JS_GetMaxStackSize(JSRuntime *rt)
+{
+    return rt->stack_size;
 }
 
 void JS_UpdateStackTop(JSRuntime *rt)
@@ -7911,7 +7926,7 @@ static int num_keys_cmp(const void *p1, const void *p2, void *opaque)
     JSAtom atom1 = ((const JSPropertyEnum *)p1)->atom;
     JSAtom atom2 = ((const JSPropertyEnum *)p2)->atom;
     uint32_t v1, v2;
-    BOOL atom1_is_integer, atom2_is_integer;
+    BOOL atom1_is_integer __maybe_unused, atom2_is_integer __maybe_unused;
 
     atom1_is_integer = JS_AtomIsArrayIndex(ctx, &v1, atom1);
     atom2_is_integer = JS_AtomIsArrayIndex(ctx, &v2, atom2);
@@ -35892,7 +35907,7 @@ JSValue JS_EvalThis(JSContext *ctx, JSValueConst this_obj,
                     const char *input, size_t input_len,
                     const char *filename, int eval_flags)
 {
-    int eval_type = eval_flags & JS_EVAL_TYPE_MASK;
+    int eval_type __maybe_unused = eval_flags & JS_EVAL_TYPE_MASK;
     JSValue ret;
 
     assert(eval_type == JS_EVAL_TYPE_GLOBAL ||

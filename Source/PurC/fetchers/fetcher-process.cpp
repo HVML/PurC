@@ -245,6 +245,11 @@ void PcFetcherProcess::shutDownProcess()
 
     m_connection->invalidate();
     m_connection = nullptr;
+
+    if (m_processLauncher) {
+        m_processLauncher->terminateProcess();
+        m_processLauncher = nullptr;
+    }
 }
 
 void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabled)

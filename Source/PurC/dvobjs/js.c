@@ -54,6 +54,7 @@
 #define JS_KEY_CONTEXT      "__js_context"
 
 struct dvobj_jsinfo {
+    purc_atom_t             cid;        // the coroutine identifier
     purc_variant_t          root;       // the root variant, i.e., $JS itself
     JSContext              *ctx;        // the JavaScript context
     struct pcvar_listener  *listener;   // the listener
@@ -67,6 +68,215 @@ static inline struct dvobj_jsinfo *get_jsinfo_from_root(purc_variant_t root)
     assert(v && purc_variant_is_native(v));
 
     return (struct dvobj_jsinfo *)purc_variant_native_get_entity(v);
+}
+
+/* XXX: It must be consistent with the definition in QuickJS. */
+typedef struct JSBigInt {
+    JSRefCountHeader header; /* must come first, 32-bit */
+    uint32_t len; /* number of limbs, >= 1 */
+    bi_limb_t tab[]; /* two's complement representation, always
+                        normalized so that 'len' is the minimum
+                        possible length >= 1 */
+} JSBigInt;
+
+enum {
+    OBJ_TYPE_JSON = 0,
+    OBJ_TYPE_STRING,
+};
+
+static purc_variant_t
+variant_from_jsvalue(JSContext *ctx, JSValue val, int obj_type)
+{
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+
+    switch (JS_VALUE_GET_TAG(val)) {
+    case JS_TAG_SHORT_BIG_INT:
+        retv = purc_variant_make_bigint_from_i64(
+                (int64_t)JS_VALUE_GET_SHORT_BIG_INT(val));
+        break;
+
+    case JS_TAG_BIG_INT: {
+        JSBigInt *p = JS_VALUE_GET_PTR(val);
+        retv = pcvariant_make_bigint_from_limbs(p->tab, p->len);
+        break;
+    }
+
+    case JS_TAG_INT:
+        retv = purc_variant_make_number(JS_VALUE_GET_INT(val));
+        break;
+
+    case JS_TAG_FLOAT64:
+        retv = purc_variant_make_number(JS_VALUE_GET_FLOAT64(val));
+        break;
+
+    case JS_TAG_BOOL:
+        if (JS_VALUE_GET_INT(val))
+            retv = purc_variant_make_boolean(true);
+        else
+            retv = purc_variant_make_boolean(false);
+        break;
+
+    case JS_TAG_STRING:
+    case JS_TAG_STRING_ROPE:
+    case JS_TAG_SYMBOL: {
+        size_t len;
+        const char *str = JS_ToCStringLen(ctx, &len, val);
+        retv = purc_variant_make_string_ex(str, len, false);
+        JS_FreeCString(ctx, str);
+        break;
+    }
+
+    case JS_TAG_NULL:
+        retv = purc_variant_make_null();
+        break;
+
+    case JS_TAG_UNDEFINED:
+        retv = purc_variant_make_undefined();
+        break;
+
+    case JS_TAG_OBJECT: {
+        if (obj_type == OBJ_TYPE_STRING) {
+            size_t len;
+            const char *str = JS_ToCStringLen(ctx, &len, val);
+            retv = purc_variant_make_string_ex(str, len, false);
+            JS_FreeCString(ctx, str);
+        }
+        else if (obj_type == OBJ_TYPE_JSON) {
+            JSValue v = JS_JSONStringify(ctx, val,
+                    JS_UNDEFINED, JS_UNDEFINED);
+
+            size_t len;
+            const char *str = JS_ToCStringLen(ctx, &len, v);
+            retv = purc_variant_make_string_ex(str, len, false);
+            JS_FreeCString(ctx, str);
+            JS_FreeValue(ctx, v);
+        }
+        break;
+    }
+
+    default:
+        PC_WARN("Unsupported JS value type: %d\n", JS_VALUE_GET_TAG(val));
+        break;
+    }
+
+    return retv;
+}
+
+/* JS HVML object */
+#define JS_HVML_NAME    "hvml"
+
+static JSValue js_hvml_fire(JSContext *ctx, JSValueConst this_val,
+                          int argc, JSValueConst *argv)
+{
+    (void)this_val;
+    purc_variant_t dvjs = JS_GetContextOpaque(ctx);
+    assert(dvjs);
+
+    struct dvobj_jsinfo *jsinfo = get_jsinfo_from_root(dvjs);
+    if (jsinfo == NULL || jsinfo->cid == 0) {
+        return JS_FALSE;
+    }
+
+    purc_variant_t payload = PURC_VARIANT_INVALID;
+    const char *event = NULL;
+    size_t len;
+    if (JS_IsString(argv[0])) {
+        event = JS_ToCStringLen(ctx, &len, argv[0]);
+    }
+
+    if (event == NULL)
+        goto failed;
+
+    payload = variant_from_jsvalue(ctx, argv[1], OBJ_TYPE_JSON);
+    if (payload == PURC_VARIANT_INVALID)
+        goto failed;
+
+    if (argc > 2) {
+        purc_variant_t tuple = purc_variant_make_tuple(argc - 1, NULL);
+        if (tuple == PURC_VARIANT_INVALID)
+            goto failed;
+
+        purc_variant_tuple_set(tuple, 0, payload);
+        purc_variant_unref(payload);
+        payload = PURC_VARIANT_INVALID;
+
+        for (int i = 2; i < argc; i++) {
+            purc_variant_t item;
+            item = variant_from_jsvalue(ctx, argv[i], OBJ_TYPE_JSON);
+            if (item == PURC_VARIANT_INVALID) {
+                purc_variant_unref(tuple);
+                goto failed;
+            }
+            purc_variant_tuple_set(tuple, i - 1, item);
+            purc_variant_unref(item);
+        }
+
+        payload = tuple;
+    }
+
+    pcintr_coroutine_post_event(jsinfo->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, dvjs,
+            event, NULL,
+            payload, PURC_VARIANT_INVALID);
+    JS_FreeCString(ctx, event);
+    purc_variant_unref(payload);
+    return JS_TRUE;
+
+failed:
+    if (event)
+        JS_FreeCString(ctx, event);
+    if (payload != PURC_VARIANT_INVALID)
+        purc_variant_unref(payload);
+
+    return JS_EXCEPTION;
+}
+
+static int js_hvml_init(JSContext *ctx, purc_variant_t dvjs)
+{
+    JSValue global_obj, hvml;
+
+    JS_SetContextOpaque(ctx, dvjs);
+
+    global_obj = JS_GetGlobalObject(ctx);
+
+    hvml = JS_NewObject(ctx);
+    JS_SetPropertyStr(ctx, hvml, "fire",
+                      JS_NewCFunction(ctx, js_hvml_fire, "fire", 2));
+    JS_SetPropertyStr(ctx, global_obj, JS_HVML_NAME, hvml);
+
+    JS_FreeValue(ctx, global_obj);
+    return 0;
+}
+
+static int js_hvml_term(JSContext *ctx)
+{
+    int ret = -1;
+    JSAtom atom = JS_ATOM_NULL;
+    JSValue global_obj;
+
+    global_obj = JS_GetGlobalObject(ctx);
+    atom = JS_NewAtom(ctx, JS_HVML_NAME);
+    if (atom == JS_ATOM_NULL) {
+        PC_WARN("Failed JS_NewAtom()\n");
+        goto done;
+    }
+
+    ret = JS_HasProperty(ctx, global_obj, atom);
+    if (ret < 0) {
+        PC_WARN("Failed JS_HasProperty()\n");
+        goto done;
+    }
+
+    if (ret) {
+        ret = JS_DeleteProperty(ctx, global_obj, atom, 0);
+    }
+
+done:
+    if (atom != JS_ATOM_NULL)
+        JS_FreeAtom(ctx, atom);
+    JS_FreeValue(ctx, global_obj);
+    JS_SetContextOpaque(ctx, NULL);
+    return ret;
 }
 
 enum {
@@ -122,15 +332,15 @@ static purc_variant_t runtime_getter(purc_variant_t root,
     purc_variant_t retv = PURC_VARIANT_INVALID;
     switch (param) {
         case RTP_MEMORY_LIMIT:
-            retv = purc_variant_make_ulongint(inst->js_memory_limit);
+            retv = purc_variant_make_ulongint(JS_GetMemoryLimit(inst->js_rt));
             break;
 
         case RTP_MAX_STACK_SIZE:
-            retv = purc_variant_make_ulongint(inst->js_max_stack_size);
+            retv = purc_variant_make_ulongint(JS_GetMaxStackSize(inst->js_rt));
             break;
 
         case RTP_GC_THRESHOLD:
-            retv = purc_variant_make_ulongint(inst->js_gc_threshold);
+            retv = purc_variant_make_ulongint(JS_GetGCThreshold(inst->js_rt));
             break;
 
         case RTP_DUMP_UNHANDLED_REJECTION:
@@ -218,17 +428,14 @@ static purc_variant_t runtime_setter(purc_variant_t root,
     switch (param) {
         case RTP_MEMORY_LIMIT:
             JS_SetMemoryLimit(inst->js_rt, u64);
-            inst->js_memory_limit = u64;
             break;
 
         case RTP_MAX_STACK_SIZE:
             JS_SetMaxStackSize(inst->js_rt, u64);
-            inst->js_max_stack_size = u64;
             break;
 
         case RTP_GC_THRESHOLD:
             JS_SetGCThreshold(inst->js_rt, u64);
-            inst->js_gc_threshold = u64;
             break;
 
         case RTP_DUMP_UNHANDLED_REJECTION:
@@ -383,7 +590,7 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
     }
 
     if (JS_IsException(val)) {
-        purc_set_error(PURC_EXCEPT_EXTERNAL_FAILURE);
+        purc_set_error(PURC_ERROR_EXTERNAL_FAILURE);
         ret = -1;
     } else {
         ret = 0;
@@ -509,97 +716,6 @@ error:
     return PURC_VARIANT_INVALID;
 }
 
-enum {
-    OBJ_TYPE_JSON = 0,
-    OBJ_TYPE_STRING,
-};
-
-/* XXX: It must be consistent with the definition in QuickJS. */
-typedef struct JSBigInt {
-    JSRefCountHeader header; /* must come first, 32-bit */
-    uint32_t len; /* number of limbs, >= 1 */
-    bi_limb_t tab[]; /* two's complement representation, always
-                        normalized so that 'len' is the minimum
-                        possible length >= 1 */
-} JSBigInt;
-
-static purc_variant_t
-variant_from_jsvalue(JSContext *ctx, JSValue val, int obj_type)
-{
-    purc_variant_t retv = PURC_VARIANT_INVALID;
-
-    switch (JS_VALUE_GET_TAG(val)) {
-    case JS_TAG_SHORT_BIG_INT:
-        retv = purc_variant_make_bigint_from_i64(
-                (int64_t)JS_VALUE_GET_SHORT_BIG_INT(val));
-        break;
-
-    case JS_TAG_BIG_INT: {
-        JSBigInt *p = JS_VALUE_GET_PTR(val);
-        retv = pcvariant_make_bigint_from_limbs(p->tab, p->len);
-        break;
-    }
-
-    case JS_TAG_INT:
-        retv = purc_variant_make_number(JS_VALUE_GET_INT(val));
-        break;
-
-    case JS_TAG_FLOAT64:
-        retv = purc_variant_make_number(JS_VALUE_GET_FLOAT64(val));
-        break;
-
-    case JS_TAG_BOOL:
-        if (JS_VALUE_GET_INT(val))
-            retv = purc_variant_make_boolean(true);
-        else
-            retv = purc_variant_make_boolean(false);
-        break;
-
-    case JS_TAG_STRING:
-    case JS_TAG_STRING_ROPE:
-    case JS_TAG_SYMBOL: {
-        size_t len;
-        const char *str = JS_ToCStringLen(ctx, &len, val);
-        retv = purc_variant_make_string_ex(str, len, false);
-        break;
-    }
-
-    case JS_TAG_NULL:
-        retv = purc_variant_make_null();
-        break;
-
-    case JS_TAG_UNDEFINED:
-        retv = purc_variant_make_undefined();
-        break;
-
-    case JS_TAG_OBJECT: {
-        if (obj_type == OBJ_TYPE_STRING) {
-            size_t len;
-            const char *str = JS_ToCStringLen(ctx, &len, val);
-            retv = purc_variant_make_string_ex(str, len, false);
-            JS_FreeCString(ctx, str);
-        }
-        else if (obj_type == OBJ_TYPE_JSON) {
-            JSValue v = JS_JSONStringify(ctx, val,
-                    JS_UNDEFINED, JS_UNDEFINED);
-
-            size_t len;
-            const char *str = JS_ToCStringLen(ctx, &len, v);
-            retv = purc_variant_make_string_ex(str, len, false);
-            JS_FreeCString(ctx, str);
-            JS_FreeValue(ctx, v);
-        }
-        break;
-    }
-
-    default:
-        PC_WARN("Unsupported JS value type: %d\n", JS_VALUE_GET_TAG(val));
-        break;
-    }
-
-    return retv;
-}
-
 static purc_variant_t
 eval_expr(JSContext *ctx, const void *expr, size_t expr_len, int obj_type)
 {
@@ -608,7 +724,7 @@ eval_expr(JSContext *ctx, const void *expr, size_t expr_len, int obj_type)
 
     val = JS_Eval(ctx, expr, expr_len, "<expression>", 0);
     if (JS_IsException(val)) {
-        purc_set_error(PURC_EXCEPT_EXTERNAL_FAILURE);
+        purc_set_error(PURC_ERROR_EXTERNAL_FAILURE);
         ret = PURC_VARIANT_INVALID;
     } else {
         ret = variant_from_jsvalue(ctx, val, obj_type);
@@ -691,7 +807,7 @@ static purc_variant_t exec_pending(purc_variant_t root,
         goto error;
     }
 
-    for(;;) {
+    for (;;) {
         int err = JS_ExecutePendingJob(JS_GetRuntime(jsinfo->ctx), NULL);
         if (err == 0) {
             break;
@@ -701,6 +817,12 @@ static purc_variant_t exec_pending(purc_variant_t root,
             goto error;
         }
     }
+
+    if (js_std_promise_rejection_check(jsinfo->ctx))
+        return purc_variant_make_boolean(false);
+
+    if (js_os_poll(jsinfo->ctx))
+        return purc_variant_make_boolean(false);
 
     return purc_variant_make_boolean(true);
 
@@ -779,6 +901,7 @@ static bool on_js_being_released(purc_variant_t src, pcvar_op_t op,
     if (op == PCVAR_OPERATION_RELEASING) {
         struct dvobj_jsinfo *jsinfo = ctxt;
 
+        js_hvml_term(jsinfo->ctx);
         JS_FreeContext(jsinfo->ctx);
         purc_variant_revoke_listener(src, jsinfo->listener);
         free(jsinfo);
@@ -823,6 +946,7 @@ purc_dvobj_js_new(pcintr_coroutine_t cor)
             goto failed;
         }
 
+        jsinfo->cid = cor ? cor->cid : 0;
         jsinfo->root = js;
         jsinfo->ctx = JS_NewCustomContext(rt);
 
@@ -853,6 +977,7 @@ purc_dvobj_js_new(pcintr_coroutine_t cor)
             goto failed;
         }
 
+        js_hvml_init(jsinfo->ctx, js);
         return js;
     }
     else

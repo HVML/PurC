@@ -146,7 +146,6 @@ struct pcinst {
 #if ENABLE(QUICKJS)
     /* Since 0.9.26 */
     struct JSRuntime      *js_rt;
-    size_t js_memory_limit, js_max_stack_size, js_gc_threshold;
     void *js_promise_rejection_tracker;
 #endif
 };
