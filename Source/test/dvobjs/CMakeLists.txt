@@ -834,3 +834,33 @@ PURC_COMPUTE_SOURCES(test_dvobjs_js)
 PURC_FRAMEWORK(test_dvobjs_js)
 GTEST_DISCOVER_TESTS(test_dvobjs_js DISCOVERY_TIMEOUT 10)
 
+
+# test_elem_coll_rwlock
+PURC_EXECUTABLE_DECLARE(test_elem_coll_rwlock)
+
+list(APPEND test_elem_coll_rwlock_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${FORWARDING_HEADERS_DIR}/purc
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${GTEST_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_elem_coll_rwlock)
+
+set(test_elem_coll_rwlock_SOURCES
+    test_elem_coll_rwlock.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_elem_coll_rwlock_LIBRARIES
+    PurC::PurC
+    "${GTEST_MAIN_LIBRARIES}"
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_elem_coll_rwlock)
+PURC_FRAMEWORK(test_elem_coll_rwlock)
+GTEST_DISCOVER_TESTS(test_elem_coll_rwlock DISCOVERY_TIMEOUT 10)
