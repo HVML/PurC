@@ -4,7 +4,7 @@
         <update on="$TIMERS" to="unite">
             [
                 { "id" : "clock", "interval" : 500, "active" : "yes" },
-                { "id" : "cloc", "interval" : 1000, "active" : "yes" },
+                { "id" : "clock2", "interval" : 1000, "active" : "yes" },
             ]
         </update>
 
@@ -19,9 +19,9 @@
                 <forget on $_observedOn for 'expired:clock?' />
             </test>
         </observe>
-        <observe on $TIMERS for "expired:cloc">
+        <observe on $TIMERS for "expired:clock2">
             <inherit>
-                $STREAM.stdout.writelines("timer: cloc");
+                $STREAM.stdout.writelines("timer: clock2");
             </inherit>
         </observe>
     </body>

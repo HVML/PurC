@@ -43,7 +43,8 @@ You can use PurC to run an HVML program or an HVML app by using the command line
 
 We release the PurC library under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
-This is version 0.9.24 of PurC.
+This is version 0.9.26 of PurC.
+
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -280,7 +281,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```console
 $ purc -v error.hvml
-purc 0.9.24
+purc 0.9.26
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -319,7 +320,7 @@ Run `purc` to execute this HVML program with `-v` option, it will report the exe
 
 ```console
 $ purc -v exception.hvml
-purc 0.9.24
+purc 0.9.26
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -479,7 +480,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.24
+purc 0.9.26
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -563,7 +564,7 @@ You can also try other samples which illustrate the features of the Foil rendere
 - `hvml/foil-progress.hvml`
 - `hvml/foil-meter.hvml`
 
-Note that in the current version (0.9.24), Foil is not fully functional.
+Note that in the current version (0.9.26), Foil is not fully functional.
 Shortly, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    so that you can get a similar experience to a web browser.
 
@@ -660,7 +661,7 @@ You can see the all options supported by `purc` when you run `purc` with `--help
 
 ```bash
 $ purc --help
-purc (0.9.24) - a standalone HVML interpreter/debugger based on PurC.
+purc (0.9.26) - a standalone HVML interpreter/debugger based on PurC.
 Copyright (C) 2022 ~ 2025 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -901,11 +902,14 @@ There are many ways to contribute to PurC:
 ### Current Status
 
 This project was launched in June. 2021, and we opened this repo in July 2022.
-This is version 0.9.24 of PurC.
+This is version 0.9.26 of PurC.
 
 The main purpose of PurC is to provide a library for you to write your own HVML interpreter.
-The current version implements almost all features defined by [HVML Specification V1.0],
-      and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+The current version implements all features defined by [HVML Specification V1.0],
+      and also implements all predefined dynamic variables and their interfaces defined by [HVML Predefined Variables V1.0].
+
+After version 0.9.26, we will frozen the features of PurC. Before version 1.0,
+      we would only fix bugs or some important issues.
 We plan to release PurC version 1.0 in Dec. 2025.
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
@@ -954,7 +958,7 @@ The source tree of PurC contains the following modules:
 - `Source/RemoteFetcher/`: The library used by the PurC Remote Fetcher.
 - `Source/WTF/`: The simplified WTF (Web Template Framework) from WebKit.
 - `Source/cmake/`: The cmake modules.
-- `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
+- `Source/ThirdParty/`: The third-party libraries, such as `gtest` and `QuickJS`.
 - `Source/test/`: The unit test programs.
 - `Source/Samples/api`: Samples for using the API of PurC.
 - `Source/Samples/hvml`: HVML sample programs.
@@ -975,11 +979,9 @@ Note that
 
 ### TODO List
 
-1. The HVML 1.0 features not implemented yet.
-1. The HVML 1.0 predefined variables not implemented yet.
-1. More tests or test cases.
-1. More samples.
-1. Port PurC to Windows.
+1. Cleanup.
+1. More tests, test cases, and samples.
+1. Windows port.
 
 For the detailed TODO list, please see [TODO List](Documents/TODO.md).
 

@@ -10,8 +10,6 @@
 
 1. vim
 1. vscode
-1. gitlab
-1. github
 
 ### 1.2) HVML Debugger
 
@@ -19,7 +17,7 @@
 
 ### 2.1) Variants
 
-1. [0.9.30] Optimize variant module to reduce memory usage.
+1. [0.9.26; Resolved] Optimize variant module to reduce memory usage.
 1. [0.9.6; Resolved] Optimize variant module.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2; Resolved] Implement some new APIs:
@@ -29,7 +27,7 @@
 
 ### 2.2) HEE and HVML Parsing and Evaluating
 
-1. [0.9.26] Support for expressions with operators.
+1. [0.9.26; Resolved] Support for operator expressions.
 1. [0.9.10; Resolved] Optimize the HVML and HEE parsing error messages.
 1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
