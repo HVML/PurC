@@ -45,13 +45,16 @@ We also made a number of major enhancements and fixed some bugs.
 
 * CHANGES:
 * ENHANCEMENTS:
+   - Support for QuickJS; Now HVML program can use `$JS.load()` to load JavaScript modules or scripts, and use `$JS.eval()` to evaluate a JavaScript expression and get the result.
+   - Support for operator expressions: `<init as max with (a > b ? a : b) />`.
    - Support for new variant type: `bigint`.
    - New HVML APIs: `$DATA.longint()`, `$DATA.ulongint()`, `$DATA.bigint()`, `$DATA.double()`, and `$DATA.longdouble()`.
-   - New APIs to provide various variant operators.
-   - New API: `purc_variant_numerify_long()`, `purc_variant_serialize_alloc()`, and so on.
+   - New APIs to provide various variant operators (arithmetic, logic, bitwise, assignment, concatenation, and so no).
+   - New APIs: `purc_variant_numerify_long()`, `purc_variant_serialize_alloc()`, and so on.
    - Support for CSS attribute `transform` in CSSEng.
    - Support for the global selector when serializing the document.
    - Support for user-defined options (`--query-<key> <value>`) for easy definition of request parameters of `purc`.
+   - New APIs to support read/write lock on document: `pcdoc_document_lock_for_write()`, `pcdoc_document_lock_for_read()`, and `pcdoc_document_unlock()`.
 * OPTIMIZATIONS:
    - Find tuned the `struct purc_variant` to reduce memory use for scalar variants.
 * ADJUSTMENTS:

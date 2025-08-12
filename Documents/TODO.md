@@ -10,8 +10,6 @@
 
 1. vim
 1. vscode
-1. gitlab
-1. github
 
 ### 1.2) HVML Debugger
 
@@ -19,7 +17,7 @@
 
 ### 2.1) Variants
 
-1. [0.9.30] Optimize variant module to reduce memory usage.
+1. [0.9.26; Resolved] Optimize variant module to reduce memory usage.
 1. [0.9.6; Resolved] Optimize variant module.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2; Resolved] Implement some new APIs:
