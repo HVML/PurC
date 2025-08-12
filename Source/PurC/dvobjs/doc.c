@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "purc-document.h"
 #include "purc-errors.h"
 
 #include "private/debug.h"
@@ -288,11 +289,14 @@ serialize_getter(void *entity, const char *property_name,
         opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     }
 
+    pcdoc_document_lock_for_read(doc);
     if (pcdoc_serialize_fragment_to_stream(doc, selector, opt, output_stm)) {
         purc_rwstream_destroy(output_stm);
+        pcdoc_document_unlock(doc);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
+    pcdoc_document_unlock(doc);
 
     if (stream_ett == NULL) {
         char *buf = NULL;

@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,6 +23,7 @@
  *
  */
 
+#include "purc-document.h"
 #include "purc-errors.h"
 
 #include "private/document.h"
@@ -57,7 +58,9 @@ pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
     bool r;
     const char *val;
     size_t len;
+    pcdoc_document_lock_for_read(doc);
     r = pcdoc_element_get_attribute(doc, elem, name, &val, &len);
+    pcdoc_document_unlock(doc);
     if (r) {
         return PURC_VARIANT_INVALID;
     }
@@ -101,7 +104,9 @@ pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
     opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
     opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+    pcdoc_document_lock_for_read(doc);
     pcdoc_serialize_descendants_to_stream(doc, elem, opt, rws);
+    pcdoc_document_unlock(doc);
 
     size_t sz_content = 0;
     char *content = purc_rwstream_get_mem_buffer(rws, &sz_content);
@@ -147,6 +152,7 @@ content_getter(void* native_entity, const char *property_name,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
+/* lock read at call pcdoc_travel_descendant_data_nodes */
 static int
 data_content_cb(purc_document_t doc, pcdoc_data_node_t data_node, void *ctxt)
 {
@@ -181,7 +187,9 @@ pcdvobjs_element_data_content_getter(purc_document_t doc, pcdoc_element_t elem,
         goto out;
     }
 
+    pcdoc_document_lock_for_read(doc);
     pcdoc_travel_descendant_data_nodes(doc, elem, data_content_cb, ret, NULL);
+    pcdoc_document_unlock(doc);
 
 out:
     return ret;
@@ -202,6 +210,7 @@ json_content_getter(void* native_entity, const char *property_name,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
+/* lock read at call pcdoc_travel_descendant_text_nodes */
 static int
 text_content_getter_cb(purc_document_t doc, pcdoc_text_node_t text_node,
         void *ctxt)
@@ -244,8 +253,10 @@ pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
         goto out;
     }
 
+    pcdoc_document_lock_for_read(doc);
     pcdoc_travel_descendant_text_nodes(doc, elem, text_content_getter_cb, rws,
             NULL);
+    pcdoc_document_unlock(doc);
 
     size_t sz_content = 0;
     char *content = purc_rwstream_get_mem_buffer_ex(rws, &sz_content, NULL, true);
@@ -297,7 +308,9 @@ pcdvobjs_element_has_class_getter(purc_document_t doc, pcdoc_element_t elem,
     const char *name = purc_variant_get_string_const(cn);
     int r;
     bool found;
+    pcdoc_document_lock_for_read(doc);
     r = pcdoc_element_has_class(doc, elem, name, &found);
+    pcdoc_document_unlock(doc);
     if (r)
         return PURC_VARIANT_INVALID;
 

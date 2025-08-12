@@ -25,6 +25,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "purc-document.h"
 #include "purc-variant.h"
 #include "helper.h"
 #include "element.h"
@@ -458,7 +459,14 @@ get_elem_classes(purc_document_t doc, pcdoc_element_t elem, char **klass)
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
+    /* Acquire read lock */
+    pcdoc_document_lock_for_read(doc);
+
     pcdoc_element_get_special_attr(doc, elem, PCDOC_ATTR_CLASS, &value, &len);
+
+    /* Release lock */
+    pcdoc_document_unlock(doc);
+
     if (value == NULL) {
         goto out;
     }
@@ -540,8 +548,15 @@ add_class_setter(void *entity, const char *property_name,
 
         const char *value;
         size_t len;
+
+        /* Acquire read lock */
+        pcdoc_document_lock_for_read(elem_coll->doc);
+
         pcdoc_element_get_special_attr(elem_coll->doc, elem, PCDOC_ATTR_CLASS,
                 &value, &len);
+
+        /* Release lock */
+        pcdoc_document_unlock(elem_coll->doc);
         if (value) {
             purc_rwstream_write(rws, value, len);
             purc_rwstream_write(rws, " ", 1);
@@ -925,7 +940,9 @@ pcdvobjs_find_element_in_doc(purc_document_t doc, const char *sel)
         goto out_clear_selector;
     }
 
+    pcdoc_document_lock_for_read(doc);
     elem = pcdoc_find_element_in_document(doc, selector);
+    pcdoc_document_unlock(doc);
 
 out_clear_selector:
     pcdoc_selector_delete(selector);
@@ -951,7 +968,9 @@ pcdvobjs_elem_coll_from_descendants(purc_document_t doc,
         goto out_clear_selector;
     }
 
+    pcdoc_document_lock_for_read(doc);
     coll = pcdoc_elem_coll_new_from_descendants(doc, ancestor, selector);
+    pcdoc_document_unlock(doc);
 
 out_clear_selector:
     pcdoc_selector_delete(selector);
@@ -1008,6 +1027,9 @@ pcdvobjs_is_elements(purc_variant_t v)
     }
     void *entity = purc_variant_native_get_entity(v);
     struct purc_native_ops *ops = purc_variant_native_get_ops(v);
+
+    /* No need to acquire a read lock here since we're only checking
+     * if the property getter exists, not accessing document data */
     purc_nvariant_method m = ops->property_getter(entity, IS_ELEMENTS);
     if (m) {
         ret = true;
@@ -1027,7 +1049,13 @@ purc_variant_t
 pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    pcdoc_elem_coll_t coll = pcdoc_elem_coll_new_from_element(doc, element);
+    pcdoc_elem_coll_t coll;
+
+    /* No need to acquire a read lock here since pcdoc_elem_coll_new_from_element
+     * only creates a new collection and doesn't access document data structures
+     * that would require synchronization */
+    coll = pcdoc_elem_coll_new_from_element(doc, element);
+
     if (coll) {
         ret = pcdvobjs_make_elem_coll(coll);
     }
@@ -1040,6 +1068,9 @@ pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
     void *entity = purc_variant_native_get_entity(elems);
     pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)entity;
 
+    /* No need to acquire a read lock here since pcdoc_elem_coll_get
+     * only accesses the array list of elements that was already collected,
+     * and doesn't access document data structures that would require synchronization */
     return pcdoc_elem_coll_get(coll->doc, coll, idx);
 }
 
