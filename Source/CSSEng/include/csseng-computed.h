@@ -15,6 +15,14 @@
 #include "csseng-properties.h"
 #include "csseng-types.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define restrict __restrict__
+#elif defined(_MSC_VER)
+    #define restrict __restrict
+#else
+    #define restrict
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
