@@ -59,6 +59,10 @@ if (NOT INTERNAL_BUILD)
     add_dependencies(QuickJS_CopyHeaders QuickJS)
 endif ()
 
+set(QuickJS_LIBRARIES
+    -lm
+)
+
 PURC_COMPUTE_SOURCES(QuickJS)
 PURC_FRAMEWORK(QuickJS)
 PURC_FRAMEWORK_TARGET(QuickJS)
@@ -83,7 +87,6 @@ PURC_ADD_TARGET_C_FLAGS(qjsc ${QuickJS_CFLAGS})
 
 set(qjsc_LIBRARIES
     PurC::QuickJS
-    -lm
 )
 
 PURC_COMPUTE_SOURCES(qjsc)
@@ -119,7 +122,6 @@ PURC_ADD_TARGET_C_FLAGS(qjs ${QuickJS_CFLAGS})
 
 set(qjs_LIBRARIES
     PurC::QuickJS
-    -lm
 )
 
 PURC_COMPUTE_SOURCES(qjs)
