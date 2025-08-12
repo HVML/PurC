@@ -1226,7 +1226,6 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
             }
             else {
                 *i64 = llround(v->d);
-                printf("double: %f, longint: %ld\n", v->d, *i64);
             }
             return true;
 
