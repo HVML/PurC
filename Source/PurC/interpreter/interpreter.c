@@ -3568,7 +3568,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     pcdoc_document_inc_update_count(doc);
     pcdoc_document_unlock(doc);
 
-    if (new_elem && sync_to_rdr) {
+    if (new_elem && sync_to_rdr && doc->ldc > 0) {
         unsigned opt = 0;
         purc_rwstream_t out = NULL;
         out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
@@ -3686,7 +3686,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
         // TODO: append/prepend textContent?
         pcintr_stack_t stack = pcintr_get_stack();
-        if (sync_to_rdr && text_node && stack &&
+        if (sync_to_rdr  && doc->ldc > 0 && text_node && stack &&
                 pcintr_coroutine_is_rdr_attached(stack->co)) {
             /* Reference element
              * `append`: the last child element of the target element before this op.
@@ -3734,7 +3734,7 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && node.type != PCDOC_NODE_VOID && stack &&
+    if (sync_to_rdr  && doc->ldc > 0 && node.type != PCDOC_NODE_VOID && stack &&
             pcintr_coroutine_is_rdr_attached(stack->co)) {
 
         unsigned opt = 0;
@@ -3820,7 +3820,7 @@ pcintr_util_set_attribute(purc_document_t doc,
 
     struct pcinst *inst = pcinst_current();
     pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && stack && pcintr_coroutine_is_rdr_attached(stack->co)) {
+    if (sync_to_rdr  && doc->ldc > 0 && stack && pcintr_coroutine_is_rdr_attached(stack->co)) {
         char property[strlen(name) + 8];
         strcpy(property, "attr.");
         strcat(property, name);
