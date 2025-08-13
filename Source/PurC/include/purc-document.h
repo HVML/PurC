@@ -466,6 +466,24 @@ pcdoc_document_lock_for_write(purc_document_t doc);
 PCA_EXPORT int
 pcdoc_document_unlock(purc_document_t doc);
 
+/**
+ * pcdoc_document_update_count:
+ *
+ * Returns the number of update requests sent to renderer for a document.
+ *
+ * @doc: The pointer to a document.
+ *
+ * This function returns the number of update requests sent to renderer
+ * for a document. If the document does not have a read-write lock initialized,
+ * it always returns 0.
+ *
+ * Returns: The number of update requests.
+ *
+ * Since: 0.9.26
+ */
+PCA_EXPORT size_t
+pcdoc_document_update_count(purc_document_t doc);
+
 typedef enum {
     PCDOC_OP_APPEND = 0,
     PCDOC_OP_PREPEND,

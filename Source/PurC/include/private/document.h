@@ -171,6 +171,9 @@ struct purc_document {
     unsigned age;
     unsigned ldc;       /* loaded count; ldc > 0 if the document is loaded */
 
+    /* count of update requests sent to renderer */
+    size_t update_count;
+
     /* owners of this document */
     struct list_head owner_list;
 
@@ -236,6 +239,9 @@ pcdoc_document_new(purc_document_type_k type,
         const char *content, size_t nr_content);
 
 int pcdoc_document_lock_init(purc_document_t doc);
+
+size_t
+pcdoc_document_inc_update_count(purc_document_t doc);
 
 #ifdef __cplusplus
 }
