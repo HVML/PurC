@@ -153,6 +153,149 @@ TEST(vcm, array)
     pcvcm_node_destroy(root);
 }
 
+/* Test cases for pcvcm_node_new_bigint function */
+TEST(vcm, bigint_basic)
+{
+    struct pcvcm_node *vcm;
+
+    /* Test decimal bigint */
+    vcm = pcvcm_node_new_bigint("123456789012345678901234567890", 10);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(pcvcm_node_get_type(vcm), PCVCM_NODE_TYPE_BIG_INT);
+    ASSERT_EQ(vcm->int_base, 10);
+    ASSERT_EQ(vcm->quoted_type, PCVCM_NODE_QUOTED_TYPE_NONE);
+    ASSERT_TRUE(pcvcm_node_is_closed(vcm));
+    pcvcm_node_destroy(vcm);
+
+    /* Test hexadecimal bigint */
+    vcm = pcvcm_node_new_bigint("ABCDEF123456789", 16);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(pcvcm_node_get_type(vcm), PCVCM_NODE_TYPE_BIG_INT);
+    ASSERT_EQ(vcm->int_base, 16);
+    pcvcm_node_destroy(vcm);
+
+    /* Test octal bigint */
+    vcm = pcvcm_node_new_bigint("777123456701234567", 8);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(pcvcm_node_get_type(vcm), PCVCM_NODE_TYPE_BIG_INT);
+    ASSERT_EQ(vcm->int_base, 8);
+    pcvcm_node_destroy(vcm);
+}
+
+TEST(vcm, bigint_edge_cases)
+{
+    struct pcvcm_node *vcm;
+
+    /* Test single digit */
+    vcm = pcvcm_node_new_bigint("0", 10);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->sz_ptr[0], 1); /* string length */
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "0");
+    pcvcm_node_destroy(vcm);
+
+    /* Test maximum decimal value */
+    vcm = pcvcm_node_new_bigint("999999999999999999999999999999999999999999", 10);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->sz_ptr[0], 42); /* string length */
+    pcvcm_node_destroy(vcm);
+
+    /* Test hex with lowercase */
+    vcm = pcvcm_node_new_bigint("abcdef0123456789", 16);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "abcdef0123456789");
+    pcvcm_node_destroy(vcm);
+}
+
+TEST(vcm, bigint_memory_management)
+{
+    struct pcvcm_node *vcm;
+    const char *test_str = "12345678901234567890123456789012345678901234567890";
+
+    /* Test memory allocation and deallocation */
+    vcm = pcvcm_node_new_bigint(test_str, 10);
+    ASSERT_NE(vcm, nullptr);
+
+    /* Verify string is properly copied */
+    ASSERT_EQ(vcm->sz_ptr[0], strlen(test_str));
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], test_str);
+
+    /* Verify memory is different from original */
+    ASSERT_NE((void*)vcm->sz_ptr[1], (void*)test_str);
+
+    /* Test proper cleanup */
+    pcvcm_node_destroy(vcm);
+
+    /* Test multiple allocations and deallocations */
+    for (int i = 0; i < 100; i++) {
+        vcm = pcvcm_node_new_bigint("987654321098765432109876543210", 10);
+        ASSERT_NE(vcm, nullptr);
+        pcvcm_node_destroy(vcm);
+    }
+}
+
+TEST(vcm, bigint_string_content)
+{
+    struct pcvcm_node *vcm;
+
+    /* Test empty string */
+    vcm = pcvcm_node_new_bigint("", 10);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->sz_ptr[0], 0);
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "");
+    pcvcm_node_destroy(vcm);
+
+    /* Test string with special characters for hex */
+    vcm = pcvcm_node_new_bigint("DEADBEEF", 16);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], "DEADBEEF");
+    pcvcm_node_destroy(vcm);
+
+    /* Test very long string */
+    const char *long_str = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+    vcm = pcvcm_node_new_bigint(long_str, 10);
+    ASSERT_NE(vcm, nullptr);
+    ASSERT_EQ(vcm->sz_ptr[0], strlen(long_str));
+    ASSERT_STREQ((char*)vcm->sz_ptr[1], long_str);
+    pcvcm_node_destroy(vcm);
+}
+
+TEST(vcm, bigint_base_validation)
+{
+    struct pcvcm_node *vcm;
+
+    /* Test all supported bases */
+    const int supported_bases[] = {8, 10, 16};
+    const char *test_values[] = {"12345670", "1234567890", "123456789ABCDEF"};
+
+    for (size_t i = 0; i < sizeof(supported_bases)/sizeof(supported_bases[0]); i++) {
+        vcm = pcvcm_node_new_bigint(test_values[i], supported_bases[i]);
+        ASSERT_NE(vcm, nullptr);
+        ASSERT_EQ(vcm->int_base, supported_bases[i]);
+        ASSERT_EQ(pcvcm_node_get_type(vcm), PCVCM_NODE_TYPE_BIG_INT);
+        pcvcm_node_destroy(vcm);
+    }
+}
+
+TEST(vcm, bigint_null_termination)
+{
+    struct pcvcm_node *vcm;
+    const char *test_str = "123456789";
+
+    vcm = pcvcm_node_new_bigint(test_str, 10);
+    ASSERT_NE(vcm, nullptr);
+
+    /* Verify null termination */
+    char *stored_str = (char*)vcm->sz_ptr[1];
+    ASSERT_EQ(stored_str[vcm->sz_ptr[0]], '\0');
+
+    /* Verify content integrity */
+    for (size_t i = 0; i < vcm->sz_ptr[0]; i++) {
+        ASSERT_EQ(stored_str[i], test_str[i]);
+    }
+
+    pcvcm_node_destroy(vcm);
+}
+
 struct vcm_again {
 
 };
