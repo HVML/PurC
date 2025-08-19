@@ -79,6 +79,9 @@ struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_ulong_int_ops();
 
 struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_big_int_ops();
+
+struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_long_double_ops();
 
 struct pcvcm_eval_stack_frame_ops *

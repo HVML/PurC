@@ -54,6 +54,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_number_ops,
     pcvcm_get_long_int_ops,
     pcvcm_get_ulong_int_ops,
+    pcvcm_get_big_int_ops,
     pcvcm_get_long_double_ops,
     pcvcm_get_byte_sequence_ops,
     pcvcm_get_concat_string_ops,

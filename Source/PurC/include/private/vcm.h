@@ -72,6 +72,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_LONG_INT,
 #define PCVCM_NODE_TYPE_NAME_ULONG_INT              "ulong_int"
     PCVCM_NODE_TYPE_ULONG_INT,
+#define PCVCM_NODE_TYPE_NAME_BIG_INT                "big_int"
+    PCVCM_NODE_TYPE_BIG_INT,
 #define PCVCM_NODE_TYPE_NAME_LONG_DOUBLE            "long_double"
     PCVCM_NODE_TYPE_LONG_DOUBLE,
 #define PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE          "byte_sequence"
@@ -120,6 +122,7 @@ struct pcvcm_node {
     int32_t                     position;
     int32_t                     idx;
     int32_t                     nr_nodes; /* nr_nodes of the tree */
+    int                         int_base;
     bool                        is_closed;
     union {
         bool                    b;
@@ -154,6 +157,8 @@ struct pcvcm_node *pcvcm_node_new_number(double d);
 struct pcvcm_node *pcvcm_node_new_longint(int64_t i64);
 
 struct pcvcm_node *pcvcm_node_new_ulongint(uint64_t u64);
+
+struct pcvcm_node *pcvcm_node_new_bigint(const char *str_utf8, int base);
 
 struct pcvcm_node *pcvcm_node_new_longdouble(long double ld);
 

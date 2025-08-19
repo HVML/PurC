@@ -51,6 +51,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_NUMBER,
     PCVCM_NODE_TYPE_NAME_LONG_INT,
     PCVCM_NODE_TYPE_NAME_ULONG_INT,
+    PCVCM_NODE_TYPE_NAME_BIG_INT,
     PCVCM_NODE_TYPE_NAME_LONG_DOUBLE,
     PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE,
     PCVCM_NODE_TYPE_NAME_CONCAT_STRING,
@@ -206,6 +207,30 @@ pcvcm_node_new_ulongint(uint64_t u64)
     }
 
     n->u64 = u64;
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_bigint(const char *str_utf8, int base)
+{
+    assert(base == 10 || base == 8 || base == 16);
+
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BIG_INT, true);
+    if (!n) {
+        return NULL;
+    }
+
+    size_t nr_bytes = strlen(str_utf8);
+
+    uint8_t *buf = (uint8_t*)malloc(nr_bytes + 1);
+    memcpy(buf, str_utf8, nr_bytes);
+    buf[nr_bytes] = 0;
+
+    n->quoted_type = PCVCM_NODE_QUOTED_TYPE_NONE;
+    n->sz_ptr[0] = nr_bytes;
+    n->sz_ptr[1] = (uintptr_t)buf;
+    n->int_base = base;
+
     return n;
 }
 
@@ -500,6 +525,7 @@ pcvcm_node_destroy_callback(struct pctree_node *n,  void *data)
     struct pcvcm_node *node = (struct pcvcm_node*)n;
     if ((node->type == PCVCM_NODE_TYPE_STRING
                 || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
+                || node->type == PCVCM_NODE_TYPE_BIG_INT
         ) && node->sz_ptr[1]) {
         free((void*)node->sz_ptr[1]);
     }

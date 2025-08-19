@@ -305,6 +305,16 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         break;
     }
 
+    case PCVCM_NODE_TYPE_BIG_INT:
+    {
+        char *str = (char*)node->sz_ptr[1];
+        purc_variant_t v =
+            purc_variant_make_bigint_from_string(str, NULL, node->int_base);
+        write_variant_to_rwstream(ctxt, v);;
+        purc_variant_unref(v);
+        break;
+    }
+
     case PCVCM_NODE_TYPE_LONG_DOUBLE:
     {
         purc_variant_t v = purc_variant_make_longdouble(node->ld);
@@ -503,6 +513,16 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
     case PCVCM_NODE_TYPE_LONG_INT:
     {
         purc_variant_t v = purc_variant_make_longint(node->i64);
+        write_variant_to_rwstream(ctxt, v);;
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCVCM_NODE_TYPE_BIG_INT:
+    {
+        char *str = (char*)node->sz_ptr[1];
+        purc_variant_t v =
+            purc_variant_make_bigint_from_string(str, NULL, node->int_base);
         write_variant_to_rwstream(ctxt, v);;
         purc_variant_unref(v);
         break;
