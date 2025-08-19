@@ -49,7 +49,7 @@
 #define ETT_GET_ELEMENT                 '.'         /* $VARIABLE.ELEMENT */
 #define ETT_GET_ELEMENT_BY_BRACKET      'E'         /* $VARIABLE[ELEMENT] */
 #define ETT_CALL_GETTER                 '('         /* $VARIABLE() */
-#define ETT_CALL_SETTER                 '<'         /* $VARIABLE(!value) */
+#define ETT_CALL_SETTER                 '<'         /* $VARIABLE!(value) */
 #define ETT_PROTECT                     'P'         /* For {{ */
 #define ETT_CJSONEE                     'C'         /* CJSONEE */
 #define ETT_MULTI_QUOTED_S              'M'         /* multiple quoted string */
@@ -226,6 +226,7 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_RIGHT_BRACE,
     EJSON_TKZ_STATE_LEFT_BRACKET,
     EJSON_TKZ_STATE_RIGHT_BRACKET,
+    EJSON_TKA_STATE_EXCLAMATION_MARK,
     EJSON_TKZ_STATE_LEFT_PARENTHESIS,
     EJSON_TKZ_STATE_RIGHT_PARENTHESIS,
     EJSON_TKZ_STATE_DOLLAR,

@@ -13,14 +13,14 @@
         <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
 
         <inherit>
-            $RUNNER.user(! 'primes', [] )
-            $RUNNER.user(! 'chans', [] )
+            $RUNNER.user!( 'primes', [] )
+            $RUNNER.user!( 'chans', [] )
         </inherit>
 
-        <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
+        <init as chIn with {{ $RUNNER.chan!( "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
         <inherit>
-            $RUNNER.user(! 'begin', $SYS.time_us )
+            $RUNNER.user!( 'begin', $SYS.time_us )
         </inherit>
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
@@ -34,7 +34,7 @@
                 <update on $RUNNER.myObj.chans to "append" with "filter$?" />
 
                 <!-- open a channel to filter the new prime -->
-                <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
+                <init as chOut with {{ $RUNNER.chan!( "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
 
                 <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } async />
 
@@ -45,7 +45,7 @@
         </iterate>
 
         <inherit>
-            $RUNNER.user(! 'end', $SYS.time_us )
+            $RUNNER.user!( 'end', $SYS.time_us )
         </inherit>
 
         <inherit>
@@ -53,11 +53,11 @@
         </inherit>
 
         <!-- close the channel named `natural` -->
-        <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
+        <init as chIn with $RUNNER.chan!( "natural", 0 ) temp />
 
         <iterate on $RUNNER.myObj.chans >
             <inherit>
-                $RUNNER.chan(! "$?", 0 )
+                $RUNNER.chan!( "$?", 0 )
             </inherit>
         </iterate>
 

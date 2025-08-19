@@ -18,7 +18,7 @@
         </observe>
         <observe against="rdoc" for="change:displaced">
             <init as src_coll with $rdoc.select("d_01") />
-            <init as ret with $dest_coll.contents(!$src_coll.contents()) />
+            <init as ret with $dest_coll.contents!($src_coll.contents()) />
             <exit with $ret/>
         </observe>
     </body>

@@ -8,7 +8,7 @@ positive:
     'native'
 
 positive:
-    $RUNNER.user(! "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
+    $RUNNER.user!( "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
     true
 
 negative:
@@ -24,11 +24,11 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'localStreamSocket', undefined )
+    $RUNNER.user!( 'localStreamSocket', undefined )
     true
 
 positive:
-    $RUNNER.user(! "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
+    $RUNNER.user!( "localStreamSocket", $SOCKET.stream('unix:///var/tmp/foo') )
     true
 
 positive:
@@ -36,6 +36,6 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'localStreamSocket', undefined )
+    $RUNNER.user!( 'localStreamSocket', undefined )
     true
 

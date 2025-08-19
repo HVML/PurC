@@ -1,1 +1,1 @@
-{{ $ABC.b(!{"K1":$V1, "K2":$V2});false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}
+{{ $ABC.b!({"K1":$V1, "K2":$V2});false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}

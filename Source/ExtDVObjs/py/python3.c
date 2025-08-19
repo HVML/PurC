@@ -1023,7 +1023,7 @@ failed:
  * This self setter can be used to support the following usage:
     {{
         $PY.import('datetime', ['datetime:dt', 'timedelta:td']);
-        $PY.dt(! { year: 2020, month: 8, day: 31,
+        $PY.dt!( { year: 2020, month: 8, day: 31,
                     hour: 12, minute: 10, seconod: 10 } )
     }}
  */
@@ -1445,7 +1445,7 @@ failed:
  *
  * The method getter can be used to support the following usage:
     {{
-        $PY.local.x(! [1, 2, 2, 3] );
+        $PY.local.x!( [1, 2, 2, 3] );
         $PY.local.x.count(2)
     }}
  */
@@ -1518,8 +1518,8 @@ failed:
  *
  * The method getter can be used to support the following usage:
     {{
-        $PY.local.x(! [1, 2, 2, 3] );
-        $PY.local.x.foo(! {bar: 'aaa' } )
+        $PY.local.x!( [1, 2, 2, 3] );
+        $PY.local.x.foo!( {bar: 'aaa' } )
     }}
  */
 static purc_variant_t pyobject_method_setter(void* native_entity,
@@ -1650,7 +1650,7 @@ failed:
  * This getter is used to get the value of the specified key of a PyDict:
  *
     {{
-        $PY.local.x(! 3 ); $PY.local.x()
+        $PY.local.x!( 3 ); $PY.local.x()
     }}
  */
 static purc_variant_t pydict_item_getter(void *native_entity,
@@ -1688,7 +1688,7 @@ failed:
  * This setter is used to set the value of the specified key of a PyDict:
  *
     {{
-        $PY.local.x(! [1, 2, 2, 3] )
+        $PY.local.x!( [1, 2, 2, 3] )
     }}
  */
 static purc_variant_t pydict_item_setter(void *native_entity,

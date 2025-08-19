@@ -29,7 +29,7 @@
             </observe>
 
             <inherit>
-                $SYS.sockopt(! $streamSocket.fd, 'recv-timeout', 3 )
+                $SYS.sockopt!( $streamSocket.fd, 'recv-timeout', 3 )
             </inherit>
 
             <choose on $streamSocket.accept('default') >

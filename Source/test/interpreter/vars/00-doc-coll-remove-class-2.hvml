@@ -17,7 +17,7 @@
         <div id="f05" class="class_div color_blue">
         </div>
         <init as colls with $DOC.query(".class_div") />
-        <init as ret with $colls.removeClass(!["color_red", "color_blue"]) />
+        <init as ret with $colls.removeClass!(["color_red", "color_blue"]) />
         <init as coll_n with $DOC.query(".color_red") />
 
         <exit with [$ret, $colls.count(), $coll_n.count()]/>

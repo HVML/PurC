@@ -801,15 +801,15 @@ positive:
     false
 
 positive:
-    {{ $RUNNER.user(! "tmpFile", $FS.tempname('/tmp', 'hvml')) && $FS.file_contents(! $RUNNER.myObj.tmpFile, '0123456789') }}
+    {{ $RUNNER.user!( "tmpFile", $FS.tempname('/tmp', 'hvml')) && $FS.file_contents!( $RUNNER.myObj.tmpFile, '0123456789') }}
     10UL
 
 negative:
-    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210', null)
+    $FS.file_contents!( $RUNNER.myObj.tmpFile, '9876543210', null)
     WrongDataType
 
 positive:
-    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210', 'append lock')
+    $FS.file_contents!( $RUNNER.myObj.tmpFile, '9876543210', 'append lock')
     10UL
 
 positive:
@@ -833,7 +833,7 @@ negative:
     InvalidValue
 
 positive:
-    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210')
+    $FS.file_contents!( $RUNNER.myObj.tmpFile, '9876543210')
     10UL
 
 positive:
@@ -857,11 +857,11 @@ positive:
     '321'
 
 positive:
-    $FS.file_contents(! $RUNNER.myObj.tmpFile, '', 'sdafasdf')
+    $FS.file_contents!( $RUNNER.myObj.tmpFile, '', 'sdafasdf')
     0UL
 
 positive:
-    $FS.file_contents(! $RUNNER.myObj.tmpFile, 'Hello人类的World!')
+    $FS.file_contents!( $RUNNER.myObj.tmpFile, 'Hello人类的World!')
     20UL
 
 positive:

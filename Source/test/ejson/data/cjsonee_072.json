@@ -1,8 +1,8 @@
 {{
-    $SYS.cwd(! '/root') &&
+    $SYS.cwd!( '/root') &&
     $FS.list ||
     $STREAM.stdout.writelines(
-        'Cannot change directory to "/root"'); $SYS.cwd(! '/' ) &&
+        'Cannot change directory to "/root"'); $SYS.cwd!( '/' ) &&
         $FS.list || false
 }}
 

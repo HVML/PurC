@@ -1,1 +1,1 @@
-$OBJWITHNOBJ.nobj.chain(!"abc")(!"test chain setter")
+$OBJWITHNOBJ.nobj.chain!("abc")!("test chain setter")

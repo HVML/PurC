@@ -28,7 +28,7 @@ TEST(observe, basic)
     "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
     "<hvml target=\"html\" lang=\"en\">"
     "    <head>"
-    "        <base href=\"$CRTN.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    "        <base href=\"$CRTN.base!( 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
     ""
     "        <init as=\"buttons\" uniquely>"

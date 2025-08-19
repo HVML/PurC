@@ -17,7 +17,7 @@
         <div id="f05" class="class_div">
         </div>
         <init as colls with $DOC.query(".class_div") />
-        <init as ret with $colls.addClass(!"class_add") />
+        <init as ret with $colls.addClass!("class_add") />
         <init as coll_n with $DOC.query(".class_add") />
 
         <exit with [$ret, $coll_n.count(), $colls.hasClass("class_add")]/>

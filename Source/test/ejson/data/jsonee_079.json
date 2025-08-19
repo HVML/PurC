@@ -1,1 +1,1 @@
-$FOO("bar")(!"foobar")
+$FOO("bar")!("foobar")

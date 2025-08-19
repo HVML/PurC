@@ -1,1 +1,1 @@
-{{ $ABC.b(!$PA.M, $PB.N);false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}
+{{ $ABC.b!($PA.M, $PB.N);false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}

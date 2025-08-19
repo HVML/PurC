@@ -1,1 +1,1 @@
-<hvml attr=$ABC.b(!{$A:1, $A2:2, $A3:$V3.E, $A4:$V4[E]})></hvml>
+<hvml attr=$ABC.b!({$A:1, $A2:2, $A3:$V3.E, $A4:$V4[E]})></hvml>

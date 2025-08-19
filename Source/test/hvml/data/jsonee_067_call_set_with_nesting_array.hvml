@@ -1,1 +1,1 @@
-<hvml attr=$ABC.b(![{"K":1, "K2":2}, {$BA:1,$BB:{"C":$VC}}, [$E[R],2,$F.S]])></hvml>
+<hvml attr=$ABC.b!([{"K":1, "K2":2}, {$BA:1,$BB:{"C":$VC}}, [$E[R],2,$F.S]])></hvml>

@@ -1,1 +1,1 @@
-<hvml attr=$ABC.b(!{ "k" : "v" }, {"KA":"VA"}, {"KB":"VB"})></hvml>
+<hvml attr=$ABC.b!({ "k" : "v" }, {"KA":"VA"}, {"KB":"VB"})></hvml>

@@ -16,7 +16,7 @@
     <body>
 
         <!-- open a channel named `myChannel` -->
-        <init as chan with $RUNNER.chan(! 'myChannel' ) />
+        <init as chan with $RUNNER.chan!( 'myChannel' ) />
 
         <!-- start the writer coroutine asynchronously -->
         <load from "#writer" asynchronously />
@@ -44,7 +44,7 @@
 
         <!-- close the channel -->
         <inherit>
-            $RUNNER.chan(! 'myChannel', 0)
+            $RUNNER.chan!( 'myChannel', 0)
         </inherit>
 
     </body>

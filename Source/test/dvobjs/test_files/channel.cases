@@ -16,15 +16,15 @@ negative:
     EntityNotFound
 
 positive:
-    $RUNNER.chan(! 'myChannel' )
+    $RUNNER.chan!( 'myChannel' )
     true
 
 positive:
-    $RUNNER.chan(! 'myChannel', 0 )
+    $RUNNER.chan!( 'myChannel', 0 )
     true
 
 positive:
-    $RUNNER.chan(! 'myChannel', 1 )
+    $RUNNER.chan!( 'myChannel', 1 )
     true
 
 positive:
@@ -48,11 +48,11 @@ positive:
     1
 
 positive:
-    $RUNNER.chan(! 'myChannel', 0)
+    $RUNNER.chan!( 'myChannel', 0)
     true
 
 positive:
-    $RUNNER.chan(! 'myChannel', 3)
+    $RUNNER.chan!( 'myChannel', 3)
     true
 
 positive:
@@ -104,7 +104,7 @@ positive:
     0UL
 
 positive:
-    $RUNNER.chan(! 'myChannel', 0)
+    $RUNNER.chan!( 'myChannel', 0)
     true
 
 negative:
@@ -120,7 +120,7 @@ positive:
     'string'
 
 positive:
-    $RUNNER.user(! "tempChan", $RUNNER.mktempchan(5) )
+    $RUNNER.user!( "tempChan", $RUNNER.mktempchan(5) )
     true
 
 positive:
@@ -132,11 +132,11 @@ positive:
     true
 
 positive:
-    $RUNNER.chan(! $RUNNER.myObj.tempChan, 10 )
+    $RUNNER.chan!( $RUNNER.myObj.tempChan, 10 )
     true
 
 positive:
-    $RUNNER.chan($RUNNER.myObj.tempChan).cap(! 0 )
+    $RUNNER.chan($RUNNER.myObj.tempChan).cap!( 0 )
     true
 
 positive:

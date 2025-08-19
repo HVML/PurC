@@ -4,7 +4,7 @@
         <div>$DATA.type($CRTN.cid)</div>
         <div>$DATA.type($CRTN.token)</div>
         <div>$DATA.type($CRTN.uri)</div>
-        <div>$CRTN.token(! "custom_token" )</div>
+        <div>$CRTN.token!( "custom_token" )</div>
         <div>$CRTN.token</div>
     </body>
 </hvml>

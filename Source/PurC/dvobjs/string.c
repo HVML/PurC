@@ -5095,7 +5095,7 @@ error:
 }
 
 /*
-$STR.codepoints(!
+$STR.codepoints!(
     < 'array | tuple' $codepoints: `The linear container consist of codepoints of Unicode characters.` >
 ) string | false: `The converted string in UTF-8 encoding.`
 */
@@ -5359,7 +5359,7 @@ error:
 }
 
 /*
-$STR.htmlentities(!
+$STR.htmlentities!(
     <string $string: `The input string.`>
     [,
         <'keep-double-quotes || keep-single-quotes || substitute-invalid ]'

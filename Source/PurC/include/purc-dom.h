@@ -1082,55 +1082,55 @@ pcdom_element_has_class(pcdom_element_t *elem, const char *class_name,
 
 
 
-// .attr(! <string: attributeName>, <string: value>)
+// .attr!( <string: attributeName>, <string: value>)
 int
 pcdom_element_set_attr(pcdom_element_t *elem, const char *attr_name,
         const char *attr_val);
 
 // TODO:
-// .prop(! <string: propertyName>, <any: value>)
+// .prop!( <string: propertyName>, <any: value>)
 // static int
 // pcdom_element_set_prop(pcdom_element_t *elem, ...);
 
-// .style(! <string: styleName>, <string: value>)
+// .style!( <string: styleName>, <string: value>)
 int
 pcdom_element_set_style(pcdom_element_t *elem, const char *style_name,
         const char *style);
 
 // FIXME: de-serialize and then replace?
-// .content(! <string: content>)
+// .content!( <string: content>)
 int
 pcdom_element_set_content(pcdom_element_t *elem, const char *content);
 
-// .textContent(! <string: content>)
+// .textContent!( <string: content>)
 int
 pcdom_element_set_text_content(pcdom_element_t *elem,
         const char *text);
 
 // FIXME: json in serialized form?
-// .jsonContent(! <string: content>)
+// .jsonContent!( <string: content>)
 int
 pcdom_element_set_json_content(pcdom_element_t *elem, const char *json);
 
-// .val(! <newValue>)
+// .val!( <newValue>)
 // TODO: what type for val?
 // static int
 // pcdom_element_set_val(pcdom_element_t *elem, const what_type *val);
 
-// .addClass(! <string: className>)
+// .addClass!( <string: className>)
 int
 pcdom_element_add_class(pcdom_element_t *elem, const char *class_name);
 
-// .removeAttr(! <string: attributeName>)
+// .removeAttr!( <string: attributeName>)
 int
 pcdom_element_remove_attr(pcdom_element_t *elem, const char *attr_name);
 
-// .removeClass(! <string: className>)
+// .removeClass!( <string: className>)
 int
 pcdom_element_remove_class_by_name(pcdom_element_t *elem,
         const char *class_name);
 
-// .removeClass(! )
+// .removeClass!( )
 static inline int
 pcdom_element_remove_class(pcdom_element_t *elem)
 {

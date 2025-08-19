@@ -12,7 +12,7 @@
             </inherit>
         </define>
 
-        <base href=$CRTN.base(! "file://$REQ.base" ) hvml:silently />
+        <base href=$CRTN.base!( "file://$REQ.base" ) hvml:silently />
     </head>
 
     <body id='server' >

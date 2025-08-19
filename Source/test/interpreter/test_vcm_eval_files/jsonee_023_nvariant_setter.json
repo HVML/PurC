@@ -1,1 +1,1 @@
-$NOBJ(!"abc")
+$NOBJ!("abc")

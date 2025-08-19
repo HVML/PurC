@@ -27,7 +27,7 @@
         </div>
         <init as colls with $DOC.query(".class_div") />
 
-        <init as ret with $colls.textContent(!"new content") />
+        <init as ret with $colls.textContent!("new content") />
 
         <exit with $colls.textContent() />
     </body>

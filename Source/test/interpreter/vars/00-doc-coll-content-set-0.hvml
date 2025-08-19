@@ -25,7 +25,7 @@
 
         <init as coll_sub with $colls.sub(2, 1) />
 
-        <init as ret with $colls.contents(!"abc") />
+        <init as ret with $colls.contents!("abc") />
 
         <exit with $colls.contents() />
     </body>

@@ -64,19 +64,19 @@ negative:
     NoSuchKey
 
 negative:
-    $PY.global(! 5.0)
+    $PY.global!( 5.0)
     WrongDataType
 
 negative:
-    $PY.global(! 5.0, 'asfsad')
+    $PY.global!( 5.0, 'asfsad')
     WrongDataType
 
 negative:
-    $PY.global(!'foo-bar', 5)
+    $PY.global!('foo-bar', 5)
     BadName
 
 negative:
-    $PY.global(!'x')
+    $PY.global!('x')
     WrongDataType
 
 positive:
@@ -88,7 +88,7 @@ positive:
     {}
 
 positive:
-    $PY.global(!'x', 5.0)
+    $PY.global!('x', 5.0)
     true
 
 positive:
@@ -112,7 +112,7 @@ negative:
     NoSuchKey
 
 positive:
-    $PY.global.x(! 5.0 )
+    $PY.global.x!( 5.0 )
     true
 
 negative:
@@ -120,7 +120,7 @@ negative:
     NoSuchKey
 
 positive:
-    $PY.global.y(! 3.0 )
+    $PY.global.y!( 3.0 )
     true
 
 positive:
@@ -132,7 +132,7 @@ positive:
     15.0
 
 positive:
-    $PY.global.y(! undefined )
+    $PY.global.y!( undefined )
     true
 
 negative:
@@ -144,7 +144,7 @@ positive:
     10.0
 
 positive:
-    $PY.global(! 'x', undefined )
+    $PY.global!( 'x', undefined )
     true
 
 negative:
@@ -152,7 +152,7 @@ negative:
     NoSuchKey
 
 positive:
-    $PY.global(!'x', 10.0)
+    $PY.global!('x', 10.0)
     true
 
 # $PY.local
@@ -161,7 +161,7 @@ positive:
     {}
 
 positive:
-    $PY.local(!'x', 6.0)
+    $PY.local!('x', 6.0)
     true
 
 positive:
@@ -169,7 +169,7 @@ positive:
     12.0
 
 positive:
-    $PY.local(!'x', undefined)
+    $PY.local!('x', undefined)
     true
 
 positive:
@@ -177,11 +177,11 @@ positive:
     20.0
 
 positive:
-    $PY.local.x(! 6.0 )
+    $PY.local.x!( 6.0 )
     true
 
 positive:
-    $PY.local.y(! 11.0 )
+    $PY.local.y!( 11.0 )
     true
 
 positive:
@@ -190,11 +190,11 @@ positive:
 
 # test cases for interconversion of variant and PyObject
 positive:
-    {{ $PY.local.x(! 1L ); $PY.local.x }}
+    {{ $PY.local.x!( 1L ); $PY.local.x }}
     1L
 
 positive:
-    $PY.local.x(! [1, 2, 2, 3] )
+    $PY.local.x!( [1, 2, 2, 3] )
     true
 
 positive:
@@ -222,7 +222,7 @@ positive:
     2L
 
 positive:
-    $PY.local.x(! [!1, 2, 3] )
+    $PY.local.x!( [!1, 2, 3] )
     true
 
 positive:
@@ -230,7 +230,7 @@ positive:
     [!1, 2, 3]
 
 positive:
-    $PY.local.x(! {a: 'a', b: 'b'} )
+    $PY.local.x!( {a: 'a', b: 'b'} )
     true
 
 positive:
@@ -246,7 +246,7 @@ positive:
     'a'
 
 positive:
-    $PY.local.x(! 'zh_CN' )
+    $PY.local.x!( 'zh_CN' )
     true
 
 positive:
@@ -254,7 +254,7 @@ positive:
     'zh_CN'
 
 positive:
-    $PY.local.x(! [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ])
+    $PY.local.x!( [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ])
     true
 
 positive:
@@ -295,7 +295,7 @@ positive:
     8
 
 negative:
-    $PY.math.pow(! { x: 3, y: 3 } )
+    $PY.math.pow!( { x: 3, y: 3 } )
     ExternalFailure
 
 positive:
@@ -358,7 +358,7 @@ positive:
     SyntaxError
 
 positive:
-    $RUNNER.user(! 'pyCode', $PY.compile('x + y'))
+    $RUNNER.user!( 'pyCode', $PY.compile('x + y'))
     true
 
 positive:
@@ -370,15 +370,15 @@ negative:
     NoSuchKey
 
 positive:
-    $RUNNER.myObj.pyCode.local.x(! 100.0 )
+    $RUNNER.myObj.pyCode.local.x!( 100.0 )
     true
 
 positive:
-    $RUNNER.myObj.pyCode.local.y(! 100.0 )
+    $RUNNER.myObj.pyCode.local.y!( 100.0 )
     true
 
 positive:
-    $RUNNER.myObj.pyCode.local(! { x: 50.0, y: 50.0 } )
+    $RUNNER.myObj.pyCode.local!( { x: 50.0, y: 50.0 } )
     true
 
 positive:
@@ -390,15 +390,15 @@ positive:
     200.0
 
 positive:
-    $PY.global.x(! undefined )
+    $PY.global.x!( undefined )
     true
 
 positive:
-    $PY.global.y(! 1.0 )
+    $PY.global.y!( 1.0 )
     true
 
 positive:
-    $PY.global.y(! undefined )
+    $PY.global.y!( undefined )
     true
 
 negative:
@@ -410,7 +410,7 @@ positive:
     'NameError'
 
 positive:
-    $PY.global(! { x: 10.0, y: 10.0 } )
+    $PY.global!( { x: 10.0, y: 10.0 } )
     true
 
 positive:
@@ -426,7 +426,7 @@ positive:
     'string'
 
 positive:
-    $RUNNER.user(! 'pyCode', undefined )
+    $RUNNER.user!( 'pyCode', undefined )
     true
 
 positive:
@@ -434,7 +434,7 @@ positive:
     8
 
 positive:
-    {{ $PY.local.x(! undefined ); $PY.local(! undefined ); }}
+    {{ $PY.local.x!( undefined ); $PY.local!( undefined ); }}
     true
 
 positive:

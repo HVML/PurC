@@ -22,7 +22,7 @@ COROUTINE-3: 2022-09-01T14:50:46+0800: I am awake.
 
         <inherit>
             {{
-                 $RUNNER.user(! 'times', [] );
+                 $RUNNER.user!( 'times', [] );
                  $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I will sleep 6 seconds");
                  $SYS.sleep(6);
                  $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I am awake.");

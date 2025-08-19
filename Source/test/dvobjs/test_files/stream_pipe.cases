@@ -4,7 +4,7 @@ positive:
     ["This will be echoed"]
 
 positive:
-    $RUNNER.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet'))
+    $RUNNER.user!( "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet'))
     true
 
 positive:
@@ -20,15 +20,15 @@ positive:
     [".66666666666666666666"]
 
 positive:
-    {{ $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user(! 'bcPipe', undefined) }}
+    {{ $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user!( 'bcPipe', undefined) }}
     true
 
 positive:
-    {{ $RUNNER.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $RUNNER.myObj.bcPipe.writelines(['scale=20', '2/3']) && $RUNNER.myObj.bcPipe.writeeof() && $RUNNER.myObj.bcPipe.readlines(1); $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user(! 'bcPipe', undefined) }}
+    {{ $RUNNER.user!( "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $RUNNER.myObj.bcPipe.writelines(['scale=20', '2/3']) && $RUNNER.myObj.bcPipe.writeeof() && $RUNNER.myObj.bcPipe.readlines(1); $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user!( 'bcPipe', undefined) }}
     true
 
 positive:
-    {{ $RUNNER.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $RUNNER.myObj.bcPipe.status }}
+    {{ $RUNNER.user!( "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $RUNNER.myObj.bcPipe.status }}
     ['running',0L]
 
 positive:
@@ -44,7 +44,7 @@ positive:
     ['exited',0L]
 
 positive:
-    {{ $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user(! 'bcPipe', undefined) }}
+    {{ $STERAM.close($RUNNER.myObj.bcPipe); $RUNNER.user!( 'bcPipe', undefined) }}
     true
 
 

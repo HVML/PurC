@@ -25,7 +25,7 @@
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>
-                    <update on="#info" at="textContent" with="$DATA.stringify($SYS.cwd(!'/tmp'))" />
+                    <update on="#info" at="textContent" with="$DATA.stringify($SYS.cwd!('/tmp'))" />
                     <forget on="$TIMERS" for="expired:clock"/>
                 </observe>
                 <p>this is after observe</p>

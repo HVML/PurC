@@ -16,19 +16,19 @@ positive:
     18446744073709551615UL
 
 negative:
-    $JS.runtime(!)
+    $JS.runtime!()
     ArgumentMissed
 
 negative:
-    $JS.runtime(!'foo')
+    $JS.runtime!('foo')
     ArgumentMissed
 
 negative:
-    $JS.runtime(!null, null)
+    $JS.runtime!(null, null)
     WrongDataType
 
 negative:
-    $JS.runtime(!'foo', 2)
+    $JS.runtime!('foo', 2)
     InvalidValue
 
 positive:
@@ -77,7 +77,7 @@ positive:
     "ReferenceError: 'foo' is not defined"
 
 positive:
-    $JS.runtime(!'memory-limit', 1024)
+    $JS.runtime!('memory-limit', 1024)
     true
 
 positive:
@@ -85,7 +85,7 @@ positive:
     1024UL
 
 positive:
-    $JS.runtime(!'max-stack-size', 1024)
+    $JS.runtime!('max-stack-size', 1024)
     true
 
 positive:
@@ -93,7 +93,7 @@ positive:
     1024UL
 
 positive:
-    $JS.runtime(!'gc-threshold', 1024)
+    $JS.runtime!('gc-threshold', 1024)
     true
 
 positive:
@@ -101,7 +101,7 @@ positive:
     1024UL
 
 positive:
-    $JS.runtime(!'dump-unhandled-rejection', false)
+    $JS.runtime!('dump-unhandled-rejection', false)
     true
 
 positive:
@@ -109,7 +109,7 @@ positive:
     false
 
 positive:
-    $JS.runtime(!'strip-debug', false)
+    $JS.runtime!('strip-debug', false)
     true
 
 positive:
@@ -117,7 +117,7 @@ positive:
     false
 
 positive:
-    $JS.runtime(!'strip-source', false)
+    $JS.runtime!('strip-source', false)
     true
 
 positive:

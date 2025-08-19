@@ -7,11 +7,11 @@
 
         <inherit>
         {{
-            $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db')) &&
-            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')) &&
-            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])) &&
-            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])) &&
-            $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+            $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db')) &&
+            $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);')) &&
+            $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03'])) &&
+            $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']])) &&
+            $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
         }}
         </inherit>
 

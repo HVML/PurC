@@ -60,7 +60,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
 
         <inherit>
             {{
-                 $PY.global(! 'myseed', $SYS.time );
+                 $PY.global!( 'myseed', $SYS.time );
                  $PY.run($pyCode, 'source');
                  $PY.global.fig.canvas.draw_idle();
                  $PY.global.fig.savefig("frame-orig.svg");

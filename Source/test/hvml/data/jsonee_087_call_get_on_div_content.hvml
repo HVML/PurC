@@ -21,7 +21,7 @@
         { "key": $SYS.time("tm") }
     </init>
     <init>
-        { "key": $SYS.time(!"tm") }
+        { "key": $SYS.time!("tm") }
     </init>
     <init>
         { "key": $SYS.time({"a":1}, [1, 2,3]) }

@@ -12,7 +12,7 @@ positive:
     'native'
 
 positive:
-    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    $RUNNER.user!( "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
     true
 
 negative:
@@ -28,11 +28,11 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    $RUNNER.user!( 'inetDatagramSocket', undefined )
     true
 
 positive:
-    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    $RUNNER.user!( "inetDatagramSocket", $SOCKET.dgram('inet4://localhost:8080') )
     true
 
 positive:
@@ -40,7 +40,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    $RUNNER.user!( 'inetDatagramSocket', undefined )
     true
 
 negative:
@@ -56,7 +56,7 @@ positive:
     'native'
 
 positive:
-    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080', 'default') )
+    $RUNNER.user!( "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080', 'default') )
     true
 
 negative:
@@ -72,11 +72,11 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    $RUNNER.user!( 'inetDatagramSocket', undefined )
     true
 
 positive:
-    $RUNNER.user(! "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080') )
+    $RUNNER.user!( "inetDatagramSocket", $SOCKET.dgram('inet6://localhost:8080') )
     true
 
 positive:
@@ -84,6 +84,6 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'inetDatagramSocket', undefined )
+    $RUNNER.user!( 'inetDatagramSocket', undefined )
     true
 

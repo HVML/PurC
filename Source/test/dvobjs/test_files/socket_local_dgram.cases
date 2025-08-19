@@ -24,7 +24,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo', 'nameless global nonblock cloexec') )
+    $RUNNER.user!( "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo', 'nameless global nonblock cloexec') )
     true
 
 positive:
@@ -92,11 +92,11 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'localDatagramSocket', undefined )
+    $RUNNER.user!( 'localDatagramSocket', undefined )
     true
 
 positive:
-    $RUNNER.user(! "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo') )
+    $RUNNER.user!( "localDatagramSocket", $SOCKET.dgram('unix:///var/tmp/foo') )
     true
 
 positive:
@@ -104,7 +104,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'localDatagramSocket', undefined )
+    $RUNNER.user!( 'localDatagramSocket', undefined )
     true
 
 positive:

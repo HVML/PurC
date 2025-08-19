@@ -7,12 +7,12 @@
 
     <body id="main">
         <inherit>
-            $RUNNER.user(! 'primes', [] )
-            $RUNNER.user(! 'chans', [] )
+            $RUNNER.user!( 'primes', [] )
+            $RUNNER.user!( 'chans', [] )
         </inherit>
 
         <init as count at "_root" with 10L />
-        <init as chIn at "_root" with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} />
+        <init as chIn at "_root" with {{ $RUNNER.chan!( "natural" ) && $RUNNER.chan( "natural" ) }} />
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "inherit:" async />
 
@@ -23,7 +23,7 @@
                 <update on $RUNNER.myObj.chans to "append" with "filter$?" />
 
                 <!-- open a channel to filter the new prime -->
-                <init as chOut at "_root" with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} />
+                <init as chOut at "_root" with {{ $RUNNER.chan!( "filter$?" ) && $RUNNER.chan( "filter$?" ) }} />
 
                 <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "inherit:" async />
 
@@ -35,11 +35,11 @@
 
         <!--
         <!-- close the channel named `natural` -->
-        <init as chIn at "_root" with $RUNNER.chan(! "natural", 0 ) />
+        <init as chIn at "_root" with $RUNNER.chan!( "natural", 0 ) />
 
         <iterate on $RUNNER.myObj.chans >
             <inherit>
-                $RUNNER.chan(! "$?", 0 )
+                $RUNNER.chan!( "$?", 0 )
             </inherit>
         </iterate>
         -->

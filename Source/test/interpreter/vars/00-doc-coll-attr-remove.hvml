@@ -17,7 +17,7 @@
         <div id="f05" class="class_div">
         </div>
         <init as colls with $DOC.query(".class_div") />
-        <init as ret with $colls.removeAttr(!"width") />
+        <init as ret with $colls.removeAttr!("width") />
 
         <exit with $ret />
     </body>

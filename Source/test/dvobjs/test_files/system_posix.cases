@@ -28,27 +28,27 @@ negative:
     InvalidValue
 
 negative:
-    $SYS.fdflags(! )
+    $SYS.fdflags!( )
     ArgumentMissed
 
 negative:
-    $SYS.fdflags(! null, null )
+    $SYS.fdflags!( null, null )
     WrongDataType
 
 negative:
-    $SYS.fdflags(! 0 )
+    $SYS.fdflags!( 0 )
     ArgumentMissed
 
 negative:
-    $SYS.fdflags(! 0, null )
+    $SYS.fdflags!( 0, null )
     WrongDataType
 
 negative:
-    $SYS.fdflags(! 0, 'foo' )
+    $SYS.fdflags!( 0, 'foo' )
     InvalidValue
 
 positive:
-    $RUNNER.user(! "myPipe", $SYS.pipe() )
+    $RUNNER.user!( "myPipe", $SYS.pipe() )
     true
 
 positive:
@@ -80,23 +80,23 @@ positive:
     true
 
 negative:
-    $SYS.fdflags(! $RUNNER.myObj.myPipe[0] )
+    $SYS.fdflags!( $RUNNER.myObj.myPipe[0] )
     ArgumentMissed
 
 negative:
-    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], null )
+    $SYS.fdflags!( $RUNNER.myObj.myPipe[0], null )
     WrongDataType
 
 negative:
-    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], '' )
+    $SYS.fdflags!( $RUNNER.myObj.myPipe[0], '' )
     InvalidValue
 
 negative:
-    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], 'foo' )
+    $SYS.fdflags!( $RUNNER.myObj.myPipe[0], 'foo' )
     InvalidValue
 
 positive:
-    $SYS.fdflags(! $RUNNER.myObj.myPipe[0], 'nonblock' )
+    $SYS.fdflags!( $RUNNER.myObj.myPipe[0], 'nonblock' )
     true
 
 positive:
@@ -112,7 +112,7 @@ negative:
     InvalidValue
 
 positive:
-    $RUNNER.user(! "myPipe", undefined )
+    $RUNNER.user!( "myPipe", undefined )
     true
 
 negative:
@@ -156,7 +156,7 @@ negative:
     OSFailure
 
 positive:
-    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    $RUNNER.user!( "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
     true
 
 positive:
@@ -164,7 +164,7 @@ positive:
     'stream'
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'keep-alive', true)
+    $SYS.sockopt!( $RUNNER.myObj.inetStreamSocket.fd, 'keep-alive', true)
     true
 
 positive:
@@ -172,7 +172,7 @@ positive:
     true
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-timeout', 3)
+    $SYS.sockopt!( $RUNNER.myObj.inetStreamSocket.fd, 'recv-timeout', 3)
     true
 
 positive:
@@ -180,7 +180,7 @@ positive:
     3.0
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'send-timeout', 3)
+    $SYS.sockopt!( $RUNNER.myObj.inetStreamSocket.fd, 'send-timeout', 3)
     true
 
 positive:
@@ -188,7 +188,7 @@ positive:
     3.0
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer', 1024 )
+    $SYS.sockopt!( $RUNNER.myObj.inetStreamSocket.fd, 'recv-buffer', 1024 )
     true
 
 positive:
@@ -196,7 +196,7 @@ positive:
     true
 
 positive:
-    $SYS.sockopt(! $RUNNER.myObj.inetStreamSocket.fd, 'send-buffer', 1024)
+    $SYS.sockopt!( $RUNNER.myObj.inetStreamSocket.fd, 'send-buffer', 1024)
     true
 
 positive:
@@ -204,11 +204,11 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'inetStreamSocket', undefined )
+    $RUNNER.user!( 'inetStreamSocket', undefined )
     true
 
 positive:
-    $RUNNER.user(! "inetDgramSocket", $SOCKET.dgram('inet4://localhost:8080') )
+    $RUNNER.user!( "inetDgramSocket", $SOCKET.dgram('inet4://localhost:8080') )
     true
 
 positive:
@@ -216,7 +216,7 @@ positive:
     'dgram'
 
 positive:
-    $RUNNER.user(! 'inetDgramSocket', undefined )
+    $RUNNER.user!( 'inetDgramSocket', undefined )
     true
 
 negative:

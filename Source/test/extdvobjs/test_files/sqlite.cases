@@ -24,7 +24,7 @@ positive:
 
 # \$SQLITE.connect memory
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect(':memory:'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect(':memory:'))
     true
 
 positive:
@@ -33,11 +33,11 @@ positive:
 
 # \$SQLITE.connect  path
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
     true
 
 positive:
@@ -45,7 +45,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
@@ -54,7 +54,7 @@ positive:
 
 # \$SQLITE.connect  URI
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('file:///tmp/test_extdvobj_sqlite_uri.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('file:///tmp/test_extdvobj_sqlite_uri.db'))
     true
 
 positive:
@@ -62,7 +62,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
@@ -99,11 +99,11 @@ negative:
 
 # \$SQLiteConn.cursor
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect(':memory:'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect(':memory:'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
     true
 
 positive:
@@ -123,28 +123,28 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', undefined )
+    $RUNNER.user!( 'sqliteCursor', undefined )
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 # \$SQLiteConnect.execute/executemany
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite_conn_exec.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite_conn_exec.db'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);'))
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('CREATE TABLE "user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" TEXT not null, "age" integer DEFAULT 0, "createdAt" integer DEFAULT 0, "expiredAt" TEXT);'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03']))
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.execute('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', ['zhang san', 15L, 1703499183L, '2024-12-25 18:13:03']))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']]))
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.executemany('insert into user(name, age, createdAt, expiredAt) values (?, ?, ?, ?);', [['li si', 16L, 1703499183L, '2024-12-25 18:13:03'], ['wang wu', 17L, 1703499183L, '2024-12-25 18:13:03']]))
     true
 
 positive:
@@ -165,11 +165,11 @@ positive:
 
 # \$SQLiteCursor
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
     true
 
 positive:
@@ -404,7 +404,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
@@ -413,11 +413,11 @@ positive:
 
 # \$SQLiteCursor test rollback
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
     true
 
 positive:
@@ -489,7 +489,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
@@ -498,11 +498,11 @@ positive:
 
 # \$SQLiteCursor test update/delete/replace
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
     true
 
 positive:
@@ -574,7 +574,7 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:
@@ -583,11 +583,11 @@ positive:
 
 # negative
 positive:
-    $RUNNER.user(! 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
+    $RUNNER.user!( 'sqliteConn', $SQLITE.connect('/tmp/test_extdvobj_sqlite.db'))
     true
 
 positive:
-    $RUNNER.user(! 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
+    $RUNNER.user!( 'sqliteCursor', $RUNNER.myObj.sqliteConn.cursor())
     true
 
 positive:
@@ -723,7 +723,7 @@ negative:
     ExternalFailure
 
 positive:
-    $RUNNER.user(! 'sqliteConn', undefined )
+    $RUNNER.user!( 'sqliteConn', undefined )
     true
 
 positive:

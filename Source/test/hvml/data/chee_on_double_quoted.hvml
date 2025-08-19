@@ -1,6 +1,6 @@
 <hvml>
     <head>
-        <base href=$CRTN.base(! "file://{{ $REQ.base || $SYS.cwd }}" ) hvml:silently />
+        <base href=$CRTN.base!( "file://{{ $REQ.base || $SYS.cwd }}" ) hvml:silently />
     </head>
     <body>
         <inherit>

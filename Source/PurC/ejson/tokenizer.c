@@ -409,7 +409,7 @@ token_stack_push(struct pcejson *parser, uint32_t type)
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
-        /* (! */
+        /* !( */
         token->node->position = tkz_ucs_find_reverse(parser->temp_ucs, '(');
         break;
 
@@ -1005,6 +1005,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
     }
     if (character == ']') {
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_BRACKET);
+    }
+    if (character == '!') {
+        RECONSUME_IN(EJSON_TKA_STATE_EXCLAMATION_MARK);
     }
     if (character == '(') {
         RECONSUME_IN(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
@@ -1644,12 +1647,100 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
 
+BEGIN_STATE(EJSON_TKA_STATE_EXCLAMATION_MARK)
+    if (is_eof(character)) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '!') {
+        RESET_TEMP_BUFFER();
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_EXCLAMATION_MARK);
+    }
+    if (character == '(') {
+        top = tkz_stack_top();
+        if (top && (top->node == NULL) && (top->type == ETT_VALUE)) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (prev && prev->type == ETT_GET_VARIABLE) {
+                SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
+        update_tkz_stack_with_level(parser, 1);
+
+        tkz_stack_push(ETT_CALL_SETTER);
+        tkz_stack_push(ETT_VALUE);
+        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+    }
+    {
+        update_tkz_stack(parser);
+        top = tkz_stack_top();
+        if (top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+        }
+        if (top->type == ETT_GET_ELEMENT ||
+                top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+                top->type == ETT_GET_VARIABLE) {
+            update_tkz_stack(parser);
+        }
+        top = tkz_stack_top();
+        if (top->type == ETT_MULTI_QUOTED_S) {
+//            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+        }
+        top = tkz_stack_top();
+        if (top && top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (is_parse_finished(parser, character)) {
+            if (top->type == ETT_MULTI_UNQUOTED_S) {
+                close_token(parser, top);
+            }
+            update_tkz_stack(parser);
+            RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+        }
+        top = tkz_stack_top();
+        if (top->type == ETT_MULTI_UNQUOTED_S) {
+            //RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+        }
+        if (is_parse_finished(parser, character)) {
+            RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+        }
+        if (top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+        }
+        size_t nr = tkz_stack_size();
+        if (nr == 1 && pcejson_token_is_closed(top)) {
+            struct pcejson_token *token = tkz_stack_pop();
+            tkz_stack_push(ETT_MULTI_UNQUOTED_S);
+            top = tkz_stack_top();
+
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+            //RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+        }
+    }
+END_STATE()
+
 BEGIN_STATE(EJSON_TKZ_STATE_LEFT_PARENTHESIS)
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     if (character == '(') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "!", 1)) {
+            tkz_stack_push(ETT_CALL_SETTER);
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
         RESET_TEMP_BUFFER();
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
@@ -1698,6 +1789,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
     }
     if (character == '[' || character == '.') {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (character == '!') {
+        RECONSUME_IN(EJSON_TKA_STATE_EXCLAMATION_MARK);
     }
     if (character == '(') {
         RECONSUME_IN(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
@@ -2494,7 +2588,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_KEYWORD)
         }
         if (tkz_buffer_equal_to(parser->temp_buffer, "false",
                     5)) {
-            top->node = pcvcm_node_new_boolean(false);
+           top->node = pcvcm_node_new_boolean(false);
             top->node->position = parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
@@ -3617,6 +3711,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             update_tkz_stack(parser);
         }
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    else if (character == '!') {
+        RESET_TEMP_BUFFER();
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_EXCLAMATION_MARK);
     }
     else if (character == '.' || character == '(' || character == '[') {
         top = tkz_stack_top();

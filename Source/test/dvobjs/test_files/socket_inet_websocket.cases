@@ -1,6 +1,6 @@
 # test cases for websocket
 positive:
-    $RUNNER.user(! "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
+    $RUNNER.user!( "inetStreamSocket", $SOCKET.stream('inet4://localhost:8080') )
     true
 
 negative:
@@ -20,7 +20,7 @@ positive:
     'native'
 
 positive:
-    $RUNNER.user(! 'inetStreamSocket', undefined )
+    $RUNNER.user!( 'inetStreamSocket', undefined )
     true
 
 negative:
@@ -64,15 +64,15 @@ positive:
     'native'
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none') )
+    $RUNNER.user!( 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none') )
     true
 
 positive:
-    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
+    $RUNNER.user!( 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', {}))
     true
 
 positive:
-    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}))
+    $RUNNER.user!( 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}))
     true
 
 positive:
@@ -80,27 +80,27 @@ positive:
     true
 
 positive:
-    $RUNNER.user(! 'srvStreamSocket', undefined)
+    $RUNNER.user!( 'srvStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'cliStreamSocket', undefined)
+    $RUNNER.user!( 'cliStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', undefined)
+    $RUNNER.user!( 'srvListenSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }) )
+    $RUNNER.user!( 'srvListenSocket', $SOCKET.stream('inet4://localhost:8080', 'none', 32, { 'sslkey': '../Source/test/dvobjs/localhost.key', 'sslcert': '../Source/test/dvobjs/localhost.crt' }) )
     true
 
 positive:
-    $RUNNER.user(! 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', { 'secure': true }) )
+    $RUNNER.user!( 'cliStreamSocket', $STREAM.open('inet4://localhost:8080/', 'default', 'websocket', { 'secure': true }) )
     true
 
 positive:
-    $RUNNER.user(! 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}) )
+    $RUNNER.user!( 'srvStreamSocket', $RUNNER.myObj.srvListenSocket.accept('default', 'websocket', {}) )
     true
 
 negative:
@@ -108,14 +108,14 @@ negative:
     NotReady
 
 positive:
-    $RUNNER.user(! 'srvStreamSocket', undefined)
+    $RUNNER.user!( 'srvStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'cliStreamSocket', undefined)
+    $RUNNER.user!( 'cliStreamSocket', undefined)
     true
 
 positive:
-    $RUNNER.user(! 'srvListenSocket', undefined)
+    $RUNNER.user!( 'srvListenSocket', undefined)
     true
 

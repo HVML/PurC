@@ -447,7 +447,7 @@ negative:
     NoData
 
 positive:
-    $RUNNER.user(! "myStream", $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate') )
+    $RUNNER.user!( "myStream", $STREAM.open('file:///tmp/test_stream_getuc', 'read write create truncate') )
     true
 
 negative:
@@ -503,7 +503,7 @@ positive:
     ['HVML', 12L]
 
 positive:
-    $RUNNER.user(! "myStream", $STREAM.from('HVML'))
+    $RUNNER.user!( "myStream", $STREAM.from('HVML'))
     true
 
 positive:
@@ -543,7 +543,7 @@ positive:
     1UL
 
 positive:
-    $RUNNER.user(! "myStream", $STREAM.from_buffer(16, 32))
+    $RUNNER.user!( "myStream", $STREAM.from_buffer(16, 32))
     true
 
 positive:

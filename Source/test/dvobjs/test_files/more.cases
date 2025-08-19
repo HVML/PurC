@@ -84,7 +84,7 @@ negative:
     TooLong
 
 positive:
-    $RUNNER.user(! "myBuffer", $DATA.makebytesbuffer(40) )
+    $RUNNER.user!( "myBuffer", $DATA.makebytesbuffer(40) )
     true
 
 positive:
@@ -484,39 +484,39 @@ positive:
     [! 72, 86, 77, 76, 30340, 26165, 31216, 26159, 21628, 22108, 29483 ]
 
 negative:
-    $STR.codepoints(!)
+    $STR.codepoints!()
     ArgumentMissed
 
 negative:
-    $STR.codepoints(! null )
+    $STR.codepoints!( null )
     WrongDataType
 
 positive:
-    $STR.codepoints(! [])
+    $STR.codepoints!( [])
     ''
 
 positive:
-    $STR.codepoints(! [!])
+    $STR.codepoints!( [!])
     ''
 
 positive:
-    $STR.codepoints(! [72, 86, 77, 76])
+    $STR.codepoints!( [72, 86, 77, 76])
     'HVML'
 
 positive:
-    $STR.codepoints(! [! 20013, 22269 ] )
+    $STR.codepoints!( [! 20013, 22269 ] )
     '中国'
 
 positive:
-    $STR.codepoints(! [ 0x4E2D, 0x56FD ])
+    $STR.codepoints!( [ 0x4E2D, 0x56FD ])
     '中国'
 
 positive:
-    $STR.codepoints(! [0x4E2D, 0x200000])
+    $STR.codepoints!( [0x4E2D, 0x200000])
     '中'
 
 positive:
-    $STR.codepoints(! ['', 0x200000])
+    $STR.codepoints!( ['', 0x200000])
     ''
 
 negative:
@@ -900,27 +900,27 @@ positive:
     '&lt;foo name=&quot;bar &amp; foo\'bar&quot;&gt;'
 
 negative:
-    $STR.htmlentities(!)
+    $STR.htmlentities!()
     ArgumentMissed
 
 negative:
-    $STR.htmlentities(!null)
+    $STR.htmlentities!(null)
     WrongDataType
 
 negative:
-    $STR.htmlentities(!'', null)
+    $STR.htmlentities!('', null)
     WrongDataType
 
 negative:
-    $STR.htmlentities(!'', 'foo')
+    $STR.htmlentities!('', 'foo')
     InvalidValue
 
 positive:
-    $STR.htmlentities(!'')
+    $STR.htmlentities!('')
     ''
 
 positive:
-    $STR.htmlentities(!'normal text')
+    $STR.htmlentities!('normal text')
     'normal text'
 
 # The following test cases are generated with aid from AI

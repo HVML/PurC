@@ -3,7 +3,7 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
+        <base href=$CRTN.base!( "file://$SYS.cwd/" ) hvml:silently />
     </head>
 
     <body>
