@@ -68,9 +68,9 @@ positive:
     '[object Object]'
 
 # TODO: bigint
-#positive:
-#    $JS.eval('BigInt(9007199254740991)')
-#    9007199254740991N
+positive:
+    $JS.eval('BigInt(9007199254740991)')
+    9007199254740991N
 
 positive:
     {{ $JS.eval('foo + 2'); $STR.explode($JS.lastError(), '\n')[0] }}

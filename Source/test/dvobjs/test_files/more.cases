@@ -1904,8 +1904,17 @@ positive:
     '"255N"'
 
 positive:
+    $DATA.bigint(0xFF)
+    255N
+
+positive:
     $DATA.serialize($DATA.bigint(0xFF), 'bigint-hex')
     '"0xffN"'
+
+positive:
+    $DATA.bigint(0xFF)
+    255N
+
 
 negative:
     $DATA.abs()

@@ -2827,7 +2827,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION);
     }
-    if (character == 'U' || character == 'L') {
+    if (character == 'U' || character == 'L' || character == 'N') {
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER);
     }
     if (character == 'I' && (
@@ -3016,6 +3016,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
             }
         }
     }
+    if (character == 'N') {
+        if (is_ascii_digit(last_c)) {
+            top->node = pcvcm_node_new_bigint(
+                tkz_buffer_get_bytes(parser->temp_buffer), 10);
+            top->node->position =
+                parser->temp_ucs->nr_ucs -
+                tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
+            update_tkz_stack(parser);
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
+        }
+    }
     if (is_eof(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
@@ -3042,7 +3054,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX);
     }
-    if (character == 'U' || character == 'L') {
+    if (character == 'U' || character == 'L' || character == 'N') {
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
@@ -3067,6 +3079,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX)
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
         }
     }
+    if (character == 'N') {
+        if (is_ascii_hex_digit(last_c)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
+        }
+    }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -3086,8 +3104,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX)
             update_tkz_stack(parser);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
-        }
-        else {
+        } else if (tkz_buffer_end_with(parser->temp_buffer, "N", 1)) {
+            top->node = pcvcm_node_new_bigint(
+                tkz_buffer_get_bytes(parser->temp_buffer), 16);
+            top->node->position =
+                parser->temp_ucs->nr_ucs -
+                tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
+            update_tkz_stack(parser);
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
+        } else {
             int64_t i64 = strtoll (bytes, NULL, 16);
             top->node = pcvcm_node_new_longint(i64);
             top->node->position = parser->temp_ucs->nr_ucs -
