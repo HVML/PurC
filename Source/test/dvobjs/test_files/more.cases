@@ -1904,16 +1904,93 @@ positive:
     '"255N"'
 
 positive:
-    $DATA.bigint(0xFF)
-    255N
-
-positive:
     $DATA.serialize($DATA.bigint(0xFF), 'bigint-hex')
     '"0xffN"'
 
 positive:
+    $DATA.serialize($DATA.bigint(0x123), 'bigint-hex')
+    '"0x123N"'
+
+positive:
+    $DATA.serialize($DATA.bigint(0xABCD), 'bigint-hex')
+    '"0xabcdN"'
+
+positive:
+    $DATA.serialize($DATA.bigint(0xFFFFFFFF), 'bigint-hex')
+    '"0xffffffffN"'
+
+positive:
     $DATA.bigint(0xFF)
     255N
+
+positive:
+    $DATA.bigint(0x123)
+    291N
+
+positive:
+    $DATA.bigint(0xABCD)
+    43981N
+
+positive:
+    $DATA.bigint(0x1a2b3c4d)
+    439041101N
+
+positive:
+    $DATA.bigint(0xFFFFFFFF)
+    4294967295N
+
+positive:
+    $DATA.bigint(0x123456789abcdef)
+    81985529216486895N
+
+positive:
+    $DATA.bigint("123")
+    123N
+
+positive:
+    $DATA.bigint("456789")
+    456789N
+
+positive:
+    $DATA.bigint("9876543210")
+    9876543210N
+
+positive:
+    $DATA.bigint("123456789012345678901234567890")
+    123456789012345678901234567890N
+
+positive:
+    $DATA.bigint("999999999999999999999999999999")
+    999999999999999999999999999999N
+
+positive:
+    $DATA.bigint("1000000000000000000000000000000")
+    1000000000000000000000000000000N
+
+# Negative decimal BigInt test cases
+positive:
+    $DATA.bigint("-123")
+    -123N
+
+positive:
+    $DATA.bigint("-456789")
+    -456789N
+
+positive:
+    $DATA.bigint("-9876543210")
+    -9876543210N
+
+positive:
+    $DATA.bigint("-123456789012345678901234567890")
+    -123456789012345678901234567890N
+
+positive:
+    $DATA.bigint("-999999999999999999999999999999")
+    -999999999999999999999999999999N
+
+positive:
+    $DATA.bigint("-1000000000000000000000000000000")
+    -1000000000000000000000000000000N
 
 
 negative:

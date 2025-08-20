@@ -73,6 +73,70 @@ positive:
     9007199254740991N
 
 positive:
+    $JS.eval('BigInt(0)')
+    0N
+
+positive:
+    $JS.eval('BigInt(123)')
+    123N
+
+positive:
+    $JS.eval('BigInt(-456)')
+    -456N
+
+positive:
+    $JS.eval('BigInt("789")')
+    789N
+
+positive:
+    $JS.eval('BigInt("-987")')
+    -987N
+
+positive:
+    $JS.eval('BigInt(100) + BigInt(200)')
+    300N
+
+positive:
+    $JS.eval('BigInt(500) - BigInt(300)')
+    200N
+
+positive:
+    $JS.eval('BigInt(12) * BigInt(34)')
+    408N
+
+positive:
+    $JS.eval('BigInt(100) / BigInt(10)')
+    10N
+
+positive:
+    $JS.eval('BigInt("123456789012345678901234567890")')
+    123456789012345678901234567890N
+
+positive:
+    $JS.eval('BigInt("0xff")')
+    255N
+
+positive:
+    $JS.eval('BigInt("0xFF")')
+    255N
+
+positive:
+    $JS.eval('BigInt("0x1a2b3c")')
+    1715004N
+
+positive:
+    $JS.eval('BigInt("0xABCDEF")')
+    11259375N
+
+positive:
+    $JS.eval('BigInt("0x123456789abcdef")')
+    81985529216486895N
+
+positive:
+    $JS.eval('BigInt("0xffffffffffffffffff")')
+    4722366482869645213695N
+
+positive:
     {{ $JS.eval('foo + 2'); $STR.explode($JS.lastError(), '\n')[0] }}
     "ReferenceError: 'foo' is not defined"
 
