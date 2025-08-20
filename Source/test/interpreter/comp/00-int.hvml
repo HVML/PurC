@@ -1,12 +1,12 @@
 #!/usr/bin/purc
 
-# RESULT: [14N, 255N, 180N, 8N]
+# RESULT: [14N, 255N, 180N, 8N, 64L, 128UL, 8UL, 10U, 64L]
 
 <!DOCTYPE hvml>
 <hvml target="void">
 
     <init as oct with 010N/>
 
-    <exit with [ 016n, 0xffN, 180n, $oct ] />
+    <exit with [ 016n, 0xffN, 180n, $oct, 0100L, 0200UL, 010U, 10UL, 0100 ] />
 
 </hvml>

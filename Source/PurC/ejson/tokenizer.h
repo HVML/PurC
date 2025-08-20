@@ -69,7 +69,7 @@
 
 
 #define PARSER_ERROR_TYPE               "HEE parse error"
-#define PLOG                            PC_INFO
+#define PLOG                            printf
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
