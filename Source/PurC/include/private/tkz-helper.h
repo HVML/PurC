@@ -196,6 +196,21 @@ is_ascii_alpha_numeric(uint32_t c)
 }
 
 PCA_INLINE bool
+is_alpha_equal_ci(uint32_t c1, uint32_t c2)
+{
+    if (c1 == c2) {
+        return true;
+    }
+
+    uint32_t lower1 = c1 | 0x20;
+    uint32_t lower2 = c2 | 0x20;
+
+    return (lower1 >= 'a' && lower1 <= 'z' &&
+            lower2 >= 'a' && lower2 <= 'z' &&
+            lower1 == lower2);
+}
+
+PCA_INLINE bool
 is_separator(uint32_t c)
 {
     switch (c) {
