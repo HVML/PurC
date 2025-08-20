@@ -25,6 +25,7 @@
 #include "purc-errors.h"
 #include "private/debug.h"
 #include "private/errors.h"
+#include "purc-variant.h"
 #include "variant-internals.h"
 
 #include <stdlib.h>
@@ -225,6 +226,7 @@ pcvar_break_rue_downward(purc_variant_t val)
         case PURC_VARIANT_TYPE_BSEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_BIGINT:
             return;
         default:
             PC_DEBUGX("%d", val->type);

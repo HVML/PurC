@@ -3017,14 +3017,28 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
     }
     if (is_alpha_equal_ci(character, 'N')) {
         if (is_ascii_digit(last_c)) {
+            const char *buf = tkz_buffer_get_bytes(parser->temp_buffer);
+            size_t nr_buf = tkz_buffer_get_size_in_bytes(parser->temp_buffer);
+
+            bool is_decimal = (buf[0] != '0') || (nr_buf == 1);
+            if (!is_decimal && nr_buf > 1) {
+                for (size_t i = 1; i < nr_buf; i++) {
+                    if (!is_ascii_octal_digit(buf[i])) {
+                        is_decimal = true;
+                        break;
+                    }
+                }
+            }
+
+            int base = is_decimal ? 10 : 8;
             top->node = pcvcm_node_new_bigint(
-                tkz_buffer_get_bytes(parser->temp_buffer), 10);
+                tkz_buffer_get_bytes(parser->temp_buffer), base);
             top->node->position =
                 parser->temp_ucs->nr_ucs -
                 tkz_buffer_get_size_in_chars(parser->temp_buffer) - 1;
             update_tkz_stack(parser);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
         }
     }
     if (is_eof(character)) {
@@ -3105,6 +3119,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
         } else if (tkz_buffer_end_with_ci(parser->temp_buffer, "N", 1)) {
+            tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
             top->node = pcvcm_node_new_bigint(
                 tkz_buffer_get_bytes(parser->temp_buffer), 16);
             top->node->position =
