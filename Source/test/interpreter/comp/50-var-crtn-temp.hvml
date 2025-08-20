@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: [10UL, 10UL, 99UL, "test", "test", "zh", "zh"]
+# RESULT: [10UL, 10uL, 99ul, "test", "test", "zh", "zh"]
 
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">

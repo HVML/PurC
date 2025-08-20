@@ -426,6 +426,10 @@ tkz_buffer_end_with(struct tkz_buffer *buffer, const char *bytes,
         size_t nr_bytes);
 
 bool
+tkz_buffer_end_with_ci(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes);
+
+bool
 tkz_buffer_equal_to(struct tkz_buffer *buffer, const char *bytes,
         size_t nr_bytes);
 

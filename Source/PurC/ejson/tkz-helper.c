@@ -1030,6 +1030,16 @@ bool tkz_buffer_end_with(struct tkz_buffer *buffer,
             && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
 }
 
+bool
+tkz_buffer_end_with_ci(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes)
+{
+    size_t sz = tkz_buffer_get_size_in_bytes(buffer);
+    const char *buf_end = (const char *)(buffer->here - nr_bytes);
+    return (sz >= nr_bytes
+            && strncasecmp(buf_end, bytes, nr_bytes) == 0);
+}
+
 bool tkz_buffer_equal_to(struct tkz_buffer *buffer,
         const char *bytes, size_t nr_bytes)
 {

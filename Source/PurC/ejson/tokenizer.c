@@ -2811,7 +2811,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER);
     }
-    if (character == 'x') {
+    if (is_alpha_equal_ci(character, 'x')) {
         if(tkz_buffer_equal_to(parser->temp_buffer, "0", 1)) {
             RESET_TEMP_BUFFER();
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX);
@@ -2819,16 +2819,17 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == 'E' || character == 'e') {
+    if (is_alpha_equal_ci(character,  'E')) {
         APPEND_TO_TEMP_BUFFER('e');
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT);
     }
-    if (character == '.' || character == 'F') {
+    if (character == '.' || is_alpha_equal_ci(character, 'F')) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION);
     }
-    if (is_alpha_equal_ci(character, 'U') || character == 'L' ||
-        character == 'N') {
+    if (is_alpha_equal_ci(character, 'U') ||
+        is_alpha_equal_ci(character, 'L') ||
+        is_alpha_equal_ci(character, 'N')) {
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER);
     }
     if (character == 'I' && (
@@ -2863,19 +2864,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
     }
 
     if (is_ascii_digit(character)) {
-        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with_ci(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION);
     }
-    if (character == 'F') {
+    if (is_alpha_equal_ci(character, 'F')) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION);
     }
-    if (character == 'L') {
-        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
+    if (is_alpha_equal_ci(character, 'L')) {
+        if (tkz_buffer_end_with_ci(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
                     tkz_buffer_get_bytes(parser->temp_buffer), NULL);
@@ -2887,7 +2888,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
             ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
         }
     }
-    if (character == 'E' || character == 'e') {
+    if (is_alpha_equal_ci(character, 'E')) {
         if (tkz_buffer_end_with(parser->temp_buffer, ".", 1)) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
             RETURN_AND_STOP_PARSE();
@@ -2934,19 +2935,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER)
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
-        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with_ci(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER);
     }
-    if (character == 'F') {
+    if (is_alpha_equal_ci(character, 'F')) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER);
     }
-    if (character == 'L') {
-        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
+    if (is_alpha_equal_ci(character,  'L')) {
+        if (tkz_buffer_end_with_ci(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
                     tkz_buffer_get_bytes(parser->temp_buffer), NULL);
@@ -2988,11 +2989,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER);
         }
     }
-    if (character == 'L') {
-        if (is_ascii_digit(last_c) || last_c == 'U') {
+    if (is_alpha_equal_ci(character, 'L')) {
+        if (is_ascii_digit(last_c) || is_alpha_equal_ci(last_c, 'U')) {
             APPEND_TO_TEMP_BUFFER(character);
-            if (tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
-                    ) {
+            if (tkz_buffer_end_with_ci(parser->temp_buffer, "UL", 2)) {
                 uint64_t u64 = strtoull (
                     tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
@@ -3002,9 +3002,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
                 update_tkz_stack(parser);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
-            }
-            else if (tkz_buffer_end_with(parser->temp_buffer,
-                        "L", 1)) {
+            } else if (tkz_buffer_end_with_ci(parser->temp_buffer, "L", 1)) {
                 int64_t i64 = strtoll (
                     tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
@@ -3017,7 +3015,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
             }
         }
     }
-    if (character == 'N') {
+    if (is_alpha_equal_ci(character, 'N')) {
         if (is_ascii_digit(last_c)) {
             top->node = pcvcm_node_new_bigint(
                 tkz_buffer_get_bytes(parser->temp_buffer), 10);
@@ -3055,8 +3053,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX);
     }
-    if (is_alpha_equal_ci(character, 'U') || character == 'L' ||
-        character == 'N') {
+    if (is_alpha_equal_ci(character, 'U') ||
+        is_alpha_equal_ci(character, 'L') ||
+        is_alpha_equal_ci(character, 'N')) {
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
@@ -3075,13 +3074,13 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX)
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
         }
     }
-    if (character == 'L') {
-        if (is_ascii_hex_digit(last_c) || last_c == 'U') {
+    if (is_alpha_equal_ci(character, 'L')) {
+        if (is_ascii_hex_digit(last_c) || is_alpha_equal_ci(last_c, 'U')) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
         }
     }
-    if (character == 'N') {
+    if (is_alpha_equal_ci(character, 'N')) {
         if (is_ascii_hex_digit(last_c)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_HEX_SUFFIX);
@@ -3096,9 +3095,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX)
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
         const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        if (tkz_buffer_end_with(parser->temp_buffer, "U", 1)
-                || tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
-                ) {
+        if (tkz_buffer_end_with_ci(parser->temp_buffer, "U", 1) ||
+            tkz_buffer_end_with_ci(parser->temp_buffer, "UL", 2)) {
             uint64_t u64 = strtoull (bytes, NULL, 16);
             top->node = pcvcm_node_new_ulongint(u64);
             top->node->position = parser->temp_ucs->nr_ucs -
@@ -3106,7 +3104,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER_HEX)
             update_tkz_stack(parser);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
-        } else if (tkz_buffer_end_with(parser->temp_buffer, "N", 1)) {
+        } else if (tkz_buffer_end_with_ci(parser->temp_buffer, "N", 1)) {
             top->node = pcvcm_node_new_bigint(
                 tkz_buffer_get_bytes(parser->temp_buffer), 16);
             top->node->position =
