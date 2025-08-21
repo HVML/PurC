@@ -4,7 +4,7 @@
  * @date 2021/09/02
  * @brief The impl of vcm stack frame ops.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -67,6 +67,61 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_cjsonee_op_or_ops,
     pcvcm_get_cjsonee_op_semicolon_ops,
     pcvcm_get_constant_ops,
+    // Arithmetic operators
+    pcvcm_get_op_plus_ops,
+    pcvcm_get_op_minus_ops,
+    pcvcm_get_op_multiply_ops,
+    pcvcm_get_op_divide_ops,
+    pcvcm_get_op_modulo_ops,
+    pcvcm_get_op_floor_divide_ops,
+    pcvcm_get_op_power_ops,
+    // Unary operators
+    pcvcm_get_op_unary_plus_ops,
+    pcvcm_get_op_unary_minus_ops,
+    pcvcm_get_op_bitwise_not_ops,
+    // Comparison operators
+    pcvcm_get_op_equal_ops,
+    pcvcm_get_op_not_equal_ops,
+    pcvcm_get_op_greater_ops,
+    pcvcm_get_op_greater_equal_ops,
+    pcvcm_get_op_less_ops,
+    pcvcm_get_op_less_equal_ops,
+    // Logical operators
+    pcvcm_get_op_logical_not_ops,
+    pcvcm_get_op_logical_and_ops,
+    pcvcm_get_op_logical_or_ops,
+    // Membership operators
+    pcvcm_get_op_in_ops,
+    pcvcm_get_op_not_in_ops,
+    // Bitwise operators
+    pcvcm_get_op_bitwise_and_ops,
+    pcvcm_get_op_bitwise_or_ops,
+    pcvcm_get_op_bitwise_xor_ops,
+    pcvcm_get_op_left_shift_ops,
+    pcvcm_get_op_right_shift_ops,
+    // Conditional operator
+    pcvcm_get_op_conditional_ops,
+    // Comma operator
+    pcvcm_get_op_comma_ops,
+    // Assignment operators
+    pcvcm_get_op_assign_ops,
+    pcvcm_get_op_plus_assign_ops,
+    pcvcm_get_op_minus_assign_ops,
+    pcvcm_get_op_multiply_assign_ops,
+    pcvcm_get_op_divide_assign_ops,
+    pcvcm_get_op_modulo_assign_ops,
+    pcvcm_get_op_floor_div_assign_ops,
+    pcvcm_get_op_power_assign_ops,
+    pcvcm_get_op_bitwise_and_assign_ops,
+    pcvcm_get_op_bitwise_or_assign_ops,
+    pcvcm_get_op_bitwise_xor_assign_ops,
+    pcvcm_get_op_left_shift_assign_ops,
+    pcvcm_get_op_right_shift_assign_ops,
+    pcvcm_get_op_increment_ops,
+    pcvcm_get_op_decrement_ops,
+    // Special node types
+    pcvcm_get_operator_expression_ops,
+    pcvcm_get_context_var_alias_ops,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \

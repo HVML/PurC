@@ -4,7 +4,7 @@
  * @date 2021/07/28
  * @brief The API for vcm.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2025 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -64,6 +64,61 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_OR,
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON,
     PCVCM_NODE_TYPE_NAME_CONSTANT,
+    // Arithmetic operators
+    PCVCM_NODE_TYPE_NAME_OP_PLUS,
+    PCVCM_NODE_TYPE_NAME_OP_MINUS,
+    PCVCM_NODE_TYPE_NAME_OP_MULTIPLY,
+    PCVCM_NODE_TYPE_NAME_OP_DIVIDE,
+    PCVCM_NODE_TYPE_NAME_OP_MODULO,
+    PCVCM_NODE_TYPE_NAME_OP_FLOOR_DIVIDE,
+    PCVCM_NODE_TYPE_NAME_OP_POWER,
+    // Unary operators
+    PCVCM_NODE_TYPE_NAME_OP_UNARY_PLUS,
+    PCVCM_NODE_TYPE_NAME_OP_UNARY_MINUS,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_NOT,
+    // Comparison operators
+    PCVCM_NODE_TYPE_NAME_OP_EQUAL,
+    PCVCM_NODE_TYPE_NAME_OP_NOT_EQUAL,
+    PCVCM_NODE_TYPE_NAME_OP_GREATER,
+    PCVCM_NODE_TYPE_NAME_OP_GREATER_EQUAL,
+    PCVCM_NODE_TYPE_NAME_OP_LESS,
+    PCVCM_NODE_TYPE_NAME_OP_LESS_EQUAL,
+    // Logical operators
+    PCVCM_NODE_TYPE_NAME_OP_LOGICAL_NOT,
+    PCVCM_NODE_TYPE_NAME_OP_LOGICAL_AND,
+    PCVCM_NODE_TYPE_NAME_OP_LOGICAL_OR,
+    // Membership operators
+    PCVCM_NODE_TYPE_NAME_OP_IN,
+    PCVCM_NODE_TYPE_NAME_OP_NOT_IN,
+    // Bitwise operators
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_AND,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR,
+    PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT,
+    PCVCM_NODE_TYPE_NAME_OP_RIGHT_SHIFT,
+    // Conditional operator
+    PCVCM_NODE_TYPE_NAME_OP_CONDITIONAL,
+    // Comma operator
+    PCVCM_NODE_TYPE_NAME_OP_COMMA,
+    // Assignment operators
+    PCVCM_NODE_TYPE_NAME_OP_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_PLUS_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_MINUS_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_MULTIPLY_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_DIVIDE_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_MODULO_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_FLOOR_DIV_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_POWER_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_AND_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_RIGHT_SHIFT_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_INCREMENT,
+    PCVCM_NODE_TYPE_NAME_OP_DECREMENT,
+    // Special node types
+    PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION,
+    PCVCM_NODE_TYPE_NAME_CONTEXT_VAR_ALIAS,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -669,3 +724,797 @@ pcvcm_node_new_constant(size_t nr_nodes, struct pcvcm_node **nodes)
 
     return n;
 }
+
+// Comparison operators
+
+struct pcvcm_node *
+pcvcm_node_new_op_unary_plus(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_UNARY_PLUS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_unary_minus(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_UNARY_MINUS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_not(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_NOT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_logical_not(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LOGICAL_NOT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_increment(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_INCREMENT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_decrement(struct pcvcm_node *operand)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_DECREMENT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (operand) {
+        pcvcm_node_append_child(n, operand);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_plus(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_PLUS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_minus(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MINUS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_multiply(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MULTIPLY, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_divide(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_DIVIDE, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_modulo(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MODULO, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_floor_divide(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_FLOOR_DIVIDE, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_power(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_POWER, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_equal(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_EQUAL, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_not_equal(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_NOT_EQUAL, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_greater(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_GREATER, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_greater_equal(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_GREATER_EQUAL, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_less(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LESS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_less_equal(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LESS_EQUAL, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_logical_and(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LOGICAL_AND, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_logical_or(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LOGICAL_OR, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_in(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_IN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_not_in(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_NOT_IN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_and(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_AND, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_or(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_OR, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_xor(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_XOR, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_left_shift(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LEFT_SHIFT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_right_shift(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_RIGHT_SHIFT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_plus_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_PLUS_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_minus_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MINUS_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_multiply_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MULTIPLY_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_divide_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_DIVIDE_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_modulo_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MODULO_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_floor_div_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_FLOOR_DIV_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_power_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_POWER_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_and_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_AND_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_or_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_xor_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_left_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_LEFT_SHIFT_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_right_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_RIGHT_SHIFT_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_comma(struct pcvcm_node *left, struct pcvcm_node *right)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_COMMA, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_conditional(struct pcvcm_node *condition, struct pcvcm_node *true_expr, struct pcvcm_node *false_expr)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_CONDITIONAL, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (condition) {
+        pcvcm_node_append_child(n, condition);
+    }
+    if (true_expr) {
+        pcvcm_node_append_child(n, true_expr);
+    }
+    if (false_expr) {
+        pcvcm_node_append_child(n, false_expr);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_context_var_alias(size_t nr_nodes, struct pcvcm_node **nodes)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_CONTEXT_VAR_ALIAS, false);
+    if (!n) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < nr_nodes; i++) {
+        struct pcvcm_node *v = nodes[i];
+        pcvcm_node_append_child(n, v);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_operator_expression(size_t nr_nodes, struct pcvcm_node **nodes)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OPERATOR_EXPRESSION, false);
+    if (!n) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < nr_nodes; i++) {
+        struct pcvcm_node *v = nodes[i];
+        pcvcm_node_append_child(n, v);
+    }
+
+    return n;
+}
+
