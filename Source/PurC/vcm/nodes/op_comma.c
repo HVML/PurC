@@ -58,9 +58,18 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
 
-    // TODO: Implement comma operator evaluation logic
-    // For now, return PURC_VARIANT_INVALID as requested
-    return PURC_VARIANT_INVALID;
+    size_t nr_params = frame->nr_params;
+    purc_variant_t tuple = purc_variant_make_tuple(nr_params, NULL);
+    if (tuple == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    for (size_t i = 0; i < nr_params; i++) {
+        purc_variant_t val = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
+        purc_variant_tuple_set(tuple, i, val);
+    }
+
+    return tuple;
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
