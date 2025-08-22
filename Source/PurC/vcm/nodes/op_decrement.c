@@ -58,9 +58,17 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
 
-    // TODO: Implement decrement operator evaluation logic
-    // For now, return PURC_VARIANT_INVALID as requested
-    return PURC_VARIANT_INVALID;
+    purc_variant_t val = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    if (val == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+    purc_variant_t v = purc_variant_make_longint(1);
+
+    purc_variant_operator_isub(val, v);
+
+    purc_variant_unref(v);
+
+    return purc_variant_ref(val);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
