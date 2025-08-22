@@ -120,8 +120,6 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_OP_UNARY_PLUS,              // +x
 #define PCVCM_NODE_TYPE_NAME_OP_UNARY_MINUS         "op_unary_minus"
     PCVCM_NODE_TYPE_OP_UNARY_MINUS,             // -x
-#define PCVCM_NODE_TYPE_NAME_OP_BITWISE_NOT         "op_bitwise_not"
-    PCVCM_NODE_TYPE_OP_BITWISE_NOT,             // ~x
 
     // Comparison operators
 #define PCVCM_NODE_TYPE_NAME_OP_EQUAL               "op_equal"
@@ -156,6 +154,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_OP_BITWISE_AND,             // &
 #define PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR          "op_bitwise_or"
     PCVCM_NODE_TYPE_OP_BITWISE_OR,              // |
+#define PCVCM_NODE_TYPE_NAME_OP_BITWISE_INVERT      "op_bitwise_invert"
+    PCVCM_NODE_TYPE_OP_BITWISE_INVERT,          // ~x
 #define PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR         "op_bitwise_xor"
     PCVCM_NODE_TYPE_OP_BITWISE_XOR,             // ^
 #define PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT          "op_left_shift"

@@ -78,7 +78,6 @@ static get_ops_fn frame_ops[] = {
     // Unary operators
     pcvcm_get_op_unary_plus_ops,
     pcvcm_get_op_unary_minus_ops,
-    pcvcm_get_op_bitwise_not_ops,
     // Comparison operators
     pcvcm_get_op_equal_ops,
     pcvcm_get_op_not_equal_ops,
@@ -96,6 +95,7 @@ static get_ops_fn frame_ops[] = {
     // Bitwise operators
     pcvcm_get_op_bitwise_and_ops,
     pcvcm_get_op_bitwise_or_ops,
+    pcvcm_get_op_bitwise_invert_ops,
     pcvcm_get_op_bitwise_xor_ops,
     pcvcm_get_op_left_shift_ops,
     pcvcm_get_op_right_shift_ops,

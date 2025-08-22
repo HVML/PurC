@@ -54,13 +54,10 @@ static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
-    UNUSED_PARAM(ctxt);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(name);
+    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
 
-    // TODO: Implement bitwise xor operator evaluation logic
-    // For now, return PURC_VARIANT_INVALID as requested
-    return PURC_VARIANT_INVALID;
+    return purc_variant_operator_xor(left, right);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

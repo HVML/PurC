@@ -75,7 +75,6 @@ static const char *typenames[] = {
     // Unary operators
     PCVCM_NODE_TYPE_NAME_OP_UNARY_PLUS,
     PCVCM_NODE_TYPE_NAME_OP_UNARY_MINUS,
-    PCVCM_NODE_TYPE_NAME_OP_BITWISE_NOT,
     // Comparison operators
     PCVCM_NODE_TYPE_NAME_OP_EQUAL,
     PCVCM_NODE_TYPE_NAME_OP_NOT_EQUAL,
@@ -93,6 +92,7 @@ static const char *typenames[] = {
     // Bitwise operators
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_AND,
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_INVERT,
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR,
     PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT,
     PCVCM_NODE_TYPE_NAME_OP_RIGHT_SHIFT,
@@ -760,7 +760,7 @@ pcvcm_node_new_op_unary_minus(struct pcvcm_node *operand)
 struct pcvcm_node *
 pcvcm_node_new_op_bitwise_not(struct pcvcm_node *operand)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_NOT, false);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_INVERT, false);
     if (!n) {
         return NULL;
     }

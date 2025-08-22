@@ -58,9 +58,9 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
 
-    // TODO: Implement right shift operator evaluation logic
-    // For now, return PURC_VARIANT_INVALID as requested
-    return PURC_VARIANT_INVALID;
+    purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    purc_variant_t c = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
+    return purc_variant_operator_rshift(v, c);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

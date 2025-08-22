@@ -147,7 +147,7 @@ struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_op_unary_minus_ops();
 
 struct pcvcm_eval_stack_frame_ops *
-pcvcm_get_op_bitwise_not_ops();
+pcvcm_get_op_bitwise_invert_ops();
 
 // Comparison operators
 struct pcvcm_eval_stack_frame_ops *
