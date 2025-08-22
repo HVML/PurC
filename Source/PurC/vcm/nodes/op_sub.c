@@ -1,8 +1,8 @@
 /*
- * @file op_minus.c
+ * @file op_sub.c
  * @author XueShuming
  * @date 2025/08/21
- * @brief The impl of ops for minus operator vcm node.
+ * @brief The impl of ops for sub operator vcm node.
  *
  * Copyright (C) 2025 FMSoft <https://www.fmsoft.cn>
  *
@@ -55,24 +55,17 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
+
+    if (frame->nr_params == 1) {
+        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+        return purc_variant_operator_neg(v);
+    }
+
     // Get left and right operands
     purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-    
-    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Convert operands to numbers
-    double left_val = purc_variant_numerify(left);
-    double right_val = purc_variant_numerify(right);
-    
-    if (isnan(left_val) || isnan(right_val)) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    return purc_variant_make_number(left_val - right_val);
+
+    return purc_variant_operator_sub(left, right);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
