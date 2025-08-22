@@ -119,7 +119,7 @@ pcvcm_get_constant_ops();
 
 // Arithmetic operators
 struct pcvcm_eval_stack_frame_ops *
-pcvcm_get_op_plus_ops();
+pcvcm_get_op_add_ops();
 
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_op_minus_ops();

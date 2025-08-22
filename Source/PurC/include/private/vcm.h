@@ -100,8 +100,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_CONSTANT,
 
     // Arithmetic operators
-#define PCVCM_NODE_TYPE_NAME_OP_PLUS                "op_plus"
-    PCVCM_NODE_TYPE_OP_PLUS,                    // +
+#define PCVCM_NODE_TYPE_NAME_OP_ADD                "op_plus"
+    PCVCM_NODE_TYPE_OP_ADD,                    // +
 #define PCVCM_NODE_TYPE_NAME_OP_MINUS               "op_minus"
     PCVCM_NODE_TYPE_OP_MINUS,                   // -
 #define PCVCM_NODE_TYPE_NAME_OP_MULTIPLY            "op_multiply"

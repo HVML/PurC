@@ -68,7 +68,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_cjsonee_op_semicolon_ops,
     pcvcm_get_constant_ops,
     // Arithmetic operators
-    pcvcm_get_op_plus_ops,
+    pcvcm_get_op_add_ops,
     pcvcm_get_op_minus_ops,
     pcvcm_get_op_multiply_ops,
     pcvcm_get_op_divide_ops,

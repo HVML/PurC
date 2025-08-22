@@ -65,7 +65,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON,
     PCVCM_NODE_TYPE_NAME_CONSTANT,
     // Arithmetic operators
-    PCVCM_NODE_TYPE_NAME_OP_PLUS,
+    PCVCM_NODE_TYPE_NAME_OP_ADD,
     PCVCM_NODE_TYPE_NAME_OP_MINUS,
     PCVCM_NODE_TYPE_NAME_OP_MULTIPLY,
     PCVCM_NODE_TYPE_NAME_OP_DIVIDE,
@@ -820,7 +820,7 @@ pcvcm_node_new_op_decrement(struct pcvcm_node *operand)
 struct pcvcm_node *
 pcvcm_node_new_op_plus(struct pcvcm_node *left, struct pcvcm_node *right)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_PLUS, false);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_ADD, false);
     if (!n) {
         return NULL;
     }
