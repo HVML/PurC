@@ -58,9 +58,12 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
 
-    // TODO: Implement bitwise or assign operator evaluation logic
-    // For now, return PURC_VARIANT_INVALID as requested
-    return PURC_VARIANT_INVALID;
+    purc_variant_t v1 = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    purc_variant_t v2 = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+
+    purc_variant_operator_ior(v1, v2);
+
+    return v1 ? purc_variant_ref(v1) : PURC_VARIANT_INVALID;
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
