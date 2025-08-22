@@ -56,11 +56,6 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 {
     UNUSED_PARAM(name);
 
-    if (frame->nr_params == 1) {
-        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-        return purc_variant_operator_neg(v);
-    }
-
     // Get left and right operands
     purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);

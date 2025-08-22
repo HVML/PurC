@@ -55,23 +55,9 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
-    // Get the operand
-    purc_variant_t operand = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    
-    if (operand == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Convert operand to number
-    double val = purc_variant_numerify(operand);
-    
-    if (isnan(val)) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Unary plus just returns the numeric value
-    return purc_variant_make_number(val);
+
+    purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    return purc_variant_operator_pos(v);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
