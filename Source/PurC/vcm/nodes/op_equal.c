@@ -55,19 +55,13 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
+
     // Get left and right operands
     purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-    
-    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Use PurC's built-in comparison function
-    bool result = purc_variant_is_equal_to(left, right);
-    
-    return purc_variant_make_boolean(result);
+
+    bool ret = purc_variant_operator_eq(left, right);
+    return purc_variant_make_boolean(ret);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
