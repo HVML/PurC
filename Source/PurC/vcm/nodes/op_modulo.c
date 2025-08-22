@@ -55,30 +55,12 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
+
     // Get left and right operands
     purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-    
-    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Convert operands to numbers
-    double left_val = purc_variant_numerify(left);
-    double right_val = purc_variant_numerify(right);
-    
-    if (isnan(left_val) || isnan(right_val)) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Check for modulo by zero
-    if (right_val == 0.0) {
-        purc_set_error(PURC_ERROR_DIVBYZERO);
-        return PURC_VARIANT_INVALID;
-    }
-    
-    return purc_variant_make_number(fmod(left_val, right_val));
+
+    return purc_variant_operator_mod(left, right);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

@@ -101,9 +101,9 @@ enum pcvcm_node_type {
 
     // Arithmetic operators
 #define PCVCM_NODE_TYPE_NAME_OP_ADD                 "op_add"
-    PCVCM_NODE_TYPE_OP_ADD,                    // +
+    PCVCM_NODE_TYPE_OP_ADD,                     // +
 #define PCVCM_NODE_TYPE_NAME_OP_SUB                 "op_sub"
-    PCVCM_NODE_TYPE_OP_SUB,                   // -
+    PCVCM_NODE_TYPE_OP_SUB,                     // -
 #define PCVCM_NODE_TYPE_NAME_OP_MULTIPLY            "op_multiply"
     PCVCM_NODE_TYPE_OP_MULTIPLY,                // *
 #define PCVCM_NODE_TYPE_NAME_OP_DIVIDE              "op_divide"
@@ -324,12 +324,12 @@ struct pcvcm_node *pcvcm_node_new_op_decrement(struct pcvcm_node *operand);
 
 // Binary operators (2 operands)
 // Arithmetic operators
-struct pcvcm_node *pcvcm_node_new_op_plus(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_minus(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_multiply(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_divide(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_add(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_sub(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_mul(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_true_div(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_modulo(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_floor_divide(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_floor_div(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_power(struct pcvcm_node *left, struct pcvcm_node *right);
 
 // Comparison operators

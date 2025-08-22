@@ -818,7 +818,7 @@ pcvcm_node_new_op_decrement(struct pcvcm_node *operand)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_plus(struct pcvcm_node *left, struct pcvcm_node *right)
+pcvcm_node_new_op_add(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_ADD, false);
     if (!n) {
@@ -836,7 +836,7 @@ pcvcm_node_new_op_plus(struct pcvcm_node *left, struct pcvcm_node *right)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_minus(struct pcvcm_node *left, struct pcvcm_node *right)
+pcvcm_node_new_op_sub(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_SUB, false);
     if (!n) {
@@ -854,7 +854,7 @@ pcvcm_node_new_op_minus(struct pcvcm_node *left, struct pcvcm_node *right)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_multiply(struct pcvcm_node *left, struct pcvcm_node *right)
+pcvcm_node_new_op_mul(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_MULTIPLY, false);
     if (!n) {
@@ -872,7 +872,7 @@ pcvcm_node_new_op_multiply(struct pcvcm_node *left, struct pcvcm_node *right)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_divide(struct pcvcm_node *left, struct pcvcm_node *right)
+pcvcm_node_new_op_true_div(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_DIVIDE, false);
     if (!n) {
@@ -908,7 +908,7 @@ pcvcm_node_new_op_modulo(struct pcvcm_node *left, struct pcvcm_node *right)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_floor_divide(struct pcvcm_node *left, struct pcvcm_node *right)
+pcvcm_node_new_op_floor_div(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_FLOOR_DIVIDE, false);
     if (!n) {
