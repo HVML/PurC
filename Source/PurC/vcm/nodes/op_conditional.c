@@ -55,29 +55,21 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
+
     // Get condition, true_expr, and false_expr operands
     purc_variant_t condition = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     purc_variant_t true_expr = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
     purc_variant_t false_expr = pcvcm_get_frame_result(ctxt, frame->idx, 2, NULL);
-    
-    if (condition == PURC_VARIANT_INVALID || 
-        true_expr == PURC_VARIANT_INVALID || 
+
+    if (condition == PURC_VARIANT_INVALID ||
+        true_expr == PURC_VARIANT_INVALID ||
         false_expr == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
-    
-    // Evaluate condition as boolean
-    bool cond_val = purc_variant_booleanize(condition);
-    
-    // Return true_expr if condition is true, otherwise false_expr
-    if (cond_val) {
-        purc_variant_ref(true_expr);
-        return true_expr;
-    } else {
-        purc_variant_ref(false_expr);
-        return false_expr;
-    }
+
+    bool cond_val = purc_variant_operator_truth(condition);
+
+    return cond_val ? purc_variant_ref(true_expr) : purc_variant_ref(false_expr);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
