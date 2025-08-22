@@ -40,6 +40,7 @@
 
 #include "../eval.h"
 #include "../ops.h"
+#include "purc-variant.h"
 
 static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
@@ -55,18 +56,13 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
-    
+
     // Get the operand
-    purc_variant_t operand = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    
-    if (operand == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    
-    // Convert operand to boolean and negate it
-    bool val = purc_variant_booleanize(operand);
-    
-    return purc_variant_make_boolean(!val);
+    purc_variant_t val = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+
+    bool ret = purc_variant_operator_not(val);
+
+    return purc_variant_make_boolean(ret);
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
