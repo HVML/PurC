@@ -58,12 +58,46 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
 
-    purc_variant_t v1 = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    purc_variant_t v2 = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
+    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
 
-    purc_variant_operator_iadd(v1, v2);
+    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
 
-    return v1 ? purc_variant_ref(v1) : PURC_VARIANT_INVALID;
+    enum purc_variant_type ltype = purc_variant_get_type(left);
+    enum purc_variant_type rtype = purc_variant_get_type(right);
+
+    if ((ltype == PURC_VARIANT_TYPE_STRING ||
+         ltype == PURC_VARIANT_TYPE_BSEQUENCE) &&
+        (rtype == PURC_VARIANT_TYPE_STRING ||
+         rtype == PURC_VARIANT_TYPE_BSEQUENCE)) {
+        purc_variant_operator_iconcat(left, right);
+        goto out;
+    }
+
+    if ((ltype == PURC_VARIANT_TYPE_ARRAY || ltype == PURC_VARIANT_TYPE_TUPLE) &&
+        (rtype == PURC_VARIANT_TYPE_ARRAY || rtype == PURC_VARIANT_TYPE_TUPLE ||
+         rtype == PURC_VARIANT_TYPE_SET)) {
+        purc_variant_operator_iconcat(left, right);
+        goto out;
+    }
+
+    if (ltype == PURC_VARIANT_TYPE_OBJECT && rtype == PURC_VARIANT_TYPE_OBJECT) {
+        purc_variant_object_unite(left,right,PCVRNT_CR_METHOD_OVERWRITE);
+        goto out;
+    }
+
+    if ((ltype == PURC_VARIANT_TYPE_SET) && (rtype == PURC_VARIANT_TYPE_ARRAY ||
+        rtype == PURC_VARIANT_TYPE_SET || rtype == PURC_VARIANT_TYPE_TUPLE)) {
+        purc_variant_set_unite(left, right, PCVRNT_CR_METHOD_OVERWRITE);
+        goto out;
+    }
+
+    purc_variant_operator_iadd(left, right);
+
+out:
+    return left ? purc_variant_ref(left) : PURC_VARIANT_INVALID;
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
