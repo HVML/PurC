@@ -207,11 +207,7 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION    "operator_expression"
     PCVCM_NODE_TYPE_OPERATOR_EXPRESSION,        // (...)
 
-    // Context variable alias
-#define PCVCM_NODE_TYPE_NAME_CONTEXT_VAR_ALIAS      "context_var_alias"
-    PCVCM_NODE_TYPE_CONTEXT_VAR_ALIAS,          // @?!^:=%~<
-
-    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_CONTEXT_VAR_ALIAS,
+    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_OPERATOR_EXPRESSION,
 };
 
 #define PCVCM_NODE_TYPE_NR \
@@ -377,7 +373,6 @@ struct pcvcm_node *pcvcm_node_new_op_comma(struct pcvcm_node *left, struct pcvcm
 struct pcvcm_node *pcvcm_node_new_op_conditional(struct pcvcm_node *condition, struct pcvcm_node *true_expr, struct pcvcm_node *false_expr);
 
 // Special node types (variable operands)
-struct pcvcm_node *pcvcm_node_new_context_var_alias(size_t nr_nodes, struct pcvcm_node **nodes);
 struct pcvcm_node *pcvcm_node_new_operator_expression(size_t nr_nodes, struct pcvcm_node **nodes);
 
 static inline enum pcvcm_node_type

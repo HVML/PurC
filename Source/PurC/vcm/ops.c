@@ -121,7 +121,6 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_op_decrement_ops,
     // Special node types
     pcvcm_get_operator_expression_ops,
-    pcvcm_get_context_var_alias_ops,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \

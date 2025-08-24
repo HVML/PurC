@@ -118,7 +118,6 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_OP_DECREMENT,
     // Special node types
     PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION,
-    PCVCM_NODE_TYPE_NAME_CONTEXT_VAR_ALIAS,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -1481,22 +1480,6 @@ pcvcm_node_new_op_conditional(struct pcvcm_node *condition, struct pcvcm_node *t
     }
     if (false_expr) {
         pcvcm_node_append_child(n, false_expr);
-    }
-
-    return n;
-}
-
-struct pcvcm_node *
-pcvcm_node_new_context_var_alias(size_t nr_nodes, struct pcvcm_node **nodes)
-{
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_CONTEXT_VAR_ALIAS, false);
-    if (!n) {
-        return NULL;
-    }
-
-    for (size_t i = 0; i < nr_nodes; i++) {
-        struct pcvcm_node *v = nodes[i];
-        pcvcm_node_append_child(n, v);
     }
 
     return n;
