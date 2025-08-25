@@ -66,6 +66,7 @@
 #define ETT_STRING                      '"'         /* String: temp  */
 #define ETT_BACKQUOTE                   '`'         /* BACKQUOTE  */
 #define ETT_TRIPLE_DOUBLE_QUOTED        'T'         /* triple double quoted  */
+#define ETT_OPERATOR_EXPRESSION         'O'         /* OPERATOR EXPRESSION */
 
 
 #define PARSER_ERROR_TYPE               "HEE parse error"
@@ -285,8 +286,9 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_BACKQUOTE_CONTENT,
     EJSON_TKZ_STATE_PARAM_STRING,
     EJSON_TKZ_STATE_ATTR_VALUE,
+    EJSON_TKZ_STATE_OPERATOR_EXPRESSION,
 
-    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_ATTR_VALUE,
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_OPERATOR_EXPRESSION,
 };
 
 
