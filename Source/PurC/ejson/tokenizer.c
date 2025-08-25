@@ -4417,6 +4417,22 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_SIGN)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_OP_PLUS);
     }
+    if (character == '-') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_MINUS);
+    }
+    if (character == '*') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_MUL);
+    }
+    if (character == '/') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_DIV);
+    }
+    if (character == '%') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_MOD);
+    }
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_OP_PLUS)
@@ -4430,6 +4446,94 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_PLUS)
             pcejson_token_destroy(token);
 
             struct pcvcm_node *sign = pcvcm_node_new_op_add(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_OP_MINUS)
+    if (character == '-') {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_sub(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_OP_MUL)
+    if (character == '*') {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_mul(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_OP_DIV)
+    if (character == '/') {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_true_div(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_OP_MOD)
+    if (character == '%') {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_modulo(NULL, NULL);
             pctree_node_append_child((struct pctree_node*)parent->node,
                     (struct pctree_node*)sign);
 
