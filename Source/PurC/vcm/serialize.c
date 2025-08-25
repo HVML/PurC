@@ -397,6 +397,136 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
     case PCVCM_NODE_TYPE_OP_ADD:
         pcvdom_dump_write(ctxt, "+", 1);
         break;
+    case PCVCM_NODE_TYPE_OP_SUB:
+        pcvdom_dump_write(ctxt, "-", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_MULTIPLY:
+        pcvdom_dump_write(ctxt, "*", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_DIVIDE:
+        pcvdom_dump_write(ctxt, "/", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_MODULO:
+        pcvdom_dump_write(ctxt, "%", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_FLOOR_DIVIDE:
+        pcvdom_dump_write(ctxt, "//", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_POWER:
+        pcvdom_dump_write(ctxt, "**", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_UNARY_PLUS:
+        pcvdom_dump_write(ctxt, "+", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_UNARY_MINUS:
+        pcvdom_dump_write(ctxt, "-", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_EQUAL:
+        pcvdom_dump_write(ctxt, "==", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_NOT_EQUAL:
+        pcvdom_dump_write(ctxt, "!=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_GREATER:
+        pcvdom_dump_write(ctxt, ">", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_GREATER_EQUAL:
+        pcvdom_dump_write(ctxt, ">=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LESS:
+        pcvdom_dump_write(ctxt, "<", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_LESS_EQUAL:
+        pcvdom_dump_write(ctxt, "<=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_NOT:
+        pcvdom_dump_write(ctxt, "not", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_AND:
+        pcvdom_dump_write(ctxt, "and", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_OR:
+        pcvdom_dump_write(ctxt, "or", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_IN:
+        pcvdom_dump_write(ctxt, "in", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_NOT_IN:
+        pcvdom_dump_write(ctxt, "not in", 6);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_AND:
+        pcvdom_dump_write(ctxt, "&", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_OR:
+        pcvdom_dump_write(ctxt, "|", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_INVERT:
+        pcvdom_dump_write(ctxt, "~", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_XOR:
+        pcvdom_dump_write(ctxt, "^", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_LEFT_SHIFT:
+        pcvdom_dump_write(ctxt, "<<", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_RIGHT_SHIFT:
+        pcvdom_dump_write(ctxt, ">>", 2);
+        break;
+
+     /* TODO: begin */
+    case PCVCM_NODE_TYPE_OP_CONDITIONAL:
+        pcvdom_dump_write(ctxt, "?", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_COMMA:
+        pcvdom_dump_write(ctxt, ",", 1);
+        break;
+     /* TODO: end */
+
+    case PCVCM_NODE_TYPE_OP_ASSIGN:
+        pcvdom_dump_write(ctxt, "=", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_PLUS_ASSIGN:
+        pcvdom_dump_write(ctxt, "+=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MINUS_ASSIGN:
+        pcvdom_dump_write(ctxt, "-=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MULTIPLY_ASSIGN:
+        pcvdom_dump_write(ctxt, "*=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_DIVIDE_ASSIGN:
+        pcvdom_dump_write(ctxt, "/=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MODULO_ASSIGN:
+        pcvdom_dump_write(ctxt, "%=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_FLOOR_DIV_ASSIGN:
+        pcvdom_dump_write(ctxt, "//=", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_POWER_ASSIGN:
+        pcvdom_dump_write(ctxt, "**=", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_AND_ASSIGN:
+        pcvdom_dump_write(ctxt, "&=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN:
+        pcvdom_dump_write(ctxt, "|=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN:
+        pcvdom_dump_write(ctxt, "^=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LEFT_SHIFT_ASSIGN:
+        pcvdom_dump_write(ctxt, "<<=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_RIGHT_SHIFT_ASSIGN:
+        pcvdom_dump_write(ctxt, ">>=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_INCREMENT:
+        pcvdom_dump_write(ctxt, "++", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_DECREMENT:
+        pcvdom_dump_write(ctxt, "--", 2);
+        break;
     }
 }
 
@@ -676,6 +806,136 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         break;
     case PCVCM_NODE_TYPE_OP_ADD:
         pcvdom_dump_write(ctxt, "+", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_SUB:
+        pcvdom_dump_write(ctxt, "-", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_MULTIPLY:
+        pcvdom_dump_write(ctxt, "*", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_DIVIDE:
+        pcvdom_dump_write(ctxt, "/", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_MODULO:
+        pcvdom_dump_write(ctxt, "%", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_FLOOR_DIVIDE:
+        pcvdom_dump_write(ctxt, "//", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_POWER:
+        pcvdom_dump_write(ctxt, "**", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_UNARY_PLUS:
+        pcvdom_dump_write(ctxt, "+", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_UNARY_MINUS:
+        pcvdom_dump_write(ctxt, "-", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_EQUAL:
+        pcvdom_dump_write(ctxt, "==", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_NOT_EQUAL:
+        pcvdom_dump_write(ctxt, "!=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_GREATER:
+        pcvdom_dump_write(ctxt, ">", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_GREATER_EQUAL:
+        pcvdom_dump_write(ctxt, ">=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LESS:
+        pcvdom_dump_write(ctxt, "<", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_LESS_EQUAL:
+        pcvdom_dump_write(ctxt, "<=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_NOT:
+        pcvdom_dump_write(ctxt, "not", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_AND:
+        pcvdom_dump_write(ctxt, "and", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_LOGICAL_OR:
+        pcvdom_dump_write(ctxt, "or", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_IN:
+        pcvdom_dump_write(ctxt, "in", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_NOT_IN:
+        pcvdom_dump_write(ctxt, "not in", 6);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_AND:
+        pcvdom_dump_write(ctxt, "&", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_OR:
+        pcvdom_dump_write(ctxt, "|", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_INVERT:
+        pcvdom_dump_write(ctxt, "~", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_XOR:
+        pcvdom_dump_write(ctxt, "^", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_LEFT_SHIFT:
+        pcvdom_dump_write(ctxt, "<<", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_RIGHT_SHIFT:
+        pcvdom_dump_write(ctxt, ">>", 2);
+        break;
+
+     /* TODO: begin */
+    case PCVCM_NODE_TYPE_OP_CONDITIONAL:
+        pcvdom_dump_write(ctxt, "?", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_COMMA:
+        pcvdom_dump_write(ctxt, ",", 1);
+        break;
+     /* TODO: end */
+
+    case PCVCM_NODE_TYPE_OP_ASSIGN:
+        pcvdom_dump_write(ctxt, "=", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_PLUS_ASSIGN:
+        pcvdom_dump_write(ctxt, "+=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MINUS_ASSIGN:
+        pcvdom_dump_write(ctxt, "-=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MULTIPLY_ASSIGN:
+        pcvdom_dump_write(ctxt, "*=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_DIVIDE_ASSIGN:
+        pcvdom_dump_write(ctxt, "/=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_MODULO_ASSIGN:
+        pcvdom_dump_write(ctxt, "%=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_FLOOR_DIV_ASSIGN:
+        pcvdom_dump_write(ctxt, "//=", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_POWER_ASSIGN:
+        pcvdom_dump_write(ctxt, "**=", 3);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_AND_ASSIGN:
+        pcvdom_dump_write(ctxt, "&=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN:
+        pcvdom_dump_write(ctxt, "|=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN:
+        pcvdom_dump_write(ctxt, "^=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LEFT_SHIFT_ASSIGN:
+        pcvdom_dump_write(ctxt, "<<=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_RIGHT_SHIFT_ASSIGN:
+        pcvdom_dump_write(ctxt, ">>=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_INCREMENT:
+        pcvdom_dump_write(ctxt, "++", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_DECREMENT:
+        pcvdom_dump_write(ctxt, "--", 2);
         break;
     }
 }
