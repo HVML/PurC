@@ -291,6 +291,34 @@ is_context_variable(uint32_t c)
     return false;
 }
 
+PCA_INLINE bool
+is_operator_sign(uint32_t c)
+{
+    switch (c) {
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '%':
+    case '=':
+    case '!':
+    case '>':
+    case '<':
+    case '&':
+    case '|':
+    case '~':
+    case '^':
+    case '?':
+    case ':':
+    case ',':
+    case '`':
+    case ')':
+    case '(':
+        return true;
+    }
+    return false;
+}
+
 bool
 is_unihan(uint32_t c);
 

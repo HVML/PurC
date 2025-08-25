@@ -90,7 +90,7 @@ pcvcm_node_next_child(struct pcvcm_node *node)
 
 static void
 write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
-        bool print_comma, pcvcm_node_handle handle)
+        bool print_comma, bool print_space, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = pcvcm_node_first_child(node);
     while (child) {
@@ -109,6 +109,9 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
             if (child && print_comma) {
                 pcvdom_dump_write(ctxt, ", ", 2);
             }
+            if (child && print_space) {
+                pcvdom_dump_write(ctxt, " ", 1);
+            }
         }
     }
 }
@@ -117,7 +120,7 @@ static void
 write_child_node_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
          pcvcm_node_handle handle)
 {
-    write_child_node_rwstream_ex(ctxt, node, true, handle);
+    write_child_node_rwstream_ex(ctxt, node, true, false, handle);
 }
 
 static void
@@ -369,7 +372,7 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         break;
     case PCVCM_NODE_TYPE_CJSONEE:
         pcvdom_dump_write(ctxt, "{{ ", 3);
-        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        write_child_node_rwstream_ex(ctxt, node, false, false, handle);
         pcvdom_dump_write(ctxt, " }}", 3);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
@@ -385,6 +388,14 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         pcvdom_dump_write(ctxt, "`", 1);
         write_child_node_rwstream(ctxt, node, handle);
         pcvdom_dump_write(ctxt, "`", 1);
+        break;
+    case PCVCM_NODE_TYPE_OPERATOR_EXPRESSION:
+        pcvdom_dump_write(ctxt, "(", 1);
+        write_child_node_rwstream_ex(ctxt, node, false, true, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_ADD:
+        pcvdom_dump_write(ctxt, "+", 1);
         break;
     }
 }
@@ -635,7 +646,7 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
     case PCVCM_NODE_TYPE_CJSONEE:
     {
         pcvdom_dump_write(ctxt, "{{ ", 3);
-        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        write_child_node_rwstream_ex(ctxt, node, false, false, handle);
         pcvdom_dump_write(ctxt, " }}", 3);
         break;
     }
@@ -653,10 +664,18 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
     case PCVCM_NODE_TYPE_CONSTANT:
     {
         pcvdom_dump_write(ctxt, "`", 1);
-        write_child_node_rwstream_ex(ctxt, node, false, handle);
+        write_child_node_rwstream_ex(ctxt, node, false, false, handle);
         pcvdom_dump_write(ctxt, "`", 1);
         break;
     }
+
+    case PCVCM_NODE_TYPE_OPERATOR_EXPRESSION:
+        pcvdom_dump_write(ctxt, "(", 1);
+        write_child_node_rwstream_ex(ctxt, node, false, true, handle);
+        pcvdom_dump_write(ctxt, ")", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_ADD:
+        pcvdom_dump_write(ctxt, "+", 1);
         break;
     }
 }
