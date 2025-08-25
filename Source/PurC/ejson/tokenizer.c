@@ -65,7 +65,13 @@
 #define tkz_prev_token()      tkz_stack_prev_token(parser->tkz_stack)
 
 #define tkz_stack_push(c) do {                                              \
-    if (!pcejson_tkz_stack_push(parser, c)) {                               \
+    if (!pcejson_tkz_stack_push(parser, c, -1)) {                           \
+        return -1;                                                          \
+    }                                                                       \
+} while(false)
+
+#define tkz_stack_push_ex(c, pos) do {                                      \
+    if (!pcejson_tkz_stack_push(parser, c, pos)) {                          \
         return -1;                                                          \
     }                                                                       \
 } while(false)
@@ -351,7 +357,7 @@ update_tkz_stack(struct pcejson *parser)
 }
 
 static struct pcejson_token *
-token_stack_push(struct pcejson *parser, uint32_t type)
+token_stack_push(struct pcejson *parser, uint32_t type, int32_t pos)
 {
     struct pcejson_token_stack *stack = parser->tkz_stack;
     struct pcejson_token *token = pcejson_token_new(type);
@@ -555,6 +561,25 @@ token_stack_push(struct pcejson *parser, uint32_t type)
         /* ` */
         token->node->position = tkz_ucs_find_reverse(parser->temp_ucs, '`');
         break;
+
+    case ETT_OP_EXPR:
+        token->node = pcvcm_node_new_operator_expression(0, NULL);
+        if (!token->node) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+        /* ( */
+        token->node->position = tkz_ucs_find_reverse(parser->temp_ucs, '(');
+        break;
+
+    case ETT_OP_EXPR_IN_FUNC:
+        token->node = pcvcm_node_new_operator_expression(0, NULL);
+        if (!token->node) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+        token->node->position = pos;
+        break;
     }
 
     pcutils_stack_push(stack->stack, (uintptr_t)token);
@@ -585,7 +610,7 @@ static bool need_update_depth(uint32_t type)
 }
 
 struct pcejson_token *
-pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type)
+pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type, int pos)
 {
     if (need_update_depth(type)) {
         if (!pcejson_inc_depth(parser)) {
@@ -602,7 +627,7 @@ pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type)
     case ETT_CALL_SETTER:
         {
             struct pcejson_token *token = tkz_stack_pop();
-            top = token_stack_push(parser, type);
+            top = token_stack_push(parser, type, pos);
             pctree_node_append_child((struct pctree_node*)top->node,
                     (struct pctree_node*)token->node);
             token->node = NULL;
@@ -611,7 +636,7 @@ pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type)
         break;
 
     default:
-        top = token_stack_push(parser, type);
+        top = token_stack_push(parser, type, pos);
         break;
     }
 
@@ -4343,7 +4368,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_ATTR_VALUE)
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
 
-BEGIN_STATE(EJSON_TKZ_STATE_OPERATOR_EXPRESSION)
+BEGIN_STATE(EJSON_TKZ_STATE_OPER_EXPR)
+    if (is_whitespace(character)) {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_OPER_EXPR);
+    }
+    if (character == '(') {
+    }
+
 END_STATE()
 
 PCEJSON_PARSER_END
