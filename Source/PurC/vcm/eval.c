@@ -673,7 +673,7 @@ static bool
 is_action_node(struct pcvcm_node *node)
 {
     return (node && (
-                node->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
+                node->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER ||
                 node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
                 node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
                 )

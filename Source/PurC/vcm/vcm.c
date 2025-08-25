@@ -56,7 +56,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE,
     PCVCM_NODE_TYPE_NAME_CONCAT_STRING,
     PCVCM_NODE_TYPE_NAME_GET_VARIABLE,
-    PCVCM_NODE_TYPE_NAME_GET_ELEMENT,
+    PCVCM_NODE_TYPE_NAME_GET_MEMBER,
     PCVCM_NODE_TYPE_NAME_CALL_GETTER,
     PCVCM_NODE_TYPE_NAME_CALL_SETTER,
     PCVCM_NODE_TYPE_NAME_CJSONEE,
@@ -489,7 +489,7 @@ struct pcvcm_node *
 pcvcm_node_new_get_element(struct pcvcm_node *variable,
         struct pcvcm_node *identifier)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_MEMBER,
             false);
     if (!n) {
         return NULL;

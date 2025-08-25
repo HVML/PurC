@@ -35,6 +35,7 @@
 #include "private/stack.h"
 #include "private/tkz-helper.h"
 #include "private/atom-buckets.h"
+#include "private/vcm.h"
 
 #include <math.h>
 
@@ -171,7 +172,7 @@ tkz_stack_prev_token(struct pcejson_token_stack *stack)
 static bool
 is_get_element(uint32_t type)
 {
-    return type == ETT_GET_ELEMENT || type == ETT_GET_ELEMENT_BY_BRACKET;
+    return type == ETT_GET_MEMBER || type == ETT_GET_MEMBER_BY_BRACKET;
 }
 
 static bool
@@ -277,7 +278,7 @@ again:
         }
         break;
 
-    case ETT_GET_ELEMENT:
+    case ETT_GET_MEMBER:
         pctree_node_append_child((struct pctree_node*)parent->node,
                 (struct pctree_node*)token->node);
         token->node = NULL;
@@ -285,7 +286,7 @@ again:
         close_token(parser, parent);  /* auto close */
         break;
 
-    case ETT_GET_ELEMENT_BY_BRACKET:
+    case ETT_GET_MEMBER_BY_BRACKET:
         pctree_node_append_child((struct pctree_node*)parent->node,
                 (struct pctree_node*)token->node);
         token->node = NULL;
@@ -423,7 +424,7 @@ token_stack_push(struct pcejson *parser, uint32_t type)
         token->node->position = tkz_ucs_find_reverse(parser->temp_ucs, '$');
         break;
 
-    case ETT_GET_ELEMENT:
+    case ETT_GET_MEMBER:
         token->node = pcvcm_node_new_get_element(NULL, NULL);
         if (!token->node) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -433,7 +434,7 @@ token_stack_push(struct pcejson *parser, uint32_t type)
         token->node->position = tkz_ucs_find_reverse(parser->temp_ucs, '.');
         break;
 
-    case ETT_GET_ELEMENT_BY_BRACKET:
+    case ETT_GET_MEMBER_BY_BRACKET:
         token->node = pcvcm_node_new_get_element(NULL, NULL);
         if (!token->node) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -569,8 +570,8 @@ failed:
 static bool need_update_depth(uint32_t type)
 {
     switch (type) {
-    case ETT_GET_ELEMENT:
-    case ETT_GET_ELEMENT_BY_BRACKET:
+    case ETT_GET_MEMBER:
+    case ETT_GET_MEMBER_BY_BRACKET:
     case ETT_CALL_GETTER:
     case ETT_CALL_SETTER:
     case ETT_OBJECT:
@@ -595,8 +596,8 @@ pcejson_tkz_stack_push(struct pcejson *parser, uint32_t type)
 
     struct pcejson_token *top = NULL;
     switch (type) {
-    case ETT_GET_ELEMENT:
-    case ETT_GET_ELEMENT_BY_BRACKET:
+    case ETT_GET_MEMBER:
+    case ETT_GET_MEMBER_BY_BRACKET:
     case ETT_CALL_GETTER:
     case ETT_CALL_SETTER:
         {
@@ -646,11 +647,11 @@ static inline bool
 is_match_right_bracket(uint32_t type)
 {
 
-    /* ETT_GET_ELEMENT is auto closed */
+    /* ETT_GET_MEMBER is auto closed */
     switch (type) {
     case ETT_ARRAY:
     case ETT_TUPLE:
-    case ETT_GET_ELEMENT_BY_BRACKET:
+    case ETT_GET_MEMBER_BY_BRACKET:
         return true;
     }
     return false;
@@ -1227,13 +1228,13 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         if (type == ETT_GET_VARIABLE || is_get_element(type)
                 || type == ETT_CALL_SETTER || type == ETT_CALL_GETTER) {
             RESET_TEMP_BUFFER();
-            tkz_stack_push(ETT_GET_ELEMENT);
+            tkz_stack_push(ETT_GET_MEMBER);
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_VARIABLE);
         }
         if (type == ETT_VALUE) {
             struct pcejson_token *prev = tkz_prev_token();
-            if (prev && prev->type == ETT_GET_ELEMENT) {
+            if (prev && prev->type == ETT_GET_MEMBER) {
                 tkz_stack_pop();
                 pcejson_token_destroy(top);
                 top = tkz_stack_pop();
@@ -1525,8 +1526,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
             if (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE) {
                 top->type = ETT_GET_VARIABLE;
             }
-            else if (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
-                top->type = ETT_GET_ELEMENT;
+            else if (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER) {
+                top->type = ETT_GET_MEMBER;
             }
             else if (top->node->type == PCVCM_NODE_TYPE_STRING) {
                 top->type = ETT_VALUE;
@@ -1594,12 +1595,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACKET)
         }
 
         if (type == ETT_GET_VARIABLE || is_get_element(type)) {
-            tkz_stack_push(ETT_GET_ELEMENT_BY_BRACKET);
+            tkz_stack_push(ETT_GET_MEMBER_BY_BRACKET);
             tkz_stack_push(ETT_VALUE);
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
 
-        tkz_stack_push(ETT_GET_ELEMENT_BY_BRACKET);
+        tkz_stack_push(ETT_GET_MEMBER_BY_BRACKET);
         tkz_stack_push(ETT_VALUE);
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
@@ -1614,7 +1615,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET);
             RETURN_AND_STOP_PARSE();
         }
-        if ((top->type == ETT_GET_ELEMENT_BY_BRACKET
+        if ((top->type == ETT_GET_MEMBER_BY_BRACKET
                     || top->type == ETT_ARRAY || top->type == ETT_TUPLE)
                 && pcejson_token_is_closed(top)) {
             update_tkz_stack(parser);
@@ -1629,7 +1630,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
 
         close_container(parser, character);
         top = tkz_stack_top();
-        if (top->type == ETT_GET_ELEMENT_BY_BRACKET
+        if (top->type == ETT_GET_MEMBER_BY_BRACKET
                 || top->type == ETT_ARRAY
                 || top->type == ETT_TUPLE) {
             ADVANCE_TO(EJSON_TKZ_STATE_RIGHT_BRACKET);
@@ -1679,8 +1680,8 @@ BEGIN_STATE(EJSON_TKA_STATE_EXCLAMATION_MARK)
             tkz_stack_push(ETT_VALUE);
             RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
         }
-        if (top->type == ETT_GET_ELEMENT ||
-                top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+        if (top->type == ETT_GET_MEMBER ||
+                top->type == ETT_GET_MEMBER_BY_BRACKET ||
                 top->type == ETT_GET_VARIABLE) {
             update_tkz_stack(parser);
         }
@@ -3801,7 +3802,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VARIABLE)
     if (!tkz_buffer_is_empty(parser->temp_buffer)) {
         if (tkz_buffer_is_int(parser->temp_buffer)) {
             struct pcejson_token *prev = tkz_prev_token();
-            if (prev && (prev->type == ETT_GET_ELEMENT)) {
+            if (prev && (prev->type == ETT_GET_MEMBER)) {
                 SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
                 RETURN_AND_STOP_PARSE();
             }
@@ -3820,8 +3821,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
     if (character == '}') {
         update_tkz_stack(parser);
         top = tkz_stack_top();
-        if (top->type == ETT_GET_ELEMENT ||
-                top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+        if (top->type == ETT_GET_MEMBER ||
+                top->type == ETT_GET_MEMBER_BY_BRACKET ||
                 top->type == ETT_GET_VARIABLE) {
             update_tkz_stack(parser);
         }
@@ -3855,8 +3856,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             struct pcejson_token *token = tkz_stack_pop();
 
             top = tkz_stack_top();
-            if (top->type == ETT_GET_ELEMENT ||
-                    top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+            if (top->type == ETT_GET_MEMBER ||
+                    top->type == ETT_GET_MEMBER_BY_BRACKET ||
                     top->type == ETT_GET_VARIABLE) {
                 pctree_node_append_child((struct pctree_node*)top->node,
                         (struct pctree_node*)token->node);
@@ -3936,8 +3937,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         }
 
         top = tkz_stack_top();
-        if (top->type == ETT_GET_ELEMENT ||
-                top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+        if (top->type == ETT_GET_MEMBER ||
+                top->type == ETT_GET_MEMBER_BY_BRACKET ||
                 top->type == ETT_GET_VARIABLE) {
             update_tkz_stack(parser);
         }
@@ -3967,8 +3968,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             tkz_stack_push(ETT_VALUE);
             RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
         }
-        if (top->type == ETT_GET_ELEMENT ||
-                top->type == ETT_GET_ELEMENT_BY_BRACKET ||
+        if (top->type == ETT_GET_MEMBER ||
+                top->type == ETT_GET_MEMBER_BY_BRACKET ||
                 top->type == ETT_GET_VARIABLE) {
             update_tkz_stack(parser);
         }

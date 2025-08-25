@@ -46,8 +46,8 @@
 #define ETT_ARRAY                       '['         /* [value, value] */
 #define ETT_TUPLE                       '!'         /* [!value, value] */
 #define ETT_GET_VARIABLE                '$'         /* $VARIABLE */
-#define ETT_GET_ELEMENT                 '.'         /* $VARIABLE.ELEMENT */
-#define ETT_GET_ELEMENT_BY_BRACKET      'E'         /* $VARIABLE[ELEMENT] */
+#define ETT_GET_MEMBER                  '.'         /* $VARIABLE.ELEMENT */
+#define ETT_GET_MEMBER_BY_BRACKET       'E'         /* $VARIABLE[ELEMENT] */
 #define ETT_CALL_GETTER                 '('         /* $VARIABLE() */
 #define ETT_CALL_SETTER                 '<'         /* $VARIABLE!(value) */
 #define ETT_PROTECT                     'P'         /* For {{ */

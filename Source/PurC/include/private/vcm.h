@@ -82,8 +82,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_FUNC_CONCAT_STRING,
 #define PCVCM_NODE_TYPE_NAME_GET_VARIABLE           "getVariable"
     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE,
-#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "getMember"
-    PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
+#define PCVCM_NODE_TYPE_NAME_GET_MEMBER             "getMember"
+    PCVCM_NODE_TYPE_FUNC_GET_MEMBER,
 #define PCVCM_NODE_TYPE_NAME_CALL_GETTER            "callGetter"
     PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
 #define PCVCM_NODE_TYPE_NAME_CALL_SETTER            "callSetter"

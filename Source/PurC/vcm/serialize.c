@@ -350,7 +350,7 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         pcvdom_dump_write(ctxt, ")", 1);
         break;
 
-    case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+    case PCVCM_NODE_TYPE_FUNC_GET_MEMBER:
         pcvdom_dump_write(ctxt, "getMember(", 10);
         write_child_node_rwstream(ctxt, node, handle);
         pcvdom_dump_write(ctxt, ")", 1);
@@ -594,7 +594,7 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         break;
     }
 
-    case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
+    case PCVCM_NODE_TYPE_FUNC_GET_MEMBER:
     {
         struct pcvcm_node *child = pcvcm_node_first_child(node);
         handle(ctxt, child, true);
