@@ -1,0 +1,1 @@
+(getVariable("name") ^ getVariable("test") & 4L | getVariable("prev") ^ 6L)

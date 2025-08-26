@@ -1,0 +1,1 @@
+($name ^ $test & 4L | $prev ^ 6L)

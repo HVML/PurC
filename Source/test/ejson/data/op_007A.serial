@@ -1,0 +1,1 @@
+(getVariable("name") + getVariable("test") - getVariable("name") * 4L / 5L % getVariable("end"))
