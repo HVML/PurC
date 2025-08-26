@@ -114,7 +114,9 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
                 (child->type != PCVCM_NODE_TYPE_OP_DECREMENT) &&
                 (child->type != PCVCM_NODE_TYPE_OP_INCREMENT) &&
                 (child->type != PCVCM_NODE_TYPE_OP_UNARY_PLUS) &&
-                (child->type != PCVCM_NODE_TYPE_OP_UNARY_MINUS)
+                (child->type != PCVCM_NODE_TYPE_OP_UNARY_MINUS) &&
+                (child->type != PCVCM_NODE_TYPE_OP_LP) &&
+                (child->type != PCVCM_NODE_TYPE_OP_RP)
                 ) {
                 pcvdom_dump_write(ctxt, " ", 1);
             }
@@ -536,6 +538,12 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
     case PCVCM_NODE_TYPE_OP_DECREMENT:
         pcvdom_dump_write(ctxt, "--", 2);
         break;
+    case PCVCM_NODE_TYPE_OP_LP:
+        pcvdom_dump_write(ctxt, "(", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_RP:
+        pcvdom_dump_write(ctxt, ")", 1);
+        break;
     }
 }
 
@@ -948,6 +956,12 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         break;
     case PCVCM_NODE_TYPE_OP_DECREMENT:
         pcvdom_dump_write(ctxt, "--", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_LP:
+        pcvdom_dump_write(ctxt, "(", 1);
+        break;
+    case PCVCM_NODE_TYPE_OP_RP:
+        pcvdom_dump_write(ctxt, ")", 1);
         break;
     }
 }
