@@ -45,7 +45,7 @@ if (NOT DEFINED CPACK_SOURCE_IGNORE_FILES)
         "\\\\.mk$"
         "\\\\.make$"
         "Makefile"
-        # - XCode (Mac)
+        # - XCode (Darwin)
         "\\\\.xcodeproj"
         "\\\\.xcconfig"
         # - GYP

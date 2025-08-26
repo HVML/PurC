@@ -4,7 +4,7 @@
 if (NOT "$ENV{WK_USE_CCACHE}" STREQUAL "NO")
     find_program(CCACHE_FOUND ccache)
     if (CCACHE_FOUND)
-        if (PORT STREQUAL "Mac")
+        if (PORT STREQUAL "Darwin")
             set(CCACHE ${CMAKE_SOURCE_DIR}/Tools/ccache/ccache-wrapper)
             set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_FOUND})
         else ()
