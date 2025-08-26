@@ -111,6 +111,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_OP_POWER_ASSIGN,
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_AND_ASSIGN,
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR_ASSIGN,
+    PCVCM_NODE_TYPE_NAME_OP_BITWISE_INVERT_ASSIGN,
     PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR_ASSIGN,
     PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT_ASSIGN,
     PCVCM_NODE_TYPE_NAME_OP_RIGHT_SHIFT_ASSIGN,
@@ -757,7 +758,7 @@ pcvcm_node_new_op_unary_minus(struct pcvcm_node *operand)
 }
 
 struct pcvcm_node *
-pcvcm_node_new_op_bitwise_not(struct pcvcm_node *operand)
+pcvcm_node_new_op_bitwise_invert(struct pcvcm_node *operand)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_INVERT, false);
     if (!n) {
@@ -1374,10 +1375,31 @@ pcvcm_node_new_op_bitwise_and_assign(struct pcvcm_node *left, struct pcvcm_node 
     return n;
 }
 
-struct pcvcm_node *
-pcvcm_node_new_op_bitwise_or_assign(struct pcvcm_node *left, struct pcvcm_node *right)
+struct pcvcm_node *pcvcm_node_new_op_bitwise_or_assign(struct pcvcm_node *left,
+                                                       struct pcvcm_node *right)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN, false);
+    struct pcvcm_node *n =
+        pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN, false);
+    if (!n) {
+        return NULL;
+    }
+
+    if (left) {
+        pcvcm_node_append_child(n, left);
+    }
+    if (right) {
+        pcvcm_node_append_child(n, right);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_bitwise_invert_assign(struct pcvcm_node *left,
+                                        struct pcvcm_node *right)
+{
+    struct pcvcm_node *n =
+        pcvcm_node_new(PCVCM_NODE_TYPE_OP_BITWISE_INVERT_ASSIGN, false);
     if (!n) {
         return NULL;
     }

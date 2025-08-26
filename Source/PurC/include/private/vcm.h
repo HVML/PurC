@@ -192,6 +192,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_OP_BITWISE_AND_ASSIGN,      // &=
 #define PCVCM_NODE_TYPE_NAME_OP_BITWISE_OR_ASSIGN   "op_bitwise_or_assign"
     PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN,       // |=
+#define PCVCM_NODE_TYPE_NAME_OP_BITWISE_INVERT_ASSIGN   "op_bitwise_invert_assign"
+    PCVCM_NODE_TYPE_OP_BITWISE_INVERT_ASSIGN,       // ~=
 #define PCVCM_NODE_TYPE_NAME_OP_BITWISE_XOR_ASSIGN  "op_bitwise_xor_assign"
     PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN,      // ^=
 #define PCVCM_NODE_TYPE_NAME_OP_LEFT_SHIFT_ASSIGN   "op_left_shift_assign"
@@ -313,7 +315,6 @@ struct pcvcm_node *pcvcm_node_new_constant(size_t nr_nodes,
 // Unary operators (1 operand)
 struct pcvcm_node *pcvcm_node_new_op_unary_plus(struct pcvcm_node *operand);
 struct pcvcm_node *pcvcm_node_new_op_unary_minus(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_not(struct pcvcm_node *operand);
 struct pcvcm_node *pcvcm_node_new_op_logical_not(struct pcvcm_node *operand);
 struct pcvcm_node *pcvcm_node_new_op_increment(struct pcvcm_node *operand);
 struct pcvcm_node *pcvcm_node_new_op_decrement(struct pcvcm_node *operand);
@@ -347,6 +348,7 @@ struct pcvcm_node *pcvcm_node_new_op_not_in(struct pcvcm_node *left, struct pcvc
 // Bitwise operators
 struct pcvcm_node *pcvcm_node_new_op_bitwise_and(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_bitwise_or(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_invert(struct pcvcm_node *operand);
 struct pcvcm_node *pcvcm_node_new_op_bitwise_xor(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_left_shift(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_right_shift(struct pcvcm_node *left, struct pcvcm_node *right);
@@ -362,6 +364,7 @@ struct pcvcm_node *pcvcm_node_new_op_floor_div_assign(struct pcvcm_node *left, s
 struct pcvcm_node *pcvcm_node_new_op_power_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_bitwise_and_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_bitwise_or_assign(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_invert_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_bitwise_xor_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_left_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_right_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);

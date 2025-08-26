@@ -241,6 +241,9 @@ struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_op_bitwise_or_assign_ops();
 
 struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_op_bitwise_invert_assign_ops();
+
+struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_op_bitwise_xor_assign_ops();
 
 struct pcvcm_eval_stack_frame_ops *

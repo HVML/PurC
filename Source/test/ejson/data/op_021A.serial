@@ -1,0 +1,1 @@
+(getVariable("name") ~= getVariable("test"))

@@ -4632,8 +4632,67 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_DIV)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_OP_DIV);
     }
+    if (character == '=') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_DIV);
+    }
+    if (tkz_buffer_end_with(parser->temp_buffer, "//=", 3)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
 
-    if (tkz_buffer_end_with(parser->temp_buffer, "//", 2)) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_floor_div_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_floor_div_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else if (tkz_buffer_end_with(parser->temp_buffer, "/=", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_divide_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_divide_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else if (tkz_buffer_end_with(parser->temp_buffer, "//", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
@@ -4969,6 +5028,42 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_AND)
     if (character == '&') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_AND);
+    }
+    if (character == '=') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_AND);
+    }
+    if (tkz_buffer_end_with(parser->temp_buffer, "&=", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_and_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_and_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
@@ -4999,7 +5094,43 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_AND)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_OR)
-    if (character == '|') {
+    if (character == '!') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_OR);
+    }
+    if (character == '=') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_OR);
+    }
+    if (tkz_buffer_end_with(parser->temp_buffer, "!=", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_or_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_or_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
@@ -5031,6 +5162,14 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_INVERT)
     if (character == '~') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_INVERT);
+    }
+    if (character == '=') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_INVERT);
+    }
+    if (tkz_buffer_end_with(parser->temp_buffer, "~=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
@@ -5039,7 +5178,8 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_INVERT)
             token->node = NULL;
             pcejson_token_destroy(token);
 
-            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_not(NULL);
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_invert_assign(NULL, NULL);
             pctree_node_append_child((struct pctree_node*)parent->node,
                     (struct pctree_node*)sign);
 
@@ -5048,7 +5188,34 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_INVERT)
         }
         if (top && top->type == ETT_OP_EXPR &&
                    pcvcm_node_children_count(top->node) > 0) {
-            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_not(NULL);
+            struct pcvcm_node *sign =
+                pcvcm_node_new_op_bitwise_invert_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_invert(NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_invert(NULL);
             pctree_node_append_child((struct pctree_node*)top->node,
                     (struct pctree_node*)sign);
 
@@ -5062,6 +5229,40 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_XOR)
     if (character == '^') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_XOR);
+    }
+    if (character == '=') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_XOR);
+    }
+    if (tkz_buffer_end_with(parser->temp_buffer, "^=", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_xor_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_bitwise_xor_assign(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    else {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
@@ -5075,7 +5276,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_XOR)
                     (struct pctree_node*)sign);
 
             tkz_stack_push(ETT_VALUE);
-            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
         if (top && top->type == ETT_OP_EXPR &&
                    pcvcm_node_children_count(top->node) > 0) {
@@ -5084,7 +5285,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_XOR)
                     (struct pctree_node*)sign);
 
             tkz_stack_push(ETT_VALUE);
-            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);

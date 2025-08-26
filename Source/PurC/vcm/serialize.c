@@ -512,6 +512,9 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
     case PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN:
         pcvdom_dump_write(ctxt, "|=", 2);
         break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_INVERT_ASSIGN:
+        pcvdom_dump_write(ctxt, "~=", 2);
+        break;
     case PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN:
         pcvdom_dump_write(ctxt, "^=", 2);
         break;
@@ -921,6 +924,9 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         break;
     case PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN:
         pcvdom_dump_write(ctxt, "|=", 2);
+        break;
+    case PCVCM_NODE_TYPE_OP_BITWISE_INVERT_ASSIGN:
+        pcvdom_dump_write(ctxt, "~=", 2);
         break;
     case PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN:
         pcvdom_dump_write(ctxt, "^=", 2);

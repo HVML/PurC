@@ -114,6 +114,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_op_power_assign_ops,
     pcvcm_get_op_bitwise_and_assign_ops,
     pcvcm_get_op_bitwise_or_assign_ops,
+    pcvcm_get_op_bitwise_invert_assign_ops,
     pcvcm_get_op_bitwise_xor_assign_ops,
     pcvcm_get_op_left_shift_assign_ops,
     pcvcm_get_op_right_shift_assign_ops,
