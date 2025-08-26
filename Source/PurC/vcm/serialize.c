@@ -109,7 +109,13 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
             if (child && print_comma) {
                 pcvdom_dump_write(ctxt, ", ", 2);
             }
-            if (child && print_space) {
+
+            if (child && print_space &&
+                (child->type != PCVCM_NODE_TYPE_OP_DECREMENT) &&
+                (child->type != PCVCM_NODE_TYPE_OP_INCREMENT) &&
+                (child->type != PCVCM_NODE_TYPE_OP_UNARY_PLUS) &&
+                (child->type != PCVCM_NODE_TYPE_OP_UNARY_MINUS)
+                ) {
                 pcvdom_dump_write(ctxt, " ", 1);
             }
         }
