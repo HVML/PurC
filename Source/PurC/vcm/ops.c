@@ -120,6 +120,8 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_op_right_shift_assign_ops,
     pcvcm_get_op_increment_ops,
     pcvcm_get_op_decrement_ops,
+    pcvcm_get_op_lp_ops,
+    pcvcm_get_op_rp_ops,
     // Special node types
     pcvcm_get_operator_expression_ops,
 };

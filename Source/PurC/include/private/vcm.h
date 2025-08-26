@@ -205,6 +205,13 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NAME_OP_DECREMENT           "op_decrement"
     PCVCM_NODE_TYPE_OP_DECREMENT,               // --
 
+
+    /* ( )*/
+#define PCVCM_NODE_TYPE_NAME_OP_LP              "op_lp"
+    PCVCM_NODE_TYPE_OP_LP,                      // (
+#define PCVCM_NODE_TYPE_NAME_OP_RP              "op_rp"
+    PCVCM_NODE_TYPE_OP_RP,                      // )
+
     // Operator expression container
 #define PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION    "operator_expression"
     PCVCM_NODE_TYPE_OPERATOR_EXPRESSION,        // (...)

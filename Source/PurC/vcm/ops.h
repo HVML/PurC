@@ -258,6 +258,12 @@ pcvcm_get_op_increment_ops();
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_op_decrement_ops();
 
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_op_lp_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_op_rp_ops();
+
 // Special node types
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_operator_expression_ops();
