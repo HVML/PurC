@@ -28,7 +28,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # -----------------------------------------------------------------------------
 set(ALL_PORTS
     Linux
-    Mac
+    Darwin
     Windows
 )
 set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")

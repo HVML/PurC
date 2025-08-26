@@ -140,7 +140,7 @@ Note that this command uses the following options:
    - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`: Specify the building type as `RelWithDebInfo`.
    You can also use `Debug`, `Release`, and other options supported by `cmake`.
    - `-DPORT=Linux`: Tell `cmake` that you are building PurC for an operating system
-   based on the Linux kernel. Use `-DPORT=Mac` if you are using macOS.
+   based on the Linux kernel. Use `-DPORT=Darwin` if you are building PurC for macOS, iOS, or iPadOS.
    - `-B build`: Generate building files in the `build/` subdirectory.
 1. `cmake --build build`: Build PurC in the `build/` subdirectory.
 1. `sudo cmake --install build`: Install PurC from the `build/` subdirectory.

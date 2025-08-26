@@ -123,7 +123,7 @@ $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build
 
 1. `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build`：更改到 `build/` 子目录，并运行 `cmake` 生成构建文件以构建 PurC。请注意，此命令使用以下选项：
    - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`：指定构建类型为`RelWithDebInfo`。你还可以使用 `Debug`、`Release` 以及 `cmake` 支持的其他选项。
-   - `-DPORT=Linux`：告诉 `cmake` 你正在为基于 Linux 内核的操作系统构建 PurC。如果你使用 macOS，请使用 `-DPORT=Mac`。
+   - `-DPORT=Linux`：告诉 `cmake` 你正在为基于 Linux 内核的操作系统构建 PurC。如果为苹果系列操作系统（如 macOS、iOS 或 iPadOS）构建 PurC，请使用 `-DPORT=Darwin`。
    - `-B build`：在 `build/` 子目录中生成构建文件。
 1. `cmake --build build`：在 `build/` 子目录中构建 PurC。
 1. `sudo cmake --install build`：在 `build/` 子目录安装 PurC。
