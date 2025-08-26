@@ -1472,6 +1472,18 @@ pcvcm_node_new_op_right_shift_assign(struct pcvcm_node *left, struct pcvcm_node 
 }
 
 struct pcvcm_node *
+pcvcm_node_new_op_lp(void)
+{
+    return  pcvcm_node_new(PCVCM_NODE_TYPE_OP_LP, false);
+}
+
+struct pcvcm_node *
+pcvcm_node_new_op_rp(void)
+{
+    return  pcvcm_node_new(PCVCM_NODE_TYPE_OP_RP, false);
+}
+
+struct pcvcm_node *
 pcvcm_node_new_op_comma(struct pcvcm_node *left, struct pcvcm_node *right)
 {
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OP_COMMA, false);

@@ -376,6 +376,9 @@ struct pcvcm_node *pcvcm_node_new_op_bitwise_xor_assign(struct pcvcm_node *left,
 struct pcvcm_node *pcvcm_node_new_op_left_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 struct pcvcm_node *pcvcm_node_new_op_right_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);
 
+struct pcvcm_node *pcvcm_node_new_op_lp(void);
+struct pcvcm_node *pcvcm_node_new_op_rp(void);
+
 // Comma operator
 struct pcvcm_node *pcvcm_node_new_op_comma(struct pcvcm_node *left, struct pcvcm_node *right);
 
@@ -431,6 +434,25 @@ pcvcm_node_last_child(struct pcvcm_node *node)
     }
     return NULL;
 }
+
+static inline struct pcvcm_node *
+pcvcm_node_next_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_next(&node->tree_node);
+    }
+    return NULL;
+}
+
+static inline struct pcvcm_node *
+pcvcm_node_prev_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_prev(&node->tree_node);
+    }
+    return NULL;
+}
+
 
 static inline void
 pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)

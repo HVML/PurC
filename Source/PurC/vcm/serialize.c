@@ -79,15 +79,6 @@ pcvdom_dump_write(struct pcvdom_dump_ctxt *ctxt, const void* buf, size_t count)
     return r;
 }
 
-static struct pcvcm_node *
-pcvcm_node_next_child(struct pcvcm_node *node)
-{
-    if (node) {
-        return (struct pcvcm_node *)pctree_node_next(&node->tree_node);
-    }
-    return NULL;
-}
-
 static void
 write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool print_comma, bool print_space, pcvcm_node_handle handle)
