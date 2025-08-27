@@ -1,0 +1,1 @@
+$DATA.call!(1L + 2L)

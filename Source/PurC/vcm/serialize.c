@@ -786,7 +786,7 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
     {
         struct pcvcm_node *child = pcvcm_node_first_child(node);
         handle(ctxt, child, true);
-        pcvdom_dump_write(ctxt, "(! ", 2);
+        pcvdom_dump_write(ctxt, "!( ", 2);
         write_sibling_node_rwstream(ctxt, child, true, handle);
         pcvdom_dump_write(ctxt, " )", 2);
         break;
