@@ -36,6 +36,7 @@
 #include "private/tkz-helper.h"
 #include "private/atom-buckets.h"
 #include "private/vcm.h"
+#include "purc-errors.h"
 
 #include <math.h>
 
@@ -4563,6 +4564,22 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_SIGN)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKA_STATE_OP_COMMA);
     }
+    if (character == 'a') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKA_STATE_OP_AND);
+    }
+    if (character == 'o') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKA_STATE_OP_OR);
+    }
+    if (character == 'n') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKA_STATE_OP_NOT);
+    }
+    if (character == 'i') {
+        RESET_TEMP_BUFFER();
+        RECONSUME_IN(EJSON_TKA_STATE_OP_IN);
+    }
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_OP_PLUS)
@@ -5767,6 +5784,279 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_COMMA)
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
+
+BEGIN_STATE(EJSON_TKA_STATE_OP_AND)
+    if (character == 'a') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'n') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "a", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'd') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "an", 2)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_whitespace(character) &&
+        tkz_buffer_equal_to(parser->temp_buffer, "and", 3)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_and(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_and(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKA_STATE_OP_OR)
+    if (character == 'o') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_OR);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'r') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "o", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_OR);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+
+    if (is_whitespace(character) &&
+        tkz_buffer_equal_to(parser->temp_buffer, "or", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_or(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_or(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
+    if (character == 'n') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+        else if (tkz_buffer_equal_to(parser->temp_buffer, "not i", 5)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'o') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "n", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 't') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "no", 2)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_whitespace(character)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "not in", 6)) {
+            if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+                struct pcejson_token *token = tkz_stack_pop();
+                struct pcejson_token *parent = tkz_stack_top();
+                pctree_node_append_child((struct pctree_node*)parent->node,
+                        (struct pctree_node*)token->node);
+                token->node = NULL;
+                pcejson_token_destroy(token);
+
+                struct pcvcm_node *sign = pcvcm_node_new_op_not_in(NULL, NULL);
+                pctree_node_append_child((struct pctree_node*)parent->node,
+                        (struct pctree_node*)sign);
+
+                tkz_stack_push(ETT_VALUE);
+                ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            }
+            if (top && top->type == ETT_OP_EXPR &&
+                    pcvcm_node_children_count(top->node) > 0) {
+                struct pcvcm_node *sign = pcvcm_node_new_op_not_in(NULL, NULL);
+                pctree_node_append_child((struct pctree_node*)top->node,
+                        (struct pctree_node*)sign);
+
+                tkz_stack_push(ETT_VALUE);
+                ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            }
+        }
+        else if (tkz_buffer_equal_to(parser->temp_buffer, "not", 3)) {
+            APPEND_TO_TEMP_BUFFER(' ');
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+        else if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+        else {
+            SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
+        }
+    }
+    if (character == 'i') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+        }
+    }
+    if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            if (token->node) {
+                pctree_node_append_child((struct pctree_node *)parent->node,
+                                         (struct pctree_node *)token->node);
+            }
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_not(NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_logical_not(NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_TKA_STATE_OP_IN)
+    if (character == 'i') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_IN);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'n') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "i", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKA_STATE_OP_IN);
+        }
+
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+
+    if (is_whitespace(character) &&
+        tkz_buffer_equal_to(parser->temp_buffer, "in", 2)) {
+        if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_in(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)parent->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (top && top->type == ETT_OP_EXPR &&
+                   pcvcm_node_children_count(top->node) > 0) {
+            struct pcvcm_node *sign = pcvcm_node_new_op_in(NULL, NULL);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
 
 PCEJSON_PARSER_END
 

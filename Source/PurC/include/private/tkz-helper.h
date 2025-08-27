@@ -314,6 +314,10 @@ is_operator_sign(uint32_t c)
     case '`':
     case ')':
     case '(':
+    case 'n':               /* not */
+    case 'i':               /* in */
+    case 'a':               /* and */
+    case 'o':               /* or */
         return true;
     }
     return false;
