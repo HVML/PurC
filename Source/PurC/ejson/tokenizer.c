@@ -1066,7 +1066,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         struct pcejson_token *prev = tkz_prev_token();
         if (top && top->type == ETT_VALUE && prev &&
             prev->type == ETT_OP_COND_ELSE) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_CONDITIONAL);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_CONDITIONAL);
         }
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
     }
@@ -1914,7 +1914,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
         }
         if (top && top->type == ETT_VALUE && prev &&
             prev->type == ETT_OP_COND_ELSE) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_CONDITIONAL);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_CONDITIONAL);
         }
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
     }
@@ -1926,12 +1926,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
 
         if (character == ':' && top && top->type == ETT_VALUE && prev &&
             prev->type == ETT_OP_COND_THEN) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_CONDITIONAL);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_CONDITIONAL);
         }
 
         if (top && top->type == ETT_VALUE && prev &&
             prev->type == ETT_OP_COND_ELSE) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_CONDITIONAL);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_CONDITIONAL);
         }
     }
     if (character == ',') {
@@ -4554,55 +4554,55 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_SIGN)
     }
     if (character == '!') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_NOT_EQUAL);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_NOT_EQUAL);
     }
     if (character == '>') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_GREATER);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_GREATER);
     }
     if (character == '<') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_LESS);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_LESS);
     }
     if (character == '&') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_AND);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_AND);
     }
     if (character == '|') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_OR);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_OR);
     }
     if (character == '~') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_INVERT);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_INVERT);
     }
     if (character == '^') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_XOR);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_XOR);
     }
     if (character == '?' || character == ':') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_CONDITIONAL);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_CONDITIONAL);
     }
     if (character == ',') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_COMMA);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
     }
     if (character == 'a') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_AND);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_AND);
     }
     if (character == 'o') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_OR);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_OR);
     }
     if (character == 'n') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_NOT);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_NOT);
     }
     if (character == 'i') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_TKA_STATE_OP_IN);
+        RECONSUME_IN(EJSON_TKZ_STATE_OP_IN);
     }
 END_STATE()
 
@@ -5187,14 +5187,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_NOT_EQUAL)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT_EQUAL)
     if (character == '!') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_NOT_EQUAL);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT_EQUAL);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_NOT_EQUAL);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT_EQUAL);
     }
 
     if (tkz_buffer_end_with(parser->temp_buffer, "!=", 2)) {
@@ -5227,17 +5227,17 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT_EQUAL)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_GREATER)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_GREATER)
     if (character == '>') {
         if (tkz_buffer_end_with(parser->temp_buffer, ">", 1)) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_RIGHT_SHIFT);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_RIGHT_SHIFT);
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_GREATER);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_GREATER);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_GREATER);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_GREATER);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, ">=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5295,17 +5295,17 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_GREATER)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_LESS)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_LESS)
     if (character == '<') {
         if (tkz_buffer_end_with(parser->temp_buffer, "<", 1)) {
-            RECONSUME_IN(EJSON_TKA_STATE_OP_BITWISE_LEFT_SHIFT);
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_BITWISE_LEFT_SHIFT);
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_LESS);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_LESS);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_LESS);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_LESS);
     }
 
     if (tkz_buffer_end_with(parser->temp_buffer, "<=", 2)) {
@@ -5364,14 +5364,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_LESS)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_AND)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_AND)
     if (character == '&') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_AND);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_AND);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_AND);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_AND);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, "&=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5431,14 +5431,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_AND)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_OR)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_OR)
     if (character == '|') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_OR);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_OR);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_OR);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_OR);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, "!=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5500,14 +5500,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_OR)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_INVERT)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_INVERT)
     if (character == '~') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_INVERT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_INVERT);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_INVERT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_INVERT);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, "~=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5567,14 +5567,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_INVERT)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_XOR)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_XOR)
     if (character == '^') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_XOR);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_XOR);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_XOR);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_XOR);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, "^=", 2)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5632,14 +5632,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_XOR)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_LEFT_SHIFT)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_LEFT_SHIFT)
     if (character == '<') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_LEFT_SHIFT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_LEFT_SHIFT);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_LEFT_SHIFT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_LEFT_SHIFT);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, "<<=", 3)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5697,14 +5697,14 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_LEFT_SHIFT)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_RIGHT_SHIFT)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_BITWISE_RIGHT_SHIFT)
     if (character == '>') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_RIGHT_SHIFT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_RIGHT_SHIFT);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_TKA_STATE_OP_BITWISE_RIGHT_SHIFT);
+        ADVANCE_TO(EJSON_TKZ_STATE_OP_BITWISE_RIGHT_SHIFT);
     }
     if (tkz_buffer_end_with(parser->temp_buffer, ">>=", 3)) {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
@@ -5764,7 +5764,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_BITWISE_RIGHT_SHIFT)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_CONDITIONAL)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_CONDITIONAL)
     if (character == '?') {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
@@ -5848,7 +5848,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_CONDITIONAL)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_COMMA)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_COMMA)
     if (character == ',') {
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
@@ -5879,11 +5879,11 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_COMMA)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_AND)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_AND)
     if (character == 'a') {
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -5892,7 +5892,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_AND)
     if (character == 'n') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "a", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -5901,7 +5901,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_AND)
     if (character == 'd') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "an", 2)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_AND);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -5938,11 +5938,11 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_AND)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_OR)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_OR)
     if (character == 'o') {
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_OR);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_OR);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -5951,7 +5951,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_OR)
     if (character == 'r') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "o", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_OR);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_OR);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -5990,15 +5990,15 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_OR)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT)
     if (character == 'n') {
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
         else if (tkz_buffer_equal_to(parser->temp_buffer, "not i", 5)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -6007,7 +6007,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
     if (character == 'o') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "n", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -6016,7 +6016,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
     if (character == 't') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "no", 2)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -6051,10 +6051,10 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
         }
         else if (tkz_buffer_equal_to(parser->temp_buffer, "not", 3)) {
             APPEND_TO_TEMP_BUFFER(' ');
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
         else if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
         else {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -6064,7 +6064,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
     if (character == 'i') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_NOT);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
     }
     if (tkz_buffer_equal_to(parser->temp_buffer, "not ", 4)) {
@@ -6099,11 +6099,11 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_NOT)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKA_STATE_OP_IN)
+BEGIN_STATE(EJSON_TKZ_STATE_OP_IN)
     if (character == 'i') {
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_IN);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_IN);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -6112,7 +6112,7 @@ BEGIN_STATE(EJSON_TKA_STATE_OP_IN)
     if (character == 'n') {
         if (tkz_buffer_equal_to(parser->temp_buffer, "i", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_TKA_STATE_OP_IN);
+            ADVANCE_TO(EJSON_TKZ_STATE_OP_IN);
         }
 
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
