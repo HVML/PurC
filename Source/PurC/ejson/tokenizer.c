@@ -4646,12 +4646,21 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_PLUS)
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
-            pctree_node_append_child((struct pctree_node*)parent->node,
-                    (struct pctree_node*)token->node);
+            if (token->node) {
+                pctree_node_append_child((struct pctree_node*)parent->node,
+                        (struct pctree_node*)token->node);
+            }
             token->node = NULL;
             pcejson_token_destroy(token);
 
-            struct pcvcm_node *sign = pcvcm_node_new_op_add(NULL, NULL);
+            struct pcvcm_node *sign = NULL;
+            struct pcvcm_node *last = pcvcm_node_last_child(parent->node);
+            if (!last || last->type == PCVCM_NODE_TYPE_OP_LP) {
+                sign = pcvcm_node_new_op_unary_plus(NULL);
+            }
+            else {
+                sign = pcvcm_node_new_op_add(NULL, NULL);
+            }
             pctree_node_append_child((struct pctree_node*)parent->node,
                     (struct pctree_node*)sign);
 
@@ -4738,12 +4747,22 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_MINUS)
         if (top && top->type != ETT_OP_EXPR && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
             struct pcejson_token *parent = tkz_stack_top();
-            pctree_node_append_child((struct pctree_node*)parent->node,
-                    (struct pctree_node*)token->node);
+            if (token->node) {
+                pctree_node_append_child((struct pctree_node *)parent->node,
+                                         (struct pctree_node *)token->node);
+            }
             token->node = NULL;
             pcejson_token_destroy(token);
 
-            struct pcvcm_node *sign = pcvcm_node_new_op_sub(NULL, NULL);
+            struct pcvcm_node *sign = NULL;
+            struct pcvcm_node *last = pcvcm_node_last_child(parent->node);
+            if (!last || last->type == PCVCM_NODE_TYPE_OP_LP) {
+                sign = pcvcm_node_new_op_unary_minus(NULL);
+            }
+            else {
+                sign = pcvcm_node_new_op_sub(NULL, NULL);
+            }
+
             pctree_node_append_child((struct pctree_node*)parent->node,
                     (struct pctree_node*)sign);
 
