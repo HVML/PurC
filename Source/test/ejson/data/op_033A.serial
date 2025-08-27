@@ -1,0 +1,1 @@
+(getVariable("a") + getVariable("b") *( getVariable("vv") + getVariable("va")))
