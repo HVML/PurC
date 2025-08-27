@@ -4496,15 +4496,15 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_OP_EXPR)
 
                 bool found_lp = false;
                 struct pcvcm_node *last = pcvcm_node_last_child(parent->node);
-                bool found_rp = false;
+                int found_rp = 0;
                 while(last) {
                     if (last->type == PCVCM_NODE_TYPE_OP_RP) {
-                        found_rp = true;
+                        found_rp++;
                     }
 
                     if (last->type == PCVCM_NODE_TYPE_OP_LP) {
                         if (found_rp) {
-                            found_rp = false;
+                            found_rp--;
                             last = pcvcm_node_prev_child(last);
                             continue;
                         }
