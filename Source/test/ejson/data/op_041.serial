@@ -1,0 +1,1 @@
+(getVariable("abc") ? 1L : 2L)

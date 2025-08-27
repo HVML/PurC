@@ -1,0 +1,1 @@
+(getVariable("abc") ? getVariable("first") : getVariable("second"))

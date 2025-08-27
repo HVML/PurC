@@ -68,6 +68,9 @@
 #define ETT_TRIPLE_DOUBLE_QUOTED        'T'         /* triple double quoted  */
 #define ETT_OP_EXPR                     'O'         /* OPERATOR EXPRESSION */
 #define ETT_OP_EXPR_IN_FUNC             'E'         /* OPERATOR EXPRESSION in getter, setter */
+#define ETT_OP_COND                     '?'         /* condition ? then : else */
+#define ETT_OP_COND_THEN                'H'         /* tHen */
+#define ETT_OP_COND_ELSE                'L'         /* eLse */
 
 
 #define PARSER_ERROR_TYPE               "HEE parse error"
