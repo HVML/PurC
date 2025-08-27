@@ -217,11 +217,13 @@ close_token(struct pcejson *parser, struct pcejson_token *token)
     pcejson_token_close(token);
 }
 
+#if 0
 static bool
 is_op_expr(struct pcejson_token *token)
 {
     return token && (token->type == ETT_OP_EXPR);
 }
+#endif
 
 static bool
 is_op_expr_in_func(struct pcejson_token *token)
@@ -1071,6 +1073,22 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         if (is_any_op_expr(prev)) {
             RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
         }
+        if (top &&
+            (top->type == ETT_CALL_GETTER || top->type == ETT_CALL_SETTER)
+            && (character != ',')) {
+            CHECK_FINISHED();
+            if (character == ')') {
+                struct pcvcm_node *last = pcvcm_node_last_child(top->node);
+                if (last && last->type == PCVCM_NODE_TYPE_OPERATOR_EXPRESSION
+                        && !last->is_closed) {
+                    RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+                }
+                else {
+                    RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
+                }
+            }
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_EXPR_IN_FUNC);
+        }
     }
     if (character == '!') {
         RECONSUME_IN(EJSON_TKA_STATE_EXCLAMATION_MARK);
@@ -1817,7 +1835,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_PARENTHESIS)
         if (top && top->type == ETT_VALUE) {
             struct pcejson_token *prev = tkz_prev_token();
             if (prev->type == ETT_CALL_GETTER || prev->type == ETT_CALL_SETTER) {
-                //xsm
                 tkz_stack_drop_top();
                 RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
             }
@@ -1852,6 +1869,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
     if (top == NULL) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
+    }
+    if (is_finished_by_callback(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     if (character == ')') {
         if ((top->type == ETT_CALL_SETTER || top->type == ETT_CALL_GETTER)
