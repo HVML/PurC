@@ -4022,8 +4022,20 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
 
             struct pcejson_token *prev = tkz_prev_token();
             if (top && top->type == ETT_VALUE && prev &&
-                prev->type == ETT_OP_COMMA) {
+                (prev->type == ETT_OP_COMMA ||
+                 prev->type == ETT_OP_EXPR_IN_FUNC)) {
                 RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
+            }
+            if (top && top->type == ETT_VALUE && prev && prev->type == ETT_OP_EXPR){
+                size_t nr = pcvcm_node_children_count(prev->node);
+                if (nr == 0) {
+                    RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
+                }
+                //xsm
+                struct pcvcm_node *last = pcvcm_node_last_child(prev->node);
+                if (last->type == PCVCM_NODE_TYPE_OP_LP) {
+                    RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
+                }
             }
             if (top == token) {
                 SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
