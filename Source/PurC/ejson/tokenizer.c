@@ -1011,6 +1011,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
                     token->node = NULL;
                     pcejson_token_destroy(token);
                 }
+                else if (top->type == ETT_OP_COMMA) {
+                    pcvcm_node_append_child(top->node, token->node);
+                    token->node = NULL;
+                    pcejson_token_destroy(token);
+                }
             }
             else {
                 tkz_stack_push(ETT_MULTI_UNQUOTED_S);
@@ -4571,6 +4576,35 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_OP_EXPR)
         }
         if (is_any_op_expr(top) &&
                    pcvcm_node_children_count(top->node) > 0) {
+            {
+                bool found_lp = false;
+                struct pcvcm_node *last = pcvcm_node_last_child(top->node);
+                int found_rp = 0;
+                while(last) {
+                    if (last->type == PCVCM_NODE_TYPE_OP_RP) {
+                        found_rp++;
+                    }
+
+                    if (last->type == PCVCM_NODE_TYPE_OP_LP) {
+                        if (found_rp) {
+                            found_rp--;
+                            last = pcvcm_node_prev_child(last);
+                            continue;
+                        }
+                        found_lp = true;
+                        break;
+                    }
+
+                    last = pcvcm_node_prev_child(last);
+                }
+                if (found_lp) {
+                    struct pcvcm_node *sign = pcvcm_node_new_op_rp();
+                    pcvcm_node_append_child(top->node, sign);
+                    tkz_stack_push(ETT_VALUE);
+                    ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+                }
+            }
+
             close_token(parser, top);
             if (is_op_expr_in_func(top)) {
                 struct pcejson_token *token = tkz_stack_pop();

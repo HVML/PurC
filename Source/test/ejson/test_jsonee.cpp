@@ -226,6 +226,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
 
     size_t nr_serial_cmp = 0;
     char* serial_cmp = pcvcm_node_serialize(root, &nr_serial_cmp);
+    fprintf(stderr, "%s serial_cmp=%s\n", get_name(), serial_cmp);
     ASSERT_EQ(nr_serial, nr_serial_cmp) << "Test Case : "<< get_name();
     ASSERT_STREQ(serial, serial_cmp) << "Test Case : "<< get_name();
 

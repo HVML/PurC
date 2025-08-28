@@ -1,1 +1,1 @@
-(1 + 2 *( getVariable("V3") + getVariable("V4") *( 5 + getVariable("V6") *( 3 + getVariable("V2")))))
+(1 + 2 * (getVariable("V3") + getVariable("V4") * (5 + getVariable("V6") * (3 + getVariable("V2")))))

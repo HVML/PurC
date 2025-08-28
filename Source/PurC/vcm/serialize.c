@@ -96,6 +96,8 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         }
         else {
             handle(ctxt, child, false);
+
+            enum pcvcm_node_type type = child->type;
             child = pcvcm_node_next_child(child);
             if (child && print_comma) {
                 pcvdom_dump_write(ctxt, ", ", 2);
@@ -104,9 +106,9 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
             if (child && print_space &&
                 (child->type != PCVCM_NODE_TYPE_OP_DECREMENT) &&
                 (child->type != PCVCM_NODE_TYPE_OP_INCREMENT) &&
-                (child->type != PCVCM_NODE_TYPE_OP_UNARY_PLUS) &&
-                (child->type != PCVCM_NODE_TYPE_OP_UNARY_MINUS) &&
-                (child->type != PCVCM_NODE_TYPE_OP_LP) &&
+                (type != PCVCM_NODE_TYPE_OP_UNARY_PLUS) &&
+                (type != PCVCM_NODE_TYPE_OP_UNARY_MINUS) &&
+                (type != PCVCM_NODE_TYPE_OP_LP) &&
                 (child->type != PCVCM_NODE_TYPE_OP_RP)
                 ) {
                 pcvdom_dump_write(ctxt, " ", 1);
