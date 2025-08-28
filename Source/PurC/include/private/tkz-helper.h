@@ -292,6 +292,18 @@ is_context_variable(uint32_t c)
 }
 
 PCA_INLINE bool
+is_unary_operators(uint32_t c)
+{
+    switch (c) {
+    case '+':
+    case '-':
+    case '~':
+        return true;
+    }
+    return false;
+}
+
+PCA_INLINE bool
 is_operator_sign(uint32_t c)
 {
     switch (c) {
