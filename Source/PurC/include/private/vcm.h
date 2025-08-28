@@ -320,70 +320,70 @@ struct pcvcm_node *pcvcm_node_new_constant(size_t nr_nodes,
         struct pcvcm_node **nodes);
 
 // Unary operators (1 operand)
-struct pcvcm_node *pcvcm_node_new_op_unary_plus(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_unary_minus(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_logical_not(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_increment(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_decrement(struct pcvcm_node *operand);
+struct pcvcm_node *pcvcm_node_new_op_unary_plus(void);
+struct pcvcm_node *pcvcm_node_new_op_unary_minus(void);
+struct pcvcm_node *pcvcm_node_new_op_logical_not(void);
+struct pcvcm_node *pcvcm_node_new_op_increment(void);
+struct pcvcm_node *pcvcm_node_new_op_decrement(void);
 
 // Binary operators (2 operands)
 // Arithmetic operators
-struct pcvcm_node *pcvcm_node_new_op_add(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_sub(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_mul(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_true_div(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_modulo(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_floor_div(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_power(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_add(void);
+struct pcvcm_node *pcvcm_node_new_op_sub(void);
+struct pcvcm_node *pcvcm_node_new_op_mul(void);
+struct pcvcm_node *pcvcm_node_new_op_true_div(void);
+struct pcvcm_node *pcvcm_node_new_op_modulo(void);
+struct pcvcm_node *pcvcm_node_new_op_floor_div(void);
+struct pcvcm_node *pcvcm_node_new_op_power(void);
 
 // Comparison operators
-struct pcvcm_node *pcvcm_node_new_op_equal(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_not_equal(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_greater(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_greater_equal(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_less(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_less_equal(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_equal(void);
+struct pcvcm_node *pcvcm_node_new_op_not_equal(void);
+struct pcvcm_node *pcvcm_node_new_op_greater(void);
+struct pcvcm_node *pcvcm_node_new_op_greater_equal(void);
+struct pcvcm_node *pcvcm_node_new_op_less(void);
+struct pcvcm_node *pcvcm_node_new_op_less_equal(void);
 
 // Logical operators
-struct pcvcm_node *pcvcm_node_new_op_logical_and(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_logical_or(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_logical_and(void);
+struct pcvcm_node *pcvcm_node_new_op_logical_or(void);
 
 // Membership operators
-struct pcvcm_node *pcvcm_node_new_op_in(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_not_in(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_in(void);
+struct pcvcm_node *pcvcm_node_new_op_not_in(void);
 
 // Bitwise operators
-struct pcvcm_node *pcvcm_node_new_op_bitwise_and(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_or(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_invert(struct pcvcm_node *operand);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_xor(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_left_shift(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_right_shift(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_and(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_or(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_invert(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_xor(void);
+struct pcvcm_node *pcvcm_node_new_op_left_shift(void);
+struct pcvcm_node *pcvcm_node_new_op_right_shift(void);
 
 // Assignment operators
-struct pcvcm_node *pcvcm_node_new_op_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_plus_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_minus_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_multiply_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_divide_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_modulo_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_floor_div_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_power_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_and_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_or_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_invert_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_bitwise_xor_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_left_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);
-struct pcvcm_node *pcvcm_node_new_op_right_shift_assign(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_plus_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_minus_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_multiply_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_divide_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_modulo_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_floor_div_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_power_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_and_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_or_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_invert_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_bitwise_xor_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_left_shift_assign(void);
+struct pcvcm_node *pcvcm_node_new_op_right_shift_assign(void);
 
 struct pcvcm_node *pcvcm_node_new_op_lp(void);
 struct pcvcm_node *pcvcm_node_new_op_rp(void);
 
 // Comma operator
-struct pcvcm_node *pcvcm_node_new_op_comma(struct pcvcm_node *left, struct pcvcm_node *right);
+struct pcvcm_node *pcvcm_node_new_op_comma(void);
 
 // Ternary operators (3 operands)
-struct pcvcm_node *pcvcm_node_new_op_conditional(struct pcvcm_node *condition, struct pcvcm_node *true_expr, struct pcvcm_node *false_expr);
+struct pcvcm_node *pcvcm_node_new_op_conditional(void);
 
 // Special node types (variable operands)
 struct pcvcm_node *pcvcm_node_new_operator_expression(size_t nr_nodes, struct pcvcm_node **nodes);
