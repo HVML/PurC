@@ -3023,6 +3023,26 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
         RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
     }
 
+    if (tkz_buffer_equal_to(parser->temp_buffer, "-", 1)) {
+        if (!is_any_op_expr(prev)) {
+            struct pcejson_token *token = tkz_stack_pop();
+            struct pcejson_token *parent = tkz_stack_top();
+            pcvcm_node_append_child(parent->node, token->node);
+            token->node = NULL;
+            pcejson_token_destroy(token);
+
+            tkz_stack_push(ETT_OP_EXPR_IN_FUNC);
+            struct pcejson_token *top = tkz_stack_top();
+
+            struct pcvcm_node *sign = pcvcm_node_new_op_unary_minus(NULL);
+
+            pcvcm_node_append_child(top->node, sign);
+
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -4036,7 +4056,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
                 if (nr == 0) {
                     RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
                 }
-                //xsm
                 struct pcvcm_node *last = pcvcm_node_last_child(prev->node);
                 if (last->type == PCVCM_NODE_TYPE_OP_LP) {
                     RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
