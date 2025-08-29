@@ -581,6 +581,10 @@ pcvcm_node_destroy_callback(struct pctree_node *n,  void *data)
 {
     UNUSED_PARAM(data);
     struct pcvcm_node *node = (struct pcvcm_node*)n;
+    // Clean up private data if cleanup function is provided
+    if (node->cleanup_priv_data_fn && node->priv_data) {
+        node->cleanup_priv_data_fn(node, node->priv_data);
+    }
     if ((node->type == PCVCM_NODE_TYPE_STRING
                 || node->type == PCVCM_NODE_TYPE_BYTE_SEQUENCE
                 || node->type == PCVCM_NODE_TYPE_BIG_INT

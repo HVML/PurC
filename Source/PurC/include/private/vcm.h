@@ -229,6 +229,12 @@ enum pcvcm_node_quoted_type {
     PCVCM_NODE_QUOTED_TYPE_BACKQUOTE,
 };
 
+// Forward declaration
+struct pcvcm_node;
+
+// Function pointer type for cleaning up private data
+typedef void (*pcvcm_cleanup_priv_data_fn)(struct pcvcm_node *node, void *private_data);
+
 struct pcvcm_node {
     struct pctree_node          tree_node;
     enum pcvcm_node_type        type;
@@ -241,6 +247,10 @@ struct pcvcm_node {
     int32_t                     nr_nodes; /* nr_nodes of the tree */
     int                         int_base;
     bool                        is_closed;
+    /* Private data for different node types */
+    void                       *priv_data;
+    /*  Function to cleanup private data */
+    pcvcm_cleanup_priv_data_fn  cleanup_priv_data_fn;
     union {
         bool                    b;
         double                  d;
@@ -498,6 +508,22 @@ int pcvcm_node_min_position(struct pcvcm_node *node);
  */
 void pcvcm_node_destroy(struct pcvcm_node *root);
 
+// Functions to set and get private data
+static inline void pcvcm_node_set_private_data(struct pcvcm_node *node,
+     void *private_data, pcvcm_cleanup_priv_data_fn cleanup_fn)
+{
+    if (!node) {
+        return;
+    }
+
+    // Clean up existing private data if cleanup function exists
+    if (node->cleanup_priv_data_fn && node->priv_data) {
+        node->cleanup_priv_data_fn(node, node->priv_data);
+    }
+
+    node->priv_data = private_data;
+    node->cleanup_priv_data_fn = cleanup_fn;
+}
 
 typedef purc_variant_t(*find_var_fn) (void *ctxt, const char *name);
 
