@@ -99,9 +99,11 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NAME_CONSTANT               "constant"
     PCVCM_NODE_TYPE_CONSTANT,
 
+    PCVCM_NODE_TYPE_OP_FIRST,
+
     // Arithmetic operators
 #define PCVCM_NODE_TYPE_NAME_OP_ADD                 "op_add"
-    PCVCM_NODE_TYPE_OP_ADD,                     // +
+    PCVCM_NODE_TYPE_OP_ADD = PCVCM_NODE_TYPE_OP_FIRST, // +
 #define PCVCM_NODE_TYPE_NAME_OP_SUB                 "op_sub"
     PCVCM_NODE_TYPE_OP_SUB,                     // -
 #define PCVCM_NODE_TYPE_NAME_OP_MULTIPLY            "op_multiply"
@@ -205,12 +207,13 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NAME_OP_DECREMENT           "op_decrement"
     PCVCM_NODE_TYPE_OP_DECREMENT,               // --
 
-
     /* ( )*/
 #define PCVCM_NODE_TYPE_NAME_OP_LP              "op_lp"
     PCVCM_NODE_TYPE_OP_LP,                      // (
 #define PCVCM_NODE_TYPE_NAME_OP_RP              "op_rp"
     PCVCM_NODE_TYPE_OP_RP,                      // )
+
+    PCVCM_NODE_TYPE_OP_LAST = PCVCM_NODE_TYPE_OP_RP,
 
     // Operator expression container
 #define PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION    "operator_expression"
