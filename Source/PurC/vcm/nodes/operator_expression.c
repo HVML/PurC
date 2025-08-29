@@ -821,23 +821,40 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
     return result;
 }
 
+// Cleanup function for postfix_stack stored in priv_data
+static void cleanup_postfix_stack(struct pcvcm_node *node, void *private_data)
+{
+    UNUSED_PARAM(node);
+    struct pcutils_stack *postfix_stack = (struct pcutils_stack *)private_data;
+    if (postfix_stack) {
+        pcutils_stack_destroy(postfix_stack);
+    }
+}
+
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(name);
 
-    // Convert infix expression to postfix using Shunting Yard algorithm
-    struct pcutils_stack *postfix_stack = infix_to_postfix(ctxt, frame);
-    if (!postfix_stack) {
-        return PURC_VARIANT_INVALID;
+    struct pcutils_stack *postfix_stack = NULL;
+
+    // Check if postfix_stack is already cached in priv_data
+    if (frame->node->priv_data) {
+        postfix_stack = (struct pcutils_stack *)frame->node->priv_data;
+    } else {
+        // Convert infix expression to postfix using Shunting Yard algorithm
+        postfix_stack = infix_to_postfix(ctxt, frame);
+        if (!postfix_stack) {
+            return PURC_VARIANT_INVALID;
+        }
+
+        // Cache the postfix_stack in priv_data for reuse
+        pcvcm_node_set_private_data(frame->node, postfix_stack, cleanup_postfix_stack);
     }
 
     // Evaluate postfix expression
     purc_variant_t result = evaluate_postfix(postfix_stack, frame);
-
-    // Clean up
-    pcutils_stack_destroy(postfix_stack);
 
     return result;
 }
