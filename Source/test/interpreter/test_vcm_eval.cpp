@@ -74,6 +74,7 @@ struct find_var_ctxt {
     purc_variant_t obj_with_nobj;
 };
 
+const char *dest_case = NULL;
 
 static inline void
 push_back(std::vector<vcm_eval_test_data> &vec,
@@ -520,6 +521,7 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
     char data_path[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "test_vcm_eval_files");
+    size_t nr_dest_case = dest_case ? strlen(dest_case) : 0;
 
     if (strlen(data_path)) {
         char file_path[1024] = {0};
@@ -538,6 +540,12 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
                     char* name = strtok (trim(line), " ");
                     if (!name) {
                         continue;
+                    }
+
+                    if (nr_dest_case) {
+                        if (strncmp(name, dest_case, nr_dest_case) != 0) {
+                            continue;
+                        }
                     }
 
                     char* err = strtok (NULL, " ");
@@ -590,4 +598,13 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
 
 INSTANTIATE_TEST_SUITE_P(vcm_eval, test_vcm_eval,
         testing::ValuesIn(read_vcm_eval_test_data()));
+
+int main(int argc, char** argv)
+{
+    if (argc > 1 && strncmp(argv[1], "--gtest", 7) != 0) {
+        dest_case = argv[1];
+    }
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
 
