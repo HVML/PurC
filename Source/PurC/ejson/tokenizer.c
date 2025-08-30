@@ -4395,6 +4395,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_PARAM_STRING)
             && tkz_buffer_is_empty(parser->temp_buffer) ) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
+    if (character == '(') {
+        if (!top) {
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_EXPR);
+        }
+    }
     if (character == '}' || character == '[' || character == ']'
             || character == '(' || character == ')') {
         RESET_TEMP_BUFFER();
