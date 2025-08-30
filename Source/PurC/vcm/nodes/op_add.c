@@ -55,57 +55,10 @@ static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
-
-    // Get left and right operands
-    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    enum purc_variant_type ltype = purc_variant_get_type(left);
-    enum purc_variant_type rtype = purc_variant_get_type(right);
-
-    if ((ltype == PURC_VARIANT_TYPE_STRING ||
-         ltype == PURC_VARIANT_TYPE_BSEQUENCE) &&
-        (rtype == PURC_VARIANT_TYPE_STRING ||
-         rtype == PURC_VARIANT_TYPE_BSEQUENCE)) {
-        return purc_variant_operator_concat(left, right);
-    }
-
-    if ((ltype == PURC_VARIANT_TYPE_ARRAY || ltype == PURC_VARIANT_TYPE_TUPLE) &&
-        (rtype == PURC_VARIANT_TYPE_ARRAY || rtype == PURC_VARIANT_TYPE_TUPLE ||
-         rtype == PURC_VARIANT_TYPE_SET)) {
-        return purc_variant_operator_concat(left, right);
-    }
-
-    if (ltype == PURC_VARIANT_TYPE_OBJECT && rtype == PURC_VARIANT_TYPE_OBJECT) {
-        purc_variant_t ret = purc_variant_make_object_0();
-        if (ret == PURC_VARIANT_INVALID) {
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_object_unite(ret,left,PCVRNT_CR_METHOD_OVERWRITE);
-        purc_variant_object_unite(ret,right,PCVRNT_CR_METHOD_OVERWRITE);
-        return ret;
-    }
-
-    if ((ltype == PURC_VARIANT_TYPE_SET) && (rtype == PURC_VARIANT_TYPE_ARRAY ||
-        rtype == PURC_VARIANT_TYPE_SET || rtype == PURC_VARIANT_TYPE_TUPLE)) {
-        const char *unique_key = NULL;
-        purc_variant_set_unique_keys(left, &unique_key);
-
-        purc_variant_t ret =
-            purc_variant_make_set_by_ckey(0, unique_key, PURC_VARIANT_INVALID);
-        if (ret == PURC_VARIANT_INVALID) {
-            return PURC_VARIANT_INVALID;
-        }
-
-        purc_variant_set_unite(ret, left, PCVRNT_CR_METHOD_OVERWRITE);
-        purc_variant_set_unite(ret, right, PCVRNT_CR_METHOD_OVERWRITE);
-        return ret;
-    }
-    return purc_variant_operator_add(left, right);
+    return purc_variant_make_undefined();
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

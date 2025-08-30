@@ -26,6 +26,7 @@
 #include "purc/purc-variant.h"
 #include "hvml/hvml-token.h"
 #include "private/dvobjs.h"
+#include "private/variant.h"
 
 #include "../helpers.h"
 
@@ -463,7 +464,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN | PCVRNT_SERIALIZE_OPT_REAL_EJSON, &len_expected);
     ASSERT_GT(n, 0) << "Test Case : "<< get_name();
 
     buf[n] = 0;

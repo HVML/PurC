@@ -196,11 +196,8 @@ static bool is_right_paren(enum pcvcm_node_type type) {
 // Arithmetic operations
 static purc_variant_t evaluate_add(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement addition operation (+) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement addition operation (+) */
+    return purc_variant_operator_add(left, right);
 }
 
 static purc_variant_t evaluate_subtract(purc_variant_t left,
