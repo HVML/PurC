@@ -62,6 +62,7 @@ struct vcm_eval_test_data {
     char *name;
     char *hvml;
     char *comp;
+    char *comp_path;
     int error;
 };
 
@@ -76,15 +77,22 @@ struct find_var_ctxt {
 
 const char *dest_case = NULL;
 
-static inline void
-push_back(std::vector<vcm_eval_test_data> &vec,
-        const char *name, const char *hvml, const char *comp, int error)
+static inline void push_back(std::vector<vcm_eval_test_data> &vec,
+        const char *name, const char *hvml, const char *comp,
+        const char *comp_path, int error)
 {
     vcm_eval_test_data data;
     memset(&data, 0, sizeof(data));
     data.name = MemCollector::strdup(name);
     data.hvml = MemCollector::strdup(hvml);
-    data.comp = MemCollector::strdup(comp);
+    if (comp) {
+        data.comp = MemCollector::strdup(comp);
+        data.comp_path = NULL;
+    }
+    else {
+        data.comp = NULL;
+        data.comp_path = MemCollector::strdup(comp_path);
+    }
     data.error = error;
 
     vec.push_back(data);
@@ -122,31 +130,25 @@ protected:
     void SetUp() {
         purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
                 "vcm_eval", NULL);
-        name = GetParam().name;
-        hvml = GetParam().hvml;
-        comp = GetParam().comp;
-        error = GetParam().error;
     }
     void TearDown() {
         purc_cleanup ();
     }
     const char* get_name() {
-        return name.c_str();
+        return GetParam().name;
     }
     const char* get_hvml() {
-        return hvml.c_str();
+        return GetParam().hvml;
     }
     const char* get_comp() {
-        return comp.c_str();
+        return GetParam().comp;
+    }
+    const char* get_comp_path() {
+        return GetParam().comp_path;
     }
     int get_error() {
-        return error;
+        return GetParam().error;
     }
-private:
-    string name;
-    string hvml;
-    string comp;
-    int error;
 };
 
 #define TO_ERROR(err_name)                                 \
@@ -467,8 +469,16 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     buf[n] = 0;
     //fprintf(stderr, "buf=%s\n", buf);
     //fprintf(stderr, "com=%s\n", comp);
-    if (strcmp(comp, "#####") != 0) {
-        ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+    if (comp) {
+        if (strcmp(comp, "#####") != 0) {
+            ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
+        }
+    }
+    else {
+        const char* comp_path = get_comp_path();
+        FILE* fp = fopen(comp_path, "w");
+        fprintf(fp, "%s", buf);
+        fclose(fp);
     }
 
     purc_variant_unref(obj_with_nobj);
@@ -572,15 +582,18 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
                         ;
                     }
                     char* comp_buf = read_file (file);
-                    if (!comp_buf) {
-                        free (buf);
-                        continue;
+                    if (comp_buf) {
+                        push_back(vec, name, buf, trim(comp_buf), file, error);
+                    }
+                    else {
+                        push_back(vec, name, buf, NULL, file, error);
                     }
 
-                    push_back(vec, name, buf, trim(comp_buf), error);
 
                     free (buf);
-                    free (comp_buf);
+                    if (comp_buf) {
+                        free (comp_buf);
+                    }
                 }
             }
             free (line);
@@ -589,9 +602,9 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
     }
 
     if (vec.empty()) {
-        push_back(vec, "array", "[123]\n", "[123]", 0);
-        push_back(vec, "unquoted_key", "{key:1}\n", "{\"key\":1}", 0);
-        push_back(vec, "single_quoted_key", "{'key':'2'}\n", "{\"key\":\"2\"}", 0);
+        push_back(vec, "array", "[123]\n", "[123]", NULL, 0);
+        push_back(vec, "unquoted_key", "{key:1}\n", "{\"key\":1}", NULL, 0);
+        push_back(vec, "single_quoted_key", "{'key':'2'}\n", "{\"key\":\"2\"}", NULL, 0);
     }
     return vec;
 }
