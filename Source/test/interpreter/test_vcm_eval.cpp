@@ -603,9 +603,9 @@ std::vector<vcm_eval_test_data> read_vcm_eval_test_data()
     }
 
     if (vec.empty()) {
-        push_back(vec, "array", "[123]\n", "[123]", NULL, 0);
-        push_back(vec, "unquoted_key", "{key:1}\n", "{\"key\":1}", NULL, 0);
-        push_back(vec, "single_quoted_key", "{'key':'2'}\n", "{\"key\":\"2\"}", NULL, 0);
+        push_back(vec, "op", "(123)\n", "123", NULL, 0);
+        push_back(vec, "op_add", "(123 + 456)\n", "579", NULL, 0);
+        push_back(vec, "op_sub", "(3 - 2)\n", "1", NULL, 0);
     }
     return vec;
 }
