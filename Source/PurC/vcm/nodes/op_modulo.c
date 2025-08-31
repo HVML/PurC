@@ -40,6 +40,7 @@
 
 #include "../eval.h"
 #include "../ops.h"
+#include "purc-variant.h"
 
 static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
@@ -54,13 +55,10 @@ static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
-
-    // Get left and right operands
-    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-
-    return purc_variant_operator_mod(left, right);
+    return purc_variant_make_undefined();
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

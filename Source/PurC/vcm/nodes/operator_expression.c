@@ -203,58 +203,40 @@ static purc_variant_t evaluate_add(purc_variant_t left, purc_variant_t right)
 static purc_variant_t evaluate_subtract(purc_variant_t left,
                                         purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement subtraction operation (-) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement subtraction operation (-) */
+    return purc_variant_operator_sub(left, right);
 }
 
 static purc_variant_t evaluate_multiply(purc_variant_t left,
                                         purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement multiplication operation (*) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement multiplication operation (*) */
+    return purc_variant_operator_mul(left, right);
 }
 
 static purc_variant_t evaluate_divide(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement division operation (/) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement division operation (/) */
+    return purc_variant_operator_truediv(left, right);
 }
 
 static purc_variant_t evaluate_modulo(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement modulo operation (%) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement modulo operation (%) */
+    return purc_variant_operator_mod(left, right);
 }
 
 static purc_variant_t evaluate_floor_divide(purc_variant_t left,
                                             purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement floor division operation (//) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement floor division operation (//) */
+    return purc_variant_operator_floordiv(left, right);
 }
 
 static purc_variant_t evaluate_power(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement power operation (**) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement power operation (**) */
+    return purc_variant_operator_pow(left, right);
 }
 
 // Comparison operations
