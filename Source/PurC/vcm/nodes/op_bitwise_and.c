@@ -57,11 +57,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
-
-    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-
-    return purc_variant_operator_and(left, right);
+    return purc_variant_make_undefined();
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

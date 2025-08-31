@@ -242,100 +242,100 @@ static purc_variant_t evaluate_power(purc_variant_t left, purc_variant_t right)
 // Comparison operations
 static purc_variant_t evaluate_equal(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement equal comparison operation (==) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement equal comparison operation (==) */
+    bool ret = purc_variant_operator_eq(left, right);
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t evaluate_not_equal(purc_variant_t left,
                                          purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement not equal comparison operation (!=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement not equal comparison operation (!=) */
+    bool result = purc_variant_operator_ne(left, right);
+    return purc_variant_make_boolean(result);
 }
 
 static purc_variant_t evaluate_less(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement less than comparison operation (<) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement less than comparison operation (<) */
+    bool ret = purc_variant_operator_lt(left, right);
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t evaluate_less_equal(purc_variant_t left,
                                           purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement less than or equal comparison operation (<=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement less than or equal comparison operation (<=) */
+    bool ret = purc_variant_operator_le(left, right);
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t evaluate_greater(purc_variant_t left,
                                        purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement greater than comparison operation (>) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement greater than comparison operation (>) */
+    bool ret = purc_variant_operator_gt(left, right);
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t evaluate_greater_equal(purc_variant_t left,
                                              purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement greater than or equal comparison operation (>=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement greater than or equal comparison operation (>=) */
+    bool ret = purc_variant_operator_ge(left, right);;
+    return purc_variant_make_boolean(ret);
 }
 
 // Logical operations
 static purc_variant_t evaluate_logical_and(purc_variant_t left,
                                            purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement logical and operation (&&) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement logical and operation (and) */
+    bool ret =
+        purc_variant_operator_truth(left) && purc_variant_operator_truth(right);
+    return purc_variant_make_boolean(ret);
 }
 
 static purc_variant_t evaluate_logical_or(purc_variant_t left,
                                           purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement logical or operation (||) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement logical or operation (or) */
+    bool ret =
+        purc_variant_operator_truth(left) || purc_variant_operator_truth(right);
+
+    return purc_variant_make_boolean(ret);
+}
+
+static purc_variant_t evaluate_logical_not(purc_variant_t operand)
+{
+    /* Implement logical not operation (not) */
+    bool ret = purc_variant_operator_not(operand);
+    return purc_variant_make_boolean(ret);
 }
 
 // Membership operations
 static purc_variant_t evaluate_in(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement in membership operation (in) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement in membership operation (in) */
+
+    /* Perform the contains operation (@b in @a) for sequences and
+     * return a boolean result.
+     * purc_variant_operator_contains(purc_variant_t a, purc_variant_t b);
+     */
+    return purc_variant_operator_contains(right, left);
 }
 
 static purc_variant_t evaluate_not_in(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement not in membership operation (not_in) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement not in membership operation (not_in) */
+    purc_variant_t v = purc_variant_operator_contains(right, left);
+    if (v) {
+        purc_variant_t ret =
+            purc_variant_make_boolean(!purc_variant_operator_truth(v));
+        purc_variant_unref(v);
+        return ret;
+    }
+    return v;
 }
 
 // Comma operation
@@ -350,51 +350,42 @@ static purc_variant_t evaluate_comma(void)
 static purc_variant_t evaluate_bitwise_and(purc_variant_t left,
                                            purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement bitwise and operation (&) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement bitwise and operation (&) */
+    return purc_variant_operator_and(left, right);
 }
 
 static purc_variant_t evaluate_bitwise_or(purc_variant_t left,
                                           purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement bitwise or operation (|) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement bitwise or operation (|) */
+    return purc_variant_operator_or(left, right);
 }
 
 static purc_variant_t evaluate_bitwise_xor(purc_variant_t left,
                                            purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement bitwise xor operation (^) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement bitwise xor operation (^) */
+    return purc_variant_operator_xor(left, right);
+}
+
+static purc_variant_t evaluate_bitwise_invert(purc_variant_t operand)
+{
+    /* Implement bitwise invert operation (~) */
+    return purc_variant_operator_invert(operand);
 }
 
 static purc_variant_t evaluate_left_shift(purc_variant_t left,
                                           purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement left shift operation (<<) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement left shift operation (<<) */
+    return purc_variant_operator_lshift(left, right);
 }
 
 static purc_variant_t evaluate_right_shift(purc_variant_t left,
                                            purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement right shift operation (>>) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement right shift operation (>>) */
+    return purc_variant_operator_rshift(left, right);
 }
 
 // Ternary conditional operator
@@ -408,26 +399,14 @@ static purc_variant_t evaluate_ternary_conditional(void)
 // Unary operations
 static purc_variant_t evaluate_unary_plus(purc_variant_t operand)
 {
-    UNUSED_PARAM(operand);
-    /* TODO: Implement unary plus operation (+) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement unary plus operation (+) */
+    return purc_variant_operator_pos(operand);
 }
 
 static purc_variant_t evaluate_unary_minus(purc_variant_t operand)
 {
-    UNUSED_PARAM(operand);
-    /* TODO: Implement unary minus operation (-) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t evaluate_logical_not(purc_variant_t operand)
-{
-    UNUSED_PARAM(operand);
-    /* TODO: Implement logical not operation (!) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement unary minus operation (-) */
+    return purc_variant_operator_neg(operand);
 }
 
 // Assignment operators
@@ -498,14 +477,6 @@ static purc_variant_t evaluate_pre_decrement(purc_variant_t operand)
 {
     UNUSED_PARAM(operand);
     /* TODO: Implement pre-decrement operation (--var) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t evaluate_bitwise_invert(purc_variant_t operand)
-{
-    UNUSED_PARAM(operand);
-    /* TODO: Implement bitwise invert operation (~) */
     assert(0);
     return PURC_VARIANT_INVALID;
 }
