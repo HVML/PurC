@@ -421,47 +421,123 @@ static purc_variant_t evaluate_assign(purc_variant_t left, purc_variant_t right)
 
 static purc_variant_t evaluate_add_assign(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement add assignment operation (+=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement add assignment operation (+=) */
+
+    if (left == PURC_VARIANT_INVALID || right == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum purc_variant_type ltype = purc_variant_get_type(left);
+    enum purc_variant_type rtype = purc_variant_get_type(right);
+
+    if ((ltype == PURC_VARIANT_TYPE_STRING ||
+         ltype == PURC_VARIANT_TYPE_BSEQUENCE) &&
+        (rtype == PURC_VARIANT_TYPE_STRING ||
+         rtype == PURC_VARIANT_TYPE_BSEQUENCE)) {
+        purc_variant_operator_iconcat(left, right);
+        goto out;
+    }
+
+    if ((ltype == PURC_VARIANT_TYPE_ARRAY || ltype == PURC_VARIANT_TYPE_TUPLE) &&
+        (rtype == PURC_VARIANT_TYPE_ARRAY || rtype == PURC_VARIANT_TYPE_TUPLE ||
+         rtype == PURC_VARIANT_TYPE_SET)) {
+        purc_variant_operator_iconcat(left, right);
+        goto out;
+    }
+
+    if (ltype == PURC_VARIANT_TYPE_OBJECT && rtype == PURC_VARIANT_TYPE_OBJECT) {
+        purc_variant_object_unite(left,right,PCVRNT_CR_METHOD_OVERWRITE);
+        goto out;
+    }
+
+    if ((ltype == PURC_VARIANT_TYPE_SET) && (rtype == PURC_VARIANT_TYPE_ARRAY ||
+        rtype == PURC_VARIANT_TYPE_SET || rtype == PURC_VARIANT_TYPE_TUPLE)) {
+        purc_variant_set_unite(left, right, PCVRNT_CR_METHOD_OVERWRITE);
+        goto out;
+    }
+
+    int ret = purc_variant_operator_iadd(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+
+out:
+    return purc_variant_ref(right);
 }
 
 static purc_variant_t evaluate_sub_assign(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement subtract assignment operation (-=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement subtract assignment operation (-=) */
+    int ret = purc_variant_operator_isub(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t evaluate_mul_assign(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement multiply assignment operation (*=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement multiply assignment operation (*=) */
+    int ret = purc_variant_operator_imul(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t evaluate_div_assign(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement divide assignment operation (/=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement divide assignment operation (/=) */
+    int ret = purc_variant_operator_itruediv(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t evaluate_mod_assign(purc_variant_t left, purc_variant_t right)
 {
-    UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    /* TODO: Implement modulo assignment operation (%=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement modulo assignment operation (%=) */
+    int ret = purc_variant_operator_imod(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_floor_div_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement floor division assignment operation (//=) */
+    int ret = purc_variant_operator_ifloordiv(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_power_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement power assignment operation (**=) */
+    int ret = purc_variant_operator_ipow(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_bitwise_and_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement bitwise AND assignment operation (&=) */
+    int ret = purc_variant_operator_iand(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_bitwise_or_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement bitwise OR assignment operation (|=) */
+    int ret = purc_variant_operator_ior(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_bitwise_xor_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement bitwise XOR assignment operation (^=) */
+    int ret = purc_variant_operator_ixor(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_left_shift_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement left shift assignment operation (<<=) */
+    int ret = purc_variant_operator_ilshift(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t evaluate_right_shift_assign(purc_variant_t left, purc_variant_t right)
+{
+    /* Implement right shift assignment operation (>>=) */
+    int ret = purc_variant_operator_irshift(left, right);
+    return (ret == 0 && right) ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
 }
 
 // Increment/Decrement operators
@@ -549,6 +625,20 @@ static purc_variant_t evaluate_binary_operator(enum pcvcm_node_type op_type,
         return evaluate_div_assign(left, right);
     case PCVCM_NODE_TYPE_OP_MODULO_ASSIGN:
         return evaluate_mod_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_FLOOR_DIV_ASSIGN:
+        return evaluate_floor_div_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_POWER_ASSIGN:
+        return evaluate_power_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_BITWISE_AND_ASSIGN:
+        return evaluate_bitwise_and_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_BITWISE_OR_ASSIGN:
+        return evaluate_bitwise_or_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_BITWISE_XOR_ASSIGN:
+        return evaluate_bitwise_xor_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_LEFT_SHIFT_ASSIGN:
+        return evaluate_left_shift_assign(left, right);
+    case PCVCM_NODE_TYPE_OP_RIGHT_SHIFT_ASSIGN:
+        return evaluate_right_shift_assign(left, right);
     default:
         return PURC_VARIANT_INVALID;
     }
