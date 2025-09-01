@@ -820,6 +820,8 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
                     purc_variant_t result =
                         evaluate_unary_operator(eval_node->node->type, operand);
                     pcutils_stack_push(eval_stack, (uintptr_t)result);
+
+                    PURC_VARIANT_SAFE_CLEAR(operand);
                 } else {
                     // Binary operator
                     if (pcutils_stack_size(eval_stack) < 2) {
@@ -837,15 +839,16 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
                     purc_variant_t result = evaluate_binary_operator(
                         eval_node->node->type, left, right);
                     pcutils_stack_push(eval_stack, (uintptr_t)result);
+
+                    PURC_VARIANT_SAFE_CLEAR(left);
+                    PURC_VARIANT_SAFE_CLEAR(right);
                 }
             }
         } else {
             // Operand: get its value
             purc_variant_t value = eval_node->result;
-            if (value == PURC_VARIANT_INVALID) {
-                // If result is not available, this might be a leaf node
-                // For now, we'll use PURC_VARIANT_INVALID as placeholder
-                value = PURC_VARIANT_INVALID;
+            if (value) {
+                purc_variant_ref(value);
             }
             pcutils_stack_push(eval_stack, (uintptr_t)value);
         }
