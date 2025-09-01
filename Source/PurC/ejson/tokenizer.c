@@ -64,6 +64,7 @@
 
 #define tkz_curr_token()      pcejson_token_stack_top(parser->tkz_stack)
 #define tkz_prev_token()      tkz_stack_prev_token(parser->tkz_stack)
+#define tkz_get_token(pos)    tkz_stack_get_token(parser->tkz_stack, pos)
 
 #define tkz_stack_push(c) do {                                              \
     if (!pcejson_tkz_stack_push(parser, c, -1)) {                           \
@@ -167,13 +168,21 @@ static const uint32_t numeric_char_ref_extension_array[32] = {
 };
 
 struct pcejson_token *
-tkz_stack_prev_token(struct pcejson_token_stack *stack)
+tkz_stack_get_token(struct pcejson_token_stack *stack, int pos)
 {
+    assert(pos >= 0);
     size_t nr = pcejson_token_stack_size(stack);
-    if (nr > 1) {
-        return pcejson_token_stack_get(stack, nr - 2);
+    int idx = nr - pos - 1;
+    if (idx >= 0) {
+        return pcejson_token_stack_get(stack, idx);
     }
     return NULL;
+}
+
+struct pcejson_token *
+tkz_stack_prev_token(struct pcejson_token_stack *stack)
+{
+    return tkz_stack_get_token(stack, 1);
 }
 
 static bool
@@ -1960,6 +1969,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
             prev->type == ETT_OP_COMMA) {
             RECONSUME_IN(EJSON_TKZ_STATE_OP_COMMA);
         }
+        if (top && (top->type != ETT_VALUE)  && top->node->is_closed && prev &&
+            (prev->type == ETT_VALUE)) {
+            struct pcejson_token *token = tkz_get_token(2);
+            if (is_any_op_expr(token)) {
+                update_tkz_stack(parser);
+                RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+            }
+        }
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
     }
     if (is_operator_sign(character)) {
@@ -1985,6 +2002,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
             (top->type == ETT_CALL_GETTER || top->type == ETT_CALL_SETTER)
             && (character != ',')) {
             RECONSUME_IN(EJSON_TKZ_STATE_OP_EXPR_IN_FUNC);
+        }
+        if (top && (top->type != ETT_VALUE)  && top->node->is_closed && prev &&
+            (prev->type == ETT_VALUE)) {
+            struct pcejson_token *token = tkz_get_token(2);
+            if (is_any_op_expr(token)) {
+                update_tkz_stack(parser);
+                RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+            }
         }
     }
     if (character == ',') {
