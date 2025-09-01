@@ -54,10 +54,10 @@ static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, const char **name)
 {
-    purc_variant_t left = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    purc_variant_t right = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
-
-    return purc_variant_operator_xor(left, right);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
+    return purc_variant_make_undefined();
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {
