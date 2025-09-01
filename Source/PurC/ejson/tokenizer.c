@@ -1064,9 +1064,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
             RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
         }
         if (top &&
-            (top->type == ETT_CALL_GETTER || top->type == ETT_CALL_SETTER)
-            && (character != ',')) {
-            CHECK_FINISHED();
+            ((top->type == ETT_CALL_GETTER || top->type == ETT_CALL_SETTER) &&
+             !top->node->is_closed) &&
+            (character != ',')) {
+            if (character != '(') {
+                CHECK_FINISHED();
+            }
             if (character == ')') {
                 struct pcvcm_node *last = pcvcm_node_last_child(top->node);
                 if (last && last->type == PCVCM_NODE_TYPE_OPERATOR_EXPRESSION
