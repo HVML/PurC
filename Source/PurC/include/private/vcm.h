@@ -530,7 +530,8 @@ static inline void pcvcm_node_set_private_data(struct pcvcm_node *node,
 }
 
 typedef purc_variant_t (*find_var_fn) (void *ctxt, const char *name);
-typedef int (*bind_var_fn) (void *ctxt, const char *name, purc_variant_t val);
+typedef int (*bind_var_fn)(void *ctxt, const char *name, purc_variant_t val,
+                           bool temporarily);
 
 struct pcvcm_eval_ctxt;
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
