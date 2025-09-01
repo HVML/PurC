@@ -40,6 +40,7 @@
 
 #include "../eval.h"
 #include "../ops.h"
+#include "purc-variant.h"
 
 static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
@@ -107,6 +108,12 @@ out:
     if (ret) {
         purc_variant_ref(ret);
     }
+    else if (frame->node->extra & EXTRA_ASSIGN_FLAG) {
+        ret = purc_variant_make_undefined();
+        pcutils_map_replace_or_insert(ctxt->node_var_name_map, frame->node,
+                                      sname, NULL);
+    }
+
     return ret;
 }
 

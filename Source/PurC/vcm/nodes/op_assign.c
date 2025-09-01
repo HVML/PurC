@@ -57,10 +57,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(name);
-
-    /* FIXME */
-    purc_variant_t val = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
-    return val ? purc_variant_ref(val) : PURC_VARIANT_INVALID;
+    return purc_variant_make_undefined();
 }
 
 static struct pcvcm_eval_stack_frame_ops ops = {

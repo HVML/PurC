@@ -5301,9 +5301,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
             token->node = NULL;
             pcejson_token_destroy(token);
 
-            struct pcvcm_node *last = pcvcm_node_last_child(top->node);
+            struct pcvcm_node *last = pcvcm_node_last_child(parent->node);
             if (last) {
-                last->extra &= EXTRA_ASSIGN_FLAG;
+                last->extra |= EXTRA_ASSIGN_FLAG;
             }
 
             struct pcvcm_node *sign = pcvcm_node_new_op_assign();

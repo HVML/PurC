@@ -67,9 +67,19 @@ pcvcm_eval_ctxt_create()
         goto out;
     }
 
+    ctxt->node_var_name_map =
+        pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
     ctxt->free_on_destroy = 1;
 out:
     return ctxt;
+}
+
+static inline int
+map_visit(void *key, void *val, void *ud)
+{
+    pcutils_map *dst = (pcutils_map *)ud;
+    pcutils_map_replace_or_insert(dst, key, val, NULL);
+    return 0;
 }
 
 struct pcvcm_eval_ctxt *
@@ -94,6 +104,12 @@ pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
     ctxt->names = (const char **) malloc (nr_bytes);
     memcpy(ctxt->names, src->names, nr_bytes);
 #endif
+
+    ctxt->node_var_name_map =
+        pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
+
+    pcutils_map_traverse(src->node_var_name_map, ctxt->node_var_name_map,
+                         map_visit);
 
     ctxt->free_on_destroy = 1;
 out:
@@ -123,6 +139,8 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
             purc_variant_unref(p->args);
         }
     }
+
+    pcutils_map_destroy(ctxt->node_var_name_map);
 
     if (ctxt->free_on_destroy) {
         free(ctxt->eval_nodes);
@@ -1017,6 +1035,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->frames = frames;
         ctxt->bind_var = bind_var;
         ctxt->bind_var_ctxt = bind_var_ctxt;
+        ctxt->node_var_name_map =
+            pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
 #ifdef PCVCM_KEEP_NAME
         ctxt->names = names;
         memset(names, 0, sizeof(names));

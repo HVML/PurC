@@ -33,6 +33,7 @@
 #include "private/tree.h"
 #include "private/list.h"
 #include "private/vcm.h"
+#include "private/map.h"
 #include "purc-variant.h"
 
 //#define PCVCM_KEEP_NAME
@@ -96,6 +97,7 @@ struct pcvcm_eval_ctxt {
     void                   *find_var_ctxt;
     bind_var_fn             bind_var;
     void                   *bind_var_ctxt;
+    pcutils_map            *node_var_name_map;
 
     struct pcvcm_node      *node;
     purc_variant_t          result;

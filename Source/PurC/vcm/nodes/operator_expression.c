@@ -460,13 +460,34 @@ static purc_variant_t evaluate_unary_minus(purc_variant_t operand)
 }
 
 // Assignment operators
-static purc_variant_t evaluate_assign(purc_variant_t left, purc_variant_t right)
+static purc_variant_t evaluate_assign(struct pcvcm_eval_ctxt *ctxt,
+    purc_variant_t left, purc_variant_t right,
+    struct pcvcm_node *left_node, struct pcvcm_node *right_node)
 {
     UNUSED_PARAM(left);
     UNUSED_PARAM(right);
-    /* TODO: Implement assignment operation (=) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(left_node);
+    UNUSED_PARAM(right_node);
+
+    /* Implement assignment operation (=) */
+
+    assert(left_node->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE);
+
+    const char *name = NULL;
+    pcutils_map_entry *entry = pcutils_map_find(ctxt->node_var_name_map, left_node);
+    if (entry) {
+        name = (const char *) entry->val;
+    }
+
+    if (!name) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (ctxt->bind_var) {
+        ctxt->bind_var(ctxt, name, right, true);
+    }
+
+    return right ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t evaluate_add_assign(purc_variant_t left, purc_variant_t right)
@@ -616,9 +637,9 @@ static purc_variant_t evaluate_decrement(purc_variant_t operand)
 }
 
 // Binary operator dispatcher
-static purc_variant_t evaluate_binary_operator(enum pcvcm_node_type op_type,
-                                               purc_variant_t left,
-                                               purc_variant_t right)
+static purc_variant_t evaluate_binary_operator(struct pcvcm_eval_ctxt *ctxt,
+    enum pcvcm_node_type op_type, purc_variant_t left, purc_variant_t right,
+    struct pcvcm_node *left_node, struct pcvcm_node *right_node)
 {
     switch (op_type) {
     // Arithmetic operators
@@ -672,7 +693,7 @@ static purc_variant_t evaluate_binary_operator(enum pcvcm_node_type op_type,
         return evaluate_right_shift(left, right);
     // Assignment operators
     case PCVCM_NODE_TYPE_OP_ASSIGN:
-        return evaluate_assign(left, right);
+        return evaluate_assign(ctxt, left, right, left_node, right_node);
     case PCVCM_NODE_TYPE_OP_PLUS_ASSIGN:
         return evaluate_add_assign(left, right);
     case PCVCM_NODE_TYPE_OP_MINUS_ASSIGN:
@@ -822,8 +843,8 @@ infix_to_postfix(struct pcvcm_eval_ctxt *ctxt,
     return output_stack;
 }
 
-static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
-     struct pcvcm_eval_stack_frame *frame)
+static purc_variant_t evaluate_postfix(struct pcvcm_eval_ctxt *ctxt,
+    struct pcutils_stack *postfix_stack, struct pcvcm_eval_stack_frame *frame)
 {
     UNUSED_PARAM(frame);
     struct pcutils_stack *eval_stack =
@@ -915,8 +936,23 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
                         (purc_variant_t)pcutils_stack_top(eval_stack);
                     pcutils_stack_pop(eval_stack);
 
-                    purc_variant_t result = evaluate_binary_operator(
-                        eval_node->node->type, left, right);
+                    struct pcvcm_node *left_node = NULL;
+                    struct pcvcm_node *right_node = NULL;
+                    assert(i > 1);
+                    {
+                        struct pcvcm_eval_node *left =
+                            (struct pcvcm_eval_node *)pcutils_stack_get(
+                                postfix_stack, i - 2);
+                        left_node = left->node;
+
+                        struct pcvcm_eval_node *right =
+                            (struct pcvcm_eval_node *)pcutils_stack_get(
+                                postfix_stack, i - 1);
+                        right_node = right->node;
+                    }
+
+                    purc_variant_t result = evaluate_binary_operator(ctxt,
+                        eval_node->node->type, left, right, left_node, right_node);
                     pcutils_stack_push(eval_stack, (uintptr_t)result);
 
                     PURC_VARIANT_SAFE_CLEAR(left);
@@ -976,7 +1012,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     // Evaluate postfix expression
-    purc_variant_t result = evaluate_postfix(postfix_stack, frame);
+    purc_variant_t result = evaluate_postfix(ctxt, postfix_stack, frame);
 
     return result;
 }
