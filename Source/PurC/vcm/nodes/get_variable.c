@@ -108,8 +108,11 @@ out:
     if (ret) {
         purc_variant_ref(ret);
     }
-    else if (frame->node->extra & EXTRA_ASSIGN_FLAG) {
-        ret = purc_variant_make_undefined();
+
+    if (frame->node->extra & EXTRA_ASSIGN_FLAG) {
+        if (!ret) {
+            ret = purc_variant_make_undefined();
+        }
         pcutils_map_replace_or_insert(ctxt->node_var_name_map, frame->node,
                                       sname, NULL);
     }

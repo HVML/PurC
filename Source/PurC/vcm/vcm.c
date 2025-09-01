@@ -39,6 +39,7 @@
 #include "private/tkz-helper.h"
 
 #include "eval.h"
+#include "wtf/Compiler.h"
 
 static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_UNDEFINED,
@@ -644,6 +645,20 @@ find_stack_var(void *ctxt, const char *name)
     return pcintr_find_named_var(ctxt, name);
 }
 
+int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
+                           bool temporarily)
+{
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(val);
+    UNUSED_PARAM(temporarily);
+
+//    struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
+//    size_t nr_name = strlen(name);
+
+    return 0;
+}
+
 purc_variant_t
 pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack, bool silently)
 {
@@ -654,8 +669,8 @@ pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack, bool silently)
             stack->vcm_ctxt = NULL;
         }
         purc_variant_t ret =
-            pcvcm_eval_ex(tree, &stack->vcm_ctxt, find_stack_var, stack, NULL,
-                          NULL, silently);
+            pcvcm_eval_ex(tree, &stack->vcm_ctxt, find_stack_var, stack,
+                          bind_stack_var, stack, silently);
         return ret;
     }
     return pcvcm_eval_ex(tree, NULL, NULL, NULL, NULL, NULL, silently);
@@ -668,7 +683,7 @@ pcvcm_eval_again(struct pcvcm_node *tree, struct pcintr_stack *stack,
     if (stack) {
         purc_variant_t ret =
             pcvcm_eval_again_ex(tree, stack->vcm_ctxt, find_stack_var, stack,
-                                NULL, NULL, silently, timeout);
+                                bind_stack_var, stack, silently, timeout);
         return ret;
     }
     return pcvcm_eval_again_ex(tree, NULL, NULL, NULL, NULL, NULL, silently,
@@ -681,8 +696,8 @@ purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
     if (stack->vcm_ctxt) {
         return pcvcm_eval_sub_expr_full(tree, stack->vcm_ctxt, args, silently);
     }
-    return pcvcm_eval_full(tree, &stack->vcm_ctxt, args,
-                find_stack_var, stack, NULL, NULL, silently);
+    return pcvcm_eval_full(tree, &stack->vcm_ctxt, args, find_stack_var, stack,
+                           bind_stack_var, stack, silently);
 }
 
 purc_variant_t
