@@ -403,16 +403,16 @@ TEST(vcm, again)
     ASSERT_NE(nv, nullptr);
 
     struct pcvcm_eval_ctxt *ctxt = NULL;
-    purc_variant_t v = pcvcm_eval_ex((struct pcvcm_node*)tree, &ctxt,
-            find_var, nv, false);
+    purc_variant_t v = pcvcm_eval_ex((struct pcvcm_node *)tree, &ctxt, find_var,
+            nv, NULL, NULL, false);
     ASSERT_EQ(v, PURC_VARIANT_INVALID);
     ASSERT_NE(ctxt, nullptr);
 
     int err = purc_get_last_error();
     ASSERT_EQ(err, PURC_ERROR_AGAIN);
 
-    v =  pcvcm_eval_again_ex((struct pcvcm_node *)tree,
-        ctxt, find_var, nv, false, false);
+    v = pcvcm_eval_again_ex((struct pcvcm_node *)tree,
+            ctxt, find_var, nv, NULL, NULL, false, false);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
 
     enum purc_variant_type type = purc_variant_get_type(v);
@@ -456,15 +456,15 @@ TEST(vcm, again_ex)
 
     struct pcvcm_eval_ctxt *ctxt = NULL;
     purc_variant_t v = pcvcm_eval_ex((struct pcvcm_node*)tree, &ctxt,
-            find_var, nv, false);
+            find_var, nv, NULL, NULL, false);
     ASSERT_EQ(v, PURC_VARIANT_INVALID);
     ASSERT_NE(ctxt, nullptr);
 
     int err = purc_get_last_error();
     ASSERT_EQ(err, PURC_ERROR_AGAIN);
 
-    v =  pcvcm_eval_again_ex((struct pcvcm_node *)tree,
-        ctxt, find_var, nv, false, false);
+    v = pcvcm_eval_again_ex((struct pcvcm_node *)tree,
+            ctxt, find_var, nv, NULL, NULL, false, false);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
 
     enum purc_variant_type type = purc_variant_get_type(v);

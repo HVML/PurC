@@ -968,6 +968,7 @@ static int i = 0;
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
@@ -1014,6 +1015,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->eval_nodes = eval_nodes;
         ctxt->nr_frames = nr_nodes;
         ctxt->frames = frames;
+        ctxt->bind_var = bind_var;
+        ctxt->bind_var_ctxt = bind_var_ctxt;
 #ifdef PCVCM_KEEP_NAME
         ctxt->names = names;
         memset(names, 0, sizeof(names));
@@ -1075,6 +1078,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently, bool timeout)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
@@ -1089,6 +1093,8 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
 
     if (ctxt) {
         ctxt->enable_log = enable_log;
+        ctxt->bind_var = bind_var;
+        ctxt->bind_var_ctxt = bind_var_ctxt;
         if (ctxt->node->nr_nodes == -1) {
             int idx = 0;
             pctree_node_level_order_traversal(&ctxt->node->tree_node, assign_idx_cb,

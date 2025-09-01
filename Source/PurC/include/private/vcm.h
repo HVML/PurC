@@ -528,17 +528,20 @@ static inline void pcvcm_node_set_private_data(struct pcvcm_node *node,
     node->cleanup_priv_data_fn = cleanup_fn;
 }
 
-typedef purc_variant_t(*find_var_fn) (void *ctxt, const char *name);
+typedef purc_variant_t (*find_var_fn) (void *ctxt, const char *name);
+typedef int (*bind_var_fn) (void *ctxt, const char *name, purc_variant_t val);
 
 struct pcvcm_eval_ctxt;
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently);
 
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently, bool timeout);
 
 struct pcintr_stack;

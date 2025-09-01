@@ -94,6 +94,8 @@ struct pcvcm_eval_ctxt {
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
+    bind_var_fn             bind_var;
+    void                   *bind_var_ctxt;
 
     struct pcvcm_node      *node;
     purc_variant_t          result;
@@ -180,11 +182,13 @@ pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently);
 
 purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently, bool timeout);
 
 purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,

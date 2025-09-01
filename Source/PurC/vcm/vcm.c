@@ -653,11 +653,12 @@ pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack, bool silently)
             pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
             stack->vcm_ctxt = NULL;
         }
-        purc_variant_t ret = pcvcm_eval_ex(tree, &stack->vcm_ctxt,
-                find_stack_var, stack, silently);
+        purc_variant_t ret =
+            pcvcm_eval_ex(tree, &stack->vcm_ctxt, find_stack_var, stack, NULL,
+                          NULL, silently);
         return ret;
     }
-    return pcvcm_eval_ex(tree, NULL, NULL, NULL, silently);
+    return pcvcm_eval_ex(tree, NULL, NULL, NULL, NULL, NULL, silently);
 }
 
 purc_variant_t
@@ -665,11 +666,13 @@ pcvcm_eval_again(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently, bool timeout)
 {
     if (stack) {
-        purc_variant_t ret = pcvcm_eval_again_ex(tree, stack->vcm_ctxt,
-                find_stack_var, stack, silently, timeout);
+        purc_variant_t ret =
+            pcvcm_eval_again_ex(tree, stack->vcm_ctxt, find_stack_var, stack,
+                                NULL, NULL, silently, timeout);
         return ret;
     }
-    return pcvcm_eval_again_ex(tree, NULL, NULL, NULL, silently, timeout);
+    return pcvcm_eval_again_ex(tree, NULL, NULL, NULL, NULL, NULL, silently,
+                               timeout);
 }
 
 purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
@@ -679,25 +682,27 @@ purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
         return pcvcm_eval_sub_expr_full(tree, stack->vcm_ctxt, args, silently);
     }
     return pcvcm_eval_full(tree, &stack->vcm_ctxt, args,
-                find_stack_var, stack, silently);
+                find_stack_var, stack, NULL, NULL, silently);
 }
 
 purc_variant_t
 pcvcm_eval_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt **ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently)
 {
     return pcvcm_eval_full(tree, ctxt, PURC_VARIANT_INVALID,
-            find_var, find_var_ctxt, silently);
+            find_var, find_var_ctxt, bind_var, bind_var_ctxt, silently);
 }
 
 purc_variant_t
 pcvcm_eval_again_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
+        bind_var_fn bind_var, void *bind_var_ctxt,
         bool silently, bool timeout)
 {
     return pcvcm_eval_again_full(tree, ctxt, find_var, find_var_ctxt,
-        silently, timeout);
+        bind_var, bind_var_ctxt, silently, timeout);
 }
 
 struct pcvcm_node *
