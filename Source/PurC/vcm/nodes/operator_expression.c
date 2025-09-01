@@ -41,6 +41,7 @@
 
 #include "../eval.h"
 #include "../ops.h"
+#include "purc-variant.h"
 
 // Operator precedence definitions
 #define PRECEDENCE_PARENTHESES      17  // () [] {}
@@ -339,11 +340,10 @@ static purc_variant_t evaluate_not_in(purc_variant_t left, purc_variant_t right)
 }
 
 // Comma operation
-static purc_variant_t evaluate_comma(void)
+static purc_variant_t evaluate_comma(purc_variant_t value)
 {
-    /* TODO: Implement comma operation (,) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement comma operation (,) */
+    return value ? purc_variant_ref(value) : PURC_VARIANT_INVALID;
 }
 
 // Bitwise operations
@@ -794,7 +794,8 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
                 pcutils_stack_push(eval_stack, (uintptr_t)result);
             } else if (eval_node->node->type == PCVCM_NODE_TYPE_OP_COMMA) {
                 // Comma operator
-                purc_variant_t result = evaluate_comma();
+                purc_variant_t value = eval_node->result;
+                purc_variant_t result = evaluate_comma(value);
                 pcutils_stack_push(eval_stack, (uintptr_t)result);
             } else {
                 // Check if it's a unary operator
