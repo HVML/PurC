@@ -855,7 +855,6 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
     purc_variant_t result = PURC_VARIANT_INVALID;
     if (pcutils_stack_size(eval_stack) == 1) {
         result = (purc_variant_t)pcutils_stack_top(eval_stack);
-        purc_variant_ref(result);
     }
 
     pcutils_stack_destroy(eval_stack);
