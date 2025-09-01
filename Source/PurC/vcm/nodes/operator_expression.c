@@ -389,11 +389,10 @@ static purc_variant_t evaluate_right_shift(purc_variant_t left,
 }
 
 // Ternary conditional operator
-static purc_variant_t evaluate_ternary_conditional(void)
+static purc_variant_t evaluate_ternary_conditional(purc_variant_t value)
 {
-    /* TODO: Implement ternary conditional operation (? :) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement ternary conditional operation (? :) */
+    return value ? purc_variant_ref(value) : PURC_VARIANT_INVALID;
 }
 
 // Unary operations
@@ -790,7 +789,8 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
         if (is_operator(eval_node->node->type)) {
             if (eval_node->node->type == PCVCM_NODE_TYPE_OP_CONDITIONAL) {
                 // Ternary operator: condition ? true_val : false_val
-                purc_variant_t result = evaluate_ternary_conditional();
+                purc_variant_t value = eval_node->result;
+                purc_variant_t result = evaluate_ternary_conditional(value);
                 pcutils_stack_push(eval_stack, (uintptr_t)result);
             } else if (eval_node->node->type == PCVCM_NODE_TYPE_OP_COMMA) {
                 // Comma operator
