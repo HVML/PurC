@@ -45,22 +45,23 @@
 
 // Operator precedence definitions
 #define PRECEDENCE_PARENTHESES      17  // () [] {}
-#define PRECEDENCE_UNARY           16  // + - ~
-#define PRECEDENCE_POWER           15  // **
-#define PRECEDENCE_MULTIPLICATIVE  14  // * / % //
-#define PRECEDENCE_ADDITIVE        13  // + -
-#define PRECEDENCE_SHIFT           12  // << >>
-#define PRECEDENCE_BITWISE_AND     11  // &
-#define PRECEDENCE_BITWISE_OR      10  // |
-#define PRECEDENCE_BITWISE_XOR      9  // ^
-#define PRECEDENCE_COMPARISON       8  // < <= > >= == !=
+#define PRECEDENCE_POSTFIX         16  // x++ x--
+#define PRECEDENCE_UNARY           15  // + - ~
+#define PRECEDENCE_POWER           14  // **
+#define PRECEDENCE_MULTIPLICATIVE  13  // * / % //
+#define PRECEDENCE_ADDITIVE        12  // + -
+#define PRECEDENCE_SHIFT           11  // << >>
+#define PRECEDENCE_BITWISE_AND     10  // &
+#define PRECEDENCE_BITWISE_OR       9  // |
+#define PRECEDENCE_BITWISE_XOR      8  // ^
+#define PRECEDENCE_COMPARISON       7  // < <= > >= == !=
 #define PRECEDENCE_MEMBERSHIP      PRECEDENCE_COMPARISON  // in not_in
-#define PRECEDENCE_LOGICAL_NOT      7  // not
-#define PRECEDENCE_LOGICAL_AND      6  // and
-#define PRECEDENCE_LOGICAL_OR       5  // or
-#define PRECEDENCE_CONDITIONAL      4  // ? :
-#define PRECEDENCE_ASSIGNMENT       3  // = += -= etc.
-#define PRECEDENCE_COMMA            2  // ,
+#define PRECEDENCE_LOGICAL_NOT      6  // not
+#define PRECEDENCE_LOGICAL_AND      5  // and
+#define PRECEDENCE_LOGICAL_OR       4  // or
+#define PRECEDENCE_CONDITIONAL      3  // ? :
+#define PRECEDENCE_ASSIGNMENT       2  // = += -= etc.
+#define PRECEDENCE_COMMA            1  // ,
 
 static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
@@ -93,6 +94,11 @@ static operator_info_t get_operator_info(enum pcvcm_node_type type) {
         // Power (exponentiation)
         case PCVCM_NODE_TYPE_OP_POWER:
             return (operator_info_t){PRECEDENCE_POWER, ASSOC_RIGHT};
+
+        // Postfix operators (x++, x--)
+        case PCVCM_NODE_TYPE_OP_INCREMENT:
+        case PCVCM_NODE_TYPE_OP_DECREMENT:
+            return (operator_info_t){PRECEDENCE_POSTFIX, ASSOC_LEFT};
 
         // Unary operators (+x, -x, ~x)
         case PCVCM_NODE_TYPE_OP_UNARY_PLUS:
@@ -540,20 +546,28 @@ static purc_variant_t evaluate_right_shift_assign(purc_variant_t left, purc_vari
 }
 
 // Increment/Decrement operators
-static purc_variant_t evaluate_pre_increment(purc_variant_t operand)
+static purc_variant_t evaluate_increment(purc_variant_t operand)
 {
-    UNUSED_PARAM(operand);
-    /* TODO: Implement pre-increment operation (++var) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement increment operation (++) */
+    purc_variant_t v = purc_variant_make_longint(1);
+
+    int ret = purc_variant_operator_iadd(operand, v);
+
+    purc_variant_unref(v);
+
+    return (ret == 0) ? purc_variant_ref(operand) : PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t evaluate_pre_decrement(purc_variant_t operand)
+static purc_variant_t evaluate_decrement(purc_variant_t operand)
 {
-    UNUSED_PARAM(operand);
-    /* TODO: Implement pre-decrement operation (--var) */
-    assert(0);
-    return PURC_VARIANT_INVALID;
+    /* Implement decrement operation (--) */
+    purc_variant_t v = purc_variant_make_longint(1);
+
+    int ret = purc_variant_operator_isub(operand, v);
+
+    purc_variant_unref(v);
+
+    return (ret == 0) ? purc_variant_ref(operand) : PURC_VARIANT_INVALID;
 }
 
 // Binary operator dispatcher
@@ -656,11 +670,6 @@ static purc_variant_t evaluate_unary_operator(enum pcvcm_node_type op_type,
         return evaluate_logical_not(operand);
     case PCVCM_NODE_TYPE_OP_BITWISE_INVERT:
         return evaluate_bitwise_invert(operand);
-    // Increment/Decrement operators
-    case PCVCM_NODE_TYPE_OP_INCREMENT:
-        return evaluate_pre_increment(operand);
-    case PCVCM_NODE_TYPE_OP_DECREMENT:
-        return evaluate_pre_decrement(operand);
     default:
         return PURC_VARIANT_INVALID;
     }
@@ -806,6 +815,11 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
                      eval_node->node->type ==
                          PCVCM_NODE_TYPE_OP_BITWISE_INVERT);
 
+                // Check if it's a postfix operator (treated as unary but handled differently)
+                bool is_postfix =
+                    (eval_node->node->type == PCVCM_NODE_TYPE_OP_INCREMENT ||
+                     eval_node->node->type == PCVCM_NODE_TYPE_OP_DECREMENT);
+
                 if (is_unary) {
                     // Unary operator
                     if (pcutils_stack_size(eval_stack) < 1) {
@@ -819,6 +833,26 @@ static purc_variant_t evaluate_postfix(struct pcutils_stack *postfix_stack,
 
                     purc_variant_t result =
                         evaluate_unary_operator(eval_node->node->type, operand);
+                    pcutils_stack_push(eval_stack, (uintptr_t)result);
+
+                    PURC_VARIANT_SAFE_CLEAR(operand);
+                } else if (is_postfix) {
+                    // Postfix operator (x++, x--)
+                    if (pcutils_stack_size(eval_stack) < 1) {
+                        pcutils_stack_destroy(eval_stack);
+                        return PURC_VARIANT_INVALID;
+                    }
+
+                    purc_variant_t operand =
+                        (purc_variant_t)pcutils_stack_top(eval_stack);
+                    pcutils_stack_pop(eval_stack);
+
+                    purc_variant_t result = PURC_VARIANT_INVALID;
+                    if (eval_node->node->type == PCVCM_NODE_TYPE_OP_INCREMENT) {
+                        result = evaluate_increment(operand);
+                    } else if (eval_node->node->type == PCVCM_NODE_TYPE_OP_DECREMENT) {
+                        result = evaluate_decrement(operand);
+                    }
                     pcutils_stack_push(eval_stack, (uintptr_t)result);
 
                     PURC_VARIANT_SAFE_CLEAR(operand);

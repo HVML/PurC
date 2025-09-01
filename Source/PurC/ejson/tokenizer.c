@@ -2902,9 +2902,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER)
+    struct pcejson_token *prev = tkz_prev_token();
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
-            || is_parse_finished(parser, character)) {
+            || is_parse_finished(parser, character) ||
+            (is_any_op_expr(prev) && is_operator_sign(character))) {
+
         if (tkz_buffer_end_with(parser->temp_buffer, "-", 1)
             || tkz_buffer_end_with(parser->temp_buffer, "E", 1)
             || tkz_buffer_end_with(parser->temp_buffer, "e", 1)) {
@@ -3044,6 +3047,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
             tkz_stack_push(ETT_VALUE);
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
+    }
+    if (is_any_op_expr(prev) && is_operator_sign(character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
