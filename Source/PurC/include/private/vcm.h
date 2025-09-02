@@ -422,6 +422,15 @@ pcvcm_node_set_closed(struct pcvcm_node *node, bool closed)
     }
 }
 
+static inline struct pcvcm_node *
+pcvcm_node_parent(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_parent(&node->tree_node);
+    }
+    return NULL;
+}
+
 static inline size_t
 pcvcm_node_children_count(struct pcvcm_node *node)
 {

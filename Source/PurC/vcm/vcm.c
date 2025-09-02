@@ -640,7 +640,7 @@ find_stack_var(void *ctxt, const char *name)
         return var;
     }
 
-    if (nr_name > 1 && name[0] == '_') {
+    if (nr_name > 1 && name[0] == '_' && last == '_') {
         enum purc_symbol_var sym = pcintr_string_to_symbol_var(name);
         if (sym != PURC_SYMBOL_VAR_MAX) {
             return pcintr_get_symbolized_var_by_enum(stack, 1, sym);

@@ -181,6 +181,16 @@ pcvcm_eval_call_nvariant_setter(purc_variant_t var,
 bool
 pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
 
+purc_variant_t
+pcvcm_eval_symbol_alias_ctnt_create(char symbol);
+
+bool
+pcvcm_eval_is_symbol_alias_ctnt(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_symbol_alias_ctnt_get_member(struct pcvcm_eval_ctxt *ctxt,
+    purc_variant_t val, purc_variant_t param);
+
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,

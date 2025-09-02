@@ -652,7 +652,7 @@ enum purc_symbol_var _to_symbol(char symbol)
     }
 }
 
-char _from_symbol(enum purc_symbol_var symbol)
+char pcintr_from_symbol(enum purc_symbol_var symbol)
 {
     switch (symbol) {
     case PURC_SYMBOL_VAR_RES:
@@ -700,6 +700,36 @@ pcintr_string_to_symbol_var(const char *str)
     } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_IDX) == 0) {
         return PURC_SYMBOL_VAR_IDX;
     } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_IPT) == 0) {
+        return PURC_SYMBOL_VAR_IPT;
+    } else {
+        purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "string:%s", str);
+        return PURC_SYMBOL_VAR_MAX;
+    }
+}
+
+enum purc_symbol_var
+pcintr_alias_to_symbol_var(const char *str)
+{
+    if (!str) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_SYMBOL_VAR_MAX;
+    }
+
+    if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_POS) == 0) {
+        return PURC_SYMBOL_VAR_POS;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_RES) == 0) {
+        return PURC_SYMBOL_VAR_RES;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_USR) == 0) {
+        return PURC_SYMBOL_VAR_USR;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_CNT) == 0) {
+        return PURC_SYMBOL_VAR_CNT;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_KEY) == 0) {
+        return PURC_SYMBOL_VAR_KEY;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_VAL) == 0) {
+        return PURC_SYMBOL_VAR_VAL;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_IDX) == 0) {
+        return PURC_SYMBOL_VAR_IDX;
+    } else if (strcmp(str, PURC_SYMBOL_VAR_ALIAS_CNT_IPT) == 0) {
         return PURC_SYMBOL_VAR_IPT;
     } else {
         purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "string:%s", str);

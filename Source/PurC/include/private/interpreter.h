@@ -448,6 +448,16 @@ enum purc_symbol_var {
 #define PURC_SYMBOL_VAR_ALIAS_IDX          "_idx_"   // %
 #define PURC_SYMBOL_VAR_ALIAS_IPT          "_ipt_"   // ~ or <
 
+/* container like $_pos[0] */
+#define PURC_SYMBOL_VAR_ALIAS_CNT_POS          "_pos"   // @
+#define PURC_SYMBOL_VAR_ALIAS_CNT_RES          "_res"   // ?
+#define PURC_SYMBOL_VAR_ALIAS_CNT_USR          "_usr"   // !
+#define PURC_SYMBOL_VAR_ALIAS_CNT_CNT          "_cnt"   // ^
+#define PURC_SYMBOL_VAR_ALIAS_CNT_KEY          "_key"   // :
+#define PURC_SYMBOL_VAR_ALIAS_CNT_VAL          "_val"   // =
+#define PURC_SYMBOL_VAR_ALIAS_CNT_IDX          "_idx"   // %
+#define PURC_SYMBOL_VAR_ALIAS_CNT_IPT          "_ipt"   // ~ or <
+
 struct pcintr_element_ops {
     // called after pushed
     void *(*after_pushed) (pcintr_stack_t stack, pcvdom_element_t pos);
@@ -742,8 +752,13 @@ int
 pcintr_set_symbolized_var_by_enum(pcintr_stack_t stack, unsigned int number,
         enum purc_symbol_var symbol, purc_variant_t val);
 
+char pcintr_from_symbol(enum purc_symbol_var symbol);
+
 enum purc_symbol_var
 pcintr_string_to_symbol_var(const char *str);
+
+enum purc_symbol_var
+pcintr_alias_to_symbol_var(const char *str);
 
 
 purc_variant_t

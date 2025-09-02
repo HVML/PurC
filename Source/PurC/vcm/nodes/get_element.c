@@ -262,6 +262,14 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         goto out;
     }
     else if (purc_variant_is_native(caller_var)) {
+        if (pcvcm_eval_is_symbol_alias_ctnt(caller_var)) {
+            ret_var = pcvcm_eval_symbol_alias_ctnt_get_member(ctxt, caller_var, param_var);
+            if (ret_var) {
+                purc_variant_ref(ret_var);
+            }
+            goto out;
+        }
+
         if (!pcvcm_eval_is_handle_as_getter(frame->node)) {
             ret_var = pcvcm_eval_native_wrapper_create(caller_var, param_var);
             goto out;

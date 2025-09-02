@@ -117,6 +117,16 @@ out:
                                       sname, NULL);
     }
 
+    if (!ret) {
+        enum purc_symbol_var sym = pcintr_alias_to_symbol_var(sname);
+        if (sym != PURC_SYMBOL_VAR_MAX) {
+            struct pcvcm_node *parent = pcvcm_node_parent(frame->node);
+            if (parent && parent->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER) {
+                ret = pcvcm_eval_symbol_alias_ctnt_create(pcintr_from_symbol(sym));
+            }
+        }
+    }
+
     return ret;
 }
 

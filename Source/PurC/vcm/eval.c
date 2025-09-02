@@ -29,6 +29,7 @@
 #include <errno.h>
 
 #include "config.h"
+#include "private/variant.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "purc-rwstream.h"
@@ -41,6 +42,7 @@
 
 #include "eval.h"
 #include "ops.h"
+#include "purc-variant.h"
 
 #define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
 
@@ -708,6 +710,68 @@ pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node)
         return false;
     }
     return true;
+}
+
+struct symbol_alias_ctnt {
+    char symbol;
+};
+
+// the callback to release the native entity.
+static void
+on_release(void  *native_entity)
+{
+    struct symbol_alias_ctnt *ctnt = (struct symbol_alias_ctnt *)native_entity;
+    free(ctnt);
+}
+
+static struct purc_native_ops ops_symbol_alias_ctnt = {
+    .on_release = on_release,
+};
+
+purc_variant_t pcvcm_eval_symbol_alias_ctnt_create(char symbol)
+{
+    struct symbol_alias_ctnt *ctnt = malloc(sizeof(*ctnt));
+    if (!ctnt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+    ctnt->symbol = symbol;
+    return purc_variant_make_native(ctnt, &ops_symbol_alias_ctnt);
+}
+
+bool pcvcm_eval_is_symbol_alias_ctnt(purc_variant_t val)
+{
+    if (!purc_variant_is_native(val)) {
+        return false;
+    }
+
+    struct purc_native_ops *ops = purc_variant_native_get_ops(val);
+    if (ops == &ops_symbol_alias_ctnt) {
+        return true;
+    }
+    return false;
+}
+
+purc_variant_t
+pcvcm_eval_symbol_alias_ctnt_get_member(struct pcvcm_eval_ctxt *ctxt,
+    purc_variant_t val, purc_variant_t param)
+{
+    if (!pcvcm_eval_is_symbol_alias_ctnt(val)) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct symbol_alias_ctnt *ctnt = (struct symbol_alias_ctnt *)
+        purc_variant_native_get_entity(val);
+
+    uint64_t u64;
+    bool r = purc_variant_cast_to_ulongint(param, &u64, false);
+    if (r) {
+        char str_buf[32];
+        snprintf(str_buf, sizeof(str_buf), "%llu%c", (unsigned long long)u64,
+                 ctnt->symbol);
+        return ctxt->find_var(ctxt->find_var_ctxt, str_buf);
+    }
+    return PURC_VARIANT_INVALID;
 }
 
 static bool
