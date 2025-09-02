@@ -727,17 +727,7 @@ pcintr_set_symbolized_var(pcintr_stack_t stack, unsigned int number,
         return -1;
     }
 
-    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
-    for (unsigned int i = 0; i < number; i++) {
-        frame = pcintr_stack_frame_get_parent(frame);
-    }
-
-    if (!frame) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
-    return pcintr_set_symbol_var(frame, symbol_var, val);
+    return pcintr_set_symbolized_var_by_enum(stack, number, symbol_var, val);
 }
 
 int
@@ -809,6 +799,59 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
     }
 
     return PURC_VARIANT_INVALID;
+}
+
+int
+pcintr_bind_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
+        char symbol, purc_variant_t val)
+{
+    enum purc_symbol_var symbol_var = _to_symbol(symbol);
+    if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        purc_set_error(PURC_ERROR_BAD_NAME);
+        return -1;
+    }
+
+    return pcintr_bind_anchor_symbolized_var_by_enum(stack, anchor, symbol_var, val);
+}
+
+int
+pcintr_bind_anchor_symbolized_var_by_enum(pcintr_stack_t stack, const char *anchor,
+        enum purc_symbol_var symbol, purc_variant_t val)
+{
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+
+    while (frame && frame->pos) {
+        pcvdom_element_t elem = frame->pos;
+        purc_variant_t elem_id;
+        const char *name = elem->tag_name;
+        const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+                strlen(name));
+        if (entry &&
+                (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB))) {
+            elem_id = pcvdom_element_eval_attr_val(stack, elem, ATTR_KEY_IDD_BY);
+        }
+        else {
+            elem_id = pcvdom_element_eval_attr_val(stack, elem, ATTR_KEY_ID);
+        }
+        if (!elem_id) {
+            frame = pcintr_stack_frame_get_parent(frame);
+            continue;
+        }
+
+        if (purc_variant_is_string(elem_id)) {
+            const char *id = purc_variant_get_string_const(elem_id);
+            if (id && strcmp(id, anchor) == 0) {
+                int ret = pcintr_set_symbol_var(frame, symbol, val);
+                purc_variant_unref(elem_id);
+                return ret;
+            }
+        }
+        purc_variant_unref(elem_id);
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "anchor:%s", anchor);
+    return -1;
 }
 
 static bool

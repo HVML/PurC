@@ -747,6 +747,14 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
         char symbol);
 
 int
+pcintr_bind_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
+        char symbol, purc_variant_t val);
+
+int
+pcintr_bind_anchor_symbolized_var_by_enum(pcintr_stack_t stack, const char *anchor,
+        enum purc_symbol_var symbol, purc_variant_t val);
+
+int
 pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
 
 purc_variant_t

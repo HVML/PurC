@@ -666,6 +666,17 @@ int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
         }
     }
 
+    // # + anchor + symbol
+    if (name[0] == '#') {
+        char *anchor = strndup(name + 1, nr_name - 2);
+        if (!anchor) {
+            return -1;
+        }
+        int ret = pcintr_bind_anchor_symbolized_var(stack, anchor, last, val);
+        free(anchor);
+        return ret;
+    }
+
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
 
     pcintr_bind_named_variable(stack, frame, name, PURC_VARIANT_INVALID,
