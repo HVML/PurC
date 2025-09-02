@@ -107,6 +107,35 @@ TEST(regex, is_match)
     match = pcregex_is_match("^[A-Za-z_][A-Za-z0-9_]*$", "a123a-%");
     ASSERT_EQ(match, false);
 
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "0@");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "1?");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "10!");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "100^");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", ":");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "=");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "2%");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "2!");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "2<");
+    ASSERT_EQ(match, true);
+
+    match =  pcregex_is_match("^\\d*[@?!^:=%~<]$", "2<");
+    ASSERT_EQ(match, true);
 }
 
 TEST(regex, match)

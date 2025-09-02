@@ -724,6 +724,9 @@ pcintr_get_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);
 
+bool
+pcintr_is_symbolized_var(const char *name);
+
 purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);

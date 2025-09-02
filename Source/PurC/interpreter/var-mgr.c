@@ -33,6 +33,7 @@
 #include "private/instance.h"
 #include "private/utils.h"
 #include "private/variant.h"
+#include "private/regex.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -649,6 +650,12 @@ enum purc_symbol_var _to_symbol(char symbol)
         purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "symbol:%c", symbol);
         return PURC_SYMBOL_VAR_MAX;
     }
+}
+
+bool
+pcintr_is_symbolized_var(const char *name)
+{
+    return pcregex_is_match("^\\d*[@?!^:=%~<]$", name);
 }
 
 purc_variant_t

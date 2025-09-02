@@ -620,16 +620,14 @@ find_stack_var(void *ctxt, const char *name)
     size_t nr_name = strlen(name);
     char last = name[nr_name - 1];
 
-    if (is_digit(name[0])) {
-        unsigned int number = atoi(name);
-
-        PC_ASSERT(is_digit(last) == 0);
+    if (pcintr_is_symbolized_var(name)) {
+        unsigned int number = 1;
+        if (is_digit(name[0])) {
+            number = atoi(name);
+        }
         return pcintr_get_symbolized_var(stack, number, last);
     }
 
-    if (nr_name == 1 && purc_ispunct(last)) {
-        return pcintr_get_symbolized_var(stack, 1, last);
-    }
 
     // # + anchor + symbol
     if (name[0] == '#') {
