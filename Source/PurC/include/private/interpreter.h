@@ -731,6 +731,10 @@ purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);
 
+purc_variant_t
+pcintr_get_symbolized_var_by_enum (pcintr_stack_t stack, unsigned int number,
+        enum purc_symbol_var symbol);
+
 int
 pcintr_set_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol, purc_variant_t val);

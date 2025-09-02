@@ -628,7 +628,6 @@ find_stack_var(void *ctxt, const char *name)
         return pcintr_get_symbolized_var(stack, number, last);
     }
 
-
     // # + anchor + symbol
     if (name[0] == '#') {
         char* anchor = strndup(name + 1, nr_name - 2);
@@ -639,6 +638,13 @@ find_stack_var(void *ctxt, const char *name)
                 last);
         free(anchor);
         return var;
+    }
+
+    if (nr_name > 1 && name[0] == '_') {
+        enum purc_symbol_var sym = pcintr_string_to_symbol_var(name);
+        if (sym != PURC_SYMBOL_VAR_MAX) {
+            return pcintr_get_symbolized_var_by_enum(stack, 1, sym);
+        }
     }
 
     return pcintr_find_named_var(ctxt, name);
