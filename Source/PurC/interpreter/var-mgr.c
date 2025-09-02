@@ -558,7 +558,7 @@ again:
 
     do {
         purc_variant_t tmp;
-        tmp = pcintr_get_exclamation_var(p);
+        tmp = pcintr_get_user_var(p);
         if (tmp == PURC_VARIANT_INVALID)
             break;
 
@@ -628,22 +628,22 @@ enum purc_symbol_var _to_symbol(char symbol)
 {
     switch (symbol) {
     case '?':
-        return PURC_SYMBOL_VAR_QUESTION_MARK;
+        return PURC_SYMBOL_VAR_RES;
     case '<':
     case '~':
-        return PURC_SYMBOL_VAR_LESS_THAN;
+        return PURC_SYMBOL_VAR_IPT;
     case '@':
-        return PURC_SYMBOL_VAR_AT_SIGN;
+        return PURC_SYMBOL_VAR_POS;
     case '!':
-        return PURC_SYMBOL_VAR_EXCLAMATION;
+        return PURC_SYMBOL_VAR_USR;
     case ':':
-        return PURC_SYMBOL_VAR_COLON;
+        return PURC_SYMBOL_VAR_KEY;
     case '=':
-        return PURC_SYMBOL_VAR_EQUAL;
+        return PURC_SYMBOL_VAR_VAL;
     case '%':
-        return PURC_SYMBOL_VAR_PERCENT_SIGN;
+        return PURC_SYMBOL_VAR_IDX;
     case '^':
-        return PURC_SYMBOL_VAR_CARET;
+        return PURC_SYMBOL_VAR_CNT;
     default:
         // FIXME: NotFound???
         purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "symbol:%c", symbol);
@@ -745,7 +745,7 @@ again:
 
     do {
         purc_variant_t tmp;
-        tmp = pcintr_get_exclamation_var(p);
+        tmp = pcintr_get_user_var(p);
         if (tmp == PURC_VARIANT_INVALID)
             break;
 

@@ -159,28 +159,32 @@ purc_variant_t
 pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
         enum purc_symbol_var symbol);
 
+/* @ */
 int
-pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val);
+pcintr_set_pos_var(struct pcintr_stack_frame *frame, purc_variant_t val);
 purc_variant_t
-pcintr_get_at_var(struct pcintr_stack_frame *frame);
+pcintr_get_pos_var(struct pcintr_stack_frame *frame);
 int
 pcintr_refresh_at_var(struct pcintr_stack_frame *frame);
 
+/* ? */
 int
-pcintr_set_question_var(struct pcintr_stack_frame *frame, purc_variant_t val);
+pcintr_set_result_var(struct pcintr_stack_frame *frame, purc_variant_t val);
 purc_variant_t
-pcintr_get_question_var(struct pcintr_stack_frame *frame);
+pcintr_get_result_var(struct pcintr_stack_frame *frame);
 
+/* ! */
 int
-pcintr_set_exclamation_var(struct pcintr_stack_frame *frame,
+pcintr_set_user_var(struct pcintr_stack_frame *frame,
         purc_variant_t val);
 purc_variant_t
-pcintr_get_exclamation_var(struct pcintr_stack_frame *frame);
+pcintr_get_user_var(struct pcintr_stack_frame *frame);
 
+/* % */
 int
-pcintr_inc_percent_var(struct pcintr_stack_frame *frame);
+pcintr_inc_index_var(struct pcintr_stack_frame *frame);
 purc_variant_t
-pcintr_get_percent_var(struct pcintr_stack_frame *frame);
+pcintr_get_index_var(struct pcintr_stack_frame *frame);
 
 // $<
 void

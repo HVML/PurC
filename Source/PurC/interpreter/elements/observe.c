@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -409,7 +409,7 @@ register_named_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    purc_variant_t at = pcintr_get_at_var(frame);
+    purc_variant_t at = pcintr_get_pos_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
@@ -445,7 +445,7 @@ register_native_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    purc_variant_t at = pcintr_get_at_var(frame);
+    purc_variant_t at = pcintr_get_pos_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
@@ -470,7 +470,7 @@ register_timer_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
-    purc_variant_t at = pcintr_get_at_var(frame);
+    purc_variant_t at = pcintr_get_pos_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     if (edom_element == NULL) {
@@ -510,7 +510,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     if (!regist_variant_listener(stack, on, ctxt->sub_type, &listener))
         return NULL;
 
-    purc_variant_t at = pcintr_get_at_var(frame);
+    purc_variant_t at = pcintr_get_pos_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
@@ -572,7 +572,7 @@ register_default_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
-    purc_variant_t at = pcintr_get_at_var(frame);
+    purc_variant_t at = pcintr_get_pos_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
@@ -674,7 +674,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (frame->handle_event) {
-        purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
+        purc_variant_t exclamation_var = pcintr_get_user_var(frame);
 
         ctxt->implicit_data = purc_variant_ref(exclamation_var);
 
@@ -720,7 +720,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         v = purc_variant_object_get_by_ckey_ex(exclamation_var,
                 PCINTR_EXCLAMATION_OBSERVEDCONTENT, true);
         if (v) {
-            pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+            pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CNT, v);
         }
     }
     else {
@@ -761,7 +761,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                     PCINTR_EXCLAMATION_OBSERVEDWITH, ctxt->with);
         }
 
-        purc_variant_t tmp = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+        purc_variant_t tmp = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CNT);
         if (tmp) {
             purc_variant_object_set_by_ckey(ctxt->implicit_data,
                     PCINTR_EXCLAMATION_OBSERVEDCONTENT, tmp);
@@ -880,7 +880,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (frame->handle_event) {
         if ((ctxt->msg_type && strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
                 stack->co->curator && pcintr_is_crtn_exists(stack->co->curator)) {
-            purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
+            purc_variant_t exclamation_var = pcintr_get_user_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (exclamation_var) {
                 observed = purc_variant_object_get_by_ckey_ex(exclamation_var,

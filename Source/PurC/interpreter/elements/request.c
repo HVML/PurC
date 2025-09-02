@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -131,7 +131,7 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     pcintr_stack_frame_t frame = (pcintr_stack_frame_t)data;
 
     purc_variant_t payload = msg->data;
-    pcintr_set_question_var(frame, payload);
+    pcintr_set_result_var(frame, payload);
 
     pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
@@ -380,7 +380,7 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     if (v) {
-        pcintr_set_question_var(frame, v);
+        pcintr_set_result_var(frame, v);
         purc_variant_unref(v);
     }
 
@@ -455,7 +455,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (value) {
             pcintr_coroutine_save_rdr_request(co, ctxt->with,
                     ctxt->to, ctxt->is_noreturn);
-            pcintr_set_question_var(frame, value);
+            pcintr_set_result_var(frame, value);
             purc_variant_unref(value);
         }
     }
@@ -677,7 +677,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (!ctxt->with) {
         purc_variant_t caret = pcintr_get_symbol_var(frame,
-                PURC_SYMBOL_VAR_CARET);
+                PURC_SYMBOL_VAR_CNT);
         if (caret && !purc_variant_is_undefined(caret)) {
             ctxt->with = caret;
             purc_variant_ref(ctxt->with);

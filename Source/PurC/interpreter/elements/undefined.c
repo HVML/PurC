@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -179,8 +179,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *parent_frame = pcintr_stack_frame_get_parent(
             frame);
     if (parent_frame) {
-        purc_variant_t v = pcintr_get_question_var(parent_frame);
-        pcintr_set_question_var(frame, v);
+        purc_variant_t v = pcintr_get_result_var(parent_frame);
+        pcintr_set_result_var(frame, v);
     }
 
     struct ctxt_for_undefined *ctxt = frame->ctxt;

@@ -1969,7 +1969,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         size_t op_len = 0;
         const char *op = pcutils_trim_spaces(s, &op_len);
         if (op && op[0] == '>') {
-            purc_variant_t pos = pcintr_get_at_var(frame);
+            purc_variant_t pos = pcintr_get_pos_var(frame);
             pcdoc_element_t ancestor = pcdvobjs_get_element_from_elements(pos, 0);
             char *sel = strndup(op + 1, op_len - 1);
             elems = pcdvobjs_elem_coll_query(doc, ancestor, sel);
@@ -1997,13 +1997,13 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
 out:
     if (ret == 0) {
-        pcintr_set_question_var(frame, on);
+        pcintr_set_result_var(frame, on);
     }
     else {
         int err = purc_get_last_error();
         if (frame->silently && pcinst_is_ignorable_error(err)) {
             purc_variant_t v = purc_variant_make_undefined();
-            pcintr_set_question_var(frame, v);
+            pcintr_set_result_var(frame, v);
             purc_variant_unref(v);
 
             purc_clr_error();
@@ -2342,7 +2342,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
-    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CNT);
     if (content && !purc_variant_is_undefined(content)) {
         ctxt->literal = purc_variant_ref(content);
     }
@@ -2351,7 +2351,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         struct pcintr_stack_frame* parent =
             pcintr_stack_frame_get_parent(frame);
         if (parent) {
-            purc_variant_t val = pcintr_get_question_var(parent);
+            purc_variant_t val = pcintr_get_result_var(parent);
             if (purc_variant_is_object(val)) {
                 pcintr_bind_object_members_as_temp_vars(frame, val);
             }

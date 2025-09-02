@@ -166,10 +166,10 @@ static int process_ds_as_single(pcintr_stack_t stack,
     int ret = 0;
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     assert(parent);
-    purc_variant_t origin_val = pcintr_get_question_var(parent);
+    purc_variant_t origin_val = pcintr_get_result_var(parent);
     purc_variant_ref(origin_val);
 
-    pcintr_set_question_var(parent, ctxt->on);
+    pcintr_set_result_var(parent, ctxt->on);
     if (purc_variant_is_object(ctxt->on)) {
         pcintr_bind_object_members_as_temp_vars(frame, ctxt->on);
     }
@@ -179,11 +179,11 @@ static int process_ds_as_single(pcintr_stack_t stack,
         goto out;
     }
 
-    pcintr_set_question_var(frame, val);
+    pcintr_set_result_var(frame, val);
     purc_variant_unref(val);
 
 out:
-    pcintr_set_question_var(parent, origin_val);
+    pcintr_set_result_var(parent, origin_val);
     purc_variant_unref(origin_val);
     return ret;
 }
@@ -195,7 +195,7 @@ process_ds_array(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     assert(parent);
-    purc_variant_t origin_val = pcintr_get_question_var(parent);
+    purc_variant_t origin_val = pcintr_get_result_var(parent);
     purc_variant_ref(origin_val);
 
     purc_variant_t ret_val = purc_variant_make_array_0();
@@ -207,7 +207,7 @@ process_ds_array(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     size_t nr_size = purc_variant_array_get_size(ctxt->on);
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_array_get(ctxt->on, i);
-        pcintr_set_question_var(parent, v);
+        pcintr_set_result_var(parent, v);
         if (purc_variant_is_object(v)) {
             pcintr_bind_object_members_as_temp_vars(frame, v);
         }
@@ -218,13 +218,13 @@ process_ds_array(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         purc_variant_array_append(ret_val, val);
         purc_variant_unref(val);
     }
-    pcintr_set_question_var(frame, ret_val);
+    pcintr_set_result_var(frame, ret_val);
     purc_variant_unref(ret_val);
     ret = 0;
 
 out:
     if (origin_val) {
-        pcintr_set_question_var(parent, origin_val);
+        pcintr_set_result_var(parent, origin_val);
         purc_variant_unref(origin_val);
     }
     return ret;
@@ -237,7 +237,7 @@ process_ds_set(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     assert(parent);
-    purc_variant_t origin_val = pcintr_get_question_var(parent);
+    purc_variant_t origin_val = pcintr_get_result_var(parent);
     purc_variant_ref(origin_val);
 
     const char *keys = NULL;
@@ -247,7 +247,7 @@ process_ds_set(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_set_get_by_index(ctxt->on, i);
-        pcintr_set_question_var(parent, v);
+        pcintr_set_result_var(parent, v);
         if (purc_variant_is_object(v)) {
             pcintr_bind_object_members_as_temp_vars(frame, v);
         }
@@ -287,13 +287,13 @@ process_ds_set(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
             purc_variant_unref(val);
         }
     }
-    pcintr_set_question_var(frame, ret_val);
+    pcintr_set_result_var(frame, ret_val);
     purc_variant_unref(ret_val);
     ret = 0;
 
 out:
     if (origin_val) {
-        pcintr_set_question_var(parent, origin_val);
+        pcintr_set_result_var(parent, origin_val);
         purc_variant_unref(origin_val);
     }
     return ret;
@@ -306,7 +306,7 @@ process_ds_tuple(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     assert(parent);
-    purc_variant_t origin_val = pcintr_get_question_var(parent);
+    purc_variant_t origin_val = pcintr_get_result_var(parent);
     purc_variant_ref(origin_val);
 
     size_t nr_size = purc_variant_tuple_get_size(ctxt->on);
@@ -319,7 +319,7 @@ process_ds_tuple(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
     for (size_t i = 0; i < nr_size; ++i) {
         purc_variant_t v = purc_variant_tuple_get(ctxt->on, i);
-        pcintr_set_question_var(parent, v);
+        pcintr_set_result_var(parent, v);
         if (purc_variant_is_object(v)) {
             pcintr_bind_object_members_as_temp_vars(frame, v);
         }
@@ -330,13 +330,13 @@ process_ds_tuple(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         purc_variant_tuple_set(ret_val, i, val);
         purc_variant_unref(val);
     }
-    pcintr_set_question_var(frame, ret_val);
+    pcintr_set_result_var(frame, ret_val);
     purc_variant_unref(ret_val);
     ret = 0;
 
 out:
     if (origin_val) {
-        pcintr_set_question_var(parent, origin_val);
+        pcintr_set_result_var(parent, origin_val);
         purc_variant_unref(origin_val);
     }
     return ret;
@@ -349,7 +349,7 @@ process_ds_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     int ret = -1;
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     assert(parent);
-    purc_variant_t origin_val = pcintr_get_question_var(parent);
+    purc_variant_t origin_val = pcintr_get_result_var(parent);
     purc_variant_ref(origin_val);
 
     purc_variant_t ret_val = purc_variant_make_object_0();
@@ -362,7 +362,7 @@ process_ds_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
     purc_variant_t k, v;
     foreach_in_variant_object_safe_x(ctxt->on, k, v)
-        pcintr_set_question_var(parent, v);
+        pcintr_set_result_var(parent, v);
         if (purc_variant_is_object(v)) {
             pcintr_bind_object_members_as_temp_vars(frame, v);
         }
@@ -374,13 +374,13 @@ process_ds_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         purc_variant_unref(val);
     end_foreach;
 
-    pcintr_set_question_var(frame, ret_val);
+    pcintr_set_result_var(frame, ret_val);
     purc_variant_unref(ret_val);
     ret = 0;
 
 out:
     if (origin_val) {
-        pcintr_set_question_var(parent, origin_val);
+        pcintr_set_result_var(parent, origin_val);
         purc_variant_unref(origin_val);
     }
     return ret;
@@ -430,7 +430,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (val == PURC_VARIANT_INVALID) {
             return NULL;
         }
-        pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
+        pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CNT, val);
         purc_variant_unref(val);
     }
 

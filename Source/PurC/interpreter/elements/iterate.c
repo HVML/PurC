@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -204,8 +204,8 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     }
 
     /* $0< set to  $0? */
-    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
-    pcintr_set_question_var(frame, v);
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_IPT];
+    pcintr_set_result_var(frame, v);
 
     return ctxt;
 }
@@ -244,8 +244,8 @@ rerun_iterate_without_executor(pcintr_coroutine_t co,
     }
 
     /* $0< set to  $0? */
-    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
-    pcintr_set_question_var(frame, v);
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_IPT];
+    pcintr_set_result_var(frame, v);
 
     return 0;
 }
@@ -294,7 +294,7 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
         return NULL;
     }
 
-    pcintr_set_question_var(frame, value);
+    pcintr_set_result_var(frame, value);
 
     return ctxt;
 }
@@ -324,7 +324,7 @@ post_process_by_external_class(struct ctxt_for_iterate *ctxt,
         return NULL;
     }
 
-    pcintr_set_question_var(frame, value);
+    pcintr_set_result_var(frame, value);
 
     return ctxt;
 }
@@ -363,7 +363,7 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
     purc_variant_t value;
     value = purc_variant_linear_container_get(v, ctxt->idx_curr);
 
-    pcintr_set_question_var(frame, value);
+    pcintr_set_result_var(frame, value);
 
     return ctxt;
 }
@@ -429,7 +429,7 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
         return false;
 
     int r;
-    r = pcintr_set_question_var(frame, value);
+    r = pcintr_set_result_var(frame, value);
     if (r == 0) {
         pcintr_set_input_var(stack, value);
     }
@@ -451,7 +451,7 @@ rerun_external_class(struct ctxt_for_iterate *ctxt,
         return false;
 
     int r;
-    r = pcintr_set_question_var(frame, value);
+    r = pcintr_set_result_var(frame, value);
     if (r == 0) {
         pcintr_set_input_var(stack, value);
     }
@@ -470,7 +470,7 @@ rerun_external_func(struct ctxt_for_iterate *ctxt,
         return false;
 
     int r;
-    r = pcintr_set_question_var(frame, value);
+    r = pcintr_set_result_var(frame, value);
     if (r == 0) {
         pcintr_set_input_var(stack, value);
     }
@@ -486,7 +486,7 @@ rerun_iterate_by_executor(pcintr_coroutine_t co, struct pcintr_stack_frame *fram
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
     int r;
-    r = pcintr_inc_percent_var(frame);
+    r = pcintr_inc_index_var(frame);
     if (r)
         return -1;
 
@@ -708,7 +708,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     goto out;
                 }
 
-                err = pcintr_set_at_var(frame, elements);
+                err = pcintr_set_pos_var(frame, elements);
                 purc_variant_unref(elements);
                 if (err) {
                     purc_variant_unref(val);
@@ -874,7 +874,7 @@ do_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     err = purc_get_last_error();
                     goto out;
                 }
-                pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
+                pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CNT, val);
                 purc_variant_unref(val);
             }
             ctxt->do_iterate_step = FUNC_STEP_DONE;
@@ -1267,7 +1267,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
 
     ctxt->after_iterate_without_executor_step = FUNC_STEP_1ST;
 
-    pcintr_inc_percent_var(frame);
+    pcintr_inc_index_var(frame);
 out:
     return 0;
 }

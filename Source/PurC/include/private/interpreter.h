@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -418,17 +418,35 @@ struct pcintr_coroutine {
 };
 
 enum purc_symbol_var {
-    PURC_SYMBOL_VAR_QUESTION_MARK = 0,  // ?
-    PURC_SYMBOL_VAR_LESS_THAN,          // <
-    PURC_SYMBOL_VAR_AT_SIGN,            // @
-    PURC_SYMBOL_VAR_EXCLAMATION,        // !
-    PURC_SYMBOL_VAR_COLON,              // :
-    PURC_SYMBOL_VAR_EQUAL,              // =
-    PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
-    PURC_SYMBOL_VAR_CARET,              // ^
+    /* position data */
+    PURC_SYMBOL_VAR_POS = 0,            // @
+    /* result data */
+    PURC_SYMBOL_VAR_RES,                // ?
+    /* user data  */
+    PURC_SYMBOL_VAR_USR,                // !
+    /* content data  */
+    PURC_SYMBOL_VAR_CNT,                // ^
+    /* key  */
+    PURC_SYMBOL_VAR_KEY,                // :
+    /* value  */
+    PURC_SYMBOL_VAR_VAL,                // =
+    /* iteration index  */
+    PURC_SYMBOL_VAR_IDX,                // %
+    /* iteration input data */
+    PURC_SYMBOL_VAR_IPT,                // ~ or <
 
     PURC_SYMBOL_VAR_MAX
 };
+
+
+#define PURC_SYMBOL_VAR_ALIAS_POS          "_pos"   // @
+#define PURC_SYMBOL_VAR_ALIAS_RES          "_res"   // ?
+#define PURC_SYMBOL_VAR_ALIAS_USR          "_usr"   // !
+#define PURC_SYMBOL_VAR_ALIAS_CNT          "_cnt"   // ^
+#define PURC_SYMBOL_VAR_ALIAS_KEY          "_key"   // :
+#define PURC_SYMBOL_VAR_ALIAS_VAL          "_val"   // =
+#define PURC_SYMBOL_VAR_ALIAS_IDX          "_idx"   // %
+#define PURC_SYMBOL_VAR_ALIAS_IPT          "_ipt"   // ~ or <
 
 struct pcintr_element_ops {
     // called after pushed

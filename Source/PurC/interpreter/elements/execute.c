@@ -84,7 +84,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->on != PURC_VARIANT_INVALID) {
-        int r = pcintr_set_question_var(frame, ctxt->on);
+        int r = pcintr_set_result_var(frame, ctxt->on);
         if (r)
             return -1;
 
@@ -215,7 +215,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (!ctxt->with) {
         purc_variant_t caret = pcintr_get_symbol_var(frame,
-                PURC_SYMBOL_VAR_CARET);
+                PURC_SYMBOL_VAR_CNT);
         if (caret && !purc_variant_is_undefined(caret)) {
             ctxt->with = caret;
             purc_variant_ref(ctxt->with);

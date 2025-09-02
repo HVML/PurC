@@ -1129,7 +1129,7 @@ dump_stack_frame(pcintr_stack_t stack,
         }
         else {
             purc_variant_t val = pcintr_get_symbol_var(frame,
-                    PURC_SYMBOL_VAR_CARET);
+                    PURC_SYMBOL_VAR_CNT);
             if (val) {
                 char *val_buf = pcvariant_to_string(val);
                 purc_rwstream_write(stm, "  CONTENT: ", 11);
@@ -1148,13 +1148,13 @@ dump_stack_frame(pcintr_stack_t stack,
 
     purc_rwstream_write(stm, "  CONTEXT VARIABLES:\n", 21);
 
-    serial_symbol_vars("    < ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
-    serial_symbol_vars("    @ ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
-    serial_symbol_vars("    ! ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
-    serial_symbol_vars("    : ", PURC_SYMBOL_VAR_COLON, frame, stm);
-    serial_symbol_vars("    = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
-    serial_symbol_vars("    % ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
-    serial_symbol_vars("    ^ ", PURC_SYMBOL_VAR_CARET, frame, stm);
+    serial_symbol_vars("    < ", PURC_SYMBOL_VAR_IPT, frame, stm);
+    serial_symbol_vars("    @ ", PURC_SYMBOL_VAR_POS, frame, stm);
+    serial_symbol_vars("    ! ", PURC_SYMBOL_VAR_USR, frame, stm);
+    serial_symbol_vars("    : ", PURC_SYMBOL_VAR_KEY, frame, stm);
+    serial_symbol_vars("    = ", PURC_SYMBOL_VAR_VAL, frame, stm);
+    serial_symbol_vars("    % ", PURC_SYMBOL_VAR_IDX, frame, stm);
+    serial_symbol_vars("    ^ ", PURC_SYMBOL_VAR_CNT, frame, stm);
 
 out:
     return 0;

@@ -130,7 +130,7 @@ bind_at_frame(struct pcintr_stack_frame *frame, const char *name,
         purc_variant_t v)
 {
     purc_variant_t exclamation_var;
-    exclamation_var = pcintr_get_exclamation_var(frame);
+    exclamation_var = pcintr_get_user_var(frame);
     if (purc_variant_is_object(exclamation_var) == false) {
         purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
                 "temporary variable on stack frame is not object");
@@ -157,7 +157,7 @@ get_from_frame(struct pcintr_stack_frame *frame, const char *name)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     purc_variant_t exclamation_var;
-    exclamation_var = pcintr_get_exclamation_var(frame);
+    exclamation_var = pcintr_get_user_var(frame);
     if (purc_variant_is_object(exclamation_var) == false) {
         purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
                 "temporary variable on stack frame is not object");
@@ -1910,7 +1910,7 @@ pcintr_common_handle_attr_in(pcintr_coroutine_t co,
         goto out;
     }
 
-    pcintr_set_at_var(frame, elements);
+    pcintr_set_pos_var(frame, elements);
     purc_variant_unref(elements);
     ret = 0;
 
@@ -1953,7 +1953,7 @@ pcintr_bind_object_members_as_temp_vars(struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+    purc_variant_t exclamation = pcintr_get_user_var(frame);
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(obj, k, v)
         const char *key = purc_variant_get_string_const(k);

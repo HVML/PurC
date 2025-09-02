@@ -144,7 +144,7 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     if (0 == strcmp(sub_type, MSG_SUB_TYPE_SUCCESS)) {
         purc_variant_t payload = msg->data;
 
-        pcintr_set_question_var(frame, payload);
+        pcintr_set_result_var(frame, payload);
     }
     else if (0 == strcmp(sub_type, MSG_SUB_TYPE_EXCEPT)) {
         purc_variant_t payload = msg->data;
@@ -217,7 +217,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return  -1;
     }
     purc_variant_object_set_by_static_ckey(request, REQ_ARGS, ctxt->with);
-    purc_variant_t caret = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    purc_variant_t caret = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CNT);
     purc_variant_object_set_by_static_ckey(request, REQ_CONTENT, caret);
 
     const char *runner_name = ctxt->within ?
@@ -496,7 +496,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (!ctxt->with) {
         purc_variant_t caret = pcintr_get_symbol_var(frame,
-                PURC_SYMBOL_VAR_CARET);
+                PURC_SYMBOL_VAR_CNT);
         if (caret && !purc_variant_is_undefined(caret)) {
             ctxt->with = caret;
             purc_variant_ref(ctxt->with);
@@ -504,7 +504,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->with) {
-        int r = pcintr_set_question_var(frame, ctxt->with);
+        int r = pcintr_set_result_var(frame, ctxt->with);
         if (r) {
             return NULL;
         }
