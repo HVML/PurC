@@ -647,11 +647,6 @@ find_stack_var(void *ctxt, const char *name)
 int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
                            bool temporarily)
 {
-    UNUSED_PARAM(ctxt);
-    UNUSED_PARAM(name);
-    UNUSED_PARAM(val);
-    UNUSED_PARAM(temporarily);
-
     struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
     size_t nr_name = strlen(name);
     char last = name[nr_name - 1];
@@ -662,6 +657,13 @@ int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
             number = atoi(name);
         }
         return pcintr_set_symbolized_var(stack, number, last, val);
+    }
+
+    if (nr_name > 1 && name[0] == '_') {
+        enum purc_symbol_var sym = pcintr_string_to_symbol_var(name);
+        if (sym != PURC_SYMBOL_VAR_MAX) {
+            return pcintr_set_symbolized_var_by_enum(stack, 1, sym, val);
+        }
     }
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
