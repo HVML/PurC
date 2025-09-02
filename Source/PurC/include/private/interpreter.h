@@ -439,14 +439,14 @@ enum purc_symbol_var {
 };
 
 
-#define PURC_SYMBOL_VAR_ALIAS_POS          "_pos"   // @
-#define PURC_SYMBOL_VAR_ALIAS_RES          "_res"   // ?
-#define PURC_SYMBOL_VAR_ALIAS_USR          "_usr"   // !
-#define PURC_SYMBOL_VAR_ALIAS_CNT          "_cnt"   // ^
-#define PURC_SYMBOL_VAR_ALIAS_KEY          "_key"   // :
-#define PURC_SYMBOL_VAR_ALIAS_VAL          "_val"   // =
-#define PURC_SYMBOL_VAR_ALIAS_IDX          "_idx"   // %
-#define PURC_SYMBOL_VAR_ALIAS_IPT          "_ipt"   // ~ or <
+#define PURC_SYMBOL_VAR_ALIAS_POS          "_pos_"   // @
+#define PURC_SYMBOL_VAR_ALIAS_RES          "_res_"   // ?
+#define PURC_SYMBOL_VAR_ALIAS_USR          "_usr_"   // !
+#define PURC_SYMBOL_VAR_ALIAS_CNT          "_cnt_"   // ^
+#define PURC_SYMBOL_VAR_ALIAS_KEY          "_key_"   // :
+#define PURC_SYMBOL_VAR_ALIAS_VAL          "_val_"   // =
+#define PURC_SYMBOL_VAR_ALIAS_IDX          "_idx_"   // %
+#define PURC_SYMBOL_VAR_ALIAS_IPT          "_ipt_"   // ~ or <
 
 struct pcintr_element_ops {
     // called after pushed
