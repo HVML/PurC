@@ -39,6 +39,7 @@
 #include "private/tkz-helper.h"
 
 #include "eval.h"
+#include "purc-variant.h"
 #include "wtf/Compiler.h"
 
 static const char *typenames[] = {
@@ -653,8 +654,12 @@ int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
     UNUSED_PARAM(val);
     UNUSED_PARAM(temporarily);
 
-//    struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
+    struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
 //    size_t nr_name = strlen(name);
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+
+    pcintr_bind_named_variable(stack, frame, name, PURC_VARIANT_INVALID,
+                               temporarily, false, val);
 
     return 0;
 }
