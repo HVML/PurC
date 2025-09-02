@@ -37,6 +37,7 @@
 #define EXTRA_PROTECT_FLAG                          0x0001
 #define EXTRA_SUGAR_FLAG                            0x0002
 #define EXTRA_ASSIGN_FLAG                           0x0004
+#define EXTRA_STATIC_FLAG                           0x0010
 
 #define PCVCM_EV_DEFAULT_METHOD_NAME                "eval"
 #define PCVCM_EV_CONST_SUFFIX                       "_const"

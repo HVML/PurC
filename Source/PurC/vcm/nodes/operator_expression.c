@@ -484,7 +484,8 @@ static purc_variant_t evaluate_assign(struct pcvcm_eval_ctxt *ctxt,
     }
 
     if (ctxt->bind_var) {
-        ctxt->bind_var(ctxt->bind_var_ctxt, name, right, true);
+        bool temporarily = (left_node->extra & EXTRA_STATIC_FLAG) == 0;
+        ctxt->bind_var(ctxt->bind_var_ctxt, name, right, temporarily);
     }
 
     return right ? purc_variant_ref(right) : PURC_VARIANT_INVALID;

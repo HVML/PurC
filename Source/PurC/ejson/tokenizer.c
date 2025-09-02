@@ -4212,11 +4212,21 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         top->node->type == PCVCM_NODE_TYPE_STRING) {
         struct pcejson_token *prev = tkz_prev_token();
         if (is_any_op_expr(prev)) {
-            const char *buf = tkz_buffer_get_bytes(parser->temp_buffer);
-            if (strcmp(buf, "static") == 0 && is_whitespace(character)) {
-                assert(0);
+            char *buf = pcvcm_node_to_string(top->node, NULL);
+            if (strcmp(buf, "\"static\"") == 0 && is_whitespace(character)) {
+                free(buf);
+                struct pcejson_token *token = tkz_stack_pop();
+                top = tkz_stack_top();
+
+                pcvcm_node_append_child(top->node, token->node);
+                token->node = NULL;
+                pcejson_token_destroy(token);
+
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
             }
             else {
+                free(buf);
                 struct pcejson_token *token = tkz_stack_pop();
                 tkz_stack_push(ETT_GET_VARIABLE);
                 top = tkz_stack_top();
@@ -5317,6 +5327,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
             struct pcvcm_node *last = pcvcm_node_last_child(top->node);
             if (last) {
                 last->extra &= EXTRA_ASSIGN_FLAG;
+
+                struct pcvcm_node *prev_last = pcvcm_node_prev_child(last);
+                if (prev_last && prev_last->type == PCVCM_NODE_TYPE_STRING) {
+                    char *buf = pcvcm_node_to_string(prev_last, NULL);
+                    if (strcmp(buf, "\"static\"") == 0) {
+                        last->extra |= EXTRA_STATIC_FLAG;
+                    }
+                    free(buf);
+                    pcvcm_node_remove_child(top->node, prev_last);
+                }
             }
 
             struct pcvcm_node *sign = pcvcm_node_new_op_assign();
@@ -5338,6 +5358,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
             struct pcvcm_node *last = pcvcm_node_last_child(parent->node);
             if (last) {
                 last->extra |= EXTRA_ASSIGN_FLAG;
+
+                struct pcvcm_node *prev_last = pcvcm_node_prev_child(last);
+                if (prev_last && prev_last->type == PCVCM_NODE_TYPE_STRING) {
+                    char *buf = pcvcm_node_to_string(prev_last, NULL);
+                    if (strcmp(buf, "\"static\"") == 0) {
+                        last->extra |= EXTRA_STATIC_FLAG;
+                    }
+                    free(buf);
+                    pcvcm_node_remove_child(parent->node, prev_last);
+                }
             }
 
             struct pcvcm_node *sign = pcvcm_node_new_op_assign();
@@ -5353,6 +5383,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
             struct pcvcm_node *last = pcvcm_node_last_child(top->node);
             if (last) {
                 last->extra &= EXTRA_ASSIGN_FLAG;
+
+                struct pcvcm_node *prev_last = pcvcm_node_prev_child(last);
+                if (prev_last && prev_last->type == PCVCM_NODE_TYPE_STRING) {
+                    char *buf = pcvcm_node_to_string(prev_last, NULL);
+                    if (strcmp(buf, "\"static\"") == 0) {
+                        last->extra |= EXTRA_STATIC_FLAG;
+                    }
+                    free(buf);
+                    pcvcm_node_remove_child(top->node, prev_last);
+                }
             }
 
             struct pcvcm_node *sign = pcvcm_node_new_op_assign();
