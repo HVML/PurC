@@ -687,6 +687,29 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     return PURC_VARIANT_INVALID;
 }
 
+int
+pcintr_set_symbolized_var(pcintr_stack_t stack, unsigned int number,
+        char symbol, purc_variant_t val)
+{
+    enum purc_symbol_var symbol_var = _to_symbol(symbol);
+    if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        purc_set_error(PURC_ERROR_BAD_NAME);
+        return -1;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    for (unsigned int i = 0; i < number; i++) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    return pcintr_set_symbol_var(frame, symbol_var, val);
+}
+
 purc_variant_t
 pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
         char symbol)

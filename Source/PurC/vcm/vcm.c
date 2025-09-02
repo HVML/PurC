@@ -653,7 +653,17 @@ int bind_stack_var(void *ctxt, const char *name, purc_variant_t val,
     UNUSED_PARAM(temporarily);
 
     struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
-//    size_t nr_name = strlen(name);
+    size_t nr_name = strlen(name);
+    char last = name[nr_name - 1];
+
+    if (pcintr_is_symbolized_var(name)) {
+        unsigned int number = 1;
+        if (is_digit(name[0])) {
+            number = atoi(name);
+        }
+        return pcintr_set_symbolized_var(stack, number, last, val);
+    }
+
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
 
     pcintr_bind_named_variable(stack, frame, name, PURC_VARIANT_INVALID,
