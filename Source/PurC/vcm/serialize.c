@@ -83,6 +83,11 @@ static void
 write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *node,
         bool print_comma, bool print_space, pcvcm_node_handle handle)
 {
+    bool is_in_comma = false;
+    if (node->type == PCVCM_NODE_TYPE_OP_COMMA) {
+        is_in_comma = true;
+    }
+
     struct pcvcm_node *child = pcvcm_node_first_child(node);
     while (child) {
         if (node->type == PCVCM_NODE_TYPE_CONSTANT) {
@@ -99,7 +104,17 @@ write_child_node_rwstream_ex(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
 
             enum pcvcm_node_type type = child->type;
             child = pcvcm_node_next_child(child);
-            if (child && print_comma) {
+
+            bool write_comma = (child && print_comma);
+            if (is_in_comma && child && (child->type == PCVCM_NODE_TYPE_OP_RP)) {
+                write_comma = false;
+            }
+
+            if (is_in_comma && type == PCVCM_NODE_TYPE_OP_LP) {
+                write_comma = false;
+            }
+
+            if (write_comma) {
                 pcvdom_dump_write(ctxt, ", ", 2);
             }
 

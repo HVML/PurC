@@ -28,6 +28,7 @@
 #include <errno.h>
 
 #include "config.h"
+#include "private/variant.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "purc-rwstream.h"
@@ -59,15 +60,32 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(name);
 
     size_t nr_params = frame->nr_params;
-    purc_variant_t tuple = purc_variant_make_tuple(nr_params, NULL);
-    if (tuple == PURC_VARIANT_INVALID) {
+    purc_variant_t arr = purc_variant_make_array_0();
+    if (arr == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
 
     for (size_t i = 0; i < nr_params; i++) {
+        struct pcvcm_eval_node *eval_node = select_param_default(ctxt, frame, i);
+        if (eval_node->node->type == PCVCM_NODE_TYPE_OP_LP
+            || eval_node->node->type == PCVCM_NODE_TYPE_OP_RP) {
+            continue;
+        }
         purc_variant_t val = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
-        purc_variant_tuple_set(tuple, i, val);
+        purc_variant_array_append(arr, val);
     }
+
+    size_t nr_size = purc_variant_array_get_size(arr);
+    purc_variant_t tuple = purc_variant_make_tuple(nr_size, NULL);
+    if (tuple == PURC_VARIANT_INVALID) {
+        purc_variant_unref(arr);
+        return PURC_VARIANT_INVALID;
+    }
+
+    for (size_t i = 0; i < nr_size; i++) {
+        purc_variant_tuple_set(tuple, i, purc_variant_array_get(arr, i));
+    }
+    purc_variant_unref(arr);
 
     return tuple;
 }

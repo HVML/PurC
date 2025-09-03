@@ -1,0 +1,9 @@
+#!/usr/bin/purc
+
+# RESULT: ( ( true, 1L ), 2L )
+
+<hvml>
+    <body>
+        <exit with (($SYS.cwd!(SYS.cwd + '/..' ), 1L), 2L)  />
+    </body>
+</hvml>

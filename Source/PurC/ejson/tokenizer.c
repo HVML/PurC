@@ -6129,7 +6129,17 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_COMMA)
 
                 struct pcvcm_node *sign =
                     pcvcm_node_new_op_comma();
-                pcvcm_node_append_child(sign, token->node);
+                if (token->node) {
+                    pcvcm_node_append_child(sign, token->node);
+                }
+                else {
+                    struct pcvcm_node *child = pcvcm_node_first_child(prev->node);
+                    while(child) {
+                        pcvcm_node_remove_child(prev->node, child);
+                        pcvcm_node_append_child(sign, child);
+                        child = pcvcm_node_first_child(prev->node);
+                    }
+                }
                 token->node = NULL;
                 pcejson_token_destroy(token);
 

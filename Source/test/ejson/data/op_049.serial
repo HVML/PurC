@@ -1,0 +1,1 @@
+((callSetter(getMember(getVariable("SYS"), "cwd"), (getMember(getVariable("SYS"), "cwd") + "/..")),  1L),  2L)
