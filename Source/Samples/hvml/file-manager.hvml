@@ -77,7 +77,6 @@
           }
         </style>
 
-        <init as 'v_loadbyurl' with $CRTN.sendingDocumentByURL!( false) />
     </head>
 
     <body>
