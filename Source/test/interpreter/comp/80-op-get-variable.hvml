@@ -1,0 +1,19 @@
+#!/usr/bin/purc
+
+# RESULT: true
+
+<!DOCTYPE hvml>
+<hvml>
+    <body>
+        <div>
+            <test with (DATETIME.localtime['year'] > 100) >
+                <inherit>
+                    <exit with true />
+                </inherit>
+                <differ>
+                    <exit with false />
+                </differ>
+            </test>
+        </div>
+    </body>
+</hvml>

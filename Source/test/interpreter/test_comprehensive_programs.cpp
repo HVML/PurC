@@ -89,3 +89,9 @@ TEST(comp_hvml, container_event)
     go_comp_test("interpreter/comp/7*.hvml");
 }
 
+TEST(comp_hvml, operator_expression)
+{
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    go_comp_test("interpreter/comp/8*.hvml");
+}
+
