@@ -283,7 +283,7 @@ void pctree_node_remove(struct pctree_node* node)
     node->next   = NULL;
     node->prev   = NULL;
 
-    parent->nr_children -= node->nr_children + 1;
+    parent->nr_children--;
 }
 
 static void
