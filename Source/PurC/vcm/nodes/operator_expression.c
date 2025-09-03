@@ -42,6 +42,7 @@
 #include "../eval.h"
 #include "../ops.h"
 #include "purc-variant.h"
+#include "wtf/Compiler.h"
 
 // Operator precedence definitions
 #define PRECEDENCE_PARENTHESES      17  // () [] {}
@@ -465,30 +466,97 @@ static purc_variant_t evaluate_assign(struct pcvcm_eval_ctxt *ctxt,
     struct pcvcm_node *left_node, struct pcvcm_node *right_node)
 {
     UNUSED_PARAM(left);
-    UNUSED_PARAM(right);
-    UNUSED_PARAM(left_node);
     UNUSED_PARAM(right_node);
 
-    /* Implement assignment operation (=) */
+    purc_variant_t result = PURC_VARIANT_INVALID;
 
-    assert(left_node->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE);
+    /* Validate input parameters */
+    if ((left_node->type != PCVCM_NODE_TYPE_FUNC_GET_VARIABLE) &&
+        (left_node->type != PCVCM_NODE_TYPE_FUNC_GET_MEMBER)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
 
-    const char *name = NULL;
+    if (!ctxt->bind_var) {
+        goto out;
+    }
+
+    /* Pre-calculate temporarily flag to avoid repeated computation */
+    bool temporarily = (left_node->extra & EXTRA_STATIC_FLAG) == 0;
+
+    /* Handle simple variable assignment */
     pcutils_map_entry *entry = pcutils_map_find(ctxt->node_var_name_map, left_node);
     if (entry) {
-        name = (const char *) entry->val;
-    }
-
-    if (!name) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (ctxt->bind_var) {
-        bool temporarily = (left_node->extra & EXTRA_STATIC_FLAG) == 0;
+        const char *name = (const char *) entry->val;
         ctxt->bind_var(ctxt->bind_var_ctxt, name, right, temporarily);
+        goto out;
     }
 
-    return right ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+    /* Handle member access assignment like _pos[0] */
+    if (left_node->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER &&
+        pcvcm_node_children_count(left_node) == 2) {
+
+        struct pcvcm_node *first_child = pcvcm_node_first_child(left_node);
+        if (first_child->type != PCVCM_NODE_TYPE_FUNC_GET_VARIABLE) {
+            goto out;
+        }
+
+        /* Extract and process symbol name */
+        struct pcvcm_node *name_node = pcvcm_node_first_child(first_child);
+        size_t nr_symbol_str = 0;
+        char *symbol_str = pcvcm_node_serialize(name_node, &nr_symbol_str);
+        if (!symbol_str) {
+            goto out;
+        }
+
+        /* Remove quotes efficiently */
+        char *name_str = symbol_str;
+        size_t name_len = nr_symbol_str;
+
+        if (name_len > 0 && (symbol_str[name_len - 1] == '"' || symbol_str[name_len - 1] == '\'')) {
+            symbol_str[name_len - 1] = '\0';
+            name_len--;
+        }
+
+        if (name_len > 0 && (symbol_str[0] == '"' || symbol_str[0] == '\'')) {
+            name_str++;
+            name_len--;
+        }
+
+        /* Convert to symbol and validate */
+        enum purc_symbol_var sym = pcintr_alias_to_symbol_var(name_str);
+        if (sym == PURC_SYMBOL_VAR_MAX) {
+            free(symbol_str);
+            goto out;
+        }
+
+        char symbol = pcintr_from_symbol(sym);
+        free(symbol_str);
+
+        /* Process index value */
+        struct pcvcm_node *last_child = pcvcm_node_last_child(left_node);
+        size_t nr_buf = 0;
+        char *buf = pcvcm_node_to_string(last_child, &nr_buf);
+        if (!buf) {
+            goto out;
+        }
+
+        uint64_t u64 = 0;
+        if (pcutils_parse_uint64(buf, nr_buf, &u64) != 0) {
+            free(buf);
+            goto out;
+        }
+        free(buf);
+
+        /* Create final variable name and bind */
+        char str_buf[32];
+        snprintf(str_buf, sizeof(str_buf), "%llu%c", (unsigned long long)u64, symbol);
+        ctxt->bind_var(ctxt->bind_var_ctxt, str_buf, right, temporarily);
+    }
+
+out:
+    result = right ? purc_variant_ref(right) : PURC_VARIANT_INVALID;
+    return result;
 }
 
 static purc_variant_t evaluate_add_assign(purc_variant_t left, purc_variant_t right)
