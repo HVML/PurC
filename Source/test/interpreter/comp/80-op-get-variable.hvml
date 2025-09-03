@@ -6,7 +6,7 @@
 <hvml>
     <body>
         <div>
-            <test with (DATETIME.localtime['year'] > 100) >
+            <test with (DATETIME.localtime()['year'] > 100) >
                 <inherit>
                     <exit with true />
                 </inherit>

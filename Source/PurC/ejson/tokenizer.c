@@ -4023,6 +4023,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         if (top && (top->node == NULL) && (top->type == ETT_VALUE)) {
             struct pcejson_token *prev = tkz_prev_token();
             if (prev && prev->type == ETT_GET_VARIABLE) {
+                if (tkz_buffer_is_empty(parser->temp_buffer) && character == '(') {
+                    RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+                }
                 SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
@@ -4228,6 +4231,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             else {
                 free(buf);
                 struct pcejson_token *token = tkz_stack_pop();
+                tkz_stack_push(ETT_VALUE);
                 tkz_stack_push(ETT_GET_VARIABLE);
                 top = tkz_stack_top();
 
@@ -4235,7 +4239,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
                 token->node = NULL;
                 pcejson_token_destroy(token);
                 close_token(parser, top);
-                update_tkz_stack(parser);
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
             }
@@ -4596,6 +4599,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EXPR)
                 pcvcm_node_append_child(prev->node, sign);
                 tkz_stack_push(ETT_VALUE);
                 ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            }
+
+            /* eg:  "HVML age: $(DATETIME.localtime['year'] + 1900 - 2021)"  */
+            if ((top->type == ETT_VALUE) && !top->node && prev &&
+                (prev->type == ETT_GET_VARIABLE)) {
+                /* ETT_VALUE */
+                tkz_stack_drop_top();
+
+                /* ETT_GET_VARIABLE*/
+                tkz_stack_drop_top();
             }
         }
         tkz_stack_push(ETT_OP_EXPR);

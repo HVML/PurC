@@ -1,0 +1,9 @@
+#!/usr/bin/purc
+
+# RESULT: "HVML age: 4"
+
+<hvml>
+    <body>
+        <exit with "HVML age: $(DATETIME.localtime()['year'] + 1900 - 2021)" />
+    </body>
+</hvml>
