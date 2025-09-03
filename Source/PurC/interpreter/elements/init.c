@@ -23,6 +23,7 @@
  *
  */
 
+#include "private/interpreter.h"
 #include "purc.h"
 
 #include "../internal.h"
@@ -866,6 +867,7 @@ struct load_data {
     pcintr_coroutine_t        co;
     struct pcvdom_element    *vdom_element;
     purc_variant_t            async_id;
+    purc_variant_t            async_observe_dest;
 
     struct pcintr_cancel      cancel;
 
@@ -887,6 +889,7 @@ static void load_data_release(struct load_data *data)
 {
     if (data) {
         PURC_VARIANT_SAFE_CLEAR(data->async_id);
+        PURC_VARIANT_SAFE_CLEAR(data->async_observe_dest);
         data->co = NULL;
         data->vdom_element = NULL;
         PURC_VARIANT_SAFE_CLEAR(data->as);
@@ -926,15 +929,28 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
             return;
         }
 
+#if 0
         // FIXME: what error to set?
         purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
                 data->ret_code);
+#endif
+
+        char buf[64] = {0};
+        snprintf(buf, 64, "RequestFailed: http code is %d", data->ret_code);
+        purc_variant_t payload = purc_variant_make_string(buf, false);
+        pcintr_coroutine_post_event(co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                data->async_observe_dest, MSG_TYPE_CHANGE,
+                MSG_SUB_TYPE_REQUESTFAILED, payload,
+                PURC_VARIANT_INVALID);
+        purc_variant_unref(payload);
         return;
     }
 
     purc_variant_t ret = build_variant_by_mime(data->resp, data->mime_type);
-    if (ret == PURC_VARIANT_INVALID)
+    if (ret == PURC_VARIANT_INVALID) {
         return;
+    }
 
     bool caseless = data->casesensitively ? false : true;
     purc_variant_t src;
@@ -1146,6 +1162,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
             method, params, on_async_complete, data, dest);
+    data->async_observe_dest = purc_variant_ref(dest);
     purc_variant_unref(dest);
 
     if (data->async_id == PURC_VARIANT_INVALID) {
