@@ -944,6 +944,19 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
                 MSG_SUB_TYPE_REQUESTFAILED, payload,
                 PURC_VARIANT_INVALID);
         purc_variant_unref(payload);
+
+        purc_variant_t ret = purc_variant_make_null();
+        bool caseless = data->casesensitively ? false : true;
+        purc_variant_t src;
+        src = _generate_src(data->against, data->uniquely, caseless, ret);
+        if (src != PURC_VARIANT_INVALID) {
+            _bind_src(co, frame, // NULL
+                    data->as, data->at,
+                    data->under_head, data->temporarily,
+                    src);
+            purc_variant_unref(src);
+        }
+        PURC_VARIANT_SAFE_CLEAR(ret);
         return;
     }
 

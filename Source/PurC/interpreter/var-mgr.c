@@ -201,8 +201,13 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
-            // XXX: observe on=$name
-            ret = pcvariant_container_displace(v, variant, false);
+            if (purc_variant_is_container(variant)) {
+                // XXX: observe on=$name
+                ret = pcvariant_container_displace(v, variant, false);
+            }
+            else {
+                ret = purc_variant_object_set(mgr->object, k, variant);
+            }
             break;
 
         default:
