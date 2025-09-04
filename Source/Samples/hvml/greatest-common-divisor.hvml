@@ -17,7 +17,7 @@
         <init as "big" with {{ $L.gt($x, $y) && $x || $y }} temp />
         <init as "small" with {{ $L.lt($x, $y) && $x || $y }} temp />
 
-        <test with $L.eq($DATA.arith('%', $big, $small), 0) >
+        <test with $L.eq(($big % $small), 0) >
             <return with $small >
                 $STREAM.stdout.writelines("returns $small for $small and $big")
 
@@ -26,12 +26,12 @@
 
         <!-- Note that `$0<` refers to the context variable `<`
             in the current stack frame -->
-        <iterate on $DATA.arith('/', $small, 2) onlyif $L.gt($0<, 0)
-                with $DATA.arith('-', $0<, 1) nosetotail >
+        <iterate on ($small / 2) onlyif $L.gt($0<, 0)
+                with (_ipt[0] - 1) nosetotail >
 
             <test with $L.eval('a == 0 && b == 0',
-                    { a: $DATA.arith('%', $big, $?),
-                      b: $DATA.arith('%', $small, $?) }) >
+                    { a: ($big % $?),
+                      b: ($small % $?) }) >
                 <return with $?>
                     $STREAM.stdout.writelines("returns $? for $small and $big")
 

@@ -34,7 +34,7 @@ def find_next_prime(start):
         <p id="myNS">
             <iterate on 2L onlyif $L.lt($0~, 10000L)
                     with $PY.global.find_next_prime($0~) nosetotail >
-                <test with $DATA.arith('%', $%, 2L)>
+                <test with (_idx[1] % 2L) >
                     <init as 'color' at '#myNS' with 'yellow' />
                     <differ>
                         <init as 'color' at '#myNS' with 'red' />

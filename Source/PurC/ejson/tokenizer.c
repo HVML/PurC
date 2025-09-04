@@ -1865,6 +1865,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_PARENTHESIS)
                 tkz_stack_drop_top();
                 RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
             }
+            if (prev->type == ETT_OBJECT || prev->type == ETT_ARRAY) {
+                tkz_stack_drop_top();
+                RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+            }
         }
 
         if (tkz_buffer_equal_to(parser->temp_buffer, "!", 1)) {

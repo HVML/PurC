@@ -74,7 +74,7 @@ header h1 {
         <!-- test with $L.gt($DATA.count($all_cases), 50L) >
             <init as 'count' with $DATA.count($all_cases) temp />
             <iterate on 50L onlyif $L.lt($0~, $count)
-                    with $DATA.arith('+', $0~, 1) nosetotail >
+                    with (_ipt[0] + 1) nosetotail >
                 <update on $all_cases at "[50]" to 'remove' />
             </iterate>
         </test>
@@ -98,7 +98,7 @@ header h1 {
         <init as 'cases_part_two' with [] />
         <iterate on $all_cases>
             <init as 'case_name' with $STR.substr($?, 0, -5L) temp />
-            <test with $DATA.arith('%', $%, 2) >
+            <test with (_idx[1] % 2) >
                 <update on $cases_part_one to 'append' with $case_name />
 
                 <differ>
@@ -178,10 +178,10 @@ header h1 {
                         </differ>
                     </test>
 
-                    <init as 'total_lines' at '_root' with $DATA.arith('+', $?, $total_lines) />
+                    <init as 'total_lines' at '_root' with ($? + $total_lines) />
                 </call>
 
-                <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
+                <init as 'total_idx' at '_root' with ($total_idx + 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />
 
                 <test with $L.ge($total_idx, $nr_total_cases) >
