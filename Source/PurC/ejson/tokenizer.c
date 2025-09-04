@@ -1922,6 +1922,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
         if (top->type == ETT_CALL_SETTER || top->type == ETT_CALL_GETTER) {
             ADVANCE_TO(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
         }
+
+        if (top && top->node && top->node->is_closed) {
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }

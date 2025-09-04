@@ -1,0 +1,14 @@
+#!/usr/bin/purc
+
+# RESULT: 27UL
+
+<hvml>
+    <body>
+        <init as 'all_cases' with [ 40L, 80L, 160L ] />
+        <init as 'all_columns' with [ 40L, 80L, 160L ] />
+        <init as 'all_rows' with [ 10L, 30L, 50L ] />
+        <init as 'nr_total_cases' with ($DATA.count($all_cases) * ($DATA.count($all_columns) * $DATA.count($all_rows))) />
+
+        <exit with $nr_total_cases />
+    </body>
+</hvml>
