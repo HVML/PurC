@@ -91,7 +91,12 @@ pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
     if (!ctxt) {
         goto out;
     }
+
+    pcutils_map *node_var_name_map = ctxt->node_var_name_map;
+
     *ctxt = *src;
+
+    ctxt->node_var_name_map = node_var_name_map;
 
     size_t nr_bytes = ctxt->nr_eval_nodes * sizeof(struct pcvcm_eval_node);
     ctxt->eval_nodes = (struct pcvcm_eval_node *) malloc(nr_bytes);
@@ -106,9 +111,6 @@ pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
     ctxt->names = (const char **) malloc (nr_bytes);
     memcpy(ctxt->names, src->names, nr_bytes);
 #endif
-
-    ctxt->node_var_name_map =
-        pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
 
     pcutils_map_traverse(src->node_var_name_map, ctxt->node_var_name_map,
                          map_visit);
@@ -1149,6 +1151,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     if (err && ctxt_out) {
         *ctxt_out = pcvcm_eval_ctxt_dup(ctxt);
+
+        pcutils_map_destroy(ctxt->node_var_name_map);
     }
     else if (ctxt) {
         pcvcm_eval_ctxt_destroy(ctxt);
