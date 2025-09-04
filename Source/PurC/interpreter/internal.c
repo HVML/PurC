@@ -283,18 +283,18 @@ find_bind_position(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         if (!p) {
             break;
         }
+        if (p->tag_id == PCHVML_TAG_DEFINE) {
+            if (!is_stack_vdom) {
+                p = NULL;
+                break;
+            }
+            p = pcvdom_element_parent(p);
+        }
 
-#if 0
         if (
                 (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
                                     p->tag_id == PCHVML_TAG_HVML)
                  )) {
-#else
-        if (p->tag_id == PCHVML_TAG_DEFINE ||
-                (!is_stack_vdom && (p->node.type == PCVDOM_NODE_DOCUMENT ||
-                                    p->tag_id == PCHVML_TAG_HVML)
-                 )) {
-#endif
             p = NULL;
             break;
         }
