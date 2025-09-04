@@ -5,7 +5,7 @@
 <!DOCTYPE hvml>
 <hvml target="void">
     <init as "evenNumbers" with [0L] >
-        <iterate onlyif $L.lt($evenNumbers[-1], 8L) with $DATA.arith('+', $evenNumbers[-1], 2) >
+        <iterate onlyif $L.lt($evenNumbers[-1], 8L) with ($evenNumbers[-1] + 2L) >
             <update on $evenNumbers to "append" with $? />
         </iterate>
     </init>

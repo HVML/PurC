@@ -26,7 +26,7 @@
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
 
         <!-- iterate 10 times -->
-        <iterate on 0L onlyif $L.lt($0~, 10L) with $DATA.arith('+', $0~, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0~, 10L) with (_ipt[0] + 1) nosetotail >
 
             <choose on $chIn.recv() >
 
@@ -71,7 +71,7 @@
         <init as chan with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
-        <iterate on 2L onlyif $chan.send($0~) with $DATA.arith('+', $0~, $REQ.diff) nosetotail silently />
+        <iterate on 2L onlyif $chan.send($0~) with (_ipt[0] + $REQ.diff) nosetotail silently />
     </body>
 
     <body id="sieve">

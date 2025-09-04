@@ -56,8 +56,10 @@ header h1 {
 
         <init as 'all_columns' with [ 40L, 80L, 160L ] />
         <init as 'all_rows' with [ 10L, 30L, 50L ] />
-        <init as 'nr_total_cases' with $DATA.arith('*', $DATA.count($all_cases),
-                $DATA.arith('*', $DATA.count($all_columns), $DATA.count($all_rows))) />
+        <init as 'nr_all_cases' with $DATA.count($all_cases) />
+        <init as 'nr_all_columns' with $DATA.count($all_columns) />
+        <init as 'nr_all_rows' with $DATA.count($all_rows) />
+        <init as 'nr_total_cases' with ($nr_all_cases * $nr_all_columns * $nr_all_rows) />
 
         <archetype name="caseItem">
             <span class="grid">{$?.rows}x{$?.columns}</span>
@@ -199,7 +201,7 @@ header h1 {
                     </differ>
                 </test>
 
-                <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
+                <init as 'total_idx' at '_root' with ($total_idx + 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />
 
                 <test with $L.ge($total_idx, $nr_total_cases) >

@@ -13,7 +13,7 @@
 
             <div id="xyz">
                 <update on $result to 'append' with 'xyzBegin' />
-                <iterate idd-by="ida" on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
+                <iterate idd-by="ida" on 0L onlyif $L.lt($0<, 10L) with (_ipt[0] + 1L) nosetotail >
                     <test idd-by="idb" with $L.eq($?, 5)>
                         <back to="#idx"/>
                     </test>

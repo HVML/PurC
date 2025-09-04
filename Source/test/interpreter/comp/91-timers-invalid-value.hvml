@@ -24,7 +24,7 @@
         <update on $TIMERS to unite with [$?] >
             <catch for `ANY`>
                 <test with $L.streq('case', $?.name, 'InvalidValue') >
-                    <init as nrFailed at '_root' with $DATA.arith('+', $nrFailed, 1) />
+                    <init as nrFailed at '_root' with ($nrFailed + 1) />
                     <inherit on $RUNNER.logmsg('Got `InvalidValue` when setting a timer') />
                 </test>
             </catch>

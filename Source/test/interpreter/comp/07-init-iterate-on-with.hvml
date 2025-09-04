@@ -19,7 +19,7 @@
 <!DOCTYPE hvml>
 <hvml target="void">
     <init as "evenNumbers" with [] >
-        <iterate on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 2) nosetotail>
+        <iterate on 0L onlyif $L.lt($0<, 10L) with (_ipt[0] + 2L) nosetotail>
             <update on="$evenNumbers" to="append" with="$?" />
         </iterate>
     </init>

@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 4L
+# RESULT: 4UL
 
 <!DOCTYPE hvml SYSTEM 'f: MATH'>
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
@@ -23,7 +23,7 @@
             </load>
 
             <observe on ${$?} for "corState:exited" >
-                <init as 'counter' at '_root' with $DATA.arith('+', $counter, 1UL) />
+                <init as 'counter' at '_root' with ($counter + 1UL) />
                 <inherit>
                     $STREAM.stdout.writelines("Client exited with $?")
                 </inherit>
@@ -47,7 +47,7 @@
             <inherit>
                 $STREAM.stdout.writelines("Client:  $REQ.name   timer $progress ")
             </inherit>
-            <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+            <init as 'progress' at '_grandparent' with ($progress + 10UL) />
             <test with $L.ge($progress, 100UL) >
                 <exit with "$REQ.name" />
             </test>

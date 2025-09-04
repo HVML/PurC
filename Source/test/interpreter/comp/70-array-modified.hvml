@@ -13,7 +13,7 @@
         <exit with $? />
     </observe>
 
-    <iterate on 0 onlyif $L.lt($0<, 5) with $DATA.arith('+', $0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 5) with (_ipt[0] + 1) nosetotail >
       <update on $array at 0 to displace with $? />
     </iterate>
 </hvml>

@@ -9,7 +9,7 @@
     <init as count with $DATA.count($my_array) />
 
     <iterate on 0L onlyif $L.lt($0~, $count)
-        with $DATA.arith('+', $0~, 1) nosetotail >
+        with (_ipt[0] + 1) nosetotail >
 
         <update on $my_array at "[0]" with undefined />
     </iterate>

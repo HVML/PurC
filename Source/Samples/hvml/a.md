@@ -1,4 +1,0 @@
-greatest-common-divisor.hvml
-
-
-

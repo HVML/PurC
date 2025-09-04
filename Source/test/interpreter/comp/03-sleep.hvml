@@ -23,7 +23,7 @@ I slept for 5 seconds totally
 
     <init as startTime with $SYS.time />
 
-    <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 10) with (_ipt[0] + 1) nosetotail >
         <sleep with $SYS.random(2.0) >
             $STREAM.stdout.writelines($STR.join('Current time: ',
                         $DATETIME.fmttime("%H:%M:%S")))
@@ -32,7 +32,7 @@ I slept for 5 seconds totally
 
     {{
         $STREAM.stdout.writelines($STR.join("I slept for ",
-                    $DATA.arith('-', $SYS.time, $startTime), " seconds totally"));
-        $L.gt($DATA.arith('-', $SYS.time, $startTime), 0)
+                    ($SYS.time - $startTime), " seconds totally"));
+        $L.gt(($SYS.time + $startTime), 0)
     }}
 </hvml>

@@ -14,7 +14,7 @@
     </observe>
 
     
-    <iterate on 4 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
+    <iterate on 4 onlyif $L.lt($0<, 10) with (_ipt[0] + 1) nosetotail >
         <update on $set to add with $? />
     </iterate>
 </hvml>

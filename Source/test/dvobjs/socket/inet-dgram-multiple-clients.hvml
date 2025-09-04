@@ -95,27 +95,27 @@
                 <inherit>
                     $STREAM.stdout.writelines("Client returns: $?")
                 </inherit>
-                <update on $got at '.success' with $DATA.arith('+', $got['success'], 1) />
+                <update on $got at '.success' with ($got['success'] + 1L) />
             </observe>
 
             <observe on ${$clientName} for 'callState:error/*'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns with an error: $_eventSubName")
                 </inherit>
-                <update on $got at '.error' with $DATA.arith('+', $got['error'], 1) />
+                <update on $got at '.error' with ($got['error'] + 1L) />
             </observe>
 
             <observe on ${$clientName} for 'callState:except/*'>
                 <inherit>
                     $STREAM.stdout.writelines("Client returns with an exception: $_eventSubName")
                 </inherit>
-                <update on $got at '.except' with $DATA.arith('+', $got['except'], 1) />
+                <update on $got at '.except' with ($got['except'] + 1L) />
             </observe>
         </iterate>
 
         <observe on $CRTN for 'idle'>
 
-            <test with $L.eq($DATA.arith('+', $got['success'], $DATA.arith('+', $got['error'], $got['except'])), 4) >
+            <test with $L.eq(($got['success'] + ($got['error'] + $got['except'])), 4) >
                 <exit with $got />
             </test>
 

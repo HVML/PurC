@@ -13,7 +13,7 @@
         <update on $RUNNER.myObj to "merge" with { 'primes': [], 'exitFlag':false } />
 
         <init as 'nrPrimes' with 10L />
-        <iterate on 0 onlyif $L.lt($0<, $nrPrimes) with $DATA.arith('+', $0<, 1) nosetotail >
+        <iterate on 0 onlyif $L.lt($0<, $nrPrimes) with (_ipt[0] + 1) nosetotail >
             <init as channelIdx with "$?" />
             <init as inChannel with "channel$?" />
             <update on $RUNNER.myObj at ".$inChannel" with [] />
@@ -41,7 +41,7 @@
     </body>
 
     <body id="first">
-        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $DATA.arith('+', $0<, 1) nosetotail >
+        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with (_ipt[0] + 1) nosetotail >
             <update on $RUNNER.myObj.channel0 to append with $? />
             <sleep for '500ms' />
             <test with $RUNNER.myObj.exitFlag >
@@ -52,7 +52,7 @@
 
     <body id="sieve">
         <init as inChannel with "channel$REQ.idx" />
-        <init as outChannel with "channel$DATA.arith('+', $REQ.idx, 1)" />
+        <init as outChannel with $STR.join('channel', ($REQ.idx + 1)) />
 
         <update on="$TIMERS" to="displace">
             [
@@ -67,7 +67,7 @@
         </observe>
 
         <observe on $RUNNER.myObj[$inChannel] for "change:inflated" >
-            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime) >
+            <test with ($RUNNER.myObj[$inChannel][-1] % $REQ.prime) >
                 <update on $RUNNER.myObj[$outChannel] to "append" with $RUNNER.myObj[$inChannel][-1] />
             </test>
         </observe>

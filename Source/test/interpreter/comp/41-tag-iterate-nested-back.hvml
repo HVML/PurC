@@ -8,9 +8,9 @@
     <body>
         <init as result with [] />
 
-        <iterate on 0L onlyif $L.lt($0<, 2L) with $DATA.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, 2L) with (_ipt[0] + 1L) nosetotail >
             <update on $result to 'append' with "before$?" />
-            <iterate on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0L onlyif $L.lt($0<, 10L) with (_ipt[0] + 1L) nosetotail >
                 <test with $L.eq($?, 5)>
                     <back to="2"/>
                 </test>
