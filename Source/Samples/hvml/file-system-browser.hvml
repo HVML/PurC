@@ -148,7 +148,7 @@
                     </test>
                 </choose>
 
-                <init as totalEntries at '2' with $DATA.arith('+', $totalEntries, 1) temp />
+                <init as totalEntries at '2' with ($totalEntries + 1) temp />
             </iterate>
         </choose>
 

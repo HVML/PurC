@@ -26,7 +26,7 @@
             <init as block with $news.select("pane-news") />
             <init as src_coll with $block.select("ul > li a") />
             <init as nr_count with $src_coll.count() />
-            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with (_ipt[0] + 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
                 <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
                 <choose on $data>

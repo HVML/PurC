@@ -198,7 +198,7 @@
             <init as block with $d163.query(".news_default_news") temp />
             <init as src_coll with $block.select("div > div > p > a") temp />
             <init as nr_count with $src_coll.count() temp />
-            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with (_ipt[0] + 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
                 <init as data with {"href":$elem.attr("href"), "title":$elem.textContent()} temp />
                 <update on "$result" to "append" with $data />
@@ -215,7 +215,7 @@
             <init as block with $dSohu.select("block4") temp />
             <init as src_coll with $block.select("div > div > div > a") temp />
             <init as nr_count with $src_coll.count() temp />
-            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with (_ipt[0] + 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
                 <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.textContent()} temp />
                 <update on "$result" to "append" with $data />
@@ -237,7 +237,7 @@
             <init as block with $dSina.select("blk_yw_01") temp />
             <init as src_coll with $block.select("div a") temp />
             <init as nr_count with $src_coll.count() temp />
-            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with (_ipt[0] + 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
                 <init as data with {"href":$elem.attr("href"), "title":$elem.textContent()} temp />
                 <update on "$result" to "append" with $data />
@@ -254,7 +254,7 @@
             <init as block with $dBaidu.select("pane-news") temp />
             <init as src_coll with $block.select("ul > li a") temp />
             <init as nr_count with $src_coll.count() temp />
-            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with $DATA.arith('+', $0<, 1) nosetotail >
+            <iterate on 0 onlyif $L.and($L.lt($0<, $nr_count), $L.lt($0<, $nr_show)) with (_ipt[0] + 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
                 <init as data with {"href":$elem.attr("href"), "title":$elem.textContent()} temp />
                 <update on "$result" to "append" with $data />

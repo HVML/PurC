@@ -237,7 +237,7 @@
                 </match>
             </test>
             <update on "$?" at ".idx" with "$dataCenter.fileIdx" />
-            <update on "$dataCenter" at ".fileIdx" with $DATA.arith('+', $dataCenter.fileIdx, 1)  />
+            <update on "$dataCenter" at ".fileIdx" with ($dataCenter.fileIdx + 1)  />
             <update on "$dataCenter.fileList" to "append" with $? />
         </define>
 

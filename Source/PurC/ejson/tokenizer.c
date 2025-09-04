@@ -1853,6 +1853,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_PARENTHESIS)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '(') {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "(", 1)) {
+            tkz_stack_push(ETT_CALL_GETTER);
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
+        }
         if (top && top->type == ETT_VALUE) {
             struct pcejson_token *prev = tkz_prev_token();
             if (prev->type == ETT_CALL_GETTER || prev->type == ETT_CALL_SETTER) {

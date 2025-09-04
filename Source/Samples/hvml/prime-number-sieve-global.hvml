@@ -16,7 +16,7 @@
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "inherit:" async />
 
-        <iterate on 0L onlyif $L.lt($0<, $count) with $DATA.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, $count) with (_ipt[0] + 1) nosetotail >
 
             <choose on $chIn.recv() >
                 <update on $RUNNER.myObj.primes to "append" with $? />
@@ -53,7 +53,7 @@
         <init as "naturalChan" at "_root" with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
-        <iterate on 2L onlyif $naturalChan.send($0<) with $DATA.arith('+', $0<, $REQ.diff) nosetotail silently >
+        <iterate on 2L onlyif $naturalChan.send($0<) with (_ipt[0] + $REQ.diff) nosetotail silently >
         </iterate>
     </body>
 

@@ -97,7 +97,7 @@
             </observe>
 
             <observe on $TIMERS for "expired:gogogo">
-                <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+                <init as 'progress' at '_grandparent' with ($progress + 10UL) />
                 <update on '#progress1' at 'attr.value' with "$progress" />
                 <update on '#progress2' at 'attr.value' with "$progress" />
                 <update on '#progress3' at 'attr.value' with "$progress" />

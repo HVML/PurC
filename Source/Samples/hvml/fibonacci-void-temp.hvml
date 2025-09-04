@@ -52,7 +52,7 @@ Totally 18 numbers
             }}
         </inherit>
 
-        <iterate on $last_two onlyif $L.lt($0<, 2000L) with $DATA.arith('+', $0<, $last_one) nosetotail >
+        <iterate on $last_two onlyif $L.lt($0<, 2000L) with (_ipt[0] + $last_one) nosetotail >
             <init as "last_one" at "2" with $last_two temp />
             <init as "last_two" at "2" with $? temp />
             <!-- init as "last_two" at "#theBody" with $? temp / -->
@@ -61,7 +61,7 @@ Totally 18 numbers
 
             <inherit>
                 $STREAM.stdout.writelines(
-                    $STR.join('    ', $DATA.arith('+', $%, 2), ': ', $?))
+                    $STR.join('    ',  (_idx_ + 2), ': ', $?))
             </inherit>
         </iterate>
 
