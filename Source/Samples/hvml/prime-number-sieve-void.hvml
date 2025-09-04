@@ -9,7 +9,7 @@
             $RUNNER.user!( 'chans', [] )
         </inherit>
 
-        <init as count with 1000L />
+        <init as count with 100L />
         <init as chIn with {{ $RUNNER.chan!( "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "inherit:" async />
@@ -65,6 +65,11 @@
                     $REQ.out.send($?)
                 }}
             </inherit>
+            <catch for `EntityGone`>
+                <inherit>
+                    $STREAM.stdout.writelines("Catch EntityGone")
+                </inherit>
+            </catch>
         </iterate>
     </body>
 </hvml>

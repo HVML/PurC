@@ -67,6 +67,11 @@
                     $REQ.out.send($?)
                 }}
             </inherit>
+            <catch for `EntityGone`>
+                <inherit>
+                    $STREAM.stdout.writelines("Catch EntityGone")
+                </inherit>
+            </catch>
         </iterate>
     </body>
 </hvml>

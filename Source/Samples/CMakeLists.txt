@@ -70,7 +70,6 @@ set(sample_HVML_FILES
     "hvml/foil-layouts.hvml"
     "hvml/request-rdr.hvml"
     "hvml/spider-news-0.hvml"
-    "hvml/spider-news-1.hvml"
     "hvml/spider-news-2.hvml"
     "hvml/spider-news-3.hvml"
     "hvml/spider-headline.hvml"
