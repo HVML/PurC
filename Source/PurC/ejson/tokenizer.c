@@ -1106,6 +1106,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         if (!top) {
             RECONSUME_IN(EJSON_TKZ_STATE_OP_EXPR);
         }
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
     }
     if (character == ')') {
@@ -1927,6 +1928,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
         RECONSUME_IN(EJSON_TKA_STATE_EXCLAMATION_MARK);
     }
     if (character == '(') {
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
     }
     update_tkz_stack(parser);
