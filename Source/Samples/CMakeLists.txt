@@ -63,6 +63,7 @@ set(sample_HVML_FILES
     "hvml/fetch-with-param-9.hvml"
     "hvml/fetch-with-param-a.hvml"
     "hvml/fetch-with-param-b.hvml"
+    "hvml/fetch-with-param-failed.hvml"
     "hvml/fetch-with-raw-header.hvml"
     "hvml/fetch-with-raw-header-get.hvml"
     "hvml/fetch-with-different-base-url.hvml"

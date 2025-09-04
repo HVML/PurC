@@ -1,0 +1,36 @@
+# RESULT: [ "init value", null ]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <base href=$CRTN.base!( "http://ws.fmsoft.cn" ) hvml:silently />
+    </head>
+
+    <body>
+        <init as 'result' with [] />
+        <init as="btns" from="/tools/echo.phpaaa" with={a:1, b:2} via="GET" async>
+            {
+                "key":"init value"
+            }
+            <update on $result to 'append' with $?.key />
+        </init>
+        <observe against="btns" for="change:progress">
+            <inherit>
+                $STREAM.stdout.writelines($DATA.stringify($?.progress))
+            </inherit>
+        </observe>
+        <observe against="btns" for="change:RequestFailed">
+            <inherit>
+                $STREAM.stdout.writelines("----------------------------------------- failed")
+            </inherit>
+        </observe>
+        <observe against="btns" for="change:displaced">
+            <inherit>
+                $STREAM.stdout.writelines("----------------------------------------- displaced  $btns")
+            </inherit>
+            <update on $result to 'append' with $btns />
+            <exit with $result />
+        </observe>
+    </body>
+</hvml>
+
