@@ -87,6 +87,14 @@ TEST(variant, arithmetic_operators)
             "18446744073709551615", "1", purc_variant_operator_add, "18446744073709551616"},  // ulongint + number
         { PURC_VARIANT_TYPE_LONGDOUBLE, PURC_VARIANT_TYPE_LONGDOUBLE,
             "1.23e8", "4.56e8", purc_variant_operator_add, "579000000FL"},  // longdouble + longdouble
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "1N", "2N", purc_variant_operator_add, "3N"},  // bigint +bigint
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "2880067194370816120N", "4660046610375530309N",
+            purc_variant_operator_add, "7540113804746346429N"},  // bigint +bigint
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "4660046610375530309N", "7540113804746346429N",
+            purc_variant_operator_add, "12200160415121876738"},  // bigint +bigint
 
         // Subtraction tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
