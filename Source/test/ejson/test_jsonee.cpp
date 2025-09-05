@@ -310,7 +310,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
                     }
 
                     if (nr_dest_case) {
-                        if (strncmp(name, dest_case, nr_dest_case) != 0) {
+                        if (strcmp(name, dest_case) != 0) {
                             continue;
                         }
                     }
