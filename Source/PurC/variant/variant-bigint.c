@@ -74,7 +74,7 @@
 
 struct bigint_limbs {
     size_t len;
-    bi_limb_t tab[];
+    bi_limb_t tab[0];
 };
 
 static purc_variant *bigint_set_si(bigint_buf *buf, bi_slimb_t a)
@@ -162,7 +162,6 @@ purc_variant *bigint_set_u64(bigint_buf *buf, uint64_t a)
         purc_variant *r = (purc_variant *)buf;
         r->type = PURC_VARIANT_TYPE_BIGINT;
         r->flags = PCVRNT_FLAG_STATIC_DATA;
-        r->flags = 0;   /* do not use extra size */
         r->refc = 0;    /* fail safe */
 
 #if BIGINT_LIMB_BITS == 64
@@ -520,6 +519,7 @@ static purc_variant *bigint_extend(purc_variant *r, bi_limb_t op1)
             limbs = r->ptr;
             limbs->len = n2 + 1;
             limbs->tab[n2] = op1;
+            tab = limbs->tab;
 
             pcvariant_stat_dec_extra_size(r, sz_old_extra);
             pcvariant_stat_inc_extra_size(r, sz_extra);
@@ -529,15 +529,15 @@ static purc_variant *bigint_extend(purc_variant *r, bi_limb_t op1)
             r->TAB[n2] = op1;
         }
         else {
-            r->ptr = malloc(sz_extra);
-            if (r->ptr == NULL)
+            struct bigint_limbs *limbs = malloc(sz_extra);
+            if (limbs == NULL)
                 goto failed;
 
-            struct bigint_limbs *limbs = r->ptr;
-            memcpy(limbs->tab, r->TAB, sizeof(bi_limb_t) * r->size);
+            memcpy(limbs->tab, tab, sizeof(bi_limb_t) * n2);
             limbs->len = n2 + 1;
             limbs->tab[n2] = op1;
 
+            r->ptr = limbs;
             r->size = 0;
             r->flags = PCVRNT_FLAG_EXTRA_SIZE;
             pcvariant_stat_inc_extra_size(r, sz_extra);
@@ -547,6 +547,7 @@ static purc_variant *bigint_extend(purc_variant *r, bi_limb_t op1)
         r = bigint_normalize(r);
     }
 
+    tab = bigint_get_tab(r, &n2);
     return r;
 
 failed:
