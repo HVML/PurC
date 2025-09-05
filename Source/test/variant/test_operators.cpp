@@ -87,6 +87,9 @@ TEST(variant, arithmetic_operators)
             "18446744073709551615", "1", purc_variant_operator_add, "18446744073709551616"},  // ulongint + number
         { PURC_VARIANT_TYPE_LONGDOUBLE, PURC_VARIANT_TYPE_LONGDOUBLE,
             "1.23e8", "4.56e8", purc_variant_operator_add, "579000000FL"},  // longdouble + longdouble
+        { PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
+            "4660046610375530309UL", "7540113804746346429UL",
+            purc_variant_operator_add, "12200160415121876738UL"},  // longint + longint
         { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
             "1N", "2N", purc_variant_operator_add, "3N"},  // bigint +bigint
         { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
@@ -94,7 +97,7 @@ TEST(variant, arithmetic_operators)
             purc_variant_operator_add, "7540113804746346429N"},  // bigint +bigint
         { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
             "4660046610375530309N", "7540113804746346429N",
-            purc_variant_operator_add, "12200160415121876738"},  // bigint +bigint
+            purc_variant_operator_add, "12200160415121876738N"},  // longint + longint
 
         // Subtraction tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
@@ -103,6 +106,11 @@ TEST(variant, arithmetic_operators)
             "9223372036854775807", "9223372036854775806", purc_variant_operator_sub, "1L"},  // longint - longint
         { PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_ULONGINT,
             "18446744073709551615", "18446744073709551614", purc_variant_operator_sub, "1UL"},  // ulongint - ulongint
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "18446744073709551615N", "18446744073709551614N", purc_variant_operator_sub, "1N"},  // bigint - bigint
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "7540113804746346429N", "4660046610375530309N",
+            purc_variant_operator_sub, "2880067194370816120N"},  // bigint - bigint
 
         // Multiplication tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
@@ -111,6 +119,8 @@ TEST(variant, arithmetic_operators)
             "922337203685477580", "10", purc_variant_operator_mul, "9223372036854775808"},  // longint * number
         { PURC_VARIANT_TYPE_ULONGINT, PURC_VARIANT_TYPE_NUMBER,
             "1844674407370955161", "10", purc_variant_operator_mul, "18446744073709551616"},  // ulongint * number
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "18446744073709551615N", "11N", purc_variant_operator_mul, "202914184810805067765N"},  // bigint * bigint
 
         // True division tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
@@ -119,6 +129,10 @@ TEST(variant, arithmetic_operators)
             "11111", "2", purc_variant_operator_truediv, "5555.5"},  // longint / number
         { PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
             "9223372036854775807", "2", purc_variant_operator_truediv, "4611686018427387904"},  // longint / number
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "18446744073709551614N", "2N", purc_variant_operator_truediv, "9223372036854775808"},  // bigint - bigint
+
+
 
         // Floor division tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
@@ -127,6 +141,8 @@ TEST(variant, arithmetic_operators)
             "11111", "2", purc_variant_operator_floordiv, "5555"},  // longint // number
         { PURC_VARIANT_TYPE_LONGINT, PURC_VARIANT_TYPE_NUMBER,
             "9223372036854775807", "2", purc_variant_operator_floordiv, "4611686018427387904"},  // longint // number
+        { PURC_VARIANT_TYPE_BIGINT, PURC_VARIANT_TYPE_BIGINT,
+            "18446744073709551614N", "2N", purc_variant_operator_floordiv, "9223372036854775807N"},  // bigint - bigint
 
         // Modulo tests
         { PURC_VARIANT_TYPE_NUMBER, PURC_VARIANT_TYPE_NUMBER,
