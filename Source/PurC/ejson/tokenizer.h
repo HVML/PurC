@@ -68,10 +68,13 @@
 #define ETT_TRIPLE_DOUBLE_QUOTED        'T'         /* triple double quoted  */
 #define ETT_OP_EXPR                     'O'         /* OPERATOR EXPRESSION */
 #define ETT_OP_EXPR_IN_FUNC             'E'         /* OPERATOR EXPRESSION in getter, setter */
+#define ETT_OP_SUBEXPR                  'X'         /* sub op expression */
 #define ETT_OP_COND                     '?'         /* condition ? then : else */
 #define ETT_OP_COND_THEN                'H'         /* tHen */
 #define ETT_OP_COND_ELSE                'L'         /* eLse */
 #define ETT_OP_COMMA                    ','         /* OP comma */
+#define ETT_OP_LEFT_PAREN               'F'         /* OP left parenthesis, Front */
+#define ETT_OP_ASSIGN                   '='         /* OP assign */
 
 
 #define ETT_INVALID                     0x80        /* ETT_INVALID */
@@ -139,7 +142,6 @@
         parser->return_state = new_state;                                   \
     } while (false)
 
-//        DLOG("set variable entry '" #entry "' : |%c|\n", entry);
 #define SET_VAR_ENTRY(entry)                                                \
     do {                                                                    \
         parser->variable_entry_name = #entry;                               \
@@ -315,7 +317,7 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_ATTR_VALUE,
     EJSON_TKZ_STATE_OP_EXPR,
     EJSON_TKZ_STATE_OP_EXPR_IN_FUNC,
-    EJSON_TKZ_STATE_AFTER_OP_EXPR,
+    EJSON_TKZ_STATE_OP_AFTER_EXPR,
     EJSON_TKZ_STATE_OP_SIGN,
     EJSON_TKZ_STATE_OP_PLUS,
     EJSON_TKZ_STATE_OP_MINUS,
@@ -334,6 +336,7 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_OP_BITWISE_RIGHT_SHIFT,
     EJSON_TKZ_STATE_OP_CONDITIONAL,
     EJSON_TKZ_STATE_OP_COMMA,
+    EJSON_TKZ_STATE_OP_AFTER_COMMA,
     EJSON_TKZ_STATE_OP_AND,
     EJSON_TKZ_STATE_OP_OR,
     EJSON_TKZ_STATE_OP_NOT,
@@ -387,6 +390,9 @@ pcejson_token_new(uint32_t type);
 
 void
 pcejson_token_destroy(struct pcejson_token *token);
+
+void
+pcejson_token_destroy_ignore_node(struct pcejson_token *token);
 
 void
 pcejson_token_close(struct pcejson_token *token);

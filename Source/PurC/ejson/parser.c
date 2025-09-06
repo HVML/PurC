@@ -117,6 +117,14 @@ pcejson_token_destroy(struct pcejson_token *token)
 }
 
 void
+pcejson_token_destroy_ignore_node(struct pcejson_token *token)
+{
+    if (token) {
+        pc_free(token);
+    }
+}
+
+void
 pcejson_token_close(struct pcejson_token *token)
 {
     if (token) {
