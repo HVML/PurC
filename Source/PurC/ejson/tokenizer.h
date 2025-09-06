@@ -139,9 +139,9 @@
         parser->return_state = new_state;                                   \
     } while (false)
 
+//        DLOG("set variable entry '" #entry "' : |%c|\n", entry);
 #define SET_VAR_ENTRY(entry)                                                \
     do {                                                                    \
-        DLOG("set variable entry '" #entry "' : |%c|\n", entry);            \
         parser->variable_entry_name = #entry;                               \
         parser->variable_entry  = entry;                                    \
     } while (false)
@@ -338,8 +338,9 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_OP_OR,
     EJSON_TKZ_STATE_OP_NOT,
     EJSON_TKZ_STATE_OP_IN,
+    EJSON_TKZ_STATE_OP_AFTER_VARIABLE,
 
-    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_OP_IN,
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_OP_AFTER_VARIABLE,
 };
 
 
