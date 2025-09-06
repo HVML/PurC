@@ -5373,6 +5373,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_EQUAL)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_OP_EQUAL);
     }
+
     if (tkz_buffer_end_with(parser->temp_buffer, "==", 2)) {
         if (top && (!is_any_op_expr(top)) && tkz_stack_size() > 0) {
             struct pcejson_token *token = tkz_stack_pop();
@@ -6193,6 +6194,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_AND)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
+        if (top && top->type == ETT_VALUE && top->node == NULL) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (is_any_op_expr(prev)) {
+                if (prev->type == ETT_OP_EXPR) {
+                    SET_VAR_ENTRY(ETT_OP_EXPR);
+                }
+                else {
+                    SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                }
+                RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+            }
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
@@ -6202,6 +6215,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_AND)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
+        if (top && top->type == ETT_VALUE && top->node == NULL) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (is_any_op_expr(prev)) {
+                if (prev->type == ETT_OP_EXPR) {
+                    SET_VAR_ENTRY(ETT_OP_EXPR);
+                }
+                else {
+                    SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                }
+                RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+            }
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
@@ -6211,6 +6236,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_AND)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_AND);
         }
 
+        if (top && top->type == ETT_VALUE && top->node == NULL) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (is_any_op_expr(prev)) {
+                if (prev->type == ETT_OP_EXPR) {
+                    SET_VAR_ENTRY(ETT_OP_EXPR);
+                }
+                else {
+                    SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                }
+                RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+            }
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
@@ -6323,6 +6360,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
 
+        if (top && top->type == ETT_VALUE && top->node == NULL) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (is_any_op_expr(prev)) {
+                if (prev->type == ETT_OP_EXPR) {
+                    SET_VAR_ENTRY(ETT_OP_EXPR);
+                }
+                else {
+                    SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                }
+                RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+            }
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
@@ -6332,6 +6381,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
 
+        if (top && top->type == ETT_VALUE && top->node == NULL) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (is_any_op_expr(prev)) {
+                if (prev->type == ETT_OP_EXPR) {
+                    SET_VAR_ENTRY(ETT_OP_EXPR);
+                }
+                else {
+                    SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                }
+                RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+            }
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
@@ -6367,6 +6428,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT)
             ADVANCE_TO(EJSON_TKZ_STATE_OP_NOT);
         }
         else {
+            if (top && top->type == ETT_VALUE && top->node == NULL) {
+                struct pcejson_token *prev = tkz_prev_token();
+                if (is_any_op_expr(prev)) {
+                    if (prev->type == ETT_OP_EXPR) {
+                        SET_VAR_ENTRY(ETT_OP_EXPR);
+                    }
+                    else {
+                        SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+                    }
+                    RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
+                }
+            }
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         }
@@ -6398,6 +6471,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_NOT)
 
             tkz_stack_push(ETT_VALUE);
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+    }
+    if (top && top->type == ETT_VALUE && top->node == NULL) {
+        struct pcejson_token *prev = tkz_prev_token();
+        if (is_any_op_expr(prev)) {
+            if (prev->type == ETT_OP_EXPR) {
+                SET_VAR_ENTRY(ETT_OP_EXPR);
+            }
+            else {
+                SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
+            }
+            RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
         }
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
