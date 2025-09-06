@@ -1354,6 +1354,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
             RESET_TEMP_BUFFER();
             tkz_stack_push(ETT_GET_MEMBER);
             tkz_stack_push(ETT_VALUE);
+
+            SET_VAR_ENTRY(ETT_GET_MEMBER);
             ADVANCE_TO(EJSON_TKZ_STATE_VARIABLE);
         }
         if (type == ETT_VALUE) {
@@ -1483,6 +1485,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         top = tkz_stack_top();
         if (is_get_element(top->type)) {
             tkz_stack_push(ETT_VALUE);
+
+            SET_VAR_ENTRY(ETT_GET_MEMBER);
             RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
         }
     }
@@ -1543,17 +1547,20 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
     if (top && top->type == ETT_VALUE) {
         struct pcejson_token *prev = tkz_prev_token();
         if (prev && is_any_op_expr(prev)) {
+            SET_VAR_ENTRY(ETT_OP_EXPR);
             RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
         }
         if (prev &&
             (prev->type == ETT_CALL_GETTER || prev->type == ETT_CALL_GETTER)) {
             RESET_TEMP_BUFFER();
             tkz_stack_push(ETT_VALUE);
+            SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
             RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
         }
     }
     if (top && is_any_op_expr(top)) {
         tkz_stack_push(ETT_VALUE);
+        SET_VAR_ENTRY(top->type);
         RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
     }
     top = tkz_stack_top();
@@ -1561,6 +1568,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         (top->type == ETT_CALL_GETTER || top->type == ETT_CALL_SETTER)) {
         RESET_TEMP_BUFFER();
         tkz_stack_push(ETT_VALUE);
+        SET_VAR_ENTRY(ETT_OP_EXPR_IN_FUNC);
         RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
     }
 
@@ -1983,10 +1991,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_DOLLAR)
         tkz_stack_push(ETT_PROTECT);
         RESET_TEMP_BUFFER();
         tkz_stack_push(ETT_VALUE);
+        SET_VAR_ENTRY(ETT_PROTECT);
         ADVANCE_TO(EJSON_TKZ_STATE_VARIABLE);
     }
     RESET_TEMP_BUFFER();
     tkz_stack_push(ETT_VALUE);
+    SET_VAR_ENTRY(ETT_GET_VARIABLE);
     RECONSUME_IN(EJSON_TKZ_STATE_VARIABLE);
 END_STATE()
 
@@ -4047,6 +4057,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VARIABLE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
+    //DLOG("Current variable entry is '%s' : |%c|\n", parser->variable_entry_name, parser->variable_entry);
     if (character == '}') {
         update_tkz_stack(parser);
         top = tkz_stack_top();

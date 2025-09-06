@@ -74,9 +74,23 @@
 #define ETT_OP_COMMA                    ','         /* OP comma */
 
 
+#define ETT_INVALID                     0x80        /* ETT_INVALID */
+
 #define PARSER_ERROR_TYPE               "HEE parse error"
+
+#ifndef NDEBUG
+
+#define PLOG                            printf
+
+#define DLOG(format, ...) \
+    PLOG("##### [%s:%d:%s] " format, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+
+#else /* #ifndef NDEBUG */
+
 #define PLOG                            PC_INFO
-//#define PLOG                            printf
+#define DLOG(format, ...)               ((void)0)
+
+#endif
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
@@ -123,6 +137,13 @@
 #define SET_RETURN_STATE(new_state)                                         \
     do {                                                                    \
         parser->return_state = new_state;                                   \
+    } while (false)
+
+#define SET_VAR_ENTRY(entry)                                                \
+    do {                                                                    \
+        DLOG("set variable entry '" #entry "' : |%c|\n", entry);            \
+        parser->variable_entry_name = #entry;                               \
+        parser->variable_entry  = entry;                                    \
     } while (false)
 
 #define RETURN_AND_STOP_PARSE()                                             \
@@ -325,6 +346,7 @@ enum pcejson_tkz_state {
 struct pcejson {
     uint32_t state;
     uint32_t return_state;
+    uint32_t variable_entry;
     uint32_t depth;
     uint32_t max_depth;
     uint32_t flags;
@@ -341,6 +363,8 @@ struct pcejson {
 
     struct pcejson_token_stack *tkz_stack;
     const char *state_name;
+    const char *variable_entry_name;
+
     pcejson_parse_is_finished_fn is_finished;
 
     uint64_t char_ref_code;
