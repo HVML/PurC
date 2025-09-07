@@ -1,0 +1,1 @@
+(getVariable("val") = getVariable("last_one") + getVariable("last_two"))

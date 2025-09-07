@@ -1,0 +1,1 @@
+(getVariable("last_one") = 0N,  getVariable("last_two") = 1N)

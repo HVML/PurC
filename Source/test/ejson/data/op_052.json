@@ -1,0 +1,2 @@
+(last_one = last_two, last_two = val, count += 1)
+

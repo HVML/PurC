@@ -124,6 +124,8 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_op_rp_ops,
     // Special node types
     pcvcm_get_operator_expression_ops,
+    /* subexpr as operator expression */
+    pcvcm_get_operator_expression_ops,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \

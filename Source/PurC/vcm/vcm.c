@@ -124,6 +124,7 @@ static const char *typenames[] = {
 
     // Special node types
     PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION,
+    PCVCM_NODE_TYPE_NAME_SUB_EXPR,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -1330,6 +1331,19 @@ pcvcm_node_new_operator_expression(size_t nr_nodes, struct pcvcm_node **nodes)
         struct pcvcm_node *v = nodes[i];
         pcvcm_node_append_child(n, v);
     }
+
+    return n;
+}
+
+
+struct pcvcm_node *
+pcvcm_node_new_subexpr(void)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_SUB_EXPR, false);
+    if (!n) {
+        return NULL;
+    }
+
 
     return n;
 }

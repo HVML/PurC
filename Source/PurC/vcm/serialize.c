@@ -410,6 +410,9 @@ pcvcm_node_write_to_rwstream(struct pcvdom_dump_ctxt *ctxt, struct pcvcm_node *n
         write_child_node_rwstream_ex(ctxt, node, false, true, handle);
         pcvdom_dump_write(ctxt, ")", 1);
         break;
+    case PCVCM_NODE_TYPE_SUB_EXPR:
+        write_child_node_rwstream_ex(ctxt, node, false, true, handle);
+        break;
     case PCVCM_NODE_TYPE_OP_ADD:
         pcvdom_dump_write(ctxt, "+", 1);
         break;
@@ -839,6 +842,9 @@ pcvcm_node_serialize_to_rwstream(struct pcvdom_dump_ctxt *ctxt,
         pcvdom_dump_write(ctxt, "(", 1);
         write_child_node_rwstream_ex(ctxt, node, false, true, handle);
         pcvdom_dump_write(ctxt, ")", 1);
+        break;
+    case PCVCM_NODE_TYPE_SUB_EXPR:
+        write_child_node_rwstream_ex(ctxt, node, false, true, handle);
         break;
     case PCVCM_NODE_TYPE_OP_ADD:
         pcvdom_dump_write(ctxt, "+", 1);

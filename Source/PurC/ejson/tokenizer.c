@@ -605,7 +605,7 @@ token_stack_push(struct pcejson *parser, uint32_t type, int32_t pos)
         break;
 
     case ETT_OP_SUBEXPR:
-        token->node = pcvcm_node_new_operator_expression(0, NULL);
+        token->node = pcvcm_node_new_subexpr();
         if (!token->node) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
@@ -1099,11 +1099,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
             }
             if (character == ')') {
                 struct pcvcm_node *last = pcvcm_node_last_child(top->node);
-                if (last && last->type == PCVCM_NODE_TYPE_OPERATOR_EXPRESSION
-                        && !last->is_closed) {
+                if (last &&
+                    (last->type == PCVCM_NODE_TYPE_OPERATOR_EXPRESSION ||
+                     last->type == PCVCM_NODE_TYPE_SUB_EXPR) &&
+                    !last->is_closed) {
                     RECONSUME_IN(EJSON_TKZ_STATE_OP_SIGN);
-                }
-                else {
+                } else {
                     RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
                 }
             }
