@@ -6238,17 +6238,13 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_COMMA)
             tkz_stack_push(ETT_OP_SUBEXPR);
             top = tkz_stack_top();
 
-            if (node == NULL) {
-                struct pcvcm_node *child = pcvcm_node_first_child(prev->node);
-                while(child) {
-                    pcvcm_node_remove_child(prev->node, child);
-                    pcvcm_node_append_child(top->node, child);
-                    child = pcvcm_node_first_child(prev->node);
-                }
+            struct pcvcm_node *child = pcvcm_node_first_child(prev->node);
+            while(child) {
+                pcvcm_node_remove_child(prev->node, child);
+                pcvcm_node_append_child(top->node, child);
+                child = pcvcm_node_first_child(prev->node);
             }
-            else {
-                pcvcm_node_append_child(top->node, node);
-            }
+            pcvcm_node_append_child(top->node, node);
 
             tkz_stack_push(ETT_VALUE);
         }
