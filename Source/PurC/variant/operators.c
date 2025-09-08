@@ -576,6 +576,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         default:
+            c = 0;
             assert(0);
             break;
         }
@@ -630,6 +631,7 @@ variant_arithmetic_op(purc_variant_t v1, purc_variant_t v2,
             break;
 
         default:
+            c = 0;
             assert(0);
             break;
         }
@@ -1091,6 +1093,7 @@ variant_bitwise_op(purc_variant_t v1, purc_variant_t v2,
             c = a ^ b;
             break;
         default:
+            c = 0;
             assert(0);
             break;
         }
@@ -1117,6 +1120,7 @@ variant_bitwise_op(purc_variant_t v1, purc_variant_t v2,
             c = a ^ b;
             break;
         default:
+            c = 0;
             assert(0);
             break;
         }

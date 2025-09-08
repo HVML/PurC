@@ -630,7 +630,7 @@ bool
 pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         pcintr_coroutine_t cor)
 {
-    PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
+    PC_NONE("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
 
     purc_rwstream_t out = NULL;
 
@@ -699,7 +699,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
 
     int conn_type = pcrdr_conn_type(conn);
     if (conn_type == CT_MOVE_BUFFER) {
-        PC_INFO("rdr page control load, tickcount is %ld to move buffer\n",
+        PC_NONE("rdr page control load, tickcount is %ld to move buffer\n",
                 pcintr_tick_count());
         /* XXX: pass the document entity directly
            when the connection type is move buffer. */
@@ -789,7 +789,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             goto failed;
         }
 
-        PC_INFO("rdr page control load, tickcount is %ld to rdr url=%s\n",
+        PC_NONE("rdr page control load, tickcount is %ld to rdr url=%s\n",
                 pcintr_tick_count(), url);
 
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
@@ -844,7 +844,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
             goto failed;
         }
 
-        PC_INFO("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
+        PC_NONE("rdr page control load, tickcount is %ld to rdr sz_content=%ld\n",
                 pcintr_tick_count(), sz_content);
         if (sz_content > DEF_LEN_ONE_WRITE) {
             response_msg = rdr_page_control_load_large_page(conn,
@@ -885,7 +885,7 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcrdr_conn *conn,
         goto failed;
     }
 
-    PC_INFO("rdr page control load, tickcount is %ld success\n", pcintr_tick_count());
+    PC_NONE("rdr page control load, tickcount is %ld success\n", pcintr_tick_count());
     return true;
 
 failed:

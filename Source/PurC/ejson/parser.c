@@ -117,6 +117,14 @@ pcejson_token_destroy(struct pcejson_token *token)
 }
 
 void
+pcejson_token_destroy_ignore_node(struct pcejson_token *token)
+{
+    if (token) {
+        pc_free(token);
+    }
+}
+
+void
 pcejson_token_close(struct pcejson_token *token)
 {
     if (token) {
@@ -273,6 +281,8 @@ void pcejson_destroy(struct pcejson *parser)
 void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
 {
     parser->state =  EJSON_TKZ_STATE_DATA;
+    parser->return_state = EJSON_TKZ_STATE_DATA;
+    parser->variable_entry = EJSON_TKZ_STATE_DATA;
     parser->max_depth = depth;
     parser->depth = 0;
     parser->flags = flags;

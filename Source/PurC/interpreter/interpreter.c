@@ -532,7 +532,7 @@ static void _cleanup_instance(struct pcinst* inst)
 
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
-        PC_INFO("Instance is quiting, %u messages discarded\n", (unsigned)n);
+        PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
         heap->move_buff = 0;
     }
 
@@ -4168,7 +4168,7 @@ int
 pcintr_attach_renderer(struct pcinst *inst, struct pcrdr_conn *new_conn,
         struct pcrdr_conn *conn_to_close)
 {
-    PC_INFO("attach renderer, tickcount is %ld, new conn is %s,"
+    PC_NONE("attach renderer, tickcount is %ld, new conn is %s,"
             " conn to close is %s\n",
             pcintr_tick_count(), new_conn->uid,
             conn_to_close ? conn_to_close->uid : NULL);
@@ -4200,7 +4200,7 @@ out:
 int
 pcintr_detach_renderer(struct pcinst *inst, struct pcrdr_conn *conn)
 {
-    PC_INFO("detach renderer, tickcount is %ld, new conn is %s\n",
+    PC_NONE("detach renderer, tickcount is %ld, new conn is %s\n",
             pcintr_tick_count(), conn->uid);
 
     int ret = 0;

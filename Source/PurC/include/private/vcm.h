@@ -221,7 +221,10 @@ enum pcvcm_node_type {
 #define PCVCM_NODE_TYPE_NAME_OPERATOR_EXPRESSION    "operator_expression"
     PCVCM_NODE_TYPE_OPERATOR_EXPRESSION,        // (...)
 
-    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_OPERATOR_EXPRESSION,
+#define PCVCM_NODE_TYPE_NAME_SUB_EXPR               "sub_expr"
+    PCVCM_NODE_TYPE_SUB_EXPR,        // (...)
+
+    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_SUB_EXPR,
 };
 
 #define PCVCM_NODE_TYPE_NR \
@@ -402,6 +405,9 @@ struct pcvcm_node *pcvcm_node_new_op_conditional(void);
 
 // Special node types (variable operands)
 struct pcvcm_node *pcvcm_node_new_operator_expression(size_t nr_nodes, struct pcvcm_node **nodes);
+
+// sub expr
+struct pcvcm_node *pcvcm_node_new_subexpr(void);
 
 static inline enum pcvcm_node_type
 pcvcm_node_get_type(struct pcvcm_node *node) {

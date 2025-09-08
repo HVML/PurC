@@ -59,6 +59,11 @@ pcvcm_eval_stack_frame_step_name(enum pcvcm_eval_stack_frame_step type)
     return stepnames[type];
 }
 
+static int key_comp(const void *key1, const void *key2)
+{
+    return (int)((intptr_t)key1 - (intptr_t)key2);
+}
+
 struct pcvcm_eval_ctxt *
 pcvcm_eval_ctxt_create()
 {
@@ -70,7 +75,7 @@ pcvcm_eval_ctxt_create()
     }
 
     ctxt->node_var_name_map =
-        pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
+        pcutils_map_create(NULL, NULL, NULL, NULL, key_comp, false);
     ctxt->free_on_destroy = 1;
 out:
     return ctxt;
@@ -1102,7 +1107,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->bind_var = bind_var;
         ctxt->bind_var_ctxt = bind_var_ctxt;
         ctxt->node_var_name_map =
-            pcutils_map_create(NULL, NULL, NULL, NULL, NULL, false);
+            pcutils_map_create(NULL, NULL, NULL, NULL, key_comp, false);
 #ifdef PCVCM_KEEP_NAME
         ctxt->names = names;
         memset(names, 0, sizeof(names));
