@@ -345,6 +345,8 @@ install(TARGETS PurC
         DESTINATION "${LIB_INSTALL_DIR}/"
 )
 
+message("${HEADER_INSTALL_DIR}")
+
 install(FILES ${PurC_INSTALLED_HEADERS}
         DESTINATION "${HEADER_INSTALL_DIR}/purc"
 )
