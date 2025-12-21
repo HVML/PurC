@@ -70,7 +70,6 @@ bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
                 break;
 
             case PURC_LOG_FACILITY_SYSLOG:
-                global_log_fp = LOG_FILE_SYSLOG;
 #if HAVE(SYSLOG_H)
                 openlog("HVML", LOG_PID, LOG_USER);
 #endif
@@ -129,6 +128,9 @@ bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
 
         case PURC_LOG_FACILITY_SYSLOG:
             inst->fp_log = LOG_FILE_SYSLOG;
+#if HAVE(SYSLOG_H)
+            openlog("HVML", LOG_PID, LOG_USER);
+#endif
             break;
         }
     }
