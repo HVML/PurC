@@ -71,6 +71,9 @@ bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
 
             case PURC_LOG_FACILITY_SYSLOG:
                 global_log_fp = LOG_FILE_SYSLOG;
+#if HAVE(SYSLOG_H)
+                openlog("HVML", LOG_PID, LOG_USER);
+#endif
                 break;
             }
         }
@@ -78,9 +81,14 @@ bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
         return true;
     }
 
-    if (inst->fp_log &&
-            (inst->fp_log != LOG_FILE_SYSLOG &&
-             inst->fp_log != stdout && inst->fp_log != stderr)) {
+    if (inst->fp_log == LOG_FILE_SYSLOG) {
+#if HAVE(SYSLOG_H)
+        closelog();
+#endif
+        inst->fp_log = NULL;
+    }
+    else if (inst->fp_log &&
+             inst->fp_log != stdout && inst->fp_log != stderr) {
         fclose(inst->fp_log);
         inst->fp_log = NULL;
     }
@@ -124,9 +132,14 @@ bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
             break;
         }
     }
+    else if (inst->fp_log == LOG_FILE_SYSLOG) {
+#if HAVE(SYSLOG_H)
+        closelog();
+#endif
+        inst->fp_log = NULL;
+    }
     else if (inst->fp_log &&
-            (inst->fp_log != LOG_FILE_SYSLOG &&
-             inst->fp_log != stdout && inst->fp_log != stderr)) {
+             inst->fp_log != stdout && inst->fp_log != stderr) {
         fclose(inst->fp_log);
         inst->fp_log = NULL;
     }
@@ -179,18 +192,37 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
     }
 
     if (fp == LOG_FILE_SYSLOG) {
-#if HAVE(VSYSLOG)
         const char *ident = "edpt://[unknown]/[unknown]";
         if (inst && inst->endpoint_atom)
             ident = purc_atom_to_string(inst->endpoint_atom);
 
-        // TODO: we may need a lock to make sure the following two calls
-        // can finish atomically.
-        openlog(ident, LOG_PID, LOG_USER);
-        vsyslog(LOG_INFO | level_info[level].sys_level, msg, ap);
+#if HAVE(VSYSLOG)
+        // use vsyslog()
+        char *format = NULL;
+        if (asprintf(&format, "%s %s >> %s", ident,
+                    tag ? tag : level_info[level].tag, msg) >= 0) {
+            assert(format);
+            vsyslog(LOG_INFO | level_info[level].sys_level, format, ap);
+            free(format);
+        }
+        return;
+#elif HAVE(SYSLOG_H)
+        // use syslog()
+        char *format = NULL;
+        if (asprintf(&format, "%s %s >> %s", ident,
+                    tag ? tag : level_info[level].tag, msg) >= 0) {
+            assert(format);
+            char *message = NULL;
+            if (vasprintf(&message, ap) >= 0) {
+                syslog(LOG_INFO | level_info[level].sys_level, message);
+                assert(message);
+                free(message);
+            }
+            free(format);
+        }
         return;
 #else
-        fp = stdout;
+        fp = stderr;
 #endif
     }
 

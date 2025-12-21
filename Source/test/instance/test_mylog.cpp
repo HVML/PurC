@@ -62,3 +62,22 @@ TEST(instance, mylog)
     purc_cleanup();
 }
 
+TEST(instance, syslog)
+{
+    // initial purc
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.purc", "test", NULL);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_SYSLOG);
+
+    purc_log_info("You will see this message in syslog marked INFO\n");
+    purc_log_debug("You will see this message in syslog marked DEBUG\n");
+    purc_log_warn("You will see this message in syslog marked WARN\n");
+    purc_log_error("You will see this message in syslog marked ERROR\n");
+
+    purc_enable_log(false, false);
+    purc_log_debug("You will not see this message\n");
+
+    purc_cleanup();
+}
+

@@ -51,10 +51,14 @@
 #if USE(PTHREADS)          /* { */
 #include <pthread.h>
 #endif                     /* } */
-#include <stdio.h>  // fclose on inst->fp_log
+#include <stdio.h>  // fclose() on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#if HAVE(SYSLOG_H)
+#include <syslog.h>
+#endif
 
 #if OS(UNIX)
 #   include <signal.h>
@@ -474,8 +478,13 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG
-            && curr_inst->fp_log != stdout && curr_inst->fp_log != stderr) {
+    if (curr_inst->fp_log == LOG_FILE_SYSLOG) {
+#if HAVE(SYSLOG_H)
+        closelog();
+#endif
+    }
+    else if (curr_inst->fp_log &&
+            curr_inst->fp_log != stdout && curr_inst->fp_log != stderr) {
         fclose(curr_inst->fp_log);
     }
     curr_inst->fp_log = NULL;
