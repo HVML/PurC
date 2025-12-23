@@ -2,6 +2,7 @@
 
 export PURC_EXECUTOR_PATH=`pwd`/lib
 export PURC_DVOBJS_PATH=`pwd`/lib
+export PURC_FETCHER_EXEC_PATH=`pwd`/bin
 
 SHOW_STDERR=${SHOW_STDERR:-0}
 USE_VALGRIND=${USE_VALGRIND:-0}
