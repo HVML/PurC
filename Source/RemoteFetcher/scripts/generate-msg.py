@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (C) 2010 Apple Inc. All rights reserved.
 # Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
