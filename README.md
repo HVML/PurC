@@ -107,10 +107,10 @@ If you want to enable the remote data fetcher, the following libraries are neede
 1. libunistring
 1. openssl
 
-If you are using Ubuntu 22.04 LTS or other similiar Linux distribution, you can use the following commands to install all above dependencies:
+If you are using Ubuntu 24.04 LTS or other similiar Linux distribution, you can use the following commands to install all above dependencies:
 
 ```console
-$ sudo apt install gcc-12 g++-12 bison flex python3
+$ sudo apt install cmake gcc g++ bison flex python3
 $ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev libsqlite3-dev
 
 # For remote fetcher:
