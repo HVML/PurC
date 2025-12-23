@@ -97,10 +97,10 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 1. libunistring
 1. openssl
 
-如果您使用 Ubuntu 22.04 LTS 或者其他类似的 Linux 发行版，则可使用如下命令安装以上所有工具或依赖库：
+如果您使用 Ubuntu 24.04 LTS 或者其他类似的 Linux 发行版，则可使用如下命令安装以上所有工具或依赖库：
 
 ```console
-$ sudo apt install gcc-12 g++-12 bison flex python3
+$ sudo apt install cmake gcc g++ bison flex python3
 $ sudo apt install zlib1g-dev libglib2.0-dev libncurses-dev libbison-dev libpython3-dev libsqlite3-dev
 
 # For remote fetcher:
