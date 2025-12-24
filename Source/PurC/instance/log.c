@@ -204,7 +204,7 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
         if (asprintf(&format, "%s %s >> %s", ident,
                     tag ? tag : level_info[level].tag, msg) >= 0) {
             assert(format);
-            vsyslog(LOG_INFO | level_info[level].sys_level, format, ap);
+            vsyslog(level_info[level].sys_level, format, ap);
             free(format);
         }
         return;
@@ -215,8 +215,8 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
                     tag ? tag : level_info[level].tag, msg) >= 0) {
             assert(format);
             char *message = NULL;
-            if (vasprintf(&message, ap) >= 0) {
-                syslog(LOG_INFO | level_info[level].sys_level, message);
+            if (vasprintf(&message, format, ap) >= 0) {
+                syslog(level_info[level].sys_level, "%s", message);
                 assert(message);
                 free(message);
             }
