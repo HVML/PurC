@@ -367,19 +367,19 @@ positive:
     false
 
 positive:
-    $FS.file_is("/bin/ls", "regular")
+    $FS.file_is("bin/purc", "regular")
     true
 
 positive:
-    $FS.file_is("/bin/ls", "read")
+    $FS.file_is("bin/purc", "read")
     true
 
 positive:
-    $FS.file_is("/bin/ls", "EXE")
+    $FS.file_is("bin/purc", "EXE")
     true
 
 positive:
-    $FS.file_is("/bin/ls", "regular   readable executable")
+    $FS.file_is("bin/purc", "regular   readable executable")
     true
 
 positive:
@@ -387,7 +387,7 @@ positive:
     true
 
 positive:
-    $FS.file_is("/bin/ls", "exe")
+    $FS.file_is("bin/purc", "exe")
     true
 
 positive:

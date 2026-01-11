@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+** Copyright (C) 2022, 2026 FMSoft <https://www.fmsoft.cn>
 **
 ** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
 **
@@ -1034,7 +1034,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // regular file
     printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'regular':\n");
-    param[0] = purc_variant_make_string ("/bin/ls", true);
+    param[0] = purc_variant_make_string ("bin/purc", true);
     param[1] = purc_variant_make_string ("regular read exe", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -1054,7 +1054,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // Executable
     printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'exe':\n");
-    param[0] = purc_variant_make_string ("/bin/ls", true);
+    param[0] = purc_variant_make_string ("bin/purc", true);
     param[1] = purc_variant_make_string ("exe", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -1064,7 +1064,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // Un-executable
     printf ("TEST file_is: nr_args = 2, param[0] = un_exe, param[1] = 'exe':\n");
-    param[0] = purc_variant_make_string ("/bin/ls", true);
+    param[0] = purc_variant_make_string ("bin/purc", true);
     param[1] = purc_variant_make_string ("exe", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
@@ -1299,8 +1299,8 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     // String param
-    printf ("TEST chown: nr_args = 1, param[0] = '/bin/ls':\n");
-    param[0] = purc_variant_make_string ("/bin/ls", true);
+    printf ("TEST chown: nr_args = 1, param[0] = 'bin/purc':\n");
+    param[0] = purc_variant_make_string ("bin/purc", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("return: %s\n", purc_variant_get_string_const (ret_var));
