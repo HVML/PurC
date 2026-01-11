@@ -1852,7 +1852,7 @@ purc_variant_make_bigint_from_string(const char *str, char **end, int radix)
 }
 
 /* 2 <= base <= 36 */
-static char const digits[36] = "0123456789abcdefghijklmnopqrstuvwxyz";
+static char const digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 /* special version going backwards */
 /* XXX: use dtoa.c */
