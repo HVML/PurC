@@ -1,9 +1,9 @@
 #!/usr/bin/purc
 
-# RESULT: "HVML age: 4"
+# RESULT: "HVML Release Name: 丑牛"
 
 <hvml>
     <body>
-        <exit with "HVML age: $(DATETIME.localtime()['year'] + 1900 - 2021)" />
+        <exit with "HVML Release Name: $(SYS.const('HVML_PREDEF_VARS_SPEC_RELEASE'))" />
     </body>
 </hvml>
