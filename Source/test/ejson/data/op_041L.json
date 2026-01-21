@@ -1,0 +1,1 @@
+($cond ? (($SYS.cwd!(SYS.cwd + '/..' ), (1L + ($A * 2L))), 2L) : (($SYS.cwd!(SYS.cwd + '/..' ), (3L + ($B / 2L))), 4L))

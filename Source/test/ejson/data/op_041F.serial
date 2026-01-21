@@ -1,0 +1,1 @@
+(getVariable("abc") ? 1L : (getVariable("second") + getVariable("third") * 2L))

@@ -1,0 +1,1 @@
+($abc ? (($first ? 1L : 2L) + $delta) : (($second ? 3L : 4L) * $factor))

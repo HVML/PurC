@@ -1,0 +1,1 @@
+(getVariable("cond") ? ((callSetter(getMember(getVariable("SYS"), "cwd"), (getMember(getVariable("SYS"), "cwd") + "/..")),  (1L + (getVariable("A") * 2L))),  2L) : ((callSetter(getMember(getVariable("SYS"), "cwd"), (getMember(getVariable("SYS"), "cwd") + "/..")),  (3L + (getVariable("B") / 2L))),  4L))
