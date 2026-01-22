@@ -1,0 +1,1 @@
+"The avator is {$person.name}.png {$person}.name.jpg $person.name.gif {$person.name.svg} ${person}.name.bmp {${person}.name}.webp"

@@ -25,13 +25,8 @@
 
 #include "config.h"
 
-#include "private/dvobjs.h"
 #include "tokenizer.h"
 
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/debug.h"
-#include "private/utils.h"
 #include "private/stack.h"
 #include "private/tkz-helper.h"
 #include "private/atom-buckets.h"
@@ -1367,6 +1362,33 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
             RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
         }
         uint32_t type = top->type;
+        if ((type == ETT_MULTI_UNQUOTED_S || type == ETT_MULTI_QUOTED_S)
+                && top->node) {
+            struct pcvcm_node *child = pcvcm_node_last_child(top->node);
+            if (child && (child->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE
+                    || child->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER)) {
+                pcvcm_node_remove_child(top->node, child);
+                struct pcejson_token *token = pcejson_token_new(
+                        child->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE
+                        ? ETT_GET_VARIABLE : ETT_GET_MEMBER);
+                if (!token) {
+                    RETURN_AND_STOP_PARSE();
+                }
+                token->node = child;
+                pcejson_token_stack_push_token(parser->tkz_stack, token);
+                top = token;
+                type = token->type;
+            }
+        }
+        if (type == ETT_PROTECT && top->node) {
+            if (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE) {
+                top->type = ETT_GET_VARIABLE;
+            }
+            else if (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_MEMBER) {
+                top->type = ETT_GET_MEMBER;
+            }
+            type = top->type;
+        }
         if (type == ETT_GET_VARIABLE || is_get_element(type)
                 || type == ETT_CALL_SETTER || type == ETT_CALL_GETTER) {
             RESET_TEMP_BUFFER();
@@ -1694,7 +1716,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
             ADVANCE_TO(EJSON_TKZ_STATE_RIGHT_BRACE);
         }
         else if (type == ETT_PROTECT) {
-            //update_tkz_stack_with_level(parser, 1);
             top = tkz_stack_top();
             if (top->node->extra & EXTRA_PROTECT_FLAG) {
                 top->node->extra &= EXTRA_SUGAR_FLAG;
@@ -1702,6 +1723,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
             else {
                 top->node->extra &= EXTRA_PROTECT_FLAG;
             }
+            update_tkz_stack_with_level(parser, 1);
             ADVANCE_TO(EJSON_TKZ_STATE_RIGHT_BRACE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE);
@@ -6357,6 +6379,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_CONDITIONAL)
             if (top && top->type == ETT_OP_SUBEXPR) {
                 struct pcejson_token *prev = tkz_prev_token();
                 assert(prev && prev->type == ETT_OP_COND_THEN);
+                (void)prev;
                 pcvcm_node_append_child(top->node, token->node);
                 pcejson_token_destroy_ignore_node(token);
                 token = tkz_stack_pop();
@@ -6397,6 +6420,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_OP_CONDITIONAL)
                 if (top && top->type == ETT_OP_SUBEXPR) {
                     struct pcejson_token *p = tkz_prev_token();
                     assert(p && p->type == ETT_OP_COND_ELSE);
+                    (void)p;
                     pcvcm_node_append_child(top->node, token->node);
                     pcejson_token_destroy_ignore_node(token);
                     token = tkz_stack_pop();

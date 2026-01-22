@@ -1,0 +1,1 @@
+(getVariable("rdrContent") = getMember(getVariable(getVariable("_hbdrunVarName")), "rdrContent"))

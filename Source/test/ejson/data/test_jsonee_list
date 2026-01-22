@@ -1,3 +1,4 @@
+Source/test/ejson/data/test_jsonee_list
 jsonee_001_double_quoted_attr
 jsonee_002_unquoted_attr
 jsonee_003_attr_without_value
@@ -282,3 +283,6 @@ op_049
 op_050
 op_051
 op_052
+op_053
+op_053A
+op_054
