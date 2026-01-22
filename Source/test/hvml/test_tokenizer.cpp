@@ -20,7 +20,6 @@
 #include "purc/purc.h"
 
 #include "private/hvml.h"
-#include "private/utils.h"
 #include "private/tkz-helper.h"
 #include "purc/purc-rwstream.h"
 #include "hvml/hvml-token.h"
@@ -57,6 +56,8 @@ struct hvml_token_test_data {
     char *comp_path;
     int error;
 };
+
+const char *dest_case = NULL;
 
 static inline void
 push_back(std::vector<hvml_token_test_data> &vec,
@@ -332,6 +333,8 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
     getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "data");
 
+    size_t nr_dest_case = dest_case ? strlen(dest_case) : 0;
+
     if (strlen(data_path)) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
@@ -349,6 +352,12 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                     char* name = strtok (trim(line), " ");
                     if (!name) {
                         continue;
+                    }
+
+                    if (nr_dest_case) {
+                        if (strcmp(name, dest_case) != 0) {
+                            continue;
+                        }
                     }
 
                     char* err = strtok (NULL, " ");
@@ -406,3 +415,11 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
 INSTANTIATE_TEST_SUITE_P(hvml_token, hvml_parser_next_token,
         testing::ValuesIn(read_hvml_token_test_data()));
 
+int main(int argc, char** argv)
+{
+    if (argc > 1 && strncmp(argv[1], "--gtest", 7) != 0) {
+        dest_case = argv[1];
+    }
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
