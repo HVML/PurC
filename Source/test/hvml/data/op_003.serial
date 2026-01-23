@@ -1,0 +1,1 @@
+PCHVML_TOKEN_START_TAG|<inherit on=(getVariable("rdrContent") = getMember(getVariable(getVariable("_hbdrunVarName")), "rdrContent"),  getVariable("rdrOptions") = getMember(getVariable(getVariable("_hbdrunVarName")), "rdrOptions"))>
