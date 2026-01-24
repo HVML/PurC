@@ -25,11 +25,34 @@ gantt
     ver-0.9.22          :a17, 2023-12-31, 2025-04-30
     ver-0.9.24          :a18, 2025-04-30, 2025-06-30
     ver-0.9.26          :a19, 2025-06-30, 2025-08-31
-    ver-0.9.30          :a20, 2025-08-31, 2025-10-31
-    ver-1.0.0           :v1, 2025-10-31, 2025-12-31
+    ver-0.9.30          :a20, 2025-08-31, 2026-01-31
+    ver-1.0.0           :v1, 2026-02-01, 2026-02-28
 ```
 
 # Release Notes
+
+## Version 0.9.30
+
+On Jan. 31, 2026, HVML Community announces the availability of PurC 0.9.30,
+   which is also the 20th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.30
+
+In this version, we fixed some bugs.
+
+* CHANGES:
+   - Change license of utilities to MIT
+   - Tune some test cases for Ubuntu 26.04.
+* ENHANCEMENTS:
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fixed some bugs of HVML parser and interpreter.
+   - Fixed some minor bugs of log utility.
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.26
 
@@ -65,7 +88,6 @@ We also made a number of major enhancements and fixed some bugs.
    - Cleaned up the command line options of `purc`.
 * SAMPLES:
 
->>>>>>> origin/variant
 ## Version 0.9.24
 
 On Jun. 30, 2025, HVML Community announces the availability of PurC 0.9.24,

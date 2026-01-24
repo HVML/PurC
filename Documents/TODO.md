@@ -74,10 +74,10 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.30] The generation and handling mechanism of uncatchable errors:
+1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
-1. [0.9.30] Review all uses of exception names.
-1. [0.9.30] Review the implementation of all elements.
+1. [1.0.0] Review all uses of exception names.
+1. [1.0.0] Review the implementation of all elements.
 1. [0.9.24; Resolved] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
 1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to RCd of HVML Spec V1.0:
    - The default result data of a foreign element: inheriting from the proceeding operation.
@@ -137,15 +137,15 @@
 
 ### 2.7) More Platforms
 
-1. [0.9.30] Windows
+1. [1.0.0; Pending] Windows
 
 ### 2.8) Others
 
-1. [0.9.30] Clean up all unnecessary calls of `PC_ASSERT`.
-1. [0.9.30] Normalize the typedef names.
-1. [0.9.30] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
+1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
+1. [1.0.0] Normalize the typedef names.
+1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
-1. [0.9.30] Tune API description.
+1. [1.0.0] Tune API description.
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
 1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
