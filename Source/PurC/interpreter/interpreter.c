@@ -59,6 +59,13 @@
 
 #define EVENT_SEPARATOR      ':'
 
+bool pcintr_schedule(void *ctxt);
+
+static void schedule_dispatch(void *ctxt)
+{
+    pcintr_schedule(ctxt);
+}
+
 
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
@@ -2176,7 +2183,7 @@ purc_run(purc_cond_handler handler)
 
     heap->cond_handler = handler;
     g_purc_run_monotonic_ms = pcutils_get_monotoic_time_ms();
-    purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);
+    purc_runloop_dispatch(runloop, schedule_dispatch, inst);
     purc_runloop_run();
 
     return 0;

@@ -36,6 +36,7 @@
 #include "private/ports.h"
 #include "private/msg-queue.h"
 #include "private/pcrdr.h"
+#include "purc-runloop.h"
 #include "pcrdr/connect.h"
 
 #include <stdlib.h>
@@ -43,10 +44,11 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 #define TIME_SLIECE             0.005           // s
 #define FULL_SPEED_TIME_SLIECE  0.010           // s
+
+#define SCHEDULER_TICK_INTERVAL 2
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
@@ -915,7 +917,7 @@ has_ready_co(struct pcinst *inst)
     return ret;
 }
 
-void
+bool
 pcintr_schedule(void *ctxt)
 {
     bool step_is_busy;
@@ -982,9 +984,31 @@ again:
     }
 
 out_sleep:
-    pcutils_usleep(SCHEDULE_SLEEP);
+    if (!inst || !inst->intr_heap) {
+        return false;
+    }
 
-    return;
+    heap = inst->intr_heap;
+    uint32_t next_timeout_ms = SCHEDULER_TICK_INTERVAL;
+
+    pcintr_coroutine_t co, co_tmp;
+    time_t now_ms = pcintr_monotonic_time_ms();
+    avl_for_each_element_safe(&heap->wait_timeout_crtns_avl, co, avl, co_tmp) {
+        if (co->stopped_timeout > now_ms) {
+            time_t diff = co->stopped_timeout - now_ms;
+            if (diff < (time_t)next_timeout_ms) {
+                next_timeout_ms = (uint32_t)diff;
+                if (next_timeout_ms == 0) {
+                    next_timeout_ms = 1;
+                }
+            }
+        }
+        break;
+    }
+
+    purc_runloop_set_timeout(inst->running_loop, pcintr_schedule, inst,
+            next_timeout_ms);
+    return false;
 }
 
 int pcintr_yield(
@@ -1228,4 +1252,3 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
 
     crtn->stopped_timeout = -1;
 }
-

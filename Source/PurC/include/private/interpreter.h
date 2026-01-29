@@ -940,7 +940,7 @@ pcintr_coroutine_get_uri(pcintr_coroutine_t co)
     return purc_atom_to_string(co->cid);
 }
 
-void
+bool
 pcintr_schedule(void *ctxt);
 
 void
@@ -1045,4 +1045,3 @@ time_t pcintr_tick_count();
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
-
