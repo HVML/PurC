@@ -27,6 +27,7 @@
 
 #include "purc-macros.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef void* purc_runloop_t;
@@ -132,6 +133,9 @@ PCA_EXPORT
 void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
+PCA_EXPORT
+void purc_runloop_set_idle_delay(purc_runloop_t runloop, uint64_t delay_us);
+
 typedef bool (*purc_runloop_io_callback)(int fd,
         int event, void *ctxt);
 
@@ -187,4 +191,3 @@ void purc_runloop_set_timeout(purc_runloop_t runloop,
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_RUNLOOP_H */
-

@@ -105,6 +105,15 @@ void RunLoop::setIdleCallback(PurCWTF::Function<void()>&& function)
     }
 }
 
+void RunLoop::setIdleCallbackDelay(Seconds delay)
+{
+    RunLoop& runloop = RunLoop::current();
+    gint64 currentTime = g_get_monotonic_time();
+    gint64 delayUs = std::max<gint64>(delay.microsecondsAs<gint64>(), 0);
+    gint64 targetTime = currentTime + std::min<gint64>(G_MAXINT64 - currentTime, delayUs);
+    g_source_set_ready_time(runloop.m_idleSource.get(), targetTime);
+}
+
 uintptr_t RunLoop::addFdMonitor(gint fd, GIOCondition condition,
             Function<gboolean(gint, GIOCondition)>&& callback)
 {

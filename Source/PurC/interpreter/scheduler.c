@@ -920,12 +920,15 @@ pcintr_schedule(void *ctxt)
 {
     bool step_is_busy;
     bool event_is_busy;
+    unsigned long long sleep_us = SCHEDULE_SLEEP;
+
     struct pcinst *inst = (struct pcinst *)ctxt;
+    struct pcintr_heap *heap = NULL;
     if (!inst) {
         goto out_sleep;
     }
 
-    struct pcintr_heap *heap = inst->intr_heap;
+    heap = inst->intr_heap;
     if (!heap) {
         goto out_sleep;
     }
@@ -982,7 +985,22 @@ again:
     }
 
 out_sleep:
-    pcutils_usleep(SCHEDULE_SLEEP);
+    sleep_us = SCHEDULE_SLEEP;
+    if (heap && !avl_is_empty(&heap->wait_timeout_crtns_avl)) {
+        pcintr_coroutine_t first = avl_first_element(&heap->wait_timeout_crtns_avl,
+                first, avl);
+        time_t now_ms = pcintr_monotonic_time_ms();
+        time_t delta_ms = first->stopped_timeout - now_ms;
+        time_t max_ms = SCHEDULE_SLEEP / 1000;
+        if (delta_ms <= 0) {
+            sleep_us = 0;
+        }
+        else if (delta_ms < max_ms) {
+            sleep_us = (unsigned long long)delta_ms * 1000ull;
+        }
+    }
+
+    purc_runloop_set_idle_delay(inst ? inst->running_loop : NULL, sleep_us);
 
     return;
 }

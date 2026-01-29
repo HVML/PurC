@@ -100,6 +100,16 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
+void purc_runloop_set_idle_delay(purc_runloop_t runloop, uint64_t delay_us)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    if (runloop) {
+        ((RunLoop*)runloop)->setIdleCallbackDelay(PurCWTF::Seconds::fromMicroseconds(delay_us));
+    }
+}
+
 static int
 to_runloop_io_event(GIOCondition condition)
 {

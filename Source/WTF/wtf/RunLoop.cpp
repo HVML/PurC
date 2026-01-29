@@ -150,7 +150,7 @@ void RunLoop::performWork()
 
             function = m_functionQueue.takeFirst();
         }
-        
+
         function();
     }
 
@@ -182,5 +182,11 @@ void RunLoop::suspendFunctionDispatchForCurrentCycle()
     // Wake up (even if there is nothing to do) to disable suspension.
     wakeUp();
 }
+
+#if !USE(GLIB_EVENT_LOOP) && !USE(GENERIC_EVENT_LOOP)
+void RunLoop::setIdleCallbackDelay(Seconds)
+{
+}
+#endif
 
 } // namespace PurCWTF

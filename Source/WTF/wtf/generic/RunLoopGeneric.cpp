@@ -27,6 +27,8 @@
 #include "config.h"
 #include <wtf/RunLoop.h>
 
+#if USE(GENERIC_EVENT_LOOP)
+
 namespace PurCWTF {
 
 class RunLoop::TimerBase::ScheduledTask : public ThreadSafeRefCounted<ScheduledTask> {
@@ -194,6 +196,10 @@ void RunLoop::setWakeUpCallback(PurCWTF::Function<void()>&& function)
     RunLoop::current().m_wakeUpCallback = WTFMove(function);
 }
 
+void RunLoop::setIdleCallbackDelay(Seconds)
+{
+}
+
 // RunLoop operations are thread-safe. These operations can be called from outside of the RunLoop's thread.
 // For example, WorkQueue::{dispatch, dispatchAfter} call the operations of the WorkQueue thread's RunLoop
 // from the caller's thread.
@@ -316,3 +322,5 @@ Seconds RunLoop::TimerBase::secondsUntilFire() const
 }
 
 } // namespace PurCWTF
+
+#endif
