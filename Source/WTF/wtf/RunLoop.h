@@ -83,7 +83,6 @@ public:
     WTF_EXPORT_PRIVATE static void run();
     WTF_EXPORT_PRIVATE void stop();
     WTF_EXPORT_PRIVATE void wakeUp();
-    WTF_EXPORT_PRIVATE void setIdleCallbackDelay(Seconds);
 
     WTF_EXPORT_PRIVATE void suspendFunctionDispatchForCurrentCycle();
 
