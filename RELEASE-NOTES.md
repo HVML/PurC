@@ -47,6 +47,7 @@ In this version, we fixed some bugs.
    - Tune some test cases for Ubuntu 26.04.
 * ENHANCEMENTS:
 * OPTIMIZATIONS:
+   - Optimize the coroutine scheduler resulted in a 40% performance improvement.
 * ADJUSTMENTS:
 * BUGFIXES:
    - Fixed some bugs of HVML parser and interpreter.
